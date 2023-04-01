@@ -25,7 +25,6 @@ return new class extends Migration
             $table->string('nationality');
             $table->string('passport');
             $table->string('gender');
-            $table->string('status');
             $table->timestamps();
         });
     }

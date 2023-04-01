@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\LoginController;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +22,21 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
+Route::post('login', [LoginController::class, 'login']);
+
 //Companies
+Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('companies', [CompanyController::class, 'index']);
 Route::post('company', [CompanyController::class, 'store']);
+Route::get('company/{$id}', [CompanyController::class, 'show']);
+
+
+//User
+
+Route::post('storeUser', [LoginController::class, 'store']);
+
+Route::post('logout', [LoginController::class, 'logout']);
+Route::get('users', [LoginController::class, 'index']);
+
+});
