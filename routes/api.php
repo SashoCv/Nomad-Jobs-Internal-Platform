@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\WorkerController;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -40,5 +43,23 @@ Route::get('company/{$id}', [CompanyController::class, 'show']);
 Route::post('storeUser', [LoginController::class, 'store']);
 Route::post('logout', [LoginController::class, 'logout']);
 Route::get('users', [LoginController::class, 'index']);
+
+
+// Candidates
+Route::get('candidates',[CandidateController::class,'index']);
+Route::post('personSave',[CandidateController::class, 'store']);
+Route::get('person/{id}',[CandidateController::class,'show']);
+
+
+// Worker
+Route::get('workers',[WorkerController::class,'index']);
+
+
+
+// Files
+Route::post('file',[FileController::class,'store']);
+
+Route::get('downloadFile/{file}',[FileController::class,'download']);
+
 
 });

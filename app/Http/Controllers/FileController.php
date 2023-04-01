@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\File;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
@@ -35,7 +36,31 @@ class FileController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $file = new File();
+
+        if ($request->hasFile('file')) {
+            Storage::disk('public')->put('files', $request->file('file'));
+            $name = Storage::disk('public')->put('files', $request->file('file'));
+            $file->filePath = $name;
+            $file->fileName = $request->file('file')->getClientOriginalName();
+        }
+
+        $file->candidate_id = $request->candidate_id;
+        $file->category_id = $request->category_id;
+
+        if ($file->save()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $file,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+            ]);
+        }
     }
 
     /**
@@ -44,9 +69,10 @@ class FileController extends Controller
      * @param  \App\Models\File  $file
      * @return \Illuminate\Http\Response
      */
-    public function show(File $file)
+    public function downloadFile(File $file)
     {
-        //
+        $pathToFile = public_path('storage/' . $file->filePath);
+        return response()->download($pathToFile);
     }
 
     /**
