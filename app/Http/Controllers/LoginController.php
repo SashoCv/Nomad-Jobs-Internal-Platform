@@ -18,11 +18,19 @@ class LoginController extends Controller
     {
         $users = User::with(['company', 'role'])->get();
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $users,
-        ]);
+        if (Auth::user()->role_id == 1) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $users,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+            ]);
+        }
     }
 
 
@@ -66,53 +74,61 @@ class LoginController extends Controller
         }
     }
 
-    public function logout(Request $request)
+    public function logout()
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        auth()->user()->tokens()->delete();
+
 
         return response()->json([
             'success' => true,
             'status' => 200,
-            'data' => [],
+            'data' => []
         ]);
     }
 
 
     public function store(Request $request)
     {
-        $request->validate(
-            [
-                'name' => 'required',
-                'email' => 'required|email',
-                'password' => 'required',
-                'role_id' => 'required|int'
-            ],
-            [
-                'name' => 'You must to enter a name!',
-                'email' => 'You must to enter a email!',
-                'password' => 'You must to enter a password!',
-                'role_id' => 'You have to choose the role of the user!'
-            ]
-        );
+        
+        if (Auth::user()->role_id == 1) {
+            $request->validate(
+                [
+                    'name' => 'required',
+                    'email' => 'required|email',
+                    'password' => 'required',
+                    'role_id' => 'required|int'
+                ],
+                [
+                    'name' => 'You must to enter a name!',
+                    'email' => 'You must to enter a email!',
+                    'password' => 'You must to enter a password!',
+                    'role_id' => 'You have to choose the role of the user!'
+                ]
+            );
 
-        $user = new User();
+            $user = new User();
 
-        $user->firstName = $request->firstName;
-        $user->lastName = $request->lastName;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->role_id = $request->role_id;
-        $user->company_id = $request->companyId;
+            $user->firstName = $request->firstName;
+            $user->lastName = $request->lastName;
+            $user->email = $request->email;
+            $user->password = bcrypt($request->password);
+            $user->role_id = $request->role_id;
+            $user->company_id = $request->companyId;
 
 
-        if ($user->save()) {
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $user,
-            ]);
+            if ($user->save()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $user,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 500,
+                    'data' => []
+                ]);
+            }
         } else {
             return response()->json([
                 'success' => false,

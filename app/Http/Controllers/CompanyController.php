@@ -79,13 +79,19 @@ class CompanyController extends Controller
      */
     public function show($id)
     {
-        $candidates = Candidate::with(['status','type'])->where('company_id','=',$id)->get();
+        $candidates = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
+            ->where('type_id', '=', 1)
+            ->get();
 
-        if ($candidates != null) {
+        $workers = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
+            ->where('type_id', '=', 2)
+            ->get();
+
+        if ($candidates != null || $workers != null) {
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => $candidates,
+                'data' => [$candidates, $workers],
             ]);
         } else {
             return response()->json([
