@@ -50,20 +50,20 @@ Route::delete('userDelete/{id}', [LoginController::class, 'destroy']);
 
 
 
-// Candidates
+// Candidates, Worker
 Route::get('candidates',[CandidateController::class,'index']);
+Route::get('workers',[WorkerController::class,'index']);
 Route::post('personSave',[CandidateController::class, 'store']);
 Route::get('person/{id}',[CandidateController::class,'show']);
-
-
-// Worker
-Route::get('workers',[WorkerController::class,'index']);
+Route::put('personUpdate/{id}',[CandidateController::class, 'update']);
+Route::delete('personDelete/{id}',[CandidateController::class, 'destroy']);
 
 
 
 // Files
 Route::post('file',[FileController::class,'store']);
 Route::get('downloadFile/{file}',[FileController::class,'download']);
+Route::delete('fileDelete/{id}',[FileController::class, 'destroy']);
 
 
 });

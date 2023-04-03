@@ -100,13 +100,13 @@ class CandidateController extends Controller
      */
     public function show($id)
     {
-        $person = File::with(['candidate','category'])->where('candidate_id','=',$id)->get();
+        $files = File::with(['candidate', 'category'])->where('candidate_id', '=', $id)->get();
 
         if (isset($person)) {
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => $person,
+                'data' => $files,
             ]);
         } else {
             return response()->json([
@@ -135,9 +135,36 @@ class CandidateController extends Controller
      * @param  \App\Models\Candidate  $candidate
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Candidate $candidate)
+    public function update(Request $request, $id)
     {
-        //
+        $person = Candidate::where('id', '=', $id)->first();
+
+        $person->status_id = $request->status_id;
+        $person->type_id = $request->type_id;
+        $person->company_id = $request->company_id;
+        $person->firstName = $request->firstName;
+        $person->lastName = $request->lastName;
+        $person->gender = $request->gender;
+        $person->email = $request->email;
+        $person->nationality = $request->nationality;
+        $person->date = $request->date;
+        $person->phoneNumber = $request->phoneNumber;
+        $person->address = $request->address;
+        $person->passport = $request->passport;
+
+        if ($person->save()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $person,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+            ]);
+        }
     }
 
     /**
@@ -146,8 +173,16 @@ class CandidateController extends Controller
      * @param  \App\Models\Candidate  $candidate
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Candidate $candidate)
+    public function destroy($id)
     {
-        //
+        $personDelete = Candidate::findOrFail($id);
+
+        if ($personDelete->delete()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Proof! Your employ has been deleted!',
+            ]);
+        }
     }
 }
