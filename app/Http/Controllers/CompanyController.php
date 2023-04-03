@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Candidate;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class CompanyController extends Controller
@@ -16,10 +17,12 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        $companies = Company::all();
+        if (Auth::user()->role_id == 1) {
+            $companies = Company::all();
 
-        $headers = ['Access-Control-Allow-Origin' => '"*"', 'Content-Type' => 'application/json; charset=utf-8'];
-        return response()->json($companies, 200, $headers, JSON_UNESCAPED_UNICODE);
+            $headers = ['Access-Control-Allow-Origin' => '"*"', 'Content-Type' => 'application/json; charset=utf-8'];
+            return response()->json($companies, 200, $headers, JSON_UNESCAPED_UNICODE);
+        }
     }
 
     /**
@@ -40,34 +43,37 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        $company = new Company();
+        if (Auth::user()->role_id == 1) {
 
-        if ($request->hasFile('companyLogo')) {
-            Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
-            $name = Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
-            $company->logoPath = $name;
-            $company->logoName = $request->file('companyLogo')->getClientOriginalName();
-        }
+            $company = new Company();
 
-        $company->nameOfCompany = $request->nameOfCompany;
-        $company->address = $request->address;
-        $company->email = $request->email;
-        $company->website = $request->website;
-        $company->phoneNumber = $request->phoneNumber;
+            if ($request->hasFile('companyLogo')) {
+                Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
+                $name = Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
+                $company->logoPath = $name;
+                $company->logoName = $request->file('companyLogo')->getClientOriginalName();
+            }
+
+            $company->nameOfCompany = $request->nameOfCompany;
+            $company->address = $request->address;
+            $company->email = $request->email;
+            $company->website = $request->website;
+            $company->phoneNumber = $request->phoneNumber;
 
 
-        if ($company->save()) {
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $company,
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => []
-            ]);
+            if ($company->save()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $company,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 500,
+                    'data' => []
+                ]);
+            }
         }
     }
 
@@ -122,31 +128,34 @@ class CompanyController extends Controller
      */
     public function update(Request $request, Company $company)
     {
-        if ($request->hasFile('companyLogo')) {
-            Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
-            $name = Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
-            $company->logoPath = $name;
-            $company->logoName = $request->file('companyLogo')->getClientOriginalName();
-        }
+        if (Auth::user()->role_id == 1) {
 
-        $company->nameOfCompany = $request->nameOfCompany;
-        $company->address = $request->address;
-        $company->email = $request->email;
-        $company->website = $request->website;
-        $company->phoneNumber = $request->phoneNumber;
+            if ($request->hasFile('companyLogo')) {
+                Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
+                $name = Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
+                $company->logoPath = $name;
+                $company->logoName = $request->file('companyLogo')->getClientOriginalName();
+            }
 
-        if ($company->save()) {
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $company,
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => [],
-            ]);
+            $company->nameOfCompany = $request->nameOfCompany;
+            $company->address = $request->address;
+            $company->email = $request->email;
+            $company->website = $request->website;
+            $company->phoneNumber = $request->phoneNumber;
+
+            if ($company->save()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $company,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 500,
+                    'data' => [],
+                ]);
+            }
         }
     }
 
@@ -158,14 +167,19 @@ class CompanyController extends Controller
      */
     public function destroy($id)
     {
-        $companyDelete = Company::findOrFail($id);
+        if (Auth::user()->role_id == 1) {
 
-        if ($companyDelete->delete()) {
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'message' => 'Proof! Your Company has been deleted!',
-            ]);
+            $companyDelete = Company::findOrFail($id);
+
+            if ($companyDelete->delete()) {
+                unlink(storage_path() . '/app/public/' . $companyDelete->logoPath);
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'message' => 'Proof! Your Company has been deleted!',
+                ]);
+            }
         }
     }
 }
