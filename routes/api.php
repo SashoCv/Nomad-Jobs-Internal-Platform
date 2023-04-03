@@ -35,7 +35,9 @@ Route::middleware('auth:sanctum')->group(function () {
 //Companies
 Route::get('companies', [CompanyController::class, 'index']);
 Route::post('company', [CompanyController::class, 'store']);
-Route::get('company/{$id}', [CompanyController::class, 'show']);
+Route::get('company/{id}', [CompanyController::class, 'show']);
+Route::put('companyUpdate/{company}', [CompanyController::class, 'update']);
+Route::delete('companyDelete/{id}', [CompanyController::class, 'destroy']);
 
 
 //User
@@ -43,6 +45,9 @@ Route::get('company/{$id}', [CompanyController::class, 'show']);
 Route::post('storeUser', [LoginController::class, 'store']);
 Route::post('logout', [LoginController::class, 'logout']);
 Route::get('users', [LoginController::class, 'index']);
+Route::put('userUpdate/{id}', [LoginController::class, 'update']);
+Route::delete('userDelete/{id}', [LoginController::class, 'destroy']);
+
 
 
 // Candidates
@@ -58,7 +63,6 @@ Route::get('workers',[WorkerController::class,'index']);
 
 // Files
 Route::post('file',[FileController::class,'store']);
-
 Route::get('downloadFile/{file}',[FileController::class,'download']);
 
 

@@ -89,7 +89,7 @@ class LoginController extends Controller
 
     public function store(Request $request)
     {
-        
+
         if (Auth::user()->role_id == 1) {
             $request->validate(
                 [
@@ -169,7 +169,28 @@ class LoginController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $user = User::where('id', '=', $id)->first();
+
+        $user->firstName = $request->firstName;
+        $user->lastName = $request->lastName;
+        $user->email = $request->email;
+        $user->password = bcrypt($request->password);
+        $user->role_id = $request->role_id;
+        $user->company_id = $request->companyId;
+
+        if ($user->save()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $user,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ]);
+        }
     }
 
     /**
@@ -180,6 +201,14 @@ class LoginController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $userDelete = User::findOrFail($id);
+
+        if ($userDelete->delete()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Proof! Your User has been deleted!',
+            ]);
+        }
     }
 }

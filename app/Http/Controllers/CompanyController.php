@@ -122,7 +122,32 @@ class CompanyController extends Controller
      */
     public function update(Request $request, Company $company)
     {
-        //
+        if ($request->hasFile('companyLogo')) {
+            Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
+            $name = Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
+            $company->logoPath = $name;
+            $company->logoName = $request->file('companyLogo')->getClientOriginalName();
+        }
+
+        $company->nameOfCompany = $request->nameOfCompany;
+        $company->address = $request->address;
+        $company->email = $request->email;
+        $company->website = $request->website;
+        $company->phoneNumber = $request->phoneNumber;
+
+        if ($company->save()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $company,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => [],
+            ]);
+        }
     }
 
     /**
@@ -131,8 +156,16 @@ class CompanyController extends Controller
      * @param  \App\Models\Company  $company
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Company $company)
+    public function destroy($id)
     {
-        //
+        $companyDelete = Company::findOrFail($id);
+
+        if ($companyDelete->delete()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Proof! Your Company has been deleted!',
+            ]);
+        }
     }
 }
