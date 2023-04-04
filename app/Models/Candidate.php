@@ -19,4 +19,10 @@ class Candidate extends Model
     {
         return $this->belongsTo(Status::class,'status_id');
     }
+
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class,'company_id');
+    }
 }

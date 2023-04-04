@@ -4,6 +4,7 @@ use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\WorkerController;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
@@ -64,6 +65,13 @@ Route::delete('personDelete/{id}',[CandidateController::class, 'destroy']);
 Route::post('file',[FileController::class,'store']);
 Route::get('downloadFile/{file}',[FileController::class,'download']);
 Route::delete('fileDelete/{id}',[FileController::class, 'destroy']);
+
+
+// Search
+Route::get('searchName',[SearchController::class,'searchName']);
+Route::get('searchCompany',[SearchController::class,'searchCompany']);
+Route::get('searchStatus',[SearchController::class,'searchStatus']);
+
 
 
 });
