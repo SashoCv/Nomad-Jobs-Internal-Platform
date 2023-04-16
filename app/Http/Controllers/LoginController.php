@@ -4,16 +4,34 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+    public function user(Request $request)
+    {
+        try {
+            $user_id = $request->user()->id;
+            $user = User::with('role')->where('id', '=', $user_id)->first();
+
+            return response()->json([
+                'success' => true,
+                'status' => 201,
+                'data' => $user
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ]);
+        }
+    }
+
+
     public function index()
     {
         $users = User::with(['company', 'role'])->get();
@@ -53,7 +71,7 @@ class LoginController extends Controller
             $token = $user->createToken('token')->plainTextToken;
             $user->token = $token;
 
-            if ($user->role->roleName == 'admin' && $user->role->roleName == 'nomadOffice') {
+            if ($user->role->roleName == 'admin' || $user->role->roleName == 'nomadOffice') {
                 $companies = Company::all();
             } else {
                 $companies = Company::where('id', '=', $user->company_id)->get();
@@ -63,6 +81,9 @@ class LoginController extends Controller
                 'success' => true,
                 'status' => 200,
                 'data' => $companies,
+                'role' => $user->role,
+                'firstName' => $user->firstName,
+                'lastName' => $user->lastName,
                 'token' => $token
             ]);
         } else {

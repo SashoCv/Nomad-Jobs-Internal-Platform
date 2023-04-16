@@ -33,45 +33,46 @@ Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
-//Companies
-Route::get('companies', [CompanyController::class, 'index']);
-Route::post('company', [CompanyController::class, 'store']);
-Route::get('company/{id}', [CompanyController::class, 'show']);
-Route::put('companyUpdate/{company}', [CompanyController::class, 'update']);
-Route::delete('companyDelete/{id}', [CompanyController::class, 'destroy']);
+
+    Route::get('user', [LoginController::class, 'user'])->name('user');
 
 
-//User
-
-Route::post('storeUser', [LoginController::class, 'store']);
-Route::post('logout', [LoginController::class, 'logout']);
-Route::get('users', [LoginController::class, 'index']);
-Route::put('userUpdate/{id}', [LoginController::class, 'update']);
-Route::delete('userDelete/{id}', [LoginController::class, 'destroy']);
-
+    //Companies
+    Route::get('companies', [CompanyController::class, 'index']);
+    Route::post('company', [CompanyController::class, 'store']);
+    Route::get('company/{id}', [CompanyController::class, 'show']);
+    Route::put('companyUpdate/{company}', [CompanyController::class, 'update']);
+    Route::delete('companyDelete/{id}', [CompanyController::class, 'destroy']);
 
 
-// Candidates, Worker
-Route::get('candidates',[CandidateController::class,'index']);
-Route::get('workers',[WorkerController::class,'index']);
-Route::post('personSave',[CandidateController::class, 'store']);
-Route::get('person/{id}',[CandidateController::class,'show']);
-Route::put('personUpdate/{id}',[CandidateController::class, 'update']);
-Route::delete('personDelete/{id}',[CandidateController::class, 'destroy']);
+    //User
+
+    Route::post('storeUser', [LoginController::class, 'store']);
+    Route::post('logout', [LoginController::class, 'logout']);
+    Route::get('users', [LoginController::class, 'index']);
+    Route::put('userUpdate/{id}', [LoginController::class, 'update']);
+    Route::delete('userDelete/{id}', [LoginController::class, 'destroy']);
 
 
 
-// Files
-Route::post('file',[FileController::class,'store']);
-Route::get('downloadFile/{file}',[FileController::class,'download']);
-Route::delete('fileDelete/{id}',[FileController::class, 'destroy']);
-
-
-// Search
-Route::get('searchName',[SearchController::class,'searchName']);
-Route::get('searchCompany',[SearchController::class,'searchCompany']);
-Route::get('searchStatus',[SearchController::class,'searchStatus']);
+    // Candidates, Worker
+    Route::get('candidates', [CandidateController::class, 'index']);
+    Route::get('workers', [WorkerController::class, 'index']);
+    Route::post('personSave', [CandidateController::class, 'store']);
+    Route::get('person/{id}', [CandidateController::class, 'show']);
+    Route::put('personUpdate/{id}', [CandidateController::class, 'update']);
+    Route::delete('personDelete/{id}', [CandidateController::class, 'destroy']);
 
 
 
+    // Files
+    Route::post('file', [FileController::class, 'store']);
+    Route::get('downloadFile/{file}', [FileController::class, 'download']);
+    Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
+
+
+    // Search
+    Route::get('searchName', [SearchController::class, 'searchName']);
+    Route::get('searchCompany', [SearchController::class, 'searchCompany']);
+    Route::get('searchStatus', [SearchController::class, 'searchStatus']);
 });

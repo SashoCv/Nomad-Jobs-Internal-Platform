@@ -17,11 +17,16 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             $companies = Company::all();
 
             $headers = ['Access-Control-Allow-Origin' => '"*"', 'Content-Type' => 'application/json; charset=utf-8'];
             return response()->json($companies, 200, $headers, JSON_UNESCAPED_UNICODE);
+        } else {
+            $company = Company::where('id', '=', Auth::user()->company_id)->first();
+
+            $headers = ['Access-Control-Allow-Origin' => '"*"', 'Content-Type' => 'application/json; charset=utf-8'];
+            return response()->json($company, 200, $headers, JSON_UNESCAPED_UNICODE);
         }
     }
 
