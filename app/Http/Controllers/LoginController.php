@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,6 +71,9 @@ class LoginController extends Controller
 
             $token = $user->createToken('token')->plainTextToken;
             $user->token = $token;
+            // $user->expires_at =
+            $expires_at =  Carbon::now()->addHours(7);
+            $expires_at = date($expires_at);
 
             if ($user->role->roleName == 'admin' || $user->role->roleName == 'nomadOffice') {
                 $companies = Company::all();
@@ -84,7 +88,8 @@ class LoginController extends Controller
                 'role' => $user->role,
                 'firstName' => $user->firstName,
                 'lastName' => $user->lastName,
-                'token' => $token
+                'token' => $token,
+                'expires_at' => $expires_at
             ]);
         } else {
             return response()->json([
