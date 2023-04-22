@@ -18,6 +18,7 @@ class CompanyController extends Controller
     public function index()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            
             $companies = Company::all();
 
             $headers = ['Access-Control-Allow-Origin' => '"*"', 'Content-Type' => 'application/json; charset=utf-8'];

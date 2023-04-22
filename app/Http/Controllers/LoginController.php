@@ -46,7 +46,7 @@ class LoginController extends Controller
         } else {
             return response()->json([
                 'success' => false,
-                'status' => 500,
+                'status' => 401,
                 'data' => [],
             ]);
         }
@@ -71,7 +71,6 @@ class LoginController extends Controller
 
             $token = $user->createToken('token')->plainTextToken;
             $user->token = $token;
-            // $user->expires_at =
             $expires_at =  Carbon::now()->addHours(7);
             $expires_at = date($expires_at);
 
@@ -94,7 +93,7 @@ class LoginController extends Controller
         } else {
             return response()->json([
                 'success' => false,
-                'status' => 500,
+                'status' => 403,
                 'data' => []
             ]);
         }
