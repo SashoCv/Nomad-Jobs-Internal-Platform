@@ -62,6 +62,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('person/{id}', [CandidateController::class, 'show']);
     Route::put('personUpdate/{id}', [CandidateController::class, 'update']);
     Route::delete('personDelete/{id}', [CandidateController::class, 'destroy']);
+    Route::put('favoriteCandidate/{id}', [CandidateController::class, 'favoriteCandidate']);
+
 
 
 
