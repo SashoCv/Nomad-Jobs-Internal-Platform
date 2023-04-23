@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Status;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StatusController extends Controller
 {
@@ -14,7 +15,20 @@ class StatusController extends Controller
      */
     public function index()
     {
-        //
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            $statuses = Status::all();
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $statuses,
+            ]);
+        } else {
+            return response()->json([
+                'success' => true,
+                'status' => 401,
+                'data' => []
+            ]);
+        }
     }
 
     /**

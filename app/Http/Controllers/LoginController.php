@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class LoginController extends Controller
 {
@@ -138,8 +139,14 @@ class LoginController extends Controller
             $user->email = $request->email;
             $user->password = bcrypt($request->password);
             $user->role_id = $request->role_id;
-            $user->company_id = $request->companyId;
+            $user->company_id = $request->company_id;
 
+            if ($request->hasFile('userPicture')) {
+                Storage::disk('public')->put('userImages', $request->file('userPicture'));
+                $name = Storage::disk('public')->put('userImages', $request->file('userPicture'));
+                $user->userPicturePath = $name;
+                $user->userPictureName = $request->file('userPicture')->getClientOriginalName();
+            }
 
             if ($user->save()) {
                 return response()->json([
@@ -201,7 +208,14 @@ class LoginController extends Controller
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->role_id = $request->role_id;
-        $user->company_id = $request->companyId;
+        $user->company_id = $request->company_id;
+
+        if ($request->hasFile('userPicture')) {
+            Storage::disk('public')->put('userImages', $request->file('userPicture'));
+            $name = Storage::disk('public')->put('userImages', $request->file('userPicture'));
+            $user->userPicturePath = $name;
+            $user->userPictureName = $request->file('userPicture')->getClientOriginalName();
+        }
 
         if ($user->save()) {
             return response()->json([

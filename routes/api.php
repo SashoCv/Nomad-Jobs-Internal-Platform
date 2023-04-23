@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\StatusController;
 use App\Http\Controllers\WorkerController;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
@@ -77,4 +78,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('searchName', [SearchController::class, 'searchName']);
     Route::get('searchCompany', [SearchController::class, 'searchCompany']);
     Route::get('searchStatus', [SearchController::class, 'searchStatus']);
+
+
+
+    //Status
+
+    Route::get('statuses', [StatusController::class, 'index']);
 });
