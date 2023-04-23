@@ -66,6 +66,7 @@ class CompanyController extends Controller
             $company->website = $request->website;
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
+            $company->contactPerson = $request->contactPerson;
             
 
 
@@ -151,6 +152,7 @@ class CompanyController extends Controller
             $company->website = $request->website;
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
+            $company->contactPerson = $request->contactPerson;
 
 
             if ($company->save()) {
