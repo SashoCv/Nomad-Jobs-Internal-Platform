@@ -83,6 +83,12 @@ class CompanyController extends Controller
                     'data' => []
                 ]);
             }
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 403,
+                'data' => []
+            ]);
         }
     }
 

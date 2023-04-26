@@ -89,6 +89,7 @@ class LoginController extends Controller
                 'firstName' => $user->firstName,
                 'lastName' => $user->lastName,
                 'token' => $token,
+                'user_id' => Auth()->user()->id,
                 'expires_at' => $expires_at
             ]);
         } else {

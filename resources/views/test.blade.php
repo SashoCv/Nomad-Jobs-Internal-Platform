@@ -9,18 +9,34 @@
 </head>
 
 <body>
-    <form action="http://127.0.0.1:8001/api/storeUser" method="POST">
+    <form action="https://nomad-cloud.in/api/companyStore" method="POST" enctype="multipart/form-data">
 
-        @csrf
-        <input type="text" placeholder="firstName" name="firstName">
-        <input type="text" placeholder="lastName" name="lastName">
+        <input type="file" name="companyLogo">
+        <input type="text" placeholder="nameOfCompany" name="nameOfCompany">
+        <input type="text" placeholder="address" name="address">
         <input type="text" placeholder="email" name="email">
-        <input type="text" placeholder="password" name="password">
-        <input type="text" placeholder="role_id" name="role_id">
-        <input type="text" placeholder="company_id" name="company_id">
+        <input type="text" placeholder="website" name="website">
+        <input type="text" placeholder="phoneNumber" name="phoneNumber">
+        <input type="text" placeholder="EIK" name="EIK">
+        <input type="text" placeholder="contactPerson" name="contactPerson">
 
         <button type="submit">Submit</button>
     </form>
 </body>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    axios({
+            method: 'get',
+            url: 'https://nomad-cloud.in/api/companies',
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer 31|oGZpYKKnIz9KnEEqGIlDouoFg17796I0xpmZnw1j"
+            },
+        })
+        .then(function(response) {
+            console.log(response)
+        });
+</script>
 
 </html>

@@ -92,7 +92,10 @@ class CandidateController extends Controller
             $person->workingTime = $request->workingTime;
             $person->workingDays = $request->workingDays;
             $person->martialStatus = $request->martialStatus;
-            $person->favorite = 0;
+            $person->NKPD = $request->NKPD;
+            $person->jobPosition = $request->jobPosition;
+            $person->contactPeriod = $request->contactPeriod;
+            
 
             if ($request->hasFile('personPicture')) {
                 Storage::disk('public')->put('personImages', $request->file('personPicture'));
@@ -149,21 +152,6 @@ class CandidateController extends Controller
     }
 
 
-    public function favoriteCandidate($id)
-    {
-        $favoriteCandidate = Candidate::where('id', '=', $id)->first();
-
-        $favoriteCandidate->favorite = 1;
-
-        if ($favoriteCandidate->save()) {
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $favoriteCandidate,
-            ]);
-        }
-    }
-
     /**
      * Update the specified resource in storage.
      *
@@ -212,7 +200,10 @@ class CandidateController extends Controller
             $person->workingTime = $request->workingTime;
             $person->workingDays = $request->workingDays;
             $person->martialStatus = $request->martialStatus;
-           
+            $person->NKPD = $request->NKPD;
+            $person->jobPosition = $request->jobPosition;
+            $person->contactPeriod = $request->contactPeriod;
+            
 
             if ($request->hasFile('personPicture')) {
                 Storage::disk('public')->put('personImages', $request->file('personPicture'));
@@ -243,12 +234,28 @@ class CandidateController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Candidate  $candidate
-     * @return \Illuminate\Http\Response
-     */
+    public function worker($id)
+    {
+        $worker = Candidate::where('id','=',$id)->first();
+
+        $worker->type_id = 2;
+
+        if ($worker->save()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Your change status from candidate to worker',
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Something went wrong',
+            ]);
+        }
+    }
+
+    
     public function destroy($id)
     {
         $personDelete = Candidate::findOrFail($id);

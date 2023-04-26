@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\SearchController;
@@ -40,7 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Companies
     Route::get('companies', [CompanyController::class, 'index']);
-    Route::post('company', [CompanyController::class, 'store']);
+    Route::post('companyStore', [CompanyController::class, 'store']);
     Route::get('company/{id}', [CompanyController::class, 'show']);
     Route::put('companyUpdate/{company}', [CompanyController::class, 'update']);
     Route::delete('companyDelete/{id}', [CompanyController::class, 'destroy']);
@@ -63,7 +64,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('person/{id}', [CandidateController::class, 'show']);
     Route::put('personUpdate/{id}', [CandidateController::class, 'update']);
     Route::delete('personDelete/{id}', [CandidateController::class, 'destroy']);
-    Route::put('favoriteCandidate/{id}', [CandidateController::class, 'favoriteCandidate']);
+    Route::post('favoriteCandidate', [FavoriteController::class, 'store']);
+    Route::get('favoriteCandidates', [FavoriteController::class, 'index']);
+    Route::put('candidateToWorker/{id}', [CandidateController::class, 'worker']);
 
 
 
