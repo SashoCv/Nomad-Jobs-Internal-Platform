@@ -18,7 +18,7 @@ class CompanyController extends Controller
     public function index()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            
+
             $companies = Company::all();
 
             $headers = ['Access-Control-Allow-Origin' => '"*"', 'Content-Type' => 'application/json; charset=utf-8'];
@@ -67,7 +67,7 @@ class CompanyController extends Controller
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
             $company->contactPerson = $request->contactPerson;
-            
+
 
 
             if ($company->save()) {
@@ -100,27 +100,21 @@ class CompanyController extends Controller
      */
     public function show($id)
     {
-        $candidates = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
-            ->where('type_id', '=', 1)
-            ->get();
+        // $candidates = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
+        //     ->where('type_id', '=', 1)
+        //     ->get();
 
-        $workers = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
-            ->where('type_id', '=', 2)
-            ->get();
+        // $workers = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
+        //     ->where('type_id', '=', 2)
+        //     ->get();
 
-        if ($candidates != null || $workers != null) {
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => [$candidates, $workers],
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => []
-            ]);
-        }
+        $company = Company::where('id', '=', $id)->first();
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $company,
+        ]);
     }
 
     /**

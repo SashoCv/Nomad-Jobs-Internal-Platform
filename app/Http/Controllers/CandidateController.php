@@ -61,8 +61,6 @@ class CandidateController extends Controller
             $person->status_id = $request->status_id;
             $person->type_id = $request->type_id;
             $person->company_id = $request->company_id;
-            $person->firstName = $request->firstName;
-            $person->lastName = $request->lastName;
             $person->gender = $request->gender;
             $person->email = $request->email;
             $person->nationality = $request->nationality;
@@ -169,8 +167,6 @@ class CandidateController extends Controller
             $person->status_id = $request->status_id;
             $person->type_id = $request->type_id;
             $person->company_id = $request->company_id;
-            $person->firstName = $request->firstName;
-            $person->lastName = $request->lastName;
             $person->gender = $request->gender;
             $person->email = $request->email;
             $person->nationality = $request->nationality;

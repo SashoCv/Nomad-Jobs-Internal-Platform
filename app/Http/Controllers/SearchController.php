@@ -8,6 +8,83 @@ use Illuminate\Http\Request;
 class SearchController extends Controller
 {
 
+    public function searchCandidate(Request $request)
+    {
+        if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '') {
+
+            $result = Candidate::with(['company', 'status'])->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result
+            ]);
+        } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus == '') {
+
+            $result = Candidate::with(['company', 'status'])->where('company_id', '=', $request->searchCompany)->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result
+            ]);
+        } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus) {
+
+            $result = Candidate::with(['company', 'status'])->where('status_id', '=', $request->searchStatus)->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result
+            ]);
+        } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus) {
+
+            $result = Candidate::with(['company', 'status'])->where('status_id', '=', $request->searchStatus)
+                ->where('company_id', '=', $request->searchCompany)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result
+            ]);
+        } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus) {
+
+            $result = Candidate::with(['company', 'status'])->where('status_id', '=', $request->searchStatus)
+                ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result
+            ]);
+        } else if ($request->searchName && $request->searchCompany && $request->searchStatus == '') {
+
+            $result = Candidate::with(['company', 'status'])->where('company_id', '=', $request->searchCompany)
+                ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result
+            ]);
+        } else if ($request->searchName && $request->searchCompany && $request->searchStatus) {
+
+            $result = Candidate::with(['company', 'status'])->where('company_id', '=', $request->searchCompany)
+                ->where('status_id', '=', $request->searchStatus)
+                ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result
+            ]);
+        }
+    }
+
     public function searchName(Request $request)
     {
         if ($request->searchName) {
