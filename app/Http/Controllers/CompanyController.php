@@ -182,6 +182,11 @@ class CompanyController extends Controller
         if (Auth::user()->role_id == 1) {
 
             $companyDelete = Company::findOrFail($id);
+            $candidates = Candidate::where('company_id', '=', $id)->get();
+
+            foreach ($candidates as $candidate) {
+                $candidate->delete();
+            }
 
             if ($companyDelete->delete()) {
                 unlink(storage_path() . '/app/public/' . $companyDelete->logoPath);
