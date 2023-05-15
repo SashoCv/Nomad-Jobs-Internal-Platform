@@ -43,7 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('companies', [CompanyController::class, 'index']);
     Route::post('companyStore', [CompanyController::class, 'store']);
     Route::get('company/{id}', [CompanyController::class, 'show']);
-    Route::put('companyUpdate/{company}', [CompanyController::class, 'update']);
+    Route::post('companyUpdate/{id}', [CompanyController::class, 'update']);
     Route::delete('companyDelete/{id}', [CompanyController::class, 'destroy']);
 
 
@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Candidates, Worker
     Route::get('candidates', [CandidateController::class, 'index']);
+    Route::get('candidate/{id}', [CandidateController::class, 'showPerson']);
     Route::get('workers', [WorkerController::class, 'index']);
     Route::post('personSave', [CandidateController::class, 'store']);
     Route::get('person/{id}', [CandidateController::class, 'show']);

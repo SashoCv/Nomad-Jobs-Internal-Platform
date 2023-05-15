@@ -23,6 +23,8 @@ class CompanySeeder extends Seeder
             'phoneNumber' => 'test',
             'logoPath' => 'test',
             'logoName' => 'test',
+            'EIK' => 'test',
+            'contactPerson' => 'test'
         ]);
     }
 }

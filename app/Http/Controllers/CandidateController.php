@@ -92,8 +92,8 @@ class CandidateController extends Controller
             $person->martialStatus = $request->martialStatus;
             $person->NKPD = $request->NKPD;
             $person->jobPosition = $request->jobPosition;
-            $person->contactPeriod = $request->contactPeriod;
-            
+            $person->contractPeriod = $request->contractPeriod;
+
 
             if ($request->hasFile('personPicture')) {
                 Storage::disk('public')->put('personImages', $request->file('personPicture'));
@@ -132,22 +132,34 @@ class CandidateController extends Controller
      */
     public function show($id)
     {
-        $files = File::with(['candidate', 'category'])->where('candidate_id', '=', $id)->get();
+        $person = Candidate::with('files')->where('id','=',$id)->get();
 
         if (isset($person)) {
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => $files,
+                'data' => $person,
             ]);
         } else {
             return response()->json([
                 'success' => true,
-                'status' => 201,
+                'status' => 500,
                 'data' => [],
             ]);
         }
     }
+
+    public function showPerson($id)
+    {
+        $person = Candidate::where('id', '=', $id)->first();
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $person,
+        ]);
+    }
+
 
 
     /**
@@ -198,8 +210,8 @@ class CandidateController extends Controller
             $person->martialStatus = $request->martialStatus;
             $person->NKPD = $request->NKPD;
             $person->jobPosition = $request->jobPosition;
-            $person->contactPeriod = $request->contactPeriod;
-            
+            $person->contractPeriod = $request->contractPeriod;
+
 
             if ($request->hasFile('personPicture')) {
                 Storage::disk('public')->put('personImages', $request->file('personPicture'));
@@ -232,7 +244,7 @@ class CandidateController extends Controller
 
     public function worker($id)
     {
-        $worker = Candidate::where('id','=',$id)->first();
+        $worker = Candidate::where('id', '=', $id)->first();
 
         $worker->type_id = 2;
 
@@ -251,7 +263,7 @@ class CandidateController extends Controller
         }
     }
 
-    
+
     public function destroy($id)
     {
         $personDelete = Candidate::findOrFail($id);

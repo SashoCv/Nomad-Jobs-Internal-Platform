@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('candidate_id')->constrained();
             $table->foreignId('category_id')->constrained();
-            $table->string('filePath');
-            $table->string('fileName');
+            $table->string('filePath1');
+            $table->string('fileName1');
             $table->timestamps();
         });
     }

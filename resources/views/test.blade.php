@@ -9,16 +9,11 @@
 </head>
 
 <body>
-    <form action="https://nomad-cloud.in/api/companyStore" method="POST" enctype="multipart/form-data">
+    <form action="https://nomad-cloud.in/api/file" method="POST" enctype="multipart/form-data">
 
-        <input type="file" name="companyLogo">
-        <input type="text" placeholder="nameOfCompany" name="nameOfCompany">
-        <input type="text" placeholder="address" name="address">
-        <input type="text" placeholder="email" name="email">
-        <input type="text" placeholder="website" name="website">
-        <input type="text" placeholder="phoneNumber" name="phoneNumber">
-        <input type="text" placeholder="EIK" name="EIK">
-        <input type="text" placeholder="contactPerson" name="contactPerson">
+        <input type="file" name="file">
+        <input type="text" placeholder="category_id" name="category_id">
+        <input type="text" placeholder="candidate_id" name="candidate_id">
 
         <button type="submit">Submit</button>
     </form>

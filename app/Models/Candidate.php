@@ -20,6 +20,15 @@ class Candidate extends Model
         return $this->belongsTo(Status::class,'status_id');
     }
 
+    public function files()
+    {
+        return $this->hasMany(File::class);
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
 
     public function company()
     {
