@@ -93,6 +93,7 @@ class CandidateController extends Controller
             $person->NKPD = $request->NKPD;
             $person->jobPosition = $request->jobPosition;
             $person->contractPeriod = $request->contractPeriod;
+            $person->contractType = $request->contractType;
 
 
             if ($request->hasFile('personPicture')) {
@@ -211,6 +212,7 @@ class CandidateController extends Controller
             $person->NKPD = $request->NKPD;
             $person->jobPosition = $request->jobPosition;
             $person->contractPeriod = $request->contractPeriod;
+            $person->contractType = $request->contractType;
 
 
             if ($request->hasFile('personPicture')) {
