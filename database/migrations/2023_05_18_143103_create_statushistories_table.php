@@ -13,10 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('files', function (Blueprint $table) {
+        Schema::create('statushistories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('status_id')->constrained();
             $table->foreignId('candidate_id')->constrained();
-            $table->foreignId('category_id')->constrained();
+            $table->string('statusDate');
             $table->timestamps();
         });
     }
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('files');
+        Schema::dropIfExists('statushistories');
     }
 };

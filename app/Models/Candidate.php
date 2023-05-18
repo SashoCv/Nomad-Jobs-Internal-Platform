@@ -25,9 +25,9 @@ class Candidate extends Model
         return $this->hasMany(File::class);
     }
 
-    public function categories()
+    public function statusHistories()
     {
-        return $this->hasManyThrough(Category::class,File::class);
+        return $this->hasMany(Statushistory::class);
     }
 
     public function company()

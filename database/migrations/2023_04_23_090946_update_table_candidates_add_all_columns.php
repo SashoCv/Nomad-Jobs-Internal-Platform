@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('fullName')->nullable();
             $table->string('fullNameCyrillic')->nullable();
             $table->string('birthday')->nullable();
-            $table->string('placeOdBirth')->nullable();
+            $table->string('placeOfBirth')->nullable();
             $table->string('country')->nullable();
             $table->string('area')->nullable();
             $table->string('areaOfResidence')->nullable();

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class CategorySeeder extends Seeder
 {
@@ -14,6 +15,24 @@ class CategorySeeder extends Seeder
      */
     public function run()
     {
-        //
+        DB::table('categories')->insert([
+            'nameOfCategory' => 'Migration Documents',
+            'role_id' => 1
+        ]);
+
+        DB::table('categories')->insert([
+            'nameOfCategory' => 'Visa Documents',
+            'role_id' => 2
+        ]);
+
+        DB::table('categories')->insert([
+            'nameOfCategory' => 'Embassy Documents',
+            'role_id' => 1
+        ]);
+
+        DB::table('categories')->insert([
+            'nameOfCategory' => 'General Documents',
+            'role_id' => 3
+        ]);
     }
 }

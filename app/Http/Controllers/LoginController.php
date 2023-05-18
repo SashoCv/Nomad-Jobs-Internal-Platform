@@ -84,7 +84,6 @@ class LoginController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => $companies,
                 'role' => $user->role,
                 'firstName' => $user->firstName,
                 'lastName' => $user->lastName,

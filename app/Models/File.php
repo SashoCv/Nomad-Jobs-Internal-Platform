@@ -18,4 +18,8 @@ class File extends Model
     {
         return $this->belongsTo(Category::class,'category_id');
     }
+
+    protected $casts = [
+        'files' => 'array',
+    ];
 }
