@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CandidateController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
@@ -89,4 +90,11 @@ Route::middleware('auth:sanctum')->group(function () {
     //Status
 
     Route::get('statuses', [StatusController::class, 'index']);
+
+
+    // Categories
+
+    Route::get('categories', [CategoryController::class, 'index']);
+
+
 });

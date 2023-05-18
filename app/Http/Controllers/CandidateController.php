@@ -96,6 +96,7 @@ class CandidateController extends Controller
             $person->contractType = $request->contractType;
 
 
+
             if ($request->hasFile('personPicture')) {
                 Storage::disk('public')->put('personImages', $request->file('personPicture'));
                 $name = Storage::disk('public')->put('companyImages', $request->file('personPicture'));
@@ -134,6 +135,8 @@ class CandidateController extends Controller
     public function show($id)
     {
         $person = Candidate::with('files')->where('id','=',$id)->get();
+        
+    
 
         if (isset($person)) {
             return response()->json([
@@ -213,6 +216,7 @@ class CandidateController extends Controller
             $person->jobPosition = $request->jobPosition;
             $person->contractPeriod = $request->contractPeriod;
             $person->contractType = $request->contractType;
+
 
 
             if ($request->hasFile('personPicture')) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
@@ -14,7 +15,13 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
+        $categories = Category::all();
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $categories,
+        ]);
     }
 
     /**
@@ -35,7 +42,27 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        if (Auth::user()->role_id == 1) {
+
+            $category = new Category();
+
+            $category->role_id = $request->role_id;
+            $category->nameOfCategory = $request->nameOfCategory;
+
+            if ($category->save()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $category
+                ]);
+            }
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 401,
+                'data' => [],
+            ]);
+        }
     }
 
     /**

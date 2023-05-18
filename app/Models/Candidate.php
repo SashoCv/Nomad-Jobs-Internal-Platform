@@ -27,7 +27,7 @@ class Candidate extends Model
 
     public function categories()
     {
-        return $this->hasMany(Category::class);
+        return $this->hasManyThrough(Category::class,File::class);
     }
 
     public function company()

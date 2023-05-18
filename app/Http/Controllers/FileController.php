@@ -38,39 +38,42 @@ class FileController extends Controller
     {
         $file = new File();
 
-        if ($request->hasFile('file1')) {
-            Storage::disk('public')->put('files', $request->file('file1'));
-            $name = Storage::disk('public')->put('files', $request->file('file1'));
+        if ($request->hasFile('file1.file')) {
+            Storage::disk('public')->put('files', $request->file('file1.file'));
+            $name = Storage::disk('public')->put('files', $request->file('file1.file'));
             $file->filePath1 = $name;
-            $file->fileName1 = $request->file('file1')->getClientOriginalName();
+            $file->fileName1 = $request->input('file1.fileName');
         }
 
-        if ($request->hasFile('file2')) {
-            Storage::disk('public')->put('files', $request->file('file2'));
-            $name = Storage::disk('public')->put('files', $request->file('file2'));
+        if ($request->hasFile('file2.file')) {
+            Storage::disk('public')->put('files', $request->file('file2.file'));
+            $name = Storage::disk('public')->put('files', $request->file('file2.file'));
             $file->filePath2 = $name;
-            $file->fileName2 = $request->file('file2')->getClientOriginalName();
+            $file->fileName2 = $request->input('file2.fileName');
         }
 
-        if ($request->hasFile('file3')) {
-            Storage::disk('public')->put('files', $request->file('file3'));
-            $name = Storage::disk('public')->put('files', $request->file('file3'));
+
+        if ($request->hasFile('file3.file')) {
+            Storage::disk('public')->put('files', $request->file('file3.file'));
+            $name = Storage::disk('public')->put('files', $request->file('file3.file'));
             $file->filePath3 = $name;
-            $file->fileName3 = $request->file('file3')->getClientOriginalName();
+            $file->fileName3 = $request->input('file3.fileName');
         }
 
-        if ($request->hasFile('file4')) {
-            Storage::disk('public')->put('files', $request->file('file4'));
-            $name = Storage::disk('public')->put('files', $request->file('file4'));
+
+        if ($request->hasFile('file4.file')) {
+            Storage::disk('public')->put('files', $request->file('file4.file'));
+            $name = Storage::disk('public')->put('files', $request->file('file4.file'));
             $file->filePath4 = $name;
-            $file->fileName4 = $request->file('file4')->getClientOriginalName();
+            $file->fileName4 = $request->input('file4.fileName');
         }
 
-        if ($request->hasFile('file5')) {
-            Storage::disk('public')->put('files', $request->file('file5'));
-            $name = Storage::disk('public')->put('files', $request->file('file5'));
+
+        if ($request->hasFile('file5.file')) {
+            Storage::disk('public')->put('files', $request->file('file5.file'));
+            $name = Storage::disk('public')->put('files', $request->file('file5.file'));
             $file->filePath5 = $name;
-            $file->fileName5 = $request->file('file5')->getClientOriginalName();
+            $file->fileName5 = $request->input('file5.fileName');
         }
 
         $file->candidate_id = $request->candidate_id;

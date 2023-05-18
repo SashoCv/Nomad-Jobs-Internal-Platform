@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Category extends Model
 {
     use HasFactory;
+
+    public function file()
+    {
+        return $this->hasMany(File::class,'category_id');
+    }
 }
