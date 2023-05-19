@@ -65,11 +65,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('workers', [WorkerController::class, 'index']);
     Route::post('personSave', [CandidateController::class, 'store']);
     Route::get('person/{id}', [CandidateController::class, 'show']);
-    Route::put('personUpdate/{id}', [CandidateController::class, 'update']);
+    Route::post('personUpdate/{id}', [CandidateController::class, 'update']);
     Route::delete('personDelete/{id}', [CandidateController::class, 'destroy']);
     Route::post('favoriteCandidate', [FavoriteController::class, 'store']);
     Route::get('favoriteCandidates', [FavoriteController::class, 'index']);
-    Route::put('candidateToWorker/{id}', [CandidateController::class, 'worker']);
+    Route::post('candidateToWorker/{id}', [CandidateController::class, 'worker']);
+
 
 
 
@@ -102,4 +103,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('statusHistory/{id}', [StatushistoryController::class, 'show']);
     Route::post('statusHistory', [StatushistoryController::class, 'store']);
+    Route::delete('deleteStatusHistory/{id}', [StatushistoryController::class, 'destroy']);
 });

@@ -106,8 +106,16 @@ class StatushistoryController extends Controller
      * @param  \App\Models\Statushistory  $statushistory
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Statushistory $statushistory)
+    public function destroy($id)
     {
-        //
+        $statusHistory = Statushistory::findOrFail($id);
+
+        if ($statusHistory->delete()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Proof! Your Status date has been deleted!',
+            ]);
+        }
     }
 }
