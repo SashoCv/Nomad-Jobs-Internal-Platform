@@ -78,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Files
     Route::post('file', [FileController::class, 'store']);
     Route::get('downloadFile/{file}', [FileController::class, 'download']);
+    Route::get('filesForPerson/{id}', [FileController::class, 'show']);
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
 
 
@@ -97,6 +98,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Categories
 
     Route::get('categories', [CategoryController::class, 'index']);
+    Route::post('storeCategory', [CategoryController::class, 'store']);
+    Route::post('deleteCategory', [CategoryController::class, 'destroy']);
 
 
     // Status History

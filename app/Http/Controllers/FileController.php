@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -83,9 +84,17 @@ class FileController extends Controller
      * @param  \App\Models\File  $file
      * @return \Illuminate\Http\Response
      */
-    public function edit(File $file)
+    public function show($id)
     {
-        //
+        $files = File::where('candidate_id','=',$id)->get();
+        $categories = Category::where('candidate_id','=',null)->orWhere('candidate_id','=',$id)->get();
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'files' => $files,
+            'categories' => $categories
+        ]);
     }
 
     /**

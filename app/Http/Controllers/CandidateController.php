@@ -134,9 +134,7 @@ class CandidateController extends Controller
      */
     public function show($id)
     {
-        $person = Candidate::with('files')->where('id', '=', $id)->first();
-
-
+        $person = Candidate::with(['files','categories'])->where('id', '=', $id)->first();
 
         if (isset($person)) {
             return response()->json([

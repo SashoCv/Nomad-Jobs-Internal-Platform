@@ -9,7 +9,7 @@ class File extends Model
 {
     use HasFactory;
 
-    public function candidate()
+    public function candidates()
     {
         return $this->belongsTo(Candidate::class,'candidate_id');
     }
@@ -19,7 +19,5 @@ class File extends Model
         return $this->belongsTo(Category::class,'category_id');
     }
 
-    protected $casts = [
-        'files' => 'array',
-    ];
+
 }

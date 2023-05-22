@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -48,6 +49,8 @@ class CategoryController extends Controller
 
             $category->role_id = $request->role_id;
             $category->nameOfCategory = $request->nameOfCategory;
+            $category->candidate_id = $request->candidate_id;
+            $category->isGenerated = 0;
 
             if ($category->save()) {
                 return response()->json([
@@ -105,8 +108,26 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Category $category)
+    public function destroy(Request $request)
     {
-        //
+        $candidate_id = $request->candidate_id;
+        $category_id = $request->category_id;
+
+        $category = Category::where('id', '=', $category_id)->where('candidate_id', '=', $candidate_id)->first();
+
+        $files = File::where('category_id', '=', $category_id)->where('candidate_id', '=', $candidate_id)->get();
+
+        foreach ($files as $file) {
+            unlink(storage_path() . '/app/public/' . $file->filePath);
+            $file->delete();
+        }
+
+        if ($category->delete()) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Proof! Your category has been deleted!',
+            ]);
+        }
     }
 }

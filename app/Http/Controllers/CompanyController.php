@@ -67,8 +67,7 @@ class CompanyController extends Controller
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
             $company->contactPerson = $request->contactPerson;
-
-
+            $company->companyCity = $request->companyCity;
 
             if ($company->save()) {
                 return response()->json([

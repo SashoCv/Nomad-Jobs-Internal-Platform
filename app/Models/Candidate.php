@@ -34,4 +34,9 @@ class Candidate extends Model
     {
         return $this->belongsTo(Company::class,'company_id');
     }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
 }
