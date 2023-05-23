@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Favorite;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,9 +14,9 @@ class FavoriteController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index($id)
     {
-        $favoriteCandidates = Favorite::with('person')->where('user_id','==',Auth()->user()->id)->get();
+        $favoriteCandidates = User::with('favorites')->where('id','=',$id)->get();
 
         return response()->json([
             'success' => true,
@@ -46,7 +47,7 @@ class FavoriteController extends Controller
 
         $favorite->user_id = $request->user_id;
         $favorite->candidate_id = $request->candidate_id;
-        $favorite->favorite = true;
+        $favorite->favorite = 1;
 
         if ($favorite->save()) {
             return response()->json([

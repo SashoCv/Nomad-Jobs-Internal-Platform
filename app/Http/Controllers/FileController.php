@@ -87,7 +87,7 @@ class FileController extends Controller
     public function show($id)
     {
         $files = File::where('candidate_id','=',$id)->get();
-        $categories = Category::where('candidate_id','=',null)->orWhere('candidate_id','=',$id)->get();
+        $categories = Category::where('candidate_id','=',null)->orWhere('candidate_id','=',$id)->orderBy('category_id','desc')->get();
 
         return response()->json([
             'success' => true,

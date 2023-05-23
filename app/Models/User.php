@@ -55,4 +55,10 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Company::class,'company_id');
     }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+    
 }

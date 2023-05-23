@@ -68,7 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('personUpdate/{id}', [CandidateController::class, 'update']);
     Route::delete('personDelete/{id}', [CandidateController::class, 'destroy']);
     Route::post('favoriteCandidate', [FavoriteController::class, 'store']);
-    Route::get('favoriteCandidates', [FavoriteController::class, 'index']);
+    Route::get('favoriteCandidates/{id}', [FavoriteController::class, 'index']);
     Route::post('candidateToWorker/{id}', [CandidateController::class, 'worker']);
 
 
