@@ -87,6 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('searchCompany', [SearchController::class, 'searchCompany']);
     Route::get('searchStatus', [SearchController::class, 'searchStatus']);
     Route::get('searchCandidate', [SearchController::class, 'searchCandidate']);
+    Route::get('searchWorker', [SearchController::class, 'searchWorker']);
 
 
 
