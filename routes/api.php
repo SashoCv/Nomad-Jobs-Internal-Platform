@@ -54,15 +54,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('storeUser', [LoginController::class, 'store']);
     Route::post('logout', [LoginController::class, 'logout']);
     Route::get('users', [LoginController::class, 'index']);
-    Route::put('userUpdate/{id}', [LoginController::class, 'update']);
+    Route::get('user/{id}', [LoginController::class, 'show']);
+    Route::post('userUpdate/{id}', [LoginController::class, 'update']);
     Route::delete('userDelete/{id}', [LoginController::class, 'destroy']);
 
 
 
     // Candidates, Worker
-    Route::get('candidates', [CandidateController::class, 'index']);
+    // Route::get('candidates', [CandidateController::class, 'index']);
     Route::get('candidate/{id}', [CandidateController::class, 'showPerson']);
-    Route::get('workers', [WorkerController::class, 'index']);
+    // Route::get('workers', [WorkerController::class, 'index']);
     Route::post('personSave', [CandidateController::class, 'store']);
     Route::get('person/{id}', [CandidateController::class, 'show']);
     Route::post('personUpdate/{id}', [CandidateController::class, 'update']);

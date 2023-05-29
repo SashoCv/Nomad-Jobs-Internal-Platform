@@ -119,16 +119,14 @@ class LoginController extends Controller
         if (Auth::user()->role_id == 1) {
             $request->validate(
                 [
-                    'name' => 'required',
+                    'firstName' => 'required',
                     'email' => 'required|email',
                     'password' => 'required',
-                    'role_id' => 'required|int'
                 ],
                 [
-                    'name' => 'You must to enter a name!',
+                    'firstName' => 'You must to enter a name!',
                     'email' => 'You must to enter a email!',
                     'password' => 'You must to enter a password!',
-                    'role_id' => 'You have to choose the role of the user!'
                 ]
             );
 
@@ -178,7 +176,21 @@ class LoginController extends Controller
      */
     public function show($id)
     {
-        //
+        if (Auth::user()->role_id == 1) {
+            $user = User::where('id', '=', $id)->first();
+
+            return response()->json([
+                'success' => false,
+                'status' => 200,
+                'data' => $user
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 401,
+                'data' => ''
+            ]);
+        }
     }
 
     /**

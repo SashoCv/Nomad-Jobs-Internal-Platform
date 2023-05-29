@@ -16,7 +16,7 @@ class FavoriteController extends Controller
      */
     public function index($id)
     {
-        $favoriteCandidates = User::with('favorites')->where('id','=',$id)->get();
+        $favoriteCandidates = Favorite::where('user_id', '=', $id)->get();
 
         return response()->json([
             'success' => true,
@@ -49,19 +49,39 @@ class FavoriteController extends Controller
         $favorite->candidate_id = $request->candidate_id;
         $favorite->favorite = 1;
 
-        if ($favorite->save()) {
+        $favoriteCandidateExist = Favorite::where('user_id', '=', $request->user_id)->where('candidate_id', '=', $request->candidate_id)->first();
+
+        if ($favoriteCandidateExist === null) {
+            $favorite->save();
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
                 'data' => $favorite,
             ]);
         } else {
+            $favoriteCandidateExist->delete();
+
             return response()->json([
                 'success' => true,
-                'status' => 500,
-                'data' => [],
+                'status' => 200,
+                'data' => 'You have remove this candidate from your favorite list',
             ]);
         }
+
+        // if ($favorite->save()) {
+        //     return response()->json([
+        //         'success' => true,
+        //         'status' => 200,
+        //         'data' => $favorite,
+        //     ]);
+        // } else {
+        //     return response()->json([
+        //         'success' => false,
+        //         'status' => 500,
+        //         'data' => [],
+        //     ]);
+        // }
     }
 
     /**
