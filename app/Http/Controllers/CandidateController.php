@@ -284,18 +284,18 @@ class CandidateController extends Controller
         $personDelete = Candidate::findOrFail($id);
 
         $files = File::where('candidate_id', '=', $id)->get();
-        $categoriesForCandidate = Category::where('candidate_id', '=', $id)->get();
-
-        foreach($categoriesForCandidate as $category){
-            $category->delete();
-        }
-
+       
         foreach ($files as $file) {
             if (isset($file->filePath)) {
                 unlink(storage_path() . '/app/public/' . $file->filePath);
             }
 
             $file->delete();
+        }
+        $categoriesForCandidate = Category::where('candidate_id', '=', $id)->get();
+
+        foreach($categoriesForCandidate as $category){
+            $category->delete();
         }
 
         if ($personDelete->delete()) {

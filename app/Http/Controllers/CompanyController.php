@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Candidate;
 use App\Models\Company;
+use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -187,6 +188,11 @@ class CompanyController extends Controller
             $candidates = Candidate::where('company_id', '=', $id)->get();
 
             foreach ($candidates as $candidate) {
+                
+                $files = File::where('candidate_id','=',$candidate->id)->get();
+                foreach($files as $file){
+                    $file->delete();
+                }
                 $candidate->delete();
             }
 
