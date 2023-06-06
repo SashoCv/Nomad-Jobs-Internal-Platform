@@ -15,21 +15,13 @@ class StatusController extends Controller
      */
     public function index()
     {
-        if (Auth::user()->role_id == 1) {
-            
-            $statuses = Status::all();
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $statuses,
-            ]);
-        } else {
-            return response()->json([
-                'success' => true,
-                'status' => 401,
-                'data' => []
-            ]);
-        }
+        $statuses = Status::all();
+        
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $statuses,
+        ]);
     }
 
     /**

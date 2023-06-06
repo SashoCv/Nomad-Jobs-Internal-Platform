@@ -16,13 +16,31 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::all();
+        if (Auth::user()->role_id == 1) {
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $categories,
-        ]);
+            $categories = Category::all();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $categories,
+            ]);
+        } else if (Auth::user()->role_id == 2) {
+
+            $categories = Category::where('role_id', '=', 2)->orWhere('role_id', '=', 3)->get();
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $categories,
+            ]);
+        } else {
+            $categories = Category::where('role_id', '=', 3)->get();
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $categories,
+            ]);
+        }
     }
 
     /**
@@ -43,7 +61,7 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
             $category = new Category();
 

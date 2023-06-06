@@ -88,14 +88,33 @@ class FileController extends Controller
     public function show($id)
     {
         $files = File::where('candidate_id', '=', $id)->get();
-        $categories = Category::where('candidate_id', '=', null)->orWhere('candidate_id', '=', $id)->orderBy('id', 'asc')->get();
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'files' => $files,
-            'categories' => $categories
-        ]);
+        if (Auth::user()->role_id == 1) {
+            $categories = Category::where('candidate_id', '=', null)->orWhere('candidate_id', '=', $id)->orderBy('id', 'asc')->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'files' => $files,
+                'categories' => $categories
+            ]);
+        } else if (Auth::user()->role_id == 2) {
+            $categories = Category::where('candidate_id', '=', null)->orWhere('candidate_id', '=', $id)->where('role_id', '=', 2)->orWhere('role_id', '=', 3)->get();
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'files' => $files,
+                'categories' => $categories
+            ]);
+        } else if (Auth::user()->role_id == 3) {
+            $categories = Category::where('candidate_id', '=', null)->orWhere('candidate_id', '=', $id)->where('role_id', '=', 3)->get();
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'files' => $files,
+                'categories' => $categories
+            ]);
+        }
     }
 
     /**
@@ -118,7 +137,7 @@ class FileController extends Controller
      */
     public function destroy($id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
             $fileDelete = File::findOrFail($id);
 

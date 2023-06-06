@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidate;
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\File;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +52,7 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
             $company = new Company();
 
@@ -137,7 +139,7 @@ class CompanyController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
             $company = Company::where('id','=',$id)->first();
 
@@ -182,7 +184,7 @@ class CompanyController extends Controller
      */
     public function destroy($id)
     {
-        if (Auth::user()->role_id == 1) {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
             $companyDelete = Company::findOrFail($id);
             $candidates = Candidate::where('company_id', '=', $id)->get();
@@ -193,7 +195,20 @@ class CompanyController extends Controller
                 foreach($files as $file){
                     $file->delete();
                 }
+
+                $categories = Category::where('candidate_id','=',$candidate->id)->get();
+
+                foreach($categories as $category){
+                    $category->delete();
+                }
+
                 $candidate->delete();
+            }
+
+            $users = User::where('company_id','=',$id)->get();
+
+            foreach($users as $user){
+                $user->delete();
             }
 
             if ($companyDelete->delete()) {
