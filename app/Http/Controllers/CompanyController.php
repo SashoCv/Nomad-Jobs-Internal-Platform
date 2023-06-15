@@ -71,7 +71,9 @@ class CompanyController extends Controller
             $company->EIK = $request->EIK;
             $company->contactPerson = $request->contactPerson;
             $company->companyCity = $request->companyCity;
-
+            $company->EGN = $request->EGN;
+            $company->dateBornDirector = $request->dateBornDirector;
+            
             if ($company->save()) {
                 return response()->json([
                     'success' => true,
@@ -158,6 +160,8 @@ class CompanyController extends Controller
             $company->EIK = $request->EIK;
             $company->contactPerson = $request->contactPerson;
             $company->companyCity = $request->companyCity;
+            $company->EGN = $request->EGN;
+            $company->dateBornDirector = $request->dateBornDirector;
 
 
             if ($company->save()) {
