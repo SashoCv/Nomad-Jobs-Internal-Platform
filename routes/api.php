@@ -5,11 +5,14 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\WorkerController;
+use App\Models\Position;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -109,4 +112,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('statusHistory/{id}', [StatushistoryController::class, 'show']);
     Route::post('statusHistory', [StatushistoryController::class, 'store']);
     Route::delete('deleteStatusHistory/{id}', [StatushistoryController::class, 'destroy']);
+
+
+    // Job Positions
+
+    Route::get('allPositions', [PositionController::class, 'index']);
+    Route::post('storePosition', [PositionController::class, 'store']);
+    Route::post('updatePosition/{id}', [PositionController::class, 'update']);
+    Route::delete('deletePosition/{id}', [PositionController::class, 'destroy']);
+
+
+    // Industries
+
+    Route::get('allIndustries', [IndustryController::class, 'index']);
+    Route::post('storeIndustry', [IndustryController::class, 'store']);
+    Route::post('updateIndustry/{id}', [IndustryController::class, 'update']);
+    Route::delete('deleteIndustry/{id}', [IndustryController::class, 'destroy']);
 });

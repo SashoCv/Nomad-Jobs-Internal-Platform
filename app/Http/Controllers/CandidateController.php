@@ -91,10 +91,11 @@ class CandidateController extends Controller
             $person->workingTime = $request->workingTime;
             $person->workingDays = $request->workingDays;
             $person->martialStatus = $request->martialStatus;
-            $person->NKPD = $request->NKPD;
-            $person->jobPosition = $request->jobPosition;
+            // $person->NKPD = $request->NKPD;
+            // $person->jobPosition = $request->jobPosition;
             $person->contractPeriod = $request->contractPeriod;
             $person->contractType = $request->contractType;
+            $person->position_id = $request->position_id;
 
 
 
@@ -218,10 +219,12 @@ class CandidateController extends Controller
             $person->workingTime = $request->workingTime;
             $person->workingDays = $request->workingDays;
             $person->martialStatus = $request->martialStatus;
-            $person->NKPD = $request->NKPD;
-            $person->jobPosition = $request->jobPosition;
+            // $person->NKPD = $request->NKPD;
+            // $person->jobPosition = $request->jobPosition;
             $person->contractPeriod = $request->contractPeriod;
             $person->contractType = $request->contractType;
+            $person->position_id = $request->position_id;
+
 
 
             if ($request->hasFile('personPicture')) {
@@ -284,7 +287,7 @@ class CandidateController extends Controller
         $personDelete = Candidate::findOrFail($id);
 
         $files = File::where('candidate_id', '=', $id)->get();
-       
+
         foreach ($files as $file) {
             if (isset($file->filePath)) {
                 unlink(storage_path() . '/app/public/' . $file->filePath);
@@ -294,7 +297,7 @@ class CandidateController extends Controller
         }
         $categoriesForCandidate = Category::where('candidate_id', '=', $id)->get();
 
-        foreach($categoriesForCandidate as $category){
+        foreach ($categoriesForCandidate as $category) {
             $category->delete();
         }
 

@@ -22,7 +22,7 @@ class CompanyController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
-            $companies = Company::all();
+            $companies = Company::with('industry')->get();
 
             $headers = ['Access-Control-Allow-Origin' => '"*"', 'Content-Type' => 'application/json; charset=utf-8'];
             return response()->json($companies, 200, $headers, JSON_UNESCAPED_UNICODE);
@@ -73,7 +73,11 @@ class CompanyController extends Controller
             $company->companyCity = $request->companyCity;
             $company->EGN = $request->EGN;
             $company->dateBornDirector = $request->dateBornDirector;
-            
+            $company->addressOne = $request->addressOne;
+            $company->addressTwo = $request->addressTwo;
+            $company->addressThree = $request->addressThree;
+            $company->industry_id = $request->industry_id;
+
             if ($company->save()) {
                 return response()->json([
                     'success' => true,
@@ -112,7 +116,7 @@ class CompanyController extends Controller
         //     ->where('type_id', '=', 2)
         //     ->get();
 
-        $company = Company::where('id', '=', $id)->first();
+        $company = Company::with('industry')->where('id', '=', $id)->first();
 
         return response()->json([
             'success' => true,
@@ -143,7 +147,7 @@ class CompanyController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
-            $company = Company::where('id','=',$id)->first();
+            $company = Company::where('id', '=', $id)->first();
 
             if ($request->hasFile('companyLogo')) {
                 Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
@@ -162,8 +166,13 @@ class CompanyController extends Controller
             $company->companyCity = $request->companyCity;
             $company->EGN = $request->EGN;
             $company->dateBornDirector = $request->dateBornDirector;
+            $company->addressOne = $request->addressOne;
+            $company->addressTwo = $request->addressTwo;
+            $company->addressThree = $request->addressThree;
+            $company->industry_id = $request->industry_id;
 
 
+        
             if ($company->save()) {
                 return response()->json([
                     'success' => true,
@@ -194,24 +203,24 @@ class CompanyController extends Controller
             $candidates = Candidate::where('company_id', '=', $id)->get();
 
             foreach ($candidates as $candidate) {
-                
-                $files = File::where('candidate_id','=',$candidate->id)->get();
-                foreach($files as $file){
+
+                $files = File::where('candidate_id', '=', $candidate->id)->get();
+                foreach ($files as $file) {
                     $file->delete();
                 }
 
-                $categories = Category::where('candidate_id','=',$candidate->id)->get();
+                $categories = Category::where('candidate_id', '=', $candidate->id)->get();
 
-                foreach($categories as $category){
+                foreach ($categories as $category) {
                     $category->delete();
                 }
 
                 $candidate->delete();
             }
 
-            $users = User::where('company_id','=',$id)->get();
+            $users = User::where('company_id', '=', $id)->get();
 
-            foreach($users as $user){
+            foreach ($users as $user) {
                 $user->delete();
             }
 
