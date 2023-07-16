@@ -99,6 +99,7 @@ class CandidateController extends Controller
 
 
 
+
             if ($request->hasFile('personPicture')) {
                 Storage::disk('public')->put('personImages', $request->file('personPicture'));
                 $name = Storage::disk('public')->put('companyImages', $request->file('personPicture'));
@@ -136,7 +137,7 @@ class CandidateController extends Controller
      */
     public function show($id)
     {
-        $person = Candidate::with('categories')->where('id', '=', $id)->first();
+        $person = Candidate::with(['categories','position'])->where('id', '=', $id)->first();
 
         if (isset($person)) {
             return response()->json([
@@ -185,6 +186,24 @@ class CandidateController extends Controller
                 $file->delete();
             }
 
+            if($request->education === 'null'){
+                $education = Null;
+            } else {
+                $education = $request->education;
+            }
+           
+            if($request->specialty === 'null'){
+                $specialty = Null;
+            } else {
+                $specialty = $request->specialty;
+            }
+
+            if($request->qualification === 'null'){
+                $qualification = Null;
+            } else {
+                $qualification = $request->qualification;
+            }
+       
             $person = Candidate::where('id', '=', $id)->first();
 
             $person->status_id = $request->status_id;
@@ -211,9 +230,9 @@ class CandidateController extends Controller
             $person->passportIssuedOn = $request->passportIssuedOn;
             $person->addressOfWork = $request->addressOfWork;
             $person->nameOfFacility = $request->nameOfFacility;
-            $person->education = $request->education;
-            $person->specialty = $request->specialty;
-            $person->qualification = $request->qualification;
+            $person->education = $education;
+            $person->specialty = $specialty;
+            $person->qualification = $qualification;
             $person->contractExtensionPeriod = $request->contractExtensionPeriod;
             $person->salary = $request->salary;
             $person->workingTime = $request->workingTime;
@@ -239,10 +258,11 @@ class CandidateController extends Controller
             // }
 
             if ($person->save()) {
+                $newPerson = Candidate::with('position')->where('id','=',$id)->first();
                 return response()->json([
                     'success' => true,
                     'status' => 200,
-                    'data' => $person,
+                    'data' => $newPerson,
                 ]);
             } else {
                 return response()->json([

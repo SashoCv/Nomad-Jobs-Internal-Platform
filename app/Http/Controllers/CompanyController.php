@@ -77,6 +77,8 @@ class CompanyController extends Controller
             $company->addressTwo = $request->addressTwo;
             $company->addressThree = $request->addressThree;
             $company->industry_id = $request->industry_id;
+            $company->foreignersLC12 = $request->foreignersLC12;
+            
 
             if ($company->save()) {
                 return response()->json([
@@ -170,6 +172,8 @@ class CompanyController extends Controller
             $company->addressTwo = $request->addressTwo;
             $company->addressThree = $request->addressThree;
             $company->industry_id = $request->industry_id;
+            $company->foreignersLC12 = $request->foreignersLC12;
+
 
 
         
