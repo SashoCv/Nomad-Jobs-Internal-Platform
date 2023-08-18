@@ -15,7 +15,7 @@ class SearchController extends Controller
 
             if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -24,7 +24,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus == '' && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -33,7 +33,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -44,6 +44,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)
                     ->where('company_id', '=', $request->searchCompany)
+                    ->orderBy('date','DESC')
                     ->get();
 
                 return response()->json([
@@ -55,6 +56,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->orderBy('date','DESC')
                     ->get();
 
                 return response()->json([
@@ -66,6 +68,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with(['company', 'status','position'])->where('company_id', '=', $request->searchCompany)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)
+                    ->orderBy('date','DESC')
                     ->get();
 
                 return response()->json([
@@ -78,6 +81,7 @@ class SearchController extends Controller
                 $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)
                     ->where('status_id', '=', $request->searchStatus)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->orderBy('date','DESC')
                     ->get();
 
                 return response()->json([
@@ -86,7 +90,7 @@ class SearchController extends Controller
                     'data' => $result
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -95,7 +99,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -104,7 +108,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -113,7 +117,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -122,7 +126,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -131,7 +135,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -140,7 +144,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('status_id', '=', $request->searchStatus)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('status_id', '=', $request->searchStatus)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -149,7 +153,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -158,7 +162,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -169,7 +173,7 @@ class SearchController extends Controller
         } else {
             if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -178,7 +182,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus == '' && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -187,7 +191,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -199,6 +203,7 @@ class SearchController extends Controller
                 $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)
                     ->where('company_id', '=', $request->searchCompany)
                     ->where('company_id', '=', Auth::user()->company_id)
+                    ->orderBy('date','DESC')
                     ->get();
 
                 return response()->json([
@@ -211,6 +216,7 @@ class SearchController extends Controller
                 $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
                     ->where('company_id', '=', Auth::user()->company_id)
+                    ->orderBy('date','DESC')
                     ->get();
 
                 return response()->json([
@@ -223,6 +229,7 @@ class SearchController extends Controller
                 $result = Candidate::with(['company', 'status','position'])->where('company_id', '=', $request->searchCompany)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)
                     ->where('company_id', '=', Auth::user()->company_id)
+                    ->orderBy('date','DESC')
                     ->get();
 
                 return response()->json([
@@ -236,6 +243,7 @@ class SearchController extends Controller
                     ->where('status_id', '=', $request->searchStatus)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
                     ->where('company_id', '=', Auth::user()->company_id)
+                    ->orderBy('date','DESC')
                     ->get();
 
                 return response()->json([
@@ -244,7 +252,7 @@ class SearchController extends Controller
                     'data' => $result
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -253,7 +261,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -262,7 +270,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -271,7 +279,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -280,7 +288,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -289,7 +297,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -298,7 +306,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -307,7 +315,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,
@@ -316,7 +324,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status','position'])->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status','position'])->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->orderBy('date','DESC')->get();
 
                 return response()->json([
                     'success' => true,

@@ -151,6 +151,25 @@ class CompanyController extends Controller
 
             $company = Company::where('id', '=', $id)->first();
 
+            if($request->addressOne === 'null'){
+                $addressOne = Null;
+            } else {
+                $addressOne = $request->addressOne;
+            }
+
+            if($request->addressTwo === 'null'){
+                $addressTwo = Null;
+            } else {
+                $addressTwo = $request->addressTwo;
+            }
+
+            if($request->addressThree === 'null'){
+                $addressThree = Null;
+            } else {
+                $addressThree = $request->addressThree;
+            }
+           
+
             if ($request->hasFile('companyLogo')) {
                 Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
                 $name = Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
@@ -168,9 +187,9 @@ class CompanyController extends Controller
             $company->companyCity = $request->companyCity;
             $company->EGN = $request->EGN;
             $company->dateBornDirector = $request->dateBornDirector;
-            $company->addressOne = $request->addressOne;
-            $company->addressTwo = $request->addressTwo;
-            $company->addressThree = $request->addressThree;
+            $company->addressOne = $addressOne;
+            $company->addressTwo = $addressTwo;
+            $company->addressThree = $addressThree;
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
 

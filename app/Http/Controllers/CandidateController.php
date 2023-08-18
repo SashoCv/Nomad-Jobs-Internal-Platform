@@ -203,6 +203,24 @@ class CandidateController extends Controller
             } else {
                 $qualification = $request->qualification;
             }
+
+            if($request->address === 'null'){
+                $address = Null;
+            } else {
+                $address = $request->address;
+            }
+
+            if($request->area === 'null'){
+                $area = Null;
+            } else {
+                $area = $request->area;
+            }
+
+            if($request->areaOfResidence === 'null'){
+                $areaOfResidence = Null;
+            } else {
+                $areaOfResidence = $request->areaOfResidence;
+            }
        
             $person = Candidate::where('id', '=', $id)->first();
 
@@ -214,15 +232,15 @@ class CandidateController extends Controller
             $person->nationality = $request->nationality;
             $person->date = $request->date;
             $person->phoneNumber = $request->phoneNumber;
-            $person->address = $request->address;
+            $person->address = $address;
             $person->passport = $request->passport;
             $person->fullName = $request->fullName;
             $person->fullNameCyrillic = $request->fullNameCyrillic;
             $person->birthday = $request->birthday;
             $person->placeOfBirth = $request->placeOfBirth;
             $person->country = $request->country;
-            $person->area = $request->area;
-            $person->areaOfResidence = $request->areaOfResidence;
+            $person->area = $area;
+            $person->areaOfResidence = $areaOfResidence;
             $person->addressOfResidence = $request->addressOfResidence;
             $person->periodOfResidence = $request->periodOfResidence;
             $person->passportValidUntil = $request->passportValidUntil;
