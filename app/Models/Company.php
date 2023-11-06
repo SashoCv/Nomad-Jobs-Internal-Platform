@@ -13,4 +13,9 @@ class Company extends Model
     {
         return $this->belongsTo(Industry::class, 'industry_id');
     }
+
+    public function candidates()
+    {
+        return $this->hasMany(Candidate::class);
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('test');
 });
+
+
+Route::get('searchCompany', [SearchController::class, 'searchCompany']);
+Route::get('searchCandidateNew', [SearchController::class, 'searchCandidateNew']);

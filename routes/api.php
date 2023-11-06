@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CompanyCategoryController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyFileController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
@@ -64,9 +66,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Candidates, Worker
-    // Route::get('candidates', [CandidateController::class, 'index']);
+    Route::get('candidates', [CandidateController::class, 'index']);
     Route::get('candidate/{id}', [CandidateController::class, 'showPerson']);
-    // Route::get('workers', [WorkerController::class, 'index']);
+    Route::get('employees', [CandidateController::class, 'employees']);
     Route::post('personSave', [CandidateController::class, 'store']);
     Route::get('person/{id}', [CandidateController::class, 'show']);
     Route::post('personUpdate/{id}', [CandidateController::class, 'update']);
@@ -77,8 +79,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-
-
     // Files
     Route::post('file', [FileController::class, 'store']);
     Route::get('downloadFile/{file}', [FileController::class, 'download']);
@@ -86,11 +86,28 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
 
 
+
+    //CompanyFiles
+    Route::post('companyFileStore', [CompanyFileController::class, 'store']);
+    Route::get('companyFile/{id}', [CompanyFileController::class, 'show']);
+    Route::get('downloadCompanyFile/{file}', [CompanyFileController::class, 'download']);
+    Route::delete('companyFileDelete/{id}', [CompanyFileController::class, 'destroy']);
+
+
+    //Company Category 
+
+    Route::post('companyCategoryStore', [CompanyCategoryController::class, 'store']);
+    Route::post('deleteCompanyCategory', [CompanyCategoryController::class, 'destroy']);
+
+
+
+
+
     // Search
-    Route::get('searchName', [SearchController::class, 'searchName']);
     Route::get('searchCompany', [SearchController::class, 'searchCompany']);
-    Route::get('searchStatus', [SearchController::class, 'searchStatus']);
+    Route::get('searchDocuments', [SearchController::class, 'searchDocuments']);
     Route::get('searchCandidate', [SearchController::class, 'searchCandidate']);
+    Route::get('searchCandidateNew', [SearchController::class, 'searchCandidateNew']);
     Route::get('searchWorker', [SearchController::class, 'searchWorker']);
 
 
