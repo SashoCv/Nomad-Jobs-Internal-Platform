@@ -8,6 +8,8 @@ use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+
 
 class CandidateController extends Controller
 {
@@ -40,9 +42,7 @@ class CandidateController extends Controller
     }
 
 
-
-
-   public function employees()
+    public function employees()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             $query = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 2)->orderBy('id', 'desc');
@@ -114,6 +114,8 @@ class CandidateController extends Controller
             $person->position_id = $request->position_id;
             $person->dossierNumber = $request->dossierNumber;
             $person->notes = $request->notes;
+            $person->user_id = $request->user_id;
+
 
             if ($request->hasFile('personPassport')) {
                 Storage::disk('public')->put('personPassports', $request->file('personPassport'));
@@ -160,7 +162,7 @@ class CandidateController extends Controller
      */
     public function show($id)
     {
-        $person = Candidate::with(['categories', 'position'])->where('id', '=', $id)->first();
+        $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->first();
 
         if (isset($person)) {
             return response()->json([
@@ -188,6 +190,24 @@ class CandidateController extends Controller
         ]);
     }
 
+
+
+    public function showPersonNew($id)
+    {
+        $person = Candidate::where('id', '=', $id)->first();
+
+        $person = DB::table('candidates')
+            ->join('companies', 'companies.id', '=', 'candidates.company_id')
+            ->where('candidates.id', $id)
+            ->select('candidates.*', 'companies.nameOfCompany')->first();
+
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $person
+        ]);
+    }
 
 
     /**
@@ -265,13 +285,31 @@ class CandidateController extends Controller
                 $periodOfResidence = $request->periodOfResidence;
             }
 
+
+
             if ($request->contractExtensionPeriod === 'null') {
                 $contractExtensionPeriod = Null;
             } else {
                 $contractExtensionPeriod = $request->contractExtensionPeriod;
             }
 
+            if ($request->phoneNumber === 'null') {
+                $phoneNumber = Null;
+            } else {
+                $phoneNumber = $request->phoneNumber;
+            }
 
+            if ($request->email === 'null') {
+                $email = Null;
+            } else {
+                $email = $request->email;
+            }
+
+            if ($request->user_id === 'null') {
+                $userId = Null;
+            } else {
+                $userId = $request->user_id;
+            }
 
             $person = Candidate::where('id', '=', $id)->first();
 
@@ -279,10 +317,10 @@ class CandidateController extends Controller
             $person->type_id = $request->type_id;
             $person->company_id = $request->company_id;
             $person->gender = $request->gender;
-            $person->email = $request->email;
+            $person->email = $email;
             $person->nationality = $request->nationality;
             $person->date = $request->date;
-            $person->phoneNumber = $request->phoneNumber;
+            $person->phoneNumber = $phoneNumber;
             $person->address = $address;
             $person->passport = $request->passport;
             $person->fullName = $request->fullName;
@@ -312,6 +350,8 @@ class CandidateController extends Controller
             $person->position_id = $request->position_id;
             $person->dossierNumber = $dossierNumber;
             $person->notes = $notes;
+            $person->user_id = $userId;
+
 
             if ($request->hasFile('personPassport')) {
                 Storage::disk('public')->put('personPassports', $request->file('personPassport'));
@@ -357,6 +397,7 @@ class CandidateController extends Controller
         $worker = Candidate::where('id', '=', $id)->first();
 
         $worker->type_id = 2;
+        $worker->status_id = 10;
 
         if ($worker->save()) {
             return response()->json([

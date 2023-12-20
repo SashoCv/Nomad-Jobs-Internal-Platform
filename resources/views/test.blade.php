@@ -10,7 +10,7 @@
 
 <body>
     <form action="http://127.0.0.1:8000/api/storeUser" method="POST" enctype="multipart/form-data">
-      
+
         @csrf
         <input type="text" placeholder="firstName" name="firstName">
         <input type="text" placeholder="lastName" name="lastName">
@@ -21,21 +21,23 @@
 
         <button type="submit">Submit</button>
     </form>
+
+    
 </body>
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-    axios({
-            method: 'post',
-            url: 'https://nomad-cloud.in/api/storeUser',
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer 31|oGZpYKKnIz9KnEEqGIlDouoFg17796I0xpmZnw1j"
-            },
-        })
-        .then(function(response) {
-            console.log(response)
-        });
+
+fetch('https://nomad-cloud.in/storage/companyImages/CCldgIAl3u0KkdIoQXg95bP0W8TllQghoWZFuGef.jpg')
+    .then(response => {
+        console.log(response);
+        // Handle the response here, such as converting it to blob, base64, or displaying it directly
+    })
+    .catch(error => {
+        console.error(error);
+    });
+
+
 </script>
 
 </html>

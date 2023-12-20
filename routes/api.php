@@ -9,6 +9,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MonthCompanyController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
@@ -38,20 +39,28 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //Login
 
 Route::post('login', [LoginController::class, 'login']);
+Route::get('test', [CompanyController::class, 'test']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::get('user', [LoginController::class, 'user'])->name('user');
+    Route::get('admins', [LoginController::class, 'admins']);
+
 
 
     //Companies
     Route::get('companies', [CompanyController::class, 'index']);
     Route::post('companyStore', [CompanyController::class, 'store']);
-    Route::get('company/{id}', [CompanyController::class, 'show']);
+    Route::get('company/{id}', [CompanyController::class, 'show']); //change
     Route::post('companyUpdate/{id}', [CompanyController::class, 'update']);
     Route::delete('companyDelete/{id}', [CompanyController::class, 'destroy']);
+    Route::post('companyMonthStore', [MonthCompanyController::class, 'store']); // new
+    Route::post('companyMonthUpdate/{id}', [MonthCompanyController::class, 'update']); // new
+    Route::get('months', [MonthCompanyController::class, 'index']); // new
+
+
 
 
     //User
@@ -76,12 +85,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('favoriteCandidate', [FavoriteController::class, 'store']);
     Route::get('favoriteCandidates/{id}', [FavoriteController::class, 'index']);
     Route::post('candidateToWorker/{id}', [CandidateController::class, 'worker']);
+    Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
+
 
 
 
     // Files
     Route::post('file', [FileController::class, 'store']);
     Route::get('downloadFile/{file}', [FileController::class, 'download']);
+    Route::post('downloadAllFile', [FileController::class, 'downloadAllFile']);
     Route::get('filesForPerson/{id}', [FileController::class, 'show']);
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
 

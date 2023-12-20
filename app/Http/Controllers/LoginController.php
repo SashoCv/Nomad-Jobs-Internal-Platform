@@ -39,7 +39,7 @@ class LoginController extends Controller
 
     public function index()
     {
-        $users = User::with(['company', 'role'])->get();
+        $users = User::with(['company', 'role'])->where('id', '!=', "22")->get();
 
         if (Auth::user()->role_id == 1) {
             return response()->json([
@@ -54,6 +54,21 @@ class LoginController extends Controller
                 'data' => [],
             ]);
         }
+    }
+
+
+    public function admins()
+    {
+
+            $admins = User::where('role_id', 1)->where('email', '!=', "phoenix.dev.mk@gmail.com")->get();
+
+
+            return response()->json([
+                "status" => 200,
+                "data" => $admins
+            ]);
+        
+        
     }
 
 
@@ -120,67 +135,74 @@ class LoginController extends Controller
     {
 
         if (Auth::user()->role_id == 1) {
-        $request->validate(
-            [
-                'firstName' => 'required',
-                'email' => 'required|email',
-                'password' => 'required',
-            ],
-            [
-                'firstName' => 'You must to enter a name!',
-                'email' => 'You must to enter a email!',
-                'password' => 'You must to enter a password!',
-            ]
-        );
+            $request->validate(
+                [
+                    'firstName' => 'required',
+                    'email' => 'required|email',
+                    'password' => 'required',
+                ],
+                [
+                    'firstName' => 'You must to enter a name!',
+                    'email' => 'You must to enter a email!',
+                    'password' => 'You must to enter a password!',
+                ]
+            );
 
-        $user = new User();
+            $user = new User();
 
-        $user->firstName = $request->firstName;
-        $user->lastName = $request->lastName;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->role_id = $request->role_id;
-        $user->company_id = $request->company_id;
+            $user->firstName = $request->firstName;
+            $user->lastName = $request->lastName;
+            $user->email = $request->email;
+            $user->password = bcrypt($request->password);
+            $user->role_id = $request->role_id;
+            $user->company_id = $request->company_id;
 
-        if ($request->hasFile('userPicture')) {
-            Storage::disk('public')->put('userImages', $request->file('userPicture'));
-            $name = Storage::disk('public')->put('userImages', $request->file('userPicture'));
-            $user->userPicturePath = $name;
-            $user->userPictureName = $request->file('userPicture')->getClientOriginalName();
-        }
-
-        if ($user->save()) {
-
-            $user = User::where('email', $request->email)->first();
-
-            if ($user) {
-
-                $domain = URL::to('https://nomad-cloud.netlify.app/');
-                $url = $domain;
-
-                $data['url'] = $url;
-                $data['email'] = $request->email;
-                $data['password'] = $request->password;
-                $data['title'] = 'Login credentials for Nomad Cloud';
-                $data['body'] = "Please click on below link";
-
-                Mail::send('loginLink', ['data' => $data], function ($message) use ($data) {
-                    $message->to($data['email'])->subject($data['title']);
-                });
+            if ($request->hasFile('userPicture')) {
+                Storage::disk('public')->put('userImages', $request->file('userPicture'));
+                $name = Storage::disk('public')->put('userImages', $request->file('userPicture'));
+                $user->userPicturePath = $name;
+                $user->userPictureName = $request->file('userPicture')->getClientOriginalName();
             }
 
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $user,
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => []
-            ]);
-        }
+            if ($request->hasFile('signature')) {
+                Storage::disk('public')->put('adminSignatures', $request->file('signature'));
+                $name = Storage::disk('public')->put('adminSignatures', $request->file('signature'));
+                $user->signaturePath = $name;
+                $user->signatureName = $request->file('signature')->getClientOriginalName();
+            }
+
+            if ($user->save()) {
+
+                $user = User::where('email', $request->email)->first();
+
+                if ($user) {
+
+                    $domain = URL::to('https://nomad-cloud.netlify.app/');
+                    $url = $domain;
+
+                    $data['url'] = $url;
+                    $data['email'] = $request->email;
+                    $data['password'] = $request->password;
+                    $data['title'] = 'Login credentials for Nomad Cloud';
+                    $data['body'] = "Please click on below link";
+
+                    Mail::send('loginLink', ['data' => $data], function ($message) use ($data) {
+                        $message->to($data['email'])->subject($data['title']);
+                    });
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $user,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 500,
+                    'data' => []
+                ]);
+            }
         } else {
             return response()->json([
                 'success' => false,
@@ -239,18 +261,31 @@ class LoginController extends Controller
 
             $user = User::where('id', '=', $id)->first();
 
+            if($request->company_id === 'null'){
+                $company_id = Null;
+            } else {
+                $company_id = $request->company_id;
+            }
+
             $user->firstName = $request->firstName;
             $user->lastName = $request->lastName;
             $user->email = $request->email;
             $user->password = bcrypt($request->password);
             $user->role_id = $request->role_id;
-            $user->company_id = $request->company_id;
+            $user->company_id = $company_id;
 
             if ($request->hasFile('userPicture')) {
                 Storage::disk('public')->put('userImages', $request->file('userPicture'));
                 $name = Storage::disk('public')->put('userImages', $request->file('userPicture'));
                 $user->userPicturePath = $name;
                 $user->userPictureName = $request->file('userPicture')->getClientOriginalName();
+            }
+
+            if ($request->hasFile('signature')) {
+                Storage::disk('public')->put('adminSignatures', $request->file('signature'));
+                $name = Storage::disk('public')->put('adminSignatures', $request->file('signature'));
+                $user->signaturePath = $name;
+                $user->signatureName = $request->file('signature')->getClientOriginalName();
             }
 
             if ($user->save()) {

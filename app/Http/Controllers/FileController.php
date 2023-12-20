@@ -8,6 +8,7 @@ use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use ZipArchive;
 
 class FileController extends Controller
 {
@@ -21,15 +22,37 @@ class FileController extends Controller
         //
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+public function downloadAllFile($id)
+{
+    $candidate_id = $id;
+    $candidate = Candidate::where('id', $candidate_id)->first();
+
+    $files = File::where('candidate_id', $candidate_id)
+                 ->where('category_id', '=', 8)
+                 ->get(["filePath", "fileName"]);
+
+    $zip = new ZipArchive;
+    $zipFileName = $candidate->fullName . '_documents.zip';
+    $zipFilePath = storage_path('app/' . $zipFileName);
+
+    if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+        foreach ($files as $file) {
+            $filePath = public_path('storage/' . $file->filePath);
+            if (file_exists($filePath)) {
+                $fileName = $file->fileName;
+                $fileExtension = substr(strrchr($filePath, '.'), 1);
+                $fileName .= '.' . $fileExtension;
+                $zip->addFile($filePath, $fileName);
+            }
+        }
+        $zip->close();
+
+        return response()->download($zipFilePath, $zipFileName);
+    } else {
+        return response()->json(['message' => 'Failed to create the zip file'], 500);
     }
+}
+
 
     /**
      * Store a newly created resource in storage.
@@ -86,7 +109,7 @@ class FileController extends Controller
      *
      * @param  \App\Models\File  $file
      * @return \Illuminate\Http\Response
-     */
+     */ 
     public function show($id)
     {
         $files = File::where('candidate_id', '=', $id)->get();
