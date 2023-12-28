@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PositionController extends Controller
 {
@@ -58,6 +59,12 @@ class PositionController extends Controller
             $jobPosition->NKDP = $request->NKDP;
             $jobPosition->jobPosition = $request->jobPosition;
 
+            if ($request->hasFile('positionDocument')) {
+                Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
+                $name = Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
+                $jobPosition->positionPath = $name;
+                $jobPosition->positionName = $request->file('positionDocument')->getClientOriginalName();
+            }
 
             if ($jobPosition->save()) {
                 return response()->json([
@@ -119,6 +126,12 @@ class PositionController extends Controller
             $jobPosition->NKDP = $request->NKDP;
             $jobPosition->jobPosition = $request->jobPosition;
 
+            if ($request->hasFile('positionDocument')) {
+                Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
+                $name = Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
+                $jobPosition->positionPath = $name;
+                $jobPosition->positionName = $request->file('positionDocument')->getClientOriginalName();
+            }
 
             if ($jobPosition->save()) {
                 return response()->json([
@@ -142,12 +155,34 @@ class PositionController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Position  $position
-     * @return \Illuminate\Http\Response
-     */
+
+    public function destroyDocumentForPosition($id)
+    {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+
+            $fileDelete = Position::findOrFail($id);
+
+            $fileDelete->positionName = Null;
+            $fileDelete->positionPath = Null;
+
+            if ($fileDelete->save()) {
+                unlink(storage_path() . '/app/public/' . $fileDelete->positionPath);
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'message' => 'Proof! Your file has been deleted!',
+                ]);
+            }
+        } else {
+            return response()->json([
+                'success' => true,
+                'status' => 401,
+                'message' => 'You dont have access',
+            ]);
+        }
+    }
+
     public function destroy($id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {

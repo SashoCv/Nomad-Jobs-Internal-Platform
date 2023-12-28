@@ -72,6 +72,8 @@ class CompanyController extends Controller
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->employedByMonths = json_decode($request->input('employedByMonths'));
+            $company->description = $request->description;
+
 
 
 
@@ -184,6 +186,13 @@ class CompanyController extends Controller
                 $employedByMonths = $request->employedByMonths;
             }
 
+            if ($request->description === 'null') {
+                $description = Null;
+            } else {
+                $description = $request->description;
+            }
+            
+
 
             $company = Company::where('id', '=', $id)->first();
 
@@ -217,6 +226,8 @@ class CompanyController extends Controller
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->employedByMonths = $employedByMonths;
+            $company->description = $description;
+
 
 
 

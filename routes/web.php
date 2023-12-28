@@ -5,6 +5,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MonthCompanyController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,9 @@ Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
 Route::get('admins', [LoginController::class, 'admins'])->name('admins');
 Route::get('months', [MonthCompanyController::class, 'index']);
 Route::get('downloadAllFile', [FileController::class, 'downloadAllFile']);
+
+
+Route::get('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
 
 
 
