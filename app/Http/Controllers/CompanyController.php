@@ -16,16 +16,33 @@ use Illuminate\Support\Facades\Http;
 
 class CompanyController extends Controller
 {
-
-
     /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function allCompanies()
     {
-        //
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            $companies = Company::get(['id', 'nameOfCompany']);
+
+            return response()->json([
+                'status' => 200,
+                'data' => $companies
+            ]);
+        } else if (Auth::user()->role_id == 3) {
+            $companies = Company::where('id', '=', Auth::user()->company_id)->get(['id', 'nameOfCompany']);
+
+            return response()->json([
+                'status' => 200,
+                'data' => $companies
+            ]);
+        } else {
+            return response()->json([
+                'status' => 500,
+                'data' => []
+            ]);
+        }
     }
 
     /**
@@ -191,7 +208,7 @@ class CompanyController extends Controller
             } else {
                 $description = $request->description;
             }
-            
+
 
 
             $company = Company::where('id', '=', $id)->first();

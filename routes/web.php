@@ -43,21 +43,7 @@ Route::get('downloadAllFile', [FileController::class, 'downloadAllFile']);
 Route::get('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
 
 
+Route::get('scriptForPassport', [CandidateController::class, 'script']);
 
-// Dva dokumenti za dodavanje od koi edniot e samo kandidatot i kompanijata
-// drugiot e oglas za rabotata
+Route::get('scriptForPassportDelete', [FileController::class, 'index']);
 
-// potpis i pecat da se dodava vo dokumentite t.e kaj kompanijata
-// obuka za vanje potpis i pechat
-// tabelata so meseci da se vnesuva preku aplikacijata
-// potpis kaj admins
-
-
-
-//Sredeno
-// Pechatenje na site dokumenti za eden kandidat... -- SREDENO da mu gi prakjam site dokumenti
-// downoad so fileName -- SREDENO
-// na view na kandidatot da se gleda profil na kandidatot so negovite dokumenti -- SREDENO
-// vo filterot da se gledaat kandidati spored toa na koj mu se dodeleni za podnesuvanje koj e opolnomoshten
-// Dodavanje na potpisnik na dokumenti za kandidati za podavanje na dokumenti (add user for every candidate)
-// Kompaniite nivnite kandidati da gi gledat so statusot do kaj im e rabotata da ima progres bar (malku shminka so boi spored status)

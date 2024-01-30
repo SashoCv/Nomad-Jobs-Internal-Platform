@@ -720,8 +720,7 @@ class SearchController extends Controller
     public function searchCandidateNew(Request $request)
     {
         $searchEverything = $request->searchEverything;
-        $query = Candidate::with(['company', 'status', 'position'])
-            ->where('type_id', '=', 1);
+        $query = Candidate::with(['company', 'status', 'position']);
 
         $userRoleId = Auth::user()->role_id;
 

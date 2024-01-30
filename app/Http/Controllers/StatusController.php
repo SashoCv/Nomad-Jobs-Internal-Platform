@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Candidate;
 use App\Models\Status;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,7 @@ class StatusController extends Controller
     public function index()
     {
         $statuses = Status::all();
-        
+
         return response()->json([
             'success' => true,
             'status' => 200,
@@ -74,9 +75,38 @@ class StatusController extends Controller
      * @param  \App\Models\Status  $status
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Status $status)
+    public function updateStatusForCandidate(Request $request)
     {
-        //
+
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+
+            $idForCandidate = $request->candidate_id;
+            $changedStatus = $request->status_id;
+
+            $candidate = Candidate::where('id', $idForCandidate)->first();
+            $candidate->status_id = $changedStatus;
+
+
+            if ($candidate->save()) {
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'you have updated the status',
+                    'data' => $candidate,
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 500,
+                    'message' => 'something went wrong',
+                    'data' => [],
+                ]);
+            }
+        } else {
+            return response()->json([
+                'status' => 500,
+                'message' => 'you dont have permissions',
+                'data' => [],
+            ]);
+        }
     }
 
     /**

@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Companies
     Route::get('companies', [CompanyController::class, 'index']);
+    Route::get('allCompanies', [CompanyController::class, 'allCompanies']);
     Route::post('companyStore', [CompanyController::class, 'store']);
     Route::get('company/{id}', [CompanyController::class, 'show']); //change
     Route::post('companyUpdate/{id}', [CompanyController::class, 'update']);
@@ -59,6 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('companyMonthStore', [MonthCompanyController::class, 'store']); // new
     Route::post('companyMonthUpdate/{id}', [MonthCompanyController::class, 'update']); // new
     Route::get('months', [MonthCompanyController::class, 'index']); // new
+
+    Route::get('allCompaniesWithIdAndName', [CompanyController::class, 'allCompaniesWithIdAndName']);
+
 
 
 
@@ -127,6 +131,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //Status
 
     Route::get('statuses', [StatusController::class, 'index']);
+    Route::post('updateStatusForCandidate', [StatusController::class, 'updateStatusForCandidate']);
 
 
     // Categories

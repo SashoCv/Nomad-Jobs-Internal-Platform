@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PostJobPosition;
+use App\Models\Candidate;
+use App\Models\File;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,22 +19,7 @@ class PositionController extends Controller
      */
     public function index()
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-
-            $allPositions = Position::all();
-
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $allPositions,
-            ]);
-        } else {
-            return response()->json([
-                'success' => true,
-                'status' => 402,
-                'data' => [],
-            ]);
-        }
+        PostJobPosition::getAllPositions();
     }
 
     /**
@@ -60,11 +48,11 @@ class PositionController extends Controller
             $jobPosition->jobPosition = $request->jobPosition;
 
             if ($request->hasFile('positionDocument')) {
-                Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
                 $name = Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
                 $jobPosition->positionPath = $name;
                 $jobPosition->positionName = $request->file('positionDocument')->getClientOriginalName();
             }
+
 
             if ($jobPosition->save()) {
                 return response()->json([
@@ -73,7 +61,7 @@ class PositionController extends Controller
                     'data' => $jobPosition,
                 ]);
             } else {
-                return response()->json([
+                return  response()->json([
                     'success' => false,
                     'status' => 500,
                     'data' => []
@@ -127,13 +115,19 @@ class PositionController extends Controller
             $jobPosition->jobPosition = $request->jobPosition;
 
             if ($request->hasFile('positionDocument')) {
-                Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
-                $name = Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
-                $jobPosition->positionPath = $name;
-                $jobPosition->positionName = $request->file('positionDocument')->getClientOriginalName();
+                PostJobPosition::storeFileInStorage($jobPosition, $request);
             }
 
             if ($jobPosition->save()) {
+
+                $candidateWithThisJob = Candidate::where('position_id', '=', $jobPosition->id)->get();
+
+                /** @var Candidate $candidate */
+                foreach ($candidateWithThisJob as $candidate) {
+                    $file = new File();
+                    PostJobPosition::storeInFilesJobsPosition($file, $jobPosition, $candidate);
+                }
+
                 return response()->json([
                     'success' => true,
                     'status' => 200,
@@ -162,17 +156,30 @@ class PositionController extends Controller
 
             $fileDelete = Position::findOrFail($id);
 
-            $fileDelete->positionName = Null;
-            $fileDelete->positionPath = Null;
+            $candidateWithThisJobPosition = Candidate::where('position_id', '=', $id)->get();
 
-            if ($fileDelete->save()) {
+            if ($candidateWithThisJobPosition) {
+                foreach ($candidateWithThisJobPosition as $candidate) {
+
+                    $fileForDelete = File::where('candidate_id', '=', $candidate->id)->where('deleteFile', '=', 2)->get();
+                    foreach ($fileForDelete as $file) {
+                        $file->delete();
+                    }
+                }
+
                 unlink(storage_path() . '/app/public/' . $fileDelete->positionPath);
 
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'message' => 'Proof! Your file has been deleted!',
-                ]);
+                $fileDelete->positionName = Null;
+                $fileDelete->positionPath = Null;
+
+                if ($fileDelete->save()) {
+
+                    return response()->json([
+                        'success' => true,
+                        'status' => 200,
+                        'message' => 'Proof! Your file has been deleted!',
+                    ]);
+                }
             }
         } else {
             return response()->json([

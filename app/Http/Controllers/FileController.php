@@ -17,10 +17,14 @@ class FileController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        //
-    }
+    // public function index()
+    // {
+    //     $duplicatedFiles = File::all()->groupBy('filePath')->filter(function ($group) {
+    //         return count($group) > 1;
+    //     });
+
+    //     dd($duplicatedFiles);
+    // }
 
 public function downloadAllFile($id)
 {
@@ -123,7 +127,7 @@ public function downloadAllFile($id)
                 'status' => 200,
                 'files' => $files,
                 'categories' => $categories,
-                'candidatePassport' => $candidatePassport->passportPath
+                'candidatePassport' => $candidatePassport->passportPath,
             ]);
         } else if (Auth::user()->role_id == 2) {
             $categories = Category::where('candidate_id', '=', null)->orWhere('candidate_id', '=', $id)->where('role_id', '=', 2)->orWhere('role_id', '=', 3)->get();
