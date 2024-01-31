@@ -25,25 +25,25 @@ Route::get('/', function () {
 });
 
 
-Route::get('searchCompany', [SearchController::class, 'searchCompany']);
-Route::get('searchCandidateNew', [SearchController::class, 'searchCandidateNew']);
+// Route::get('searchCompany', [SearchController::class, 'searchCompany']);
+// Route::get('searchCandidateNew', [SearchController::class, 'searchCandidateNew']);
 
-Route::get('printAllDocuments/{id}', [CompanyController::class, 'printAllDocuments']);
+// Route::get('printAllDocuments/{id}', [CompanyController::class, 'printAllDocuments']);
 
-Route::get('downloadFile/{file}', [FileController::class, 'downloadFile']);
-Route::get('candidate/{id}', [CandidateController::class, 'showPerson']);
+// Route::get('downloadFile/{file}', [FileController::class, 'downloadFile']);
+// Route::get('candidate/{id}', [CandidateController::class, 'showPerson']);
 
-Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
+// Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
 
-Route::get('admins', [LoginController::class, 'admins'])->name('admins');
-Route::get('months', [MonthCompanyController::class, 'index']);
-Route::get('downloadAllFile', [FileController::class, 'downloadAllFile']);
-
-
-Route::get('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
+// Route::get('admins', [LoginController::class, 'admins'])->name('admins');
+// Route::get('months', [MonthCompanyController::class, 'index']);
+// Route::get('downloadAllFile', [FileController::class, 'downloadAllFile']);
 
 
-Route::get('scriptForPassport', [CandidateController::class, 'script']);
+// Route::get('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
 
-Route::get('scriptForPassportDelete', [FileController::class, 'index']);
+
+// Route::get('scriptForPassport', [CandidateController::class, 'script']);
+
+// Route::get('scriptForPassportDelete', [FileController::class, 'index']);
 
