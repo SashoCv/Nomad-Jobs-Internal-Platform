@@ -74,12 +74,6 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $request->all()
-        ]);
-        
         $request->validate([
             'email' => 'required|email',
             'password' => 'required'
