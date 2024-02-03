@@ -49,4 +49,11 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(300)->by($request->user()?->id ?: $request->ip());
         });
     }
+
+    protected function mapSubdomainRoutes()
+    {
+        Route::middleware('web')
+            ->domain('dev.nomad-cloud.in')
+            ->group(base_path('routes/subdomain.php'));
+    }
 }
