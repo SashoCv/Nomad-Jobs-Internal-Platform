@@ -3,5 +3,9 @@
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('searchCompany', [SearchController::class, 'searchCompany']);
-// Add other subdomain-specific routes here if needed
+Route::domain('dev.nomad-cloud.in')->group(function () {
+    dd('Reached subdomain route');
+    Route::get('searchCompany', [SearchController::class, 'searchCompany']);
+});
+
+     
