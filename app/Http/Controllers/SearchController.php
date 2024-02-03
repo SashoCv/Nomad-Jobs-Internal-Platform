@@ -679,7 +679,7 @@ class SearchController extends Controller
         $perPage = 20;
         $page = $request->input('page', 1);
     
-        $companies = $companiesQuery->orderBy('id', 'DESC')->paginate($perPage, ['*'], 'page', $page);
+        $companies = $companiesQuery->orderBy('id', 'DESC')->get();
     
         return response()->json(['companies' => $companies]);
     }
