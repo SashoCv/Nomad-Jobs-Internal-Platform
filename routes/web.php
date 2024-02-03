@@ -25,7 +25,7 @@ Route::get('/', function () {
 });
 
 
-// Route::get('searchCompany', [SearchController::class, 'searchCompany']);
+Route::get('searchCompany', [SearchController::class, 'searchCompany']);
 // Route::get('searchCandidateNew', [SearchController::class, 'searchCandidateNew']);
 
 // Route::get('printAllDocuments/{id}', [CompanyController::class, 'printAllDocuments']);
