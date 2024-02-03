@@ -653,31 +653,34 @@ class SearchController extends Controller
         $nameOfCompany = $request->input('nameOfCompany');
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
-
+    
         $companiesQuery = Company::with(['industry', 'candidates']);
-
+    
         if ($EIK) {
             $companiesQuery->where('EIK', $EIK);
         }
-
+    
         if ($nameOfCompany) {
             $companiesQuery->where('nameOfCompany', 'LIKE', "%$nameOfCompany%");
         }
-
+    
         if ($status) {
             $companiesQuery->whereHas('candidates', function ($query) use ($status) {
                 $query->where('status_id', $status);
             });
         }
-
+    
         if ($contractType) {
             $companiesQuery->whereHas('candidates', function ($query) use ($contractType) {
                 $query->where('contractType', $contractType);
             });
         }
-
-        $companies = $companiesQuery->orderBy('id', 'DESC')->paginate(20);
-
+    
+        $perPage = 20;
+        $page = $request->input('page', 1);
+    
+        $companies = $companiesQuery->orderBy('id', 'DESC')->paginate($perPage, ['*'], 'page', $page);
+    
         return response()->json(['companies' => $companies]);
     }
 
