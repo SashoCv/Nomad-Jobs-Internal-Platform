@@ -676,7 +676,7 @@ class SearchController extends Controller
             });
         }
 
-        $companies = $companiesQuery->orderBy('id', 'DESC')->get();
+        $companies = $companiesQuery->orderBy('id', 'DESC')->paginate(20);
 
         return response()->json(['companies' => $companies]);
     }
