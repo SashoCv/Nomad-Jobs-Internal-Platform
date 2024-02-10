@@ -39,7 +39,6 @@ class PostJobPosition extends JsonResource
         $jobPosition->positionName = $request->file('positionDocument')->getClientOriginalName();
     }
 
-
     public static function storeInFilesJobPosition(File $file,Position $jobPosition,Candidate $candidate)
     {
         $file->candidate_id = $candidate->id;

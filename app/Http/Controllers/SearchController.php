@@ -653,6 +653,9 @@ class SearchController extends Controller
         $nameOfCompany = $request->input('nameOfCompany');
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
+
+        $allCompanies = Company::all();
+        return response()->json(['companies' => $allCompanies]);
     
         $companiesQuery = Company::with(['industry', 'candidates']);
     

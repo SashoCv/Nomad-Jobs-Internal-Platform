@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyCategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyFileController;
+use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StatushistoryController;
+use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\WorkerController;
 use App\Models\Position;
 use Illuminate\Auth\Events\Login;
@@ -156,7 +158,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deletePosition/{id}', [PositionController::class, 'destroy']);
     Route::delete('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
 
-    
+
 
 
     // Industries
@@ -165,4 +167,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('storeIndustry', [IndustryController::class, 'store']);
     Route::post('updateIndustry/{id}', [IndustryController::class, 'update']);
     Route::delete('deleteIndustry/{id}', [IndustryController::class, 'destroy']);
+
+
+    // Jobs for Companies
+    Route::post('storePosition', [CompanyJobController::class, 'store']);
+    Route::get('companyJobs/{id}', [CompanyJobController::class, 'show']);
+
+
+    // Notifications
+
+    Route::get('notifications/{id}', [UserNotificationController::class, 'show']); // notification for user
+    Route::post('notification/{id}', [UserNotificationController::class, 'update']); // update notification is_read for user
+
 });

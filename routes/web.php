@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyJobController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MonthCompanyController;
@@ -26,6 +27,8 @@ Route::get('/', function () {
 
 
 Route::get('searchCompany', [SearchController::class, 'searchCompany']);
+Route::post('storePosition', [CompanyJobController::class, 'store']);
+
 // Route::get('searchCandidateNew', [SearchController::class, 'searchCandidateNew']);
 
 // Route::get('printAllDocuments/{id}', [CompanyController::class, 'printAllDocuments']);

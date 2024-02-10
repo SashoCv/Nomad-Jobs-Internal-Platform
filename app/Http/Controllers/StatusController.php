@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Candidate;
 use App\Models\Status;
+use App\Models\UserNotification;
+use App\Repository\NotificationRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -86,8 +88,16 @@ class StatusController extends Controller
             $candidate = Candidate::where('id', $idForCandidate)->first();
             $candidate->status_id = $changedStatus;
 
+            $notificationMessage = [
+                'message' => 'Status for candidate ' . $candidate->fullNameCyrillic . ' has been changed to ' . $candidate->status_id,
+                'type' => 'status',
+            ];
 
             if ($candidate->save()) {
+
+               $notification = NotificationRepository::createNotification($notificationMessage);
+               UserNotification::createNotificationForUsers($notification);
+
                 return response()->json([
                     'status' => 200,
                     'message' => 'you have updated the status',
