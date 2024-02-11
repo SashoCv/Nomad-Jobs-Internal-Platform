@@ -45,9 +45,9 @@ class UserNotificationController extends Controller
      * @param  \App\Models\UserNotification  $userNotification
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show()
     {
-        $userNotification = UserNotification::where('user_id', $id)->get();
+        $userNotification = UserNotification::where('user_id', Auth::user()->id)->get();
 
         if (!$userNotification) {
             return response()->json(['message' => 'No notification found']);
