@@ -75,7 +75,7 @@ class UserNotificationController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $userNotifications = UserNotification::where('user_id', $id)->get();
+        $userNotifications = UserNotification::where('user_id', Auth::user()->id)->get();
         if (!$userNotifications) {
             return response()->json(['message' => 'No notification for this user found']);
         }
