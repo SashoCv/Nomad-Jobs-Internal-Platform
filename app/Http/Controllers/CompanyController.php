@@ -16,11 +16,21 @@ use Illuminate\Support\Facades\Http;
 
 class CompanyController extends Controller
 {
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+    public function index()
+    {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            $companies = Company::paginate(15);
+        } else {
+            $companies = Company::where('id', Auth::user()->company_id)->first();
+        }
+
+        return response()->json([
+            'status' => 200,
+            'data' => $companies
+        ]);
+    }
+
     public function allCompanies()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {

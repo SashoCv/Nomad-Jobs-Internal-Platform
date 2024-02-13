@@ -4,19 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\CompanyJob;
 use App\Models\User;
+use App\Notifications\CompanyJobCreatedNotification;
 use App\Repository\NotificationRepository;
-use App\Repository\UserNotificationRepository;
+use App\Repository\SendEmailRepositoryForCreateCompanyJob;
 use App\Repository\UsersNotificationRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification as FacadesNotification;
 
 class CompanyJobController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
+    public function __construct(
+        private UsersNotificationRepository $usersNotificationRepository,
+        private NotificationRepository $notificationRepository,
+        private SendEmailRepositoryForCreateCompanyJob $sendEmailRepositoryForCreateCompanyJob
+    ) {
+    }
+
+
     public function index()
     {
         //
@@ -57,15 +63,14 @@ class CompanyJobController extends Controller
                 );
 
                 $notification_id = NotificationRepository::createNotification($notificationMessages);
-                $resUser = UsersNotificationRepository::createNotificationForUsers($notification_id);
+                UsersNotificationRepository::createNotificationForUsers($notification_id);
+                $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
 
 
                 return response()->json([
                     "status" => "success",
                     "message" => "Job created successfully",
                     "data" => $companyJob,
-                    "notification" => $notification_id,
-                    "resUser" => $resUser
                 ], 200);
             } else {
                 return response()->json(['message' => 'Job creation failed'], 400);
@@ -76,7 +81,7 @@ class CompanyJobController extends Controller
 
                 $companyJob->user_id = Auth::user()->id;
                 $companyJob->company_id = Auth::user()->company_id;
-                $companyJob->title = $request->job_title;
+                $companyJob->job_title = $request->job_title;
                 $companyJob->number_of_positions = $request->number_of_positions;
 
                 if ($companyJob->save()) {
@@ -90,6 +95,7 @@ class CompanyJobController extends Controller
 
                     $notification = NotificationRepository::createNotification($notificationData);
                     UsersNotificationRepository::createNotificationForUsers($notification);
+                    SendEmailRepositoryForCreateCompanyJob::sendEmail($companyJob);
 
                     return response()->json([
                         "status" => "success",

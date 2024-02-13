@@ -23,7 +23,7 @@
                     </tr>
                     <tr>
                         <td style="text-align:center;">
-                            <a href="https://nomad-cloud.netlify.app/login" title="logo" target="_blank">
+                            <a href="https://nomadjobs.cloud/login" title="logo" target="_blank">
                                 <img src="https://nomadjobs.kz/images/NP_black_logo.svg" title="logo" alt="logo" style="height:100px;">
                             </a>
                         </td>
@@ -40,7 +40,7 @@
                                 <tr>
                                     <td style="padding:0 35px;">
                                         <h1 style="color:#1e1e2d; font-weight:500; margin:0;font-size:32px;font-family:'Rubik',sans-serif;">Here is your login link</h1>
-                                        <a style="text-decoration: none; color:blue; margin-top:15px;">https://nomad-cloud.netlify.app</a>
+                                        <a style="text-decoration: none; color:blue; margin-top:15px;">https://nomadjobs.cloud/</a>
                                         <h2>Your password is:</h2>
                                         <h2>{{$data['password']}}</h2>
                                         <span style="display:inline-block; vertical-align:middle; margin:29px 0 26px; border-bottom:1px solid #cecece; width:100px;"></span>
