@@ -17,14 +17,14 @@ class CompanySeeder extends Seeder
     {
         DB::table('companies')->insert([
             'nameOfCompany' => 'Nomad',
-            'address' => 'test address',
-            'email' => 'company@gmail.com',
-            'website' => 'test.com.mk',
-            'phoneNumber' => 'test',
+            'address' => 'Sofia, Bulgaria, Blvd. Bulgaria No. 51V, ENT. S, apt. 18',
+            'email' => 'office@nomadpartners.bg',
+            'website' => 'https://nomadpartners.bg/',
+            'phoneNumber' => '+359 (0)89 961 7910',
+            'EIK' => 'KJS123K',
+            'contactPerson' => 'Elena',
             'logoPath' => 'test',
             'logoName' => 'test',
-            'EIK' => 'test',
-            'contactPerson' => 'test'
         ]);
     }
 }

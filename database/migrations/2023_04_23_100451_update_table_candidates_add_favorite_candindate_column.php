@@ -13,9 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('role_id')->constrained();
-            $table->foreignId('company_id')->constrained();
+        Schema::table('candidates', function (Blueprint $table) {
+            $table->boolean('favorite');
         });
     }
 
@@ -26,11 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign('role_id');
-            $table->dropForeign('company_id');
-            $table->dropColumn('role_id');
-            $table->dropColumn('company_id');
+        Schema::table('candidates', function (Blueprint $table) {
+            $table->boolean('favorite');
         });
     }
 };
