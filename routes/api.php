@@ -170,8 +170,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Jobs for Companies
-    Route::post('storeCompanyJob', [CompanyJobController::class, 'store']);
-    Route::get('companyJobs/{id}', [CompanyJobController::class, 'show']);
+    Route::post('storeJobPosting', [CompanyJobController::class, 'store']);
+    Route::get('jobPostings/{id}', [CompanyJobController::class, 'show']);
 
 
     // Notifications
