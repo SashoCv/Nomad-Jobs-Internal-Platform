@@ -9,12 +9,12 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\MonthCompanyController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\WorkerController;
+use App\Http\Controllers\MonthCompanyController;
 use App\Models\Position;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
@@ -39,7 +39,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //Login
 
 Route::post('login', [LoginController::class, 'login']);
-Route::get('test', [CompanyController::class, 'test']);
+Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -51,20 +51,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     //Companies
-    Route::get('companies', [CompanyController::class, 'index']);
     Route::get('allCompanies', [CompanyController::class, 'allCompanies']);
+
+    Route::get('companies', [CompanyController::class, 'index']);
     Route::post('companyStore', [CompanyController::class, 'store']);
-    Route::get('company/{id}', [CompanyController::class, 'show']); //change
+    Route::get('company/{id}', [CompanyController::class, 'show']);
     Route::post('companyUpdate/{id}', [CompanyController::class, 'update']);
     Route::delete('companyDelete/{id}', [CompanyController::class, 'destroy']);
     Route::post('companyMonthStore', [MonthCompanyController::class, 'store']); // new
     Route::post('companyMonthUpdate/{id}', [MonthCompanyController::class, 'update']); // new
     Route::get('months', [MonthCompanyController::class, 'index']); // new
-
-    Route::get('allCompaniesWithIdAndName', [CompanyController::class, 'allCompaniesWithIdAndName']);
-
-
-
 
 
     //User
@@ -94,28 +90,27 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
+
     // Files
     Route::post('file', [FileController::class, 'store']);
     Route::get('downloadFile/{file}', [FileController::class, 'download']);
-    Route::post('downloadAllFile', [FileController::class, 'downloadAllFile']);
     Route::get('filesForPerson/{id}', [FileController::class, 'show']);
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
 
 
-
-    //CompanyFiles
+    
+    
+       //CompanyFiles
     Route::post('companyFileStore', [CompanyFileController::class, 'store']);
     Route::get('companyFile/{id}', [CompanyFileController::class, 'show']);
     Route::get('downloadCompanyFile/{file}', [CompanyFileController::class, 'download']);
     Route::delete('companyFileDelete/{id}', [CompanyFileController::class, 'destroy']);
-
-
+    
+    
     //Company Category 
 
     Route::post('companyCategoryStore', [CompanyCategoryController::class, 'store']);
     Route::post('deleteCompanyCategory', [CompanyCategoryController::class, 'destroy']);
-
-
 
 
 
@@ -128,10 +123,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
+
+
     //Status
 
     Route::get('statuses', [StatusController::class, 'index']);
     Route::post('updateStatusForCandidate', [StatusController::class, 'updateStatusForCandidate']);
+
 
 
     // Categories
@@ -156,7 +154,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deletePosition/{id}', [PositionController::class, 'destroy']);
     Route::delete('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
 
-    
 
 
     // Industries

@@ -17,14 +17,12 @@ class FileController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    // public function index()
-    // {
-    //     $duplicatedFiles = File::all()->groupBy('filePath')->filter(function ($group) {
-    //         return count($group) > 1;
-    //     });
+  public function index()
+    {
+        $duplicatedFiles = File::where('candidate_id',626)->get();
 
-    //     dd($duplicatedFiles);
-    // }
+        dd($duplicatedFiles);
+    }
 
 public function downloadAllFile($id)
 {
@@ -113,7 +111,7 @@ public function downloadAllFile($id)
      *
      * @param  \App\Models\File  $file
      * @return \Illuminate\Http\Response
-     */ 
+     */
     public function show($id)
     {
         $files = File::where('candidate_id', '=', $id)->get();

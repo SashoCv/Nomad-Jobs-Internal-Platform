@@ -6,7 +6,6 @@ use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\File;
-use App\Models\MonthCompany;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,12 +15,9 @@ use Illuminate\Support\Facades\Http;
 
 class CompanyController extends Controller
 {
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function allCompanies()
+    
+
+      public function allCompanies()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             $companies = Company::get(['id', 'nameOfCompany']);
@@ -45,6 +41,7 @@ class CompanyController extends Controller
         }
     }
 
+
     /**
      * Store a newly created resource in storage.
      *
@@ -63,14 +60,12 @@ class CompanyController extends Controller
                 $company->logoPath = $name;
                 $company->logoName = $request->file('companyLogo')->getClientOriginalName();
             }
-
-            if ($request->hasFile('companyStamp')) {
+            
+             if ($request->hasFile('companyStamp')) {
                 Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
                 $name = Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
                 $company->stampPath = $name;
                 $company->stampName = $request->file('companyStamp')->getClientOriginalName();
-            } else {
-                $company->stampPath = "https://i.stack.imgur.com/kX6dL.png";   // da se vide dali vaka mozhe
             }
 
             $company->nameOfCompany = $request->nameOfCompany;
@@ -88,9 +83,14 @@ class CompanyController extends Controller
             $company->addressThree = $request->addressThree;
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
-            $company->employedByMonths = json_decode($request->input('employedByMonths'));
             $company->description = $request->description;
 
+            
+            if($request->employedByMonths){
+                $employedByMonths = json_decode(json_encode($request->employedByMonths));
+            }
+            
+            $company->employedByMonths = $employedByMonths ?? Null;
 
 
 
@@ -98,8 +98,8 @@ class CompanyController extends Controller
                 return response()->json([
                     'success' => true,
                     'status' => 200,
-                    'data' => $company,
-                    'employedByMonth' => unserialize($company->employedByMonths)
+                    'data' => $company
+
                 ]);
             } else {
                 return response()->json([
@@ -133,26 +133,13 @@ class CompanyController extends Controller
         //     ->where('type_id', '=', 2)
         //     ->get();
 
-        $company = Company::with(['industry', 'month_companies'])->where('id', '=', $id)->first();
-
-
-        $data = json_decode($company->employedByMonths, true);
-        $jsonArray = json_decode($data, true);
-
-        $modelsArray = [];
-
-        foreach ($jsonArray as $item) {
-            $modelsArray[] = [
-                'month' => $item['month'],
-                'value' => $item['value'],
-            ];
-        }
+        $company = Company::with('industry')->where('id', '=', $id)->first();
+       
 
         return response()->json([
             'success' => true,
             'status' => 200,
-            'data' => $company,
-            'employedByMonth' => $modelsArray
+            'data' => $company
         ]);
     }
 
@@ -177,39 +164,37 @@ class CompanyController extends Controller
     public function update(Request $request, $id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-
-
-            if ($request->addressOne === 'null') {
+            
+            
+            if($request->addressOne === 'null'){
                 $addressOne = Null;
             } else {
                 $addressOne = $request->addressOne;
             }
 
-            if ($request->addressTwo === 'null') {
+            if($request->addressTwo === 'null'){
                 $addressTwo = Null;
             } else {
                 $addressTwo = $request->addressTwo;
             }
 
-            if ($request->addressThree === 'null') {
+            if($request->addressThree === 'null'){
                 $addressThree = Null;
             } else {
                 $addressThree = $request->addressThree;
             }
-
-            if ($request->employedByMonths === 'null') {
+            
+            if($request->employedByMonths === 'null'){
                 $employedByMonths = Null;
             } else {
-                $employedByMonths = $request->employedByMonths;
+                $employedByMonths = json_decode(json_encode($request->employedByMonths));
             }
-
+           
             if ($request->description === 'null') {
                 $description = Null;
             } else {
                 $description = $request->description;
             }
-
-
 
             $company = Company::where('id', '=', $id)->first();
 
@@ -219,7 +204,7 @@ class CompanyController extends Controller
                 $company->logoPath = $name;
                 $company->logoName = $request->file('companyLogo')->getClientOriginalName();
             }
-
+            
             if ($request->hasFile('companyStamp')) {
                 Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
                 $name = Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
@@ -244,8 +229,6 @@ class CompanyController extends Controller
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->employedByMonths = $employedByMonths;
             $company->description = $description;
-
-
 
 
             if ($company->save()) {
