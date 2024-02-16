@@ -13,25 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 
-
 class CompanyController extends Controller
 {
-
     public function index()
-    {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $companies = Company::paginate(15);
-        } else {
-            $companies = Company::where('id', Auth::user()->company_id)->first();
-        }
-
-        return response()->json([
-            'status' => 200,
-            'data' => $companies
-        ]);
-    }
-
-    public function allCompanies()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             $companies = Company::get(['id', 'nameOfCompany']);
