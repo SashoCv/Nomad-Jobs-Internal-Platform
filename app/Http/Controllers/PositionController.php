@@ -19,7 +19,22 @@ class PositionController extends Controller
      */
     public function index()
     {
-        PostJobPosition::getAllPositions();
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+
+            $allPositions = Position::all();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $allPositions,
+            ]);
+        } else {
+            return response()->json([
+                'success' => true,
+                'status' => 402,
+                'data' => [],
+            ]);
+        }
     }
 
     /**
