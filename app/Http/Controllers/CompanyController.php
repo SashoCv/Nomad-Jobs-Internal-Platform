@@ -127,26 +127,13 @@ class CompanyController extends Controller
         //     ->where('type_id', '=', 2)
         //     ->get();
 
-        $company = Company::with(['industry', 'month_companies'])->where('id', '=', $id)->first();
-
-
-        $data = json_decode($company->employedByMonths, true);
-        $jsonArray = json_decode($data, true);
-
-        $modelsArray = [];
-
-        foreach ($jsonArray as $item) {
-            $modelsArray[] = [
-                'month' => $item['month'],
-                'value' => $item['value'],
-            ];
-        }
+        $company = Company::with('industry')->where('id', '=', $id)->first();
+       
 
         return response()->json([
             'success' => true,
             'status' => 200,
-            'data' => $company,
-            'employedByMonth' => $modelsArray
+            'data' => $company
         ]);
     }
 
