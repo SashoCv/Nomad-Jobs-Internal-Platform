@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('candidates', function (Blueprint $table) {
-            $table->foreignId('position_id')->constrained();
+        Schema::table('company_jobs', function (Blueprint $table) {
+            $table->softDeletes();
         });
     }
 
@@ -25,9 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('candidates', function (Blueprint $table) {
-            $table->dropForeign('position_id');
-            $table->dropColumn('position_id');
+        Schema::table('company_jobs', function (Blueprint $table) {
+            $table->dropSoftDeletes();
         });
     }
 };

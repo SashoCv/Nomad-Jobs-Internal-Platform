@@ -251,18 +251,6 @@ class CompanyJobController extends Controller
             } else {
                 return response()->json(['message' => 'Job deletion failed'], 400);
             }
-        } else {
-            if (Auth::user()->role_id == 3) {
-                $companyJob = CompanyJob::where('company_id', Auth::user()->company_id)->first();
-                if ($companyJob->delete()) {
-                    return response()->json([
-                        "status" => "success",
-                        "message" => "Job deleted successfully",
-                    ], 200);
-                } else {
-                    return response()->json(['message' => 'Job deletion failed'], 400);
-                }
-            }
-        }
+        } 
     }
 }
