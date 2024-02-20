@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\CompanyJob;
 use App\Models\User;
 use App\Notifications\CompanyJobCreatedNotification;
@@ -25,7 +26,26 @@ class CompanyJobController extends Controller
 
     public function index()
     {
-        //
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+
+            $allJobPostings = CompanyJob::all();
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Job retrieved successfully",
+                "data" => $allJobPostings
+            ], 200);
+        } else {
+            if (Auth::user()->role_id == 3) {
+                $allJobPostings = CompanyJob::where('company_id', Auth::user()->company_id)->get();
+
+                return response()->json([
+                    "status" => "success",
+                    "message" => "Job retrieved successfully",
+                    "data" => $allJobPostings
+                ], 200);
+            }
+        }
     }
 
     /**
@@ -158,7 +178,59 @@ class CompanyJobController extends Controller
      */
     public function update(Request $request, CompanyJob $companyJob)
     {
-        //
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            $companyJob = CompanyJob::find($request->id);
+            $companyJob->user_id = Auth::user()->id;
+            $companyJob->company_id = $request->company_id;
+            $companyJob->job_title = $request->job_title;
+            $companyJob->number_of_positions = $request->number_of_positions;
+
+            if ($companyJob->save()) {
+
+                $notificationData = [
+                    'message' => 'Job updated successfully',
+                    'type' => $request->job_title . " updated successfully and for " . $request->number_of_positions . " positions for company " . $request->company_id . " by " . Auth::user()->email,
+                ];
+
+                $notification = NotificationRepository::createNotification($notificationData);
+                UsersNotificationRepository::createNotificationForUsers($notification);
+
+                return response()->json([
+                    "status" => "success",
+                    "message" => "Job updated successfully",
+                    "data" => $companyJob
+                ], 200);
+            } else {
+                return response()->json(['message' => 'Job update failed'], 400);
+            }
+        } else {
+            if (Auth::user()->role_id == 3) {
+                $companyJob = CompanyJob::where('company_id', Auth::user()->company_id)->first();
+                $companyJob->user_id = Auth::user()->id;
+                $companyJob->company_id = Auth::user()->company_id;
+                $companyJob->job_title = $request->job_title;
+                $companyJob->number_of_positions = $request->number_of_positions;
+
+                if ($companyJob->save()) {
+
+                    $notificationData = [
+                        'message' => 'Job updated successfully',
+                        'type' => $request->job_title . " updated successfully and for " . $request->number_of_positions . " positions for company " . $request->company_id . " by " . Auth::user()->email,
+                    ];
+
+                    $notification = NotificationRepository::createNotification($notificationData);
+                    UsersNotificationRepository::createNotificationForUsers($notification);
+
+                    return response()->json([
+                        "status" => "success",
+                        "message" => "Job retrieved successfully",
+                        "data" => $companyJob
+                    ], 200);
+                } else {
+                    return response()->json(['message' => 'Job update failed'], 400);
+                }
+            }
+        }
     }
 
     /**
@@ -167,8 +239,30 @@ class CompanyJobController extends Controller
      * @param  \App\Models\CompanyJob  $companyJob
      * @return \Illuminate\Http\Response
      */
-    public function destroy(CompanyJob $companyJob)
+    public function destroy($id)
     {
-        //
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            $companyJob = CompanyJob::find($id);
+            if ($companyJob->delete()) {
+                return response()->json([
+                    "status" => "success",
+                    "message" => "Job deleted successfully",
+                ], 200);
+            } else {
+                return response()->json(['message' => 'Job deletion failed'], 400);
+            }
+        } else {
+            if (Auth::user()->role_id == 3) {
+                $companyJob = CompanyJob::where('company_id', Auth::user()->company_id)->first();
+                if ($companyJob->delete()) {
+                    return response()->json([
+                        "status" => "success",
+                        "message" => "Job deleted successfully",
+                    ], 200);
+                } else {
+                    return response()->json(['message' => 'Job deletion failed'], 400);
+                }
+            }
+        }
     }
 }

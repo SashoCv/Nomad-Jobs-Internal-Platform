@@ -171,11 +171,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // Jobs for Companies
     Route::post('storeJobPosting', [CompanyJobController::class, 'store']);
     Route::get('jobPostings/{id}', [CompanyJobController::class, 'show']);
+    Route::get('allJobPostings', [CompanyJobController::class, 'index']);  // need Function
+    Route::post('updateJobPosting/{id}', [CompanyJobController::class, 'update']); // need Function
+    Route::delete('deleteJobPosting/{id}', [CompanyJobController::class, 'destroy']); // need Function
 
+    Route::delete('hardDeleteJobPosting/{id}', [CompanyJobController::class, 'hardDelete']); // suggested for next version
 
     // Notifications
 
     Route::get('notifications', [UserNotificationController::class, 'show']); // notification for user
-    Route::post('notificationChangeToRead', [UserNotificationController::class, 'update']); // update notification is_read for user
+    Route::post('seenNotifications', [UserNotificationController::class, 'update']); // update notification is_read for user need Function To change
+    Route::post('readNotification/{id}', [UserNotificationController::class, 'store']); // store notification for user
 
 });
