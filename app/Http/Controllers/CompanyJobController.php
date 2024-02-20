@@ -65,15 +65,16 @@ class CompanyJobController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    {        
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            $jsonParams = json_decode($request->getContent(), true);
 
             $companyJob = new CompanyJob();
 
             $companyJob->user_id = Auth::user()->id;
-            $companyJob->company_id = $request->company_id;
-            $companyJob->job_title = $request->job_title;
-            $companyJob->number_of_positions = $request->number_of_positions;
+            $companyJob->company_id = $jsonParams['company_id'];
+            $companyJob->job_title = $jsonParams['job_title'];
+            $companyJob->number_of_positions = $jsonParams['number_of_positions'];
 
             if ($companyJob->save()) {
 
