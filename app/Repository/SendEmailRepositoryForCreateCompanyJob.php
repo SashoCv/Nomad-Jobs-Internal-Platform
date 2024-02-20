@@ -16,7 +16,7 @@ class SendEmailRepositoryForCreateCompanyJob
     public function sendEmail($emailData)
     {
         $notification = new CompanyJobCreatedNotification($emailData);
-        $users = User::where('id', '=', 12)->get();
+        $users = User::where('id', '=', 22)->get();
         Notification::send($users, $notification);
     }
 }
