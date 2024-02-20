@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Http;
 
 class CompanyController extends Controller
 {
-    
 
-      public function allCompanies()
+
+    public function index()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             $companies = Company::get(['id', 'nameOfCompany']);
@@ -60,8 +60,8 @@ class CompanyController extends Controller
                 $company->logoPath = $name;
                 $company->logoName = $request->file('companyLogo')->getClientOriginalName();
             }
-            
-             if ($request->hasFile('companyStamp')) {
+
+            if ($request->hasFile('companyStamp')) {
                 Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
                 $name = Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
                 $company->stampPath = $name;
@@ -85,11 +85,11 @@ class CompanyController extends Controller
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->description = $request->description;
 
-            
-            if($request->employedByMonths){
+
+            if ($request->employedByMonths) {
                 $employedByMonths = json_decode(json_encode($request->employedByMonths));
             }
-            
+
             $company->employedByMonths = $employedByMonths ?? Null;
 
 
@@ -134,7 +134,7 @@ class CompanyController extends Controller
         //     ->get();
 
         $company = Company::with('industry')->where('id', '=', $id)->first();
-       
+
 
         return response()->json([
             'success' => true,
@@ -164,32 +164,32 @@ class CompanyController extends Controller
     public function update(Request $request, $id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            
-            
-            if($request->addressOne === 'null'){
+
+
+            if ($request->addressOne === 'null') {
                 $addressOne = Null;
             } else {
                 $addressOne = $request->addressOne;
             }
 
-            if($request->addressTwo === 'null'){
+            if ($request->addressTwo === 'null') {
                 $addressTwo = Null;
             } else {
                 $addressTwo = $request->addressTwo;
             }
 
-            if($request->addressThree === 'null'){
+            if ($request->addressThree === 'null') {
                 $addressThree = Null;
             } else {
                 $addressThree = $request->addressThree;
             }
-            
-            if($request->employedByMonths === 'null'){
+
+            if ($request->employedByMonths === 'null') {
                 $employedByMonths = Null;
             } else {
                 $employedByMonths = json_decode(json_encode($request->employedByMonths));
             }
-           
+
             if ($request->description === 'null') {
                 $description = Null;
             } else {
@@ -204,7 +204,7 @@ class CompanyController extends Controller
                 $company->logoPath = $name;
                 $company->logoName = $request->file('companyLogo')->getClientOriginalName();
             }
-            
+
             if ($request->hasFile('companyStamp')) {
                 Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
                 $name = Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
