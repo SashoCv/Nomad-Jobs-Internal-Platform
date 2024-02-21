@@ -78,9 +78,11 @@ class CompanyJobController extends Controller
 
             if ($companyJob->save()) {
 
+                $companyName = Company::where('id', Auth::user()->company_id)->first(['company_name']);
+
                 $notificationMessages = array(
                     'message' => 'Job created successfully',
-                    'type' => $request->job_title . " created successfully and for " . $request->number_of_positions . " positions for company " . $request->company_id . " by " . Auth::user()->email,
+                    'type' => $request->job_title . " created successfully and for " . $request->number_of_positions . " positions for company " . $companyName . " by " . Auth::user()->email,
                 );
 
                 $notification_id = NotificationRepository::createNotification($notificationMessages);
@@ -109,9 +111,11 @@ class CompanyJobController extends Controller
 
                 if ($companyJob->save()) {
 
+                    $companyName = Company::where('id', Auth::user()->company_id)->first(['company_name']);
+
                     $notificationData = [
                         'message' => 'Job created successfully',
-                        'type' => $request->job_title . " created successfully and for " . $request->number_of_positions . " positions for company " . $request->company_id . " by " . Auth::user()->email,
+                        'type' => $request->job_title . " created successfully and for " . $request->number_of_positions . " positions for company " . $companyName . " by " . Auth::user()->email,
                     ];
 
 
@@ -211,7 +215,7 @@ class CompanyJobController extends Controller
         } else {
             if (Auth::user()->role_id == 3) {
                 $companyJob = CompanyJob::where('id', $request->id)->where('company_id', Auth::user()->company_id)->first();
-                
+
                 $companyJob->user_id = Auth::user()->id;
                 $companyJob->company_id = Auth::user()->company_id;
                 $companyJob->job_title = $request->job_title;
