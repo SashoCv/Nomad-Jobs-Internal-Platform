@@ -9,16 +9,6 @@ class Company extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        // Your other fillable fields
-        'employedByMonths',
-    ];
-
-    public function getUnserializedDataColumnAttribute($employedByMonths)
-    {
-        return unserialize($employedByMonths);
-    }
-
     public function industry()
     {
         return $this->belongsTo(Industry::class, 'industry_id');
@@ -28,9 +18,9 @@ class Company extends Model
     {
         return $this->hasMany(Candidate::class);
     }
-
-    public function month_companies()
+    
+        public function month_companies()
     {
-        return $this->hasMany(MonthCompany::class);
+        return $this->hasMany(MonthCompany::class, 'company_id');
     }
 }

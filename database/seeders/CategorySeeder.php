@@ -16,9 +16,27 @@ class CategorySeeder extends Seeder
     public function run()
     {
         DB::table('categories')->insert([
-            'nameOfCategory' => 'Generated Documents',
+            'nameOfCategory' => 'Migration Documents',
+            'role_id' => 1,
+            'candidate_id' => null
+        ]);
+
+        DB::table('categories')->insert([
+            'nameOfCategory' => 'Visa Documents',
             'role_id' => 2,
-            'isGenerated' => 1
+            'candidate_id' => null
+        ]);
+
+        DB::table('categories')->insert([
+            'nameOfCategory' => 'Embassy Documents',
+            'role_id' => 1,
+            'candidate_id' => null
+        ]);
+
+        DB::table('categories')->insert([
+            'nameOfCategory' => 'Public Documents',
+            'role_id' => 3,
+            'candidate_id' => null
         ]);
     }
 }

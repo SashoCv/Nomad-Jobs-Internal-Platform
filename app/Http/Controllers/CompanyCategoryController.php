@@ -101,7 +101,7 @@ class CompanyCategoryController extends Controller
      * @param  \App\Models\CompanyCategory  $companyCategory
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request)
+      public function destroy(Request $request)
     {
         $company_id = $request->company_id;
         $companyCategory_id = $request->company_category_id;
@@ -110,13 +110,11 @@ class CompanyCategoryController extends Controller
 
         $files = CompanyFile::where('company_category_id', '=', $companyCategory_id)->where('company_id', '=', $company_id)->get();
 
-        if(isset($files)){
-            foreach ($files as $file) {
-                unlink(storage_path() . '/app/public/' . $file->filePath);
-                $file->delete();
-            }
+        foreach ($files as $file) {
+            unlink(storage_path() . '/app/public/' . $file->filePath);
+            $file->delete();
         }
-       
+
         if ($companyCategory->delete()) {
             return response()->json([
                 'success' => true,

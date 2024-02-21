@@ -157,7 +157,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deletePosition/{id}', [PositionController::class, 'destroy']);
     Route::delete('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
 
-
+    
 
 
     // Industries

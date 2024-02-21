@@ -16,14 +16,14 @@ class WorkerController extends Controller
     public function index()
     {
         if (Auth::user()->role_id == 1) {
-            $workers = Candidate::with('company')->where('type_id', '=', 2)->get();
+            $workers = Candidate::where('type_id', '=', 2)->get();
             return response()->json([
                 'success' => true,
                 'status' => 200,
                 'data' => $workers,
             ]);
         } else {
-            $workers = Candidate::with('company')->where('company_id', '=', Auth::user()->company_id)
+            $workers = Candidate::where('company_id', '=', Auth::user()->company_id)
             ->where('type_id', '=', 2)
             ->get();
             return response()->json([

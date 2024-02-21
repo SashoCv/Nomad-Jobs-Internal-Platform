@@ -35,11 +35,32 @@ class LoginController extends Controller
             ]);
         }
     }
+    
+    
+    public function admins()
+    {
+       
+
+            $admins = User::where('role_id', 1)->where('email', '!=', "phoenix.dev.mk@gmail.com")->get();
+
+
+            return response()->json([
+                "status" => 200,
+                "data" => $admins
+            ]);
+  
+            return response()->json([
+                "status" => 500,
+                "message" => "you dont have permission to see admins"
+            ]);
+        
+    }
 
 
     public function index()
     {
-        $users = User::with(['company', 'role'])->where('id', '!=', "22")->get();
+        $users = User::with(['company', 'role'])->where('id','!=','22')->get();
+
 
         if (Auth::user()->role_id == 1) {
             return response()->json([
@@ -54,21 +75,6 @@ class LoginController extends Controller
                 'data' => [],
             ]);
         }
-    }
-
-
-    public function admins()
-    {
-
-            $admins = User::where('role_id', 1)->where('email', '!=', "phoenix.dev.mk@gmail.com")->get();
-
-
-            return response()->json([
-                "status" => 200,
-                "data" => $admins
-            ]);
-        
-        
     }
 
 
@@ -211,7 +217,6 @@ class LoginController extends Controller
             ]);
         }
     }
-
     /**
      * Display the specified resource.
      *
@@ -257,8 +262,6 @@ class LoginController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (Auth::user()->role_id == 1) {
-
             $user = User::where('id', '=', $id)->first();
 
             if($request->company_id === 'null'){
@@ -280,13 +283,14 @@ class LoginController extends Controller
                 $user->userPicturePath = $name;
                 $user->userPictureName = $request->file('userPicture')->getClientOriginalName();
             }
-
+            
             if ($request->hasFile('signature')) {
                 Storage::disk('public')->put('adminSignatures', $request->file('signature'));
                 $name = Storage::disk('public')->put('adminSignatures', $request->file('signature'));
                 $user->signaturePath = $name;
                 $user->signatureName = $request->file('signature')->getClientOriginalName();
             }
+
 
             if ($user->save()) {
                 return response()->json([
@@ -301,13 +305,6 @@ class LoginController extends Controller
                     'data' => []
                 ]);
             }
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 401,
-                'data' => ''
-            ]);
-        }
     }
 
     /**
