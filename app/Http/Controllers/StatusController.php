@@ -94,10 +94,6 @@ class StatusController extends Controller
             ];
 
             if ($candidate->save()) {
-
-               $notification = NotificationRepository::createNotification($notificationMessage);
-               UserNotification::createNotificationForUsers($notification);
-
                 return response()->json([
                     'status' => 200,
                     'message' => 'you have updated the status',
