@@ -65,7 +65,7 @@ class CompanyJobController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {        
+    {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
             $companyJob = new CompanyJob();
@@ -74,6 +74,7 @@ class CompanyJobController extends Controller
             $companyJob->company_id = $request->company_id;
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
+            $companyJob->job_description = $request->job_description;
 
             if ($companyJob->save()) {
 
@@ -103,6 +104,8 @@ class CompanyJobController extends Controller
                 $companyJob->company_id = Auth::user()->company_id;
                 $companyJob->job_title = $request->job_title;
                 $companyJob->number_of_positions = $request->number_of_positions;
+                $companyJob->job_description = $request->job_description;
+
 
                 if ($companyJob->save()) {
 
@@ -115,7 +118,8 @@ class CompanyJobController extends Controller
 
                     $notification = NotificationRepository::createNotification($notificationData);
                     UsersNotificationRepository::createNotificationForUsers($notification);
-                    SendEmailRepositoryForCreateCompanyJob::sendEmail($companyJob);
+                    $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
+
 
                     return response()->json([
                         "status" => "success",
@@ -251,6 +255,6 @@ class CompanyJobController extends Controller
             } else {
                 return response()->json(['message' => 'Job deletion failed'], 400);
             }
-        } 
+        }
     }
 }
