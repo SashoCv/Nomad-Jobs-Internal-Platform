@@ -28,7 +28,7 @@ class CompanyJobController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
-            $allJobPostings = CompanyJob::all();
+            $allJobPostings = CompanyJob::with(['company', 'user'])->get();
 
             return response()->json([
                 "status" => "success",
@@ -37,7 +37,7 @@ class CompanyJobController extends Controller
             ], 200);
         } else {
             if (Auth::user()->role_id == 3) {
-                $allJobPostings = CompanyJob::where('company_id', Auth::user()->company_id)->get();
+                $allJobPostings = CompanyJob::with(['company', 'user'])->where('company_id', Auth::user()->company_id)->get();
 
                 return response()->json([
                     "status" => "success",
@@ -142,7 +142,7 @@ class CompanyJobController extends Controller
     public function show($id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $companyJob = CompanyJob::where('company_id', $id)->get();
+            $companyJob = CompanyJob::with(['company','user'])->where('id', $id)->first();
 
             return response()->json([
                 "status" => "success",
@@ -151,7 +151,7 @@ class CompanyJobController extends Controller
             ], 200);
         } else {
             if (Auth::user()->role_id == 3) {
-                $companyJob = CompanyJob::where('company_id', Auth::user()->company_id)->get();
+                $companyJob = CompanyJob::with(['company','user'])->where('id', $id)->where('company_id', Auth::user()->company_id)->first();
 
                 return response()->json([
                     "status" => "success",
@@ -184,6 +184,7 @@ class CompanyJobController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             $companyJob = CompanyJob::find($request->id);
+
             $companyJob->user_id = Auth::user()->id;
             $companyJob->company_id = $request->company_id;
             $companyJob->job_title = $request->job_title;
@@ -209,7 +210,8 @@ class CompanyJobController extends Controller
             }
         } else {
             if (Auth::user()->role_id == 3) {
-                $companyJob = CompanyJob::where('company_id', Auth::user()->company_id)->first();
+                $companyJob = CompanyJob::where('id', $request->id)->where('company_id', Auth::user()->company_id)->first();
+                
                 $companyJob->user_id = Auth::user()->id;
                 $companyJob->company_id = Auth::user()->company_id;
                 $companyJob->job_title = $request->job_title;

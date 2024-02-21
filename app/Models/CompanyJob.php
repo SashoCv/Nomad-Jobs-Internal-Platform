@@ -10,4 +10,15 @@ class CompanyJob extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
