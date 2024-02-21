@@ -28,7 +28,7 @@ class CompanyJobController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
-            $allJobPostings = CompanyJob::with(['company', 'user'])->get();
+            $allJobPostings = CompanyJob::get(['id', 'company_id', 'job_title', 'number_of_positions', 'job_description']);
 
             return response()->json([
                 "status" => "success",
@@ -37,7 +37,7 @@ class CompanyJobController extends Controller
             ], 200);
         } else {
             if (Auth::user()->role_id == 3) {
-                $allJobPostings = CompanyJob::with(['company', 'user'])->where('company_id', Auth::user()->company_id)->get();
+                $allJobPostings = CompanyJob::where('company_id', Auth::user()->company_id)->get(['id', 'company_id', 'job_title', 'number_of_positions', 'job_description']);
 
                 return response()->json([
                     "status" => "success",
