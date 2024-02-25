@@ -87,7 +87,7 @@ class CompanyJobController extends Controller
 
             if ($companyJob->save()) {
 
-                $companyName = Company::where('id', Auth::user()->company_id)->first(['company_name']);
+                $companyName = Company::where('id', Auth::user()->company_id)->first(['nameOfCompany']);
 
                 $notificationMessages = array(
                     'message' => 'Job created successfully',
