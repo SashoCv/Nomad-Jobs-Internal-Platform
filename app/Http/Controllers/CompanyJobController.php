@@ -11,6 +11,7 @@ use App\Repository\SendEmailRepositoryForCreateCompanyJob;
 use App\Repository\UsersNotificationRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification as FacadesNotification;
 
 class CompanyJobController extends Controller
@@ -28,7 +29,12 @@ class CompanyJobController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
-            $allJobPostings = CompanyJob::with(['company', 'user'])->get();
+            $allJobPostings = DB::table('company_jobs')
+                ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->where('company_jobs.deleted_at', null)
+                ->get();
+
 
             return response()->json([
                 "status" => "success",
@@ -37,7 +43,12 @@ class CompanyJobController extends Controller
             ], 200);
         } else {
             if (Auth::user()->role_id == 3) {
-                $allJobPostings = CompanyJob::with(['company', 'user'])->where('company_id', Auth::user()->company_id)->get();
+                $allJobPostings = DB::table('company_jobs')
+                    ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+                    ->where('company_jobs.company_id', Auth::user()->company_id)
+                    ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                    ->where('company_jobs.deleted_at', null)
+                    ->get();
 
                 return response()->json([
                     "status" => "success",
@@ -78,7 +89,7 @@ class CompanyJobController extends Controller
 
             if ($companyJob->save()) {
 
-                $companyName = Company::where('id', Auth::user()->company_id)->first(['company_name']);
+                $companyName = Company::where('id', Auth::user()->company_id)->first(['nameOfCompany']);
 
                 $notificationMessages = array(
                     'message' => 'Job created successfully',
@@ -146,7 +157,7 @@ class CompanyJobController extends Controller
     public function show($id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $companyJob = CompanyJob::with(['company','user'])->where('id', $id)->first();
+            $companyJob = CompanyJob::with(['company', 'user'])->where('id', $id)->first();
 
             return response()->json([
                 "status" => "success",
@@ -155,7 +166,7 @@ class CompanyJobController extends Controller
             ], 200);
         } else {
             if (Auth::user()->role_id == 3) {
-                $companyJob = CompanyJob::with(['company','user'])->where('id', $id)->where('company_id', Auth::user()->company_id)->first();
+                $companyJob = CompanyJob::with(['company', 'user'])->where('id', $id)->where('company_id', Auth::user()->company_id)->first();
 
                 return response()->json([
                     "status" => "success",
