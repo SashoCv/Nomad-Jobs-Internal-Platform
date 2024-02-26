@@ -8,10 +8,19 @@ use App\Repository\NotificationRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Candidate;
-
+use App\Models\Company;
+use App\Repository\SendEmailRepositoryForCreateCompanyJob;
+use App\Repository\UsersNotificationRepository;
 
 class StatusController extends Controller
 {
+
+    public function __construct(
+        private UsersNotificationRepository $usersNotificationRepository,
+        private NotificationRepository $notificationRepository,
+        private SendEmailRepositoryForCreateCompanyJob $sendEmailRepositoryForCreateCompanyJob
+    ) {
+    }
     /**
      * Display a listing of the resource.
      *
@@ -88,13 +97,22 @@ class StatusController extends Controller
 
             $candidate = Candidate::where('id', $idForCandidate)->first();
             $candidate->status_id = $changedStatus;
+            
+            $companyForThisCandidate = $candidate->company_id;
+            $companyName = Company::where('id', $companyForThisCandidate)->first();
 
-            $notificationMessage = [
-                'message' => 'Status for candidate ' . $candidate->fullNameCyrillic . ' has been changed to ' . $candidate->status_id,
+            $notificationData = [
+                'message' => 'Status for candidate ' . $candidate->fullNameCyrillic . ' has been changed', 'company' => $companyName->nameOfCompany,
                 'type' => 'Changed Status',
             ];
 
+          
+            // implement the sendEmailRepositoryForCreateStatusForCandidate
+
             if ($candidate->save()) {
+
+                $notification = NotificationRepository::createNotification($notificationData);
+                UsersNotificationRepository::createNotificationForUsers($notification);
                 return response()->json([
                     'status' => 200,
                     'message' => 'you have updated the status',
