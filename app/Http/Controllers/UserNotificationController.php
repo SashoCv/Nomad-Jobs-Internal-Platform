@@ -84,7 +84,7 @@ class UserNotificationController extends Controller
      * @param  \App\Models\UserNotification  $userNotification
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update()
     {
         $userNotifications = UserNotification::where('user_id', Auth::user()->id)->get();
         if (!$userNotifications) {
