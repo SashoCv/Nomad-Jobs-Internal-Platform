@@ -14,7 +14,7 @@ class UserNotificationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function isSeenNotification($id)
+    public function readNotification($id)
     {
         $userNotification = UserNotification::where('id', $id)->first();
         if (!$userNotification) {
