@@ -91,7 +91,7 @@ class UserNotificationController extends Controller
             return response()->json(['message' => 'No notification for this user found']);
         }
         foreach ($userNotifications as $userNotification) {
-            $userNotification->is_read = 1;
+            $userNotification->is_seen = 1;
             $userNotification->save();
         }
         return response()->json(['message' => 'Notification updated successfully']);
