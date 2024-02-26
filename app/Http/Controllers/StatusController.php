@@ -91,7 +91,7 @@ class StatusController extends Controller
 
             $notificationMessage = [
                 'message' => 'Status for candidate ' . $candidate->fullNameCyrillic . ' has been changed to ' . $candidate->status_id,
-                'type' => 'status',
+                'type' => 'Changed Status',
             ];
 
             if ($candidate->save()) {

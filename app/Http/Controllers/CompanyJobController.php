@@ -125,8 +125,8 @@ class CompanyJobController extends Controller
                     $companyName = Company::where('id', Auth::user()->company_id)->first(['nameOfCompany']);
 
                     $notificationData = [
-                        'message' => 'Job created successfully',
-                        'type' => $request->job_title . " created successfully and for " . $request->number_of_positions . " positions for company " . $companyName . " by " . Auth::user()->email,
+                        'message' => $request->job_title . " created successfully and for " . $request->number_of_positions . " positions for company " . $companyName . " by " . Auth::user()->email,
+                        'type' => "Job created successfully"
                     ];
 
 

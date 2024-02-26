@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserNotificationController extends Controller
 {
@@ -47,8 +48,12 @@ class UserNotificationController extends Controller
      */
     public function show()
     {
-        $userNotification = UserNotification::where('user_id', Auth::user()->id)->get();
-
+        $userNotification = DB::table('user_notifications')
+            ->join('notifications', 'user_notifications.notification_id', '=', 'notifications.id')
+            ->join('users', 'user_notifications.user_id', '=', 'users.id')
+            ->where('user_notifications.user_id', Auth::user()->id)
+            ->get();
+        
         if (!$userNotification) {
             return response()->json(['message' => 'No notification found']);
         }
