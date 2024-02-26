@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('candidates', function (Blueprint $table) {
-            $table->boolean('favorite');
+        Schema::table('user_notifications', function (Blueprint $table) {
+            $table->boolean('is_seen')->default(false);
         });
     }
 
@@ -25,8 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('candidates', function (Blueprint $table) {
-            $table->dropColumn('favorite');
+        Schema::table('user_notifications', function (Blueprint $table) {
+            $table->dropColumn('is_seen');
         });
     }
 };
