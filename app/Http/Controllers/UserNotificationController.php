@@ -56,9 +56,8 @@ class UserNotificationController extends Controller
     {
         $userNotification = DB::table('user_notifications')
             ->join('notifications', 'user_notifications.notification_id', '=', 'notifications.id')
-            ->join('users', 'user_notifications.user_id', '=', 'users.id')
             ->where('user_notifications.user_id', Auth::user()->id)
-            ->get();
+            ->get(['user_notifications.id','notifications.notification_message','notifications.notification_type','user_notifications.is_read','user_notifications.is_seen','user_notifications.created_at']);
         
         if (!$userNotification) {
             return response()->json(['message' => 'No notification found']);

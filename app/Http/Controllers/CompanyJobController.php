@@ -89,11 +89,12 @@ class CompanyJobController extends Controller
 
             if ($companyJob->save()) {
 
-                $companyName = Company::where('id', Auth::user()->company_id)->first(['nameOfCompany']);
+                $companyName = Company::where('id', $request->company_id)->first();
+                $companyForThisJob = $companyName->nameOfCompany;
 
                 $notificationMessages = array(
-                    'message' => 'Job created successfully',
-                    'type' => $request->job_title . " created successfully and for " . $request->number_of_positions . " positions for company " . $companyName . " by " . Auth::user()->email,
+                    'message' =>  $companyForThisJob . 'created new job posting:' . $request->job_title,
+                    'type' => 'job_posting'
                 );
 
                 $notification_id = NotificationRepository::createNotification($notificationMessages);
@@ -122,11 +123,12 @@ class CompanyJobController extends Controller
 
                 if ($companyJob->save()) {
 
-                    $companyName = Company::where('id', Auth::user()->company_id)->first(['nameOfCompany']);
+                    $companyName = Company::where('id', Auth::user()->company_id)->first();
+                    $companyForThisJob = $companyName->nameOfCompany;
 
                     $notificationData = [
-                        'message' => $request->job_title . " created successfully and for " . $request->number_of_positions . " positions for company " . $companyName . " by " . Auth::user()->email,
-                        'type' => "Job created successfully"
+                        'message' => $companyForThisJob . 'created new job posting:' . $request->job_title,
+                        'type' => "job_posting"
                     ];
 
 
@@ -205,11 +207,14 @@ class CompanyJobController extends Controller
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
 
+            $companyForThisJob = Company::where('id', $request->company_id)->first();
+            $companyForThisJob = $companyForThisJob->nameOfCompany;
+
             if ($companyJob->save()) {
 
                 $notificationData = [
-                    'message' => 'Job updated successfully',
-                    'type' => $request->job_title . " updated successfully and for " . $request->number_of_positions . " positions for company " . $request->company_id . " by " . Auth::user()->email,
+                    'message' =>  $companyForThisJob . 'updated new job posting:' . $request->job_title,
+                    'type' => 'job_posting_updated'
                 ];
 
                 $notification = NotificationRepository::createNotification($notificationData);
@@ -232,11 +237,13 @@ class CompanyJobController extends Controller
                 $companyJob->job_title = $request->job_title;
                 $companyJob->number_of_positions = $request->number_of_positions;
 
+                $companyForThisJob = Company::where('id', Auth::user()->company_id)->first();
+                $companyForThisJob = $companyForThisJob->nameOfCompany;
                 if ($companyJob->save()) {
 
                     $notificationData = [
-                        'message' => 'Job updated successfully',
-                        'type' => $request->job_title . " updated successfully and for " . $request->number_of_positions . " positions for company " . $request->company_id . " by " . Auth::user()->email,
+                        'message' => $companyForThisJob . 'updated new job posting:' . $request->job_title,
+                        'type' => 'job_posting_updated'
                     ];
 
                     $notification = NotificationRepository::createNotification($notificationData);
