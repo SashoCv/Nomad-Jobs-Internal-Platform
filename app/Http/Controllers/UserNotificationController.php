@@ -14,9 +14,15 @@ class UserNotificationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function isSeenNotification($id)
     {
-        //
+        $userNotification = UserNotification::where('id', $id)->first();
+        if (!$userNotification) {
+            return response()->json(['message' => 'Notification not found']);
+        }
+        $userNotification->is_read = 1;
+        $userNotification->save();
+        return response()->json(['message' => 'Notification updated successfully']);
     }
 
     /**
