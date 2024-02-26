@@ -93,7 +93,7 @@ class CompanyJobController extends Controller
                 $companyForThisJob = $companyName->nameOfCompany;
 
                 $notificationMessages = array(
-                    'message' =>  $companyForThisJob . 'created new job posting:' . $request->job_title,
+                    'message' =>  $companyForThisJob . ' created new job posting: ' . $request->job_title,
                     'type' => 'job_posting'
                 );
 
@@ -127,7 +127,7 @@ class CompanyJobController extends Controller
                     $companyForThisJob = $companyName->nameOfCompany;
 
                     $notificationData = [
-                        'message' => $companyForThisJob . 'created new job posting:' . $request->job_title,
+                        'message' => $companyForThisJob . ' created new job posting: ' . $request->job_title,
                         'type' => "job_posting"
                     ];
 
@@ -213,7 +213,7 @@ class CompanyJobController extends Controller
             if ($companyJob->save()) {
 
                 $notificationData = [
-                    'message' =>  $companyForThisJob . 'updated new job posting:' . $request->job_title,
+                    'message' =>  $companyForThisJob . ' updated new job posting: ' . $request->job_title,
                     'type' => 'job_posting_updated'
                 ];
 
@@ -242,7 +242,7 @@ class CompanyJobController extends Controller
                 if ($companyJob->save()) {
 
                     $notificationData = [
-                        'message' => $companyForThisJob . 'updated new job posting:' . $request->job_title,
+                        'message' => $companyForThisJob . ' updated new job posting: ' . $request->job_title,
                         'type' => 'job_posting_updated'
                     ];
 
