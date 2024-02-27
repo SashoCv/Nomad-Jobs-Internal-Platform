@@ -181,6 +181,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('notifications', [UserNotificationController::class, 'show']); // notification for user
     Route::post('seenNotifications', [UserNotificationController::class, 'update']); // update notification is_read for user need Function To change
-    Route::post('readNotification/{id}', [UserNotificationController::class, 'store']); // store notification for user
-
+    Route::post('readNotification/{id}', [UserNotificationController::class, 'readNotification']); // update notification is_seen for user
 });

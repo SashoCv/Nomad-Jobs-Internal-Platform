@@ -9,7 +9,6 @@ class UsersNotificationRepository
 {
     public function __construct()
     {
-        // 
     }
 
     public static function createNotificationForUsers($id)
