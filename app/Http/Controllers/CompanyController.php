@@ -20,7 +20,7 @@ class CompanyController extends Controller
     public function index()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $companies = Company::get(['id', 'nameOfCompany']);
+            $companies = Company::get(['id', 'nameOfCompany','addressOne','addressTwo','addressThree']);
 
             return response()->json([
                 'status' => 200,
