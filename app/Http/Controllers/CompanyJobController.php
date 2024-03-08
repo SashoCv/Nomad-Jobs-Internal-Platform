@@ -25,16 +25,20 @@ class CompanyJobController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
-            $allJobPostings = DB::table('company_jobs')
+            $allJobPostingsQuery = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
                 ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
-                ->where('company_jobs.deleted_at', null)
-                ->get();
+                ->whereNull('company_jobs.deleted_at');
 
+            if ($request->company_id) {
+                $allJobPostingsQuery->where('company_jobs.company_id', $request->company_id);
+            }
+
+            $allJobPostings = $allJobPostingsQuery->get();
 
             return response()->json([
                 "status" => "success",
