@@ -40,7 +40,7 @@ Route::get('/', function () {
 
 // Route::get('admins', [LoginController::class, 'admins'])->name('admins');
 // Route::get('months', [MonthCompanyController::class, 'index']);
-// Route::get('downloadAllFile', [FileController::class, 'downloadAllFile']);
+// Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
 
 
 // Route::get('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
