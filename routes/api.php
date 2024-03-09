@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('login', [LoginController::class, 'login']);
 Route::get('test', [CompanyController::class, 'test']);
+Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -98,7 +99,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Files
     Route::post('file', [FileController::class, 'store']);
     Route::get('downloadFile/{file}', [FileController::class, 'download']);
-    Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
     Route::get('filesForPerson/{id}', [FileController::class, 'show']);
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
 
