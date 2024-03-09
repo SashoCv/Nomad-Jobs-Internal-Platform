@@ -24,9 +24,9 @@ class FileController extends Controller
         dd($duplicatedFiles);
     }
 
-public function downloadAllFile($id)
+public function downloadAllFile(Request $request)
 {
-    $candidate_id = $id;
+    $candidate_id = $request->id;
     $candidate = Candidate::where('id', $candidate_id)->first();
 
     $files = File::where('candidate_id', $candidate_id)
