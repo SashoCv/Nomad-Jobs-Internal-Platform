@@ -99,12 +99,7 @@ class LoginController extends Controller
             $expires_at =  Carbon::now()->addHours(7);
             $expires_at = date($expires_at);
 
-            if ($user->role->roleName == 'admin' || $user->role->roleName == 'nomadOffice') {
-                $companies = Company::all();
-            } else {
-                $companies = Company::where('id', '=', $user->company_id)->get();
-            }
-
+         
             return response()->json([
                 'success' => true,
                 'status' => 200,

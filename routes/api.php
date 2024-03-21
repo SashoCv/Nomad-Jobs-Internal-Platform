@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\AssignedJobController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyCategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyFileController;
 use App\Http\Controllers\CompanyJobController;
+use App\Http\Controllers\CompanyOwnerController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
@@ -182,4 +184,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('notifications', [UserNotificationController::class, 'show']); // notification for user
     Route::post('seenNotifications', [UserNotificationController::class, 'update']); // update notification is_read for user need Function To change
     Route::post('readNotification/{id}', [UserNotificationController::class, 'readNotification']); // update notification is_seen for user
+
+
+    // Assigned Jobs
+    Route::post('assignJobToAgent', [AssignedJobController::class, 'store']);
+
+
+    // Company Owner
+
+    Route::post('storeCompanyOwner', [CompanyOwnerController::class, 'store']);
+    Route::get('companyOwners', [CompanyOwnerController::class, 'index']);
+    Route::post('updateCompanyOwner/{id}', [CompanyOwnerController::class, 'update']);
+    Route::delete('deleteCompanyOwner/{id}', [CompanyOwnerController::class, 'destroy']);
+    Route::get('companyOwner/{id}', [CompanyOwnerController::class, 'show']);
 });
