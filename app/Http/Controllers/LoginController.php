@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\User;
+use App\Models\UserOwner;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -173,9 +174,17 @@ class LoginController extends Controller
             }
 
             if ($user->save()) {
-
+                if($user->role_id === 5){
+                    $companiesIds = json_decode(json_encode($request->companies));
+    
+                    foreach ($companiesIds as $companyId) {
+                        $userOwner = new UserOwner();
+                        $userOwner->user_id = $user->id;
+                        $userOwner->company_id = $companyId;
+                        $userOwner->save();
+                    }
+                }
                 $user = User::where('email', $request->email)->first();
-
                 if ($user) {
 
                     $domain = URL::to('https://nomad-cloud.netlify.app/');

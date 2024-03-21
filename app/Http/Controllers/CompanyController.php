@@ -84,7 +84,6 @@ class CompanyController extends Controller
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->description = $request->description;
-            $company->owner_id = $request->owner_id;
 
 
             if ($request->employedByMonths) {
@@ -230,7 +229,6 @@ class CompanyController extends Controller
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->employedByMonths = $employedByMonths;
             $company->description = $description;
-            $company->owner_id = $request->owner_id;
 
 
             if ($company->save()) {

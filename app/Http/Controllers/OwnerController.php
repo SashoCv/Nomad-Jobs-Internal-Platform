@@ -15,24 +15,6 @@ class OwnerController extends Controller
      */
     public function index()
     {
-        try {
-            if (Auth::user()->role_id === 1 || Auth::user()->role_id === 2) {
-                $companyOwners = Owner::with('companies')->get();
-            } else if (Auth::user()->role_id === 3) {
-                $companyOwners = Owner::with('companies')->where('company_id', Auth::user()->company_id)->get();
-            }
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $companyOwners
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => $e
-            ]);
-        }
     }
 
     /**

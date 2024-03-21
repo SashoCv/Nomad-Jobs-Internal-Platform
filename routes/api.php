@@ -188,10 +188,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Assigned Jobs
     Route::post('assignJobToAgent', [AssignedJobController::class, 'store']);
+    Route::get('getAgents', [AssignedJobController::class, 'getAgents']);
+    Route::get('getAssignedJobs', [AssignedJobController::class, 'getAssignedJobs']);
+    Route::delete('deleteAssignedJob/{id}', [AssignedJobController::class, 'deleteAssignedJob']);
+    Route::get('getAssignedJobsForAgent/{id}', [AssignedJobController::class, 'getAssignedJobsForAgent']);
 
+    // Agents
+    Route::post('agentAddCandidateForAssignedJob', [AssignedJobController::class, 'agentAddCandidateForAssignedJob']); // need to be implemented
+    Route::get('getCandidatesForAssignedJob/{id}', [AssignedJobController::class, 'getCandidatesForAssignedJob']); // need to be implemented    
 
     // Company Owner
-    Route::post('storeCompanyOwner', [OwnerController::class, 'store']);
     Route::get('companyOwners', [OwnerController::class, 'index']);
     Route::post('updateCompanyOwner/{id}', [OwnerController::class, 'update']);
     Route::delete('deleteCompanyOwner/{id}', [OwnerController::class, 'destroy']);
