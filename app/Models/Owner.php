@@ -6,20 +6,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class CompanyOwner extends Model
+class Owner extends Model
 {
     use HasFactory;
     use SoftDeletes;
 
     protected $fillable = [
-        'company_id',
         'name',
         'email',
         'phone'
     ];
 
-    public function company()
+    public function companies()
     {
-        return $this->belongsTo(Company::class);
+        return $this->hasMany(Company::class);
     }
 }

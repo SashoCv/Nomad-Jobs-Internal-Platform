@@ -7,7 +7,7 @@ use App\Http\Controllers\CompanyCategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyFileController;
 use App\Http\Controllers\CompanyJobController;
-use App\Http\Controllers\CompanyOwnerController;
+use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
@@ -191,10 +191,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Company Owner
-
-    Route::post('storeCompanyOwner', [CompanyOwnerController::class, 'store']);
-    Route::get('companyOwners', [CompanyOwnerController::class, 'index']);
-    Route::post('updateCompanyOwner/{id}', [CompanyOwnerController::class, 'update']);
-    Route::delete('deleteCompanyOwner/{id}', [CompanyOwnerController::class, 'destroy']);
-    Route::get('companyOwner/{id}', [CompanyOwnerController::class, 'show']);
+    Route::post('storeCompanyOwner', [OwnerController::class, 'store']);
+    Route::get('companyOwners', [OwnerController::class, 'index']);
+    Route::post('updateCompanyOwner/{id}', [OwnerController::class, 'update']);
+    Route::delete('deleteCompanyOwner/{id}', [OwnerController::class, 'destroy']);
+    Route::get('companyOwner/{id}', [OwnerController::class, 'show']);
 });

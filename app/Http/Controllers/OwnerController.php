@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CompanyOwner;
+use App\Models\Owner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class CompanyOwnerController extends Controller
+class OwnerController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -17,9 +17,9 @@ class CompanyOwnerController extends Controller
     {
         try {
             if (Auth::user()->role_id === 1 || Auth::user()->role_id === 2) {
-                $companyOwners = CompanyOwner::with('company')->get();
+                $companyOwners = Owner::with('companies')->get();
             } else if (Auth::user()->role_id === 3) {
-                $companyOwners = CompanyOwner::with('company')->where('company_id', Auth::user()->company_id)->get();
+                $companyOwners = Owner::with('companies')->where('company_id', Auth::user()->company_id)->get();
             }
             return response()->json([
                 'success' => true,
@@ -61,8 +61,7 @@ class CompanyOwnerController extends Controller
                     'data' => 'You dont have permission to add company owner'
                 ]);
             }
-            $companyOwner = new CompanyOwner();
-            $companyOwner->company_id = $request->company_id;
+            $companyOwner = new Owner();
             $companyOwner->name = $request->name;
             $companyOwner->email = $request->email;
             $companyOwner->phone = $request->phone;
@@ -85,16 +84,16 @@ class CompanyOwnerController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\CompanyOwner  $companyOwner
+     * @param  \App\Models\Owner  $owner
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
         try {
             if (Auth::user()->role_id === 1 || Auth::user()->role_id === 2) {
-                $companyOwner = CompanyOwner::with('company')->where('id', '=', $id)->first();
+                $companyOwner = Owner::with('companies')->where('id', '=', $id)->first();
             } else if (Auth::user()->role_id === 3) {
-                $companyOwner = CompanyOwner::with('company')->where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
+                $companyOwner = Owner::with('companies')->where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
             }
             return response()->json([
                 'success' => true,
@@ -113,10 +112,10 @@ class CompanyOwnerController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\CompanyOwner  $companyOwner
+     * @param  \App\Models\Owner  $owner
      * @return \Illuminate\Http\Response
      */
-    public function edit(CompanyOwner $companyOwner)
+    public function edit(Owner $owner)
     {
         //
     }
@@ -125,10 +124,10 @@ class CompanyOwnerController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\CompanyOwner  $companyOwner
+     * @param  \App\Models\Owner  $owner
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, CompanyOwner $companyOwner)
+    public function update(Request $request, $id)
     {
         try {
             if (Auth::user()->role_id != 1 || Auth::user()->role_id != 2) {
@@ -138,8 +137,7 @@ class CompanyOwnerController extends Controller
                     'data' => 'You dont have permission to update company owner'
                 ]);
             }
-            $companyOwner = CompanyOwner::where('id', '=', $request->id)->first();
-            $companyOwner->company_id = $request->company_id;
+            $companyOwner = Owner::where('id', '=', $id)->first();
             $companyOwner->name = $request->name;
             $companyOwner->email = $request->email;
             $companyOwner->phone = $request->phone;
@@ -162,7 +160,7 @@ class CompanyOwnerController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\CompanyOwner  $companyOwner
+     * @param  \App\Models\Owner  $owner
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
@@ -175,7 +173,7 @@ class CompanyOwnerController extends Controller
                     'data' => 'You dont have permission to delete company owner'
                 ]);
             }
-            $companyOwner = CompanyOwner::where('id', '=', $id)->first();
+            $companyOwner = Owner::where('id', '=', $id)->first();
             $companyOwner->delete();
 
             return response()->json([
