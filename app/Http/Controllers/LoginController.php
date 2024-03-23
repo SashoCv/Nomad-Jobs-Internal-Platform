@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -177,6 +178,7 @@ class LoginController extends Controller
                 if($user->role_id === "5"){
                     $companiesIds = json_decode(json_encode($request->companies));
     
+                    Log::info($companiesIds);
                     foreach ($companiesIds as $companyId) {
                         $userOwner = new UserOwner();
                         $userOwner->user_id = $user->id;
