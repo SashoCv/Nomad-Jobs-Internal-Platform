@@ -174,7 +174,7 @@ class LoginController extends Controller
             }
 
             if ($user->save()) {
-                if($user->role_id === 5){
+                if($user->role_id === "5"){
                     $companiesIds = json_decode(json_encode($request->companies));
     
                     foreach ($companiesIds as $companyId) {
@@ -184,7 +184,7 @@ class LoginController extends Controller
                         $userOwner->save();
                     }
                 }
-                
+
                 // $user = User::where('email', $request->email)->first();
                 // if ($user) {
 
