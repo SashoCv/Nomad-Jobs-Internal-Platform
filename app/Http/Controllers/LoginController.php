@@ -176,10 +176,10 @@ class LoginController extends Controller
 
             if ($user->save()) {
                 if($user->role_id === "5"){
-                    $companiesIds = json_decode(json_encode($request->companies));
+                    $companiesIds = $request->companies;
+                    $companiesArray = array_map('intval', explode(',', $companiesIds));
     
-                    Log::info($companiesIds);
-                    foreach ($companiesIds as $companyId) {
+                    foreach ($companiesArray as $companyId) {
                         $userOwner = new UserOwner();
                         $userOwner->user_id = $user->id;
                         $userOwner->company_id = $companyId;
