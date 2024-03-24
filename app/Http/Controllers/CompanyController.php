@@ -144,13 +144,13 @@ class CompanyController extends Controller
                 'success' => true,
                 'status' => 200,
                 'data' => $company
-            ]);
+            ],200);
         } else {
             return response()->json([
                 'success' => false,
                 'status' => 500,
                 'data' => []
-            ]);
+            ],500);
         }
     }
 
