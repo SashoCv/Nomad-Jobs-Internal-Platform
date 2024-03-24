@@ -330,8 +330,17 @@ class LoginController extends Controller
         $userDelete = User::findOrFail($id);
 
         if (Auth::user()->role_id == 1) {
-
             if ($userDelete->delete()) {
+                $userOwnerExists = UserOwner::where('user_id', $id)->get();
+                
+                if($userOwnerExists){
+                    foreach($userOwnerExists as $userOwner){
+                        $company = Company::find($userOwner->company_id);
+                        $company->has_owner = false;
+                        $company->save();
+                    }
+                }
+
                 return response()->json([
                     'success' => true,
                     'status' => 200,
