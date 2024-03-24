@@ -180,6 +180,10 @@ class LoginController extends Controller
                     $companiesArray = array_map('intval', explode(',', $companiesIds));
     
                     foreach ($companiesArray as $companyId) {
+                        $company = Company::find($companyId);
+                        $company->has_owner = true;
+                        $company->save();
+
                         $userOwner = new UserOwner();
                         $userOwner->user_id = $user->id;
                         $userOwner->company_id = $companyId;
