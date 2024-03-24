@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Models\File;
 use App\Models\User;
+use App\Models\UserOwner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -125,22 +126,32 @@ class CompanyController extends Controller
      */
     public function show($id)
     {
-        // $candidates = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
-        //     ->where('type_id', '=', 1)
-        //     ->get();
+        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            $company = Company::with('industry')->where('id', '=', $id)->first();
+        } else if(Auth::user()->role_id == 3) {
+            $company = Company::with('industry')->where('id', '=', Auth::user()->company_id)->first();
+        } else if(Auth::user()->role_id == 5) {
+            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
+            $userOwnersArray = [];
+            foreach($userOwners as $userOwner) {
+                array_push($userOwnersArray, $userOwner->company_id);
+            }
+            $company = Company::with('industry')->whereIn('id', $userOwnersArray)->where('id', '=', $id)->first();
+        }
 
-        // $workers = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
-        //     ->where('type_id', '=', 2)
-        //     ->get();
-
-        $company = Company::with('industry')->where('id', '=', $id)->first();
-
-
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $company
-        ]);
+        if($company){
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $company
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ]);
+        }
     }
 
     /**
