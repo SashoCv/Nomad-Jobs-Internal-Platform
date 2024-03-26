@@ -239,17 +239,20 @@ class LoginController extends Controller
         if (Auth::user()->role_id == 1) {
             $user = User::where('id', '=', $id)->first();
             $userOwners = UserOwner::where('user_id', $id)->get();
-            $companiesIds = [];
-            
-            foreach($userOwners as $userOwner){
+            $companies = [];
+
+            foreach ($userOwners as $userOwner) {
                 $company = Company::find($userOwner->company_id);
-                array_push($companiesIds, $company);
+                if ($company) {
+                    $companyData = ['id' => $company->id, 'name' => $company->name];
+                    $companies[] = $companyData;
+                }
             }
             return response()->json([
                 'success' => false,
                 'status' => 200,
                 'data' => $user,
-                'companies' => $companiesIds ?? []
+                'companies' => $companies ?? []
             ]);
         } else {
             return response()->json([
