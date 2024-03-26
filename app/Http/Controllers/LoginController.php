@@ -245,7 +245,18 @@ class LoginController extends Controller
                 array_push($companiesIds, $company);
             }
 
-            $companies = Company::whereIn('id', $companiesIds)->get(['id', 'name']);
+            $companies = [];
+            // Now fetch the companies with their id and name attributes using the collected ids
+            foreach ($companiesIds as $companyId) {
+                $company = Company::find($companyId);
+                // Ensure the company exists before fetching its attributes
+                if ($company) {
+                    $companies[] = [
+                        'id' => $company->id,
+                        'name' => $company->name
+                    ];
+                }
+            }
             return response()->json([
                 'success' => false,
                 'status' => 200,
