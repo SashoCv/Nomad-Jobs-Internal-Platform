@@ -244,7 +244,7 @@ class LoginController extends Controller
             foreach ($userOwners as $userOwner) {
                 $company = Company::find($userOwner->company_id);
                 if ($company) {
-                    $companyData = ['id' => $company->id, 'name' => $company->name];
+                    $companyData = ['id' => $company->id, 'name' => $company->nameOfCompany];
                     $companies[] = $companyData;
                 }
             }
