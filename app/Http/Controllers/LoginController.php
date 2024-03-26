@@ -245,7 +245,7 @@ class LoginController extends Controller
                 array_push($companiesIds, $company);
             }
 
-            $companies = Company::where('id', $companiesIds)->get(['id', 'name']);
+            $companies = Company::whereIn('id', $companiesIds)->get(['id', 'name']);
             return response()->json([
                 'success' => false,
                 'status' => 200,
