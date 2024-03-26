@@ -201,39 +201,12 @@ class CandidateController extends Controller
         if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
             $person = Candidate::where('id', '=', $id)->first();
 
-            if(isset($person)){
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $person,
-                ],200);
-            } else {
-                return response()->json([
-                    'success' => true,
-                    'status' => 500,
-                    'data' => [],
-                ],500);
-            }
         }else if(Auth::user()->role_id == 3){
             $person = Candidate::where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
 
-            if(isset($person)){
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $person,
-                ],200);
-            } else {
-                return response()->json([
-                    'success' => true,
-                    'status' => 500,
-                    'data' => [],
-                ],500);
-            }
         }else if(Auth::user()->role_id == 5){
             $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
             $userOwnersArray = [];
-            $companiesIds = [];
 
             foreach ($userOwners as $userOwner) {
                 array_push($userOwnersArray, $userOwner->company_id);
@@ -242,22 +215,22 @@ class CandidateController extends Controller
                 array_push($companiesIds, $userOwner->company_id);
             }
 
-            $person = Candidate::where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
+            $person = Candidate::where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first(); 
+        }
 
-            if(isset($person)){
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $person,
-                    'companiesIds' => $companiesIds,
-                ],200);
-            } else {
-                return response()->json([
-                    'success' => true,
-                    'status' => 500,
-                    'data' => [],
-                ],500);
-            }
+        if(isset($person)){
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $person,
+                'companiesIds' => $companiesIds,
+            ],200);
+        } else {
+            return response()->json([
+                'success' => true,
+                'status' => 500,
+                'data' => [],
+            ],500);
         }
     }
 
