@@ -261,7 +261,7 @@ class LoginController extends Controller
                 'success' => false,
                 'status' => 200,
                 'data' => $user,
-                'companies' => $companies
+                'companies' => $companies ?? []
             ]);
         } else {
             return response()->json([
