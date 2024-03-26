@@ -240,28 +240,16 @@ class LoginController extends Controller
             $user = User::where('id', '=', $id)->first();
             $userOwners = UserOwner::where('user_id', $id)->get();
             $companiesIds = [];
+            
             foreach($userOwners as $userOwner){
                 $company = Company::find($userOwner->company_id);
                 array_push($companiesIds, $company);
-            }
-
-            $companies = [];
-            // Now fetch the companies with their id and name attributes using the collected ids
-            foreach ($companiesIds as $companyId) {
-                $company = Company::find($companyId);
-                // Ensure the company exists before fetching its attributes
-                if ($company) {
-                    $companies[] = [
-                        'id' => $company->id,
-                        'name' => $company->name
-                    ];
-                }
             }
             return response()->json([
                 'success' => false,
                 'status' => 200,
                 'data' => $user,
-                'companies' => $companies ?? []
+                'companies' => $companiesIds ?? []
             ]);
         } else {
             return response()->json([
