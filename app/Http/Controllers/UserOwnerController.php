@@ -72,9 +72,8 @@ class UserOwnerController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $userOwner = UserOwner::find($id);
+            $userOwner = UserOwner::where('company_id', $id)->first();
             $userOwner->user_id = $request->user_id;
-            $userOwner->company_id = $request->company_id;
 
             if ($userOwner->save()) {
                 return response()->json($userOwner, 200);
