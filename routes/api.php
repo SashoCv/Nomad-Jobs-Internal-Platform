@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentCandidateController;
 use App\Http\Controllers\AssignedJobController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CategoryController;
@@ -7,7 +8,6 @@ use App\Http\Controllers\CompanyCategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyFileController;
 use App\Http\Controllers\CompanyJobController;
-use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
@@ -18,9 +18,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
-use App\Http\Controllers\WorkerController;
-use App\Models\Position;
-use Illuminate\Auth\Events\Login;
+use App\Http\Controllers\UserOwnerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -194,12 +192,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getAssignedJobsForAgent/{id}', [AssignedJobController::class, 'getAssignedJobsForAgent']);
 
     // Agents
-    Route::post('agentAddCandidateForAssignedJob', [AssignedJobController::class, 'agentAddCandidateForAssignedJob']); // need to be implemented
-    Route::get('getCandidatesForAssignedJob/{id}', [AssignedJobController::class, 'getCandidatesForAssignedJob']); // need to be implemented    
+    Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);
+    Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']); 
 
+    
     // Company Owner
-    Route::get('companyOwners', [OwnerController::class, 'index']);
-    Route::post('updateCompanyOwner/{id}', [OwnerController::class, 'update']);
-    Route::delete('deleteCompanyOwner/{id}', [OwnerController::class, 'destroy']);
-    Route::get('companyOwner/{id}', [OwnerController::class, 'show']);
+    Route::post('updateCompanyOwner/{id}', [UserOwnerController::class, 'update']);
 });

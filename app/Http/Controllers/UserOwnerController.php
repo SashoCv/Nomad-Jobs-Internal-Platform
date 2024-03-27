@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\UserOwner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class UserOwnerController extends Controller
 {
@@ -67,9 +69,20 @@ class UserOwnerController extends Controller
      * @param  \App\Models\UserOwner  $userOwner
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, UserOwner $userOwner)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $userOwner = UserOwner::find($id);
+            $userOwner->user_id = $request->user_id;
+            $userOwner->company_id = $request->company_id;
+
+            if ($userOwner->save()) {
+                return response()->json($userOwner, 200);
+            }
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['message' => 'User not found!'], 404);
+        }
     }
 
     /**
