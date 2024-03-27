@@ -211,10 +211,6 @@ class CandidateController extends Controller
             foreach ($userOwners as $userOwner) {
                 array_push($userOwnersArray, $userOwner->company_id);
             }
-            foreach ($userOwners as $userOwner) {
-                array_push($companiesIds, $userOwner->company_id);
-            }
-
             $person = Candidate::where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first(); 
         }
 
@@ -223,7 +219,6 @@ class CandidateController extends Controller
                 'success' => true,
                 'status' => 200,
                 'data' => $person,
-                'companiesIds' => $companiesIds,
             ],200);
         } else {
             return response()->json([
