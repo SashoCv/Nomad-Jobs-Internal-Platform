@@ -315,11 +315,14 @@ class LoginController extends Controller
 
             if ($user->save()) {
                     $companiesIds = $request->companies;
+                    
                     if($companiesIds){
                         $findAllUserOwners = UserOwner::where('user_id', $id)->get();
-
                             if($findAllUserOwners){
                                 foreach($findAllUserOwners as $userOwner){
+                                    $company = Company::find($userOwner->company_id);
+                                    $company->has_owner = false;
+                                    $company->save();
                                     $userOwner->delete();
                                 }
                             }
