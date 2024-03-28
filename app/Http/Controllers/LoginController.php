@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\User;
+use App\Models\UserOwner;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -99,12 +101,7 @@ class LoginController extends Controller
             $expires_at =  Carbon::now()->addHours(7);
             $expires_at = date($expires_at);
 
-            if ($user->role->roleName == 'admin' || $user->role->roleName == 'nomadOffice') {
-                $companies = Company::all();
-            } else {
-                $companies = Company::where('id', '=', $user->company_id)->get();
-            }
-
+         
             return response()->json([
                 'success' => true,
                 'status' => 200,
@@ -178,24 +175,38 @@ class LoginController extends Controller
             }
 
             if ($user->save()) {
+                if($user->role_id === "5"){
+                    $companiesIds = $request->companies;
+                    $companiesArray = array_map('intval', explode(',', $companiesIds));
+    
+                    foreach ($companiesArray as $companyId) {
+                        $company = Company::find($companyId);
+                        $company->has_owner = true;
+                        $company->save();
 
-                $user = User::where('email', $request->email)->first();
-
-                if ($user) {
-
-                    $domain = URL::to('https://nomad-cloud.netlify.app/');
-                    $url = $domain;
-
-                    $data['url'] = $url;
-                    $data['email'] = $request->email;
-                    $data['password'] = $request->password;
-                    $data['title'] = 'Login credentials for Nomad Cloud';
-                    $data['body'] = "Please click on below link";
-
-                    Mail::send('loginLink', ['data' => $data], function ($message) use ($data) {
-                        $message->to($data['email'])->subject($data['title']);
-                    });
+                        $userOwner = new UserOwner();
+                        $userOwner->user_id = $user->id;
+                        $userOwner->company_id = $companyId;
+                        $userOwner->save();
+                    }
                 }
+
+                // $user = User::where('email', $request->email)->first();
+                // if ($user) {
+
+                //     $domain = URL::to('https://nomad-cloud.netlify.app/');
+                //     $url = $domain;
+
+                //     $data['url'] = $url;
+                //     $data['email'] = $request->email;
+                //     $data['password'] = $request->password;
+                //     $data['title'] = 'Login credentials for Nomad Cloud';
+                //     $data['body'] = "Please click on below link";
+
+                //     Mail::send('loginLink', ['data' => $data], function ($message) use ($data) {
+                //         $message->to($data['email'])->subject($data['title']);
+                //     });
+                // }
 
                 return response()->json([
                     'success' => true,
@@ -227,11 +238,21 @@ class LoginController extends Controller
     {
         if (Auth::user()->role_id == 1) {
             $user = User::where('id', '=', $id)->first();
+            $userOwners = UserOwner::where('user_id', $id)->get();
+            $companies = [];
 
+            foreach ($userOwners as $userOwner) {
+                $company = Company::find($userOwner->company_id);
+                if ($company) {
+                    $companyData = ['id' => $company->id, 'name' => $company->nameOfCompany];
+                    $companies[] = $companyData;
+                }
+            }
             return response()->json([
                 'success' => false,
                 'status' => 200,
-                'data' => $user
+                'data' => $user,
+                'companies' => $companies ?? []
             ]);
         } else {
             return response()->json([
@@ -293,6 +314,33 @@ class LoginController extends Controller
 
 
             if ($user->save()) {
+                    $companiesIds = $request->companies;
+                    
+                    if($companiesIds){
+                        $findAllUserOwners = UserOwner::where('user_id', $id)->get();
+                            if($findAllUserOwners){
+                                foreach($findAllUserOwners as $userOwner){
+                                    $company = Company::find($userOwner->company_id);
+                                    $company->has_owner = false;
+                                    $company->save();
+                                    $userOwner->delete();
+                                }
+                            }
+    
+                        $companiesArray = array_map('intval', explode(',', $companiesIds));
+
+                        foreach ($companiesArray as $companyId) {
+                            
+                            $company = Company::find($companyId);
+                            $company->has_owner = true;
+                            $company->save();
+    
+                            $userOwner = new UserOwner();
+                            $userOwner->user_id = $id;
+                            $userOwner->company_id = $companyId;
+                            $userOwner->save();
+                        }
+                    }    
                 return response()->json([
                     'success' => true,
                     'status' => 200,
@@ -319,8 +367,17 @@ class LoginController extends Controller
         $userDelete = User::findOrFail($id);
 
         if (Auth::user()->role_id == 1) {
-
             if ($userDelete->delete()) {
+                $userOwnerExists = UserOwner::where('user_id', $id)->get();
+                
+                if($userOwnerExists){
+                    foreach($userOwnerExists as $userOwner){
+                        $company = Company::find($userOwner->company_id);
+                        $company->has_owner = false;
+                        $company->save();
+                    }
+                }
+
                 return response()->json([
                     'success' => true,
                     'status' => 200,

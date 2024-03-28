@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AgentCandidateController;
+use App\Http\Controllers\AssignedJobController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyCategoryController;
@@ -16,9 +18,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
-use App\Http\Controllers\WorkerController;
-use App\Models\Position;
-use Illuminate\Auth\Events\Login;
+use App\Http\Controllers\UserOwnerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -182,4 +182,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('notifications', [UserNotificationController::class, 'show']); // notification for user
     Route::post('seenNotifications', [UserNotificationController::class, 'update']); // update notification is_read for user need Function To change
     Route::post('readNotification/{id}', [UserNotificationController::class, 'readNotification']); // update notification is_seen for user
+
+
+    // Assigned Jobs
+    Route::post('assignJobToAgent', [AssignedJobController::class, 'store']);
+    Route::get('getAgents', [AssignedJobController::class, 'getAgents']);
+    Route::get('getAssignedJobs', [AssignedJobController::class, 'getAssignedJobs']);
+    Route::delete('deleteAssignedJob/{id}', [AssignedJobController::class, 'deleteAssignedJob']);
+    Route::get('getAssignedJobsForAgent/{id}', [AssignedJobController::class, 'getAssignedJobsForAgent']);
+
+    // Agents
+    Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);
+    Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']); 
+
+    
+    // Company Owner
+    Route::post('updateCompanyOwner/{id}', [UserOwnerController::class, 'update']);
 });

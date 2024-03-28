@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Candidate;
 use App\Models\Company;
 use App\Models\CompanyFile;
+use App\Models\UserOwner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -657,6 +658,13 @@ class SearchController extends Controller
 
         $companiesQuery = Company::with(['industry', 'candidates']);
 
+        if(Auth::user()->role_id === 5){
+            $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
+            $companyIds = $companyOwner->pluck('company_id');
+
+            $companiesQuery->whereIn('id', $companyIds);
+        }
+
         if ($EIK) {
             $companiesQuery->where('EIK', $EIK);
         }
@@ -727,6 +735,13 @@ class SearchController extends Controller
 
         if ($userRoleId === 3) {
             $query->where('company_id', Auth::user()->company_id);
+        }
+
+        if($userRoleId === 5){
+            $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
+            $companyIds = $companyOwner->pluck('company_id');
+
+            $query->whereIn('company_id', $companyIds);
         }
 
         if (!$searchEverything) {

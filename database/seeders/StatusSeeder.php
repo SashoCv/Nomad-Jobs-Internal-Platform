@@ -16,47 +16,23 @@ class StatusSeeder extends Seeder
     public function run()
     {
         DB::table('statuses')->insert([
-            'nameOfStatus' => 'Подаден в Миграция',
+            'nameOfStatus' => 'Отказ от Миграция',
         ]);
 
         DB::table('statuses')->insert([
-            'nameOfStatus' => 'Получил разрешение',
+            'nameOfStatus' => 'Отказ от кандидат',
         ]);
 
         DB::table('statuses')->insert([
-            'nameOfStatus' => 'Подаден в посолство',
+            'nameOfStatus' => 'Отказ от компаия',
         ]);
 
         DB::table('statuses')->insert([
-            'nameOfStatus' => 'Получил виза',
+            'nameOfStatus' => 'Изпратини документи за виза Д',
         ]);
 
         DB::table('statuses')->insert([
-            'nameOfStatus' => 'Пристигнал',
-        ]);
-
-        DB::table('statuses')->insert([
-            'nameOfStatus' => 'В процедура за ID Card',
-        ]);
-
-        DB::table('statuses')->insert([
-            'nameOfStatus' => 'Сниман за ID Card',
-        ]);
-
-        DB::table('statuses')->insert([
-            'nameOfStatus' => 'Получил ID Card',
-        ]);
-       
-        DB::table('statuses')->insert([
-            'nameOfStatus' => 'Назначен на работа',
-        ]);
-
-        DB::table('statuses')->insert([
-            'nameOfStatus' => 'Приключил Договор',
-        ]);
-
-        DB::table('statuses')->insert([
-            'nameOfStatus' => 'Прекратен договор',
+            'nameOfStatus' => 'Изготвени документи за Миграция',
         ]);
     }
 }
