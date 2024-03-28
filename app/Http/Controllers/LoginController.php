@@ -314,6 +314,21 @@ class LoginController extends Controller
 
 
             if ($user->save()) {
+                    $companiesIds = $request->companies;
+                    if($companiesIds){
+                        $companiesArray = array_map('intval', explode(',', $companiesIds));
+    
+                        foreach ($companiesArray as $companyId) {
+                            $company = Company::find($companyId);
+                            $company->has_owner = true;
+                            $company->save();
+    
+                            $userOwner = new UserOwner();
+                            $userOwner->user_id = $user->id;
+                            $userOwner->company_id = $companyId;
+                            $userOwner->save();
+                        }
+                    }    
                 return response()->json([
                     'success' => true,
                     'status' => 200,
