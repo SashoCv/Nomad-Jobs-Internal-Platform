@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssignedJob;
 use App\Models\Company;
 use App\Models\CompanyJob;
 use App\Models\User;
@@ -116,6 +117,8 @@ class CompanyJobController extends Controller
                 $companyName = Company::where('id', $request->company_id)->first();
                 $companyForThisJob = $companyName->nameOfCompany;
 
+                
+
                 $notificationMessages = array(
                     'message' =>  $companyForThisJob . ' created new job posting: ' . $request->job_title,
                     'type' => 'job_posting'
@@ -125,6 +128,16 @@ class CompanyJobController extends Controller
                 UsersNotificationRepository::createNotificationForUsers($notification_id);
                 $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
 
+                if($request->agentsIds){
+                    $agents = $request->agentsIds;
+                    foreach($agents as $agentId){
+                        $assignedJob = new AssignedJob();
+                        $assignedJob->user_id = $agentId;
+                        $assignedJob->company_job_id = $companyJob->id;
+
+                        $assignedJob->save();
+                    }
+                }
 
                 return response()->json([
                     "status" => "success",
@@ -276,6 +289,17 @@ class CompanyJobController extends Controller
 
                 $notification = NotificationRepository::createNotification($notificationData);
                 UsersNotificationRepository::createNotificationForUsers($notification);
+
+                if($request->agentsIds){
+                    $agents = $request->agentsIds;
+                    foreach($agents as $agentId){
+                        $assignedJob = new AssignedJob();
+                        $assignedJob->user_id = $agentId;
+                        $assignedJob->company_job_id = $companyJob->id;
+
+                        $assignedJob->save();
+                    }
+                }
 
                 return response()->json([
                     "status" => "success",
