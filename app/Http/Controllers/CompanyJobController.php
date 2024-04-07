@@ -81,6 +81,24 @@ class CompanyJobController extends Controller
                 "message" => "Job retrieved successfully",
                 "data" => $allJobPostings
             ], 200);
+        } else if (Auth::user()->role_id == 4) {
+
+            $allJobPostings = DB::table('company_jobs')
+                ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+                ->where('user_id', Auth::user()->company_id)
+                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->where('company_jobs.deleted_at', null)
+                ->get();
+
+            if (count($allJobPostings) === 0) {
+                return response()->json(['message' => 'No job postings found'], 404);
+            }
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Job retrieved successfully",
+                "data" => $allJobPostings
+            ], 200);
         }
     }
 
@@ -117,7 +135,7 @@ class CompanyJobController extends Controller
                 $companyName = Company::where('id', $request->company_id)->first();
                 $companyForThisJob = $companyName->nameOfCompany;
 
-                
+
 
                 $notificationMessages = array(
                     'message' =>  $companyForThisJob . ' created new job posting: ' . $request->job_title,
@@ -128,14 +146,14 @@ class CompanyJobController extends Controller
                 UsersNotificationRepository::createNotificationForUsers($notification_id);
                 $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
 
-                if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
-                    if($request->agentsIds){
+                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                    if ($request->agentsIds) {
                         $agents = $request->agentsIds;
-                        foreach($agents as $agentId){
+                        foreach ($agents as $agentId) {
                             $assignedJob = new AssignedJob();
                             $assignedJob->user_id = $agentId;
                             $assignedJob->company_job_id = $companyJob->id;
-    
+
                             $assignedJob->save();
                         }
                     }
@@ -232,11 +250,11 @@ class CompanyJobController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
             $companyJob = CompanyJob::with(['company', 'user'])->where('id', $id)->first();
-           
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
-               $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
+
+            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
                 $agents = [];
-                foreach($assignedJobs as $assignedJob){
+                foreach ($assignedJobs as $assignedJob) {
                     $agent = User::where('id', $assignedJob->user_id)->first();
                     $agents[] = $agent;
                 }
@@ -281,7 +299,7 @@ class CompanyJobController extends Controller
      */
     public function update(Request $request, CompanyJob $companyJob)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5){
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
             $companyJob = CompanyJob::find($request->id);
 
             $companyJob->user_id = Auth::user()->id;
@@ -302,14 +320,14 @@ class CompanyJobController extends Controller
                 $notification = NotificationRepository::createNotification($notificationData);
                 UsersNotificationRepository::createNotificationForUsers($notification);
 
-                if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
-                    if($request->agentsIds){
+                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                    if ($request->agentsIds) {
                         $agents = $request->agentsIds;
-                        foreach($agents as $agentId){
+                        foreach ($agents as $agentId) {
                             $assignedJob = new AssignedJob();
                             $assignedJob->user_id = $agentId;
                             $assignedJob->company_job_id = $companyJob->id;
-    
+
                             $assignedJob->save();
                         }
                     }
