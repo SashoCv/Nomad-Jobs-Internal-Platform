@@ -336,6 +336,12 @@ class CompanyJobController extends Controller
 
                 if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
                     if ($request->agentsIds) {
+                        $assignedJobsForThisAgent = AssignedJob::where('company_job_id', $companyJob->id)->get();
+                        if ($assignedJobsForThisAgent) {
+                            foreach ($assignedJobsForThisAgent as $assignedJob) {
+                                $assignedJob->delete();
+                            }
+                        }
                         $agents = $request->agentsIds;
                         foreach ($agents as $agentId) {
                             $assignedJob = new AssignedJob();
