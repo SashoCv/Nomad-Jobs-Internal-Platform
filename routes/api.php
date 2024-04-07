@@ -189,7 +189,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getAgents', [AssignedJobController::class, 'getAgents']);
     Route::get('getAssignedJobs', [AssignedJobController::class, 'getAssignedJobs']);
     Route::delete('deleteAssignedJob/{id}', [AssignedJobController::class, 'deleteAssignedJob']);
-    Route::get('getAssignedJobsForAgent/{id}', [AssignedJobController::class, 'getAssignedJobsForAgent']);
+    Route::get('getAssignedJobsForAgent', [AssignedJobController::class, 'getAssignedJobsForAgent']);
 
     // Agents
     Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);

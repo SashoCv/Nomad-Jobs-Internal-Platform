@@ -49,14 +49,15 @@ class AssignedJobController extends Controller
     }
 
 
-    public function getAssignedJobsForAgent($id)
+    public function getAssignedJobsForAgent()
     {
         try {
-            if (Auth::user()->role_id = 1 || Auth::user()->role_id = 2) {
-                $assignedJobs = AssignedJob::with('user', 'companyJob')->where('user_id', $id)->get();
-            } else if (Auth::user()->role_id = 4) {
                 $assignedJobs = AssignedJob::with('user', 'companyJob')->where('user_id', Auth::user()->id)->get();
-            }
+                
+                if (count($assignedJobs) === 0) {
+                    return response()->json(['message' => 'No assigned jobs found'], 404);
+                }
+                
             return response()->json(['assignedJobs' => $assignedJobs], 200);
         } catch (\Exception $e) {
             Log::error($e->getMessage());

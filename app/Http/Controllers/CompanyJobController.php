@@ -128,14 +128,16 @@ class CompanyJobController extends Controller
                 UsersNotificationRepository::createNotificationForUsers($notification_id);
                 $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
 
-                if($request->agentsIds){
-                    $agents = $request->agentsIds;
-                    foreach($agents as $agentId){
-                        $assignedJob = new AssignedJob();
-                        $assignedJob->user_id = $agentId;
-                        $assignedJob->company_job_id = $companyJob->id;
-
-                        $assignedJob->save();
+                if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
+                    if($request->agentsIds){
+                        $agents = $request->agentsIds;
+                        foreach($agents as $agentId){
+                            $assignedJob = new AssignedJob();
+                            $assignedJob->user_id = $agentId;
+                            $assignedJob->company_job_id = $companyJob->id;
+    
+                            $assignedJob->save();
+                        }
                     }
                 }
 
@@ -230,6 +232,16 @@ class CompanyJobController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
             $companyJob = CompanyJob::with(['company', 'user'])->where('id', $id)->first();
+           
+            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
+               $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
+                $agents = [];
+                foreach($assignedJobs as $assignedJob){
+                    $agent = User::where('id', $assignedJob->user_id)->first();
+                    $agents[] = $agent;
+                }
+                $companyJob->agents = $agents;
+            }
 
             return response()->json([
                 "status" => "success",
@@ -290,14 +302,16 @@ class CompanyJobController extends Controller
                 $notification = NotificationRepository::createNotification($notificationData);
                 UsersNotificationRepository::createNotificationForUsers($notification);
 
-                if($request->agentsIds){
-                    $agents = $request->agentsIds;
-                    foreach($agents as $agentId){
-                        $assignedJob = new AssignedJob();
-                        $assignedJob->user_id = $agentId;
-                        $assignedJob->company_job_id = $companyJob->id;
-
-                        $assignedJob->save();
+                if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
+                    if($request->agentsIds){
+                        $agents = $request->agentsIds;
+                        foreach($agents as $agentId){
+                            $assignedJob = new AssignedJob();
+                            $assignedJob->user_id = $agentId;
+                            $assignedJob->company_job_id = $companyJob->id;
+    
+                            $assignedJob->save();
+                        }
                     }
                 }
 
