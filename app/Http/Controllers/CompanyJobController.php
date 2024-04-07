@@ -90,9 +90,6 @@ class CompanyJobController extends Controller
                 ->where('company_jobs.deleted_at', null)
                 ->get();
 
-            if (count($allJobPostings) === 0) {
-                return response()->json(['message' => 'No job postings found'], 404);
-            }
 
             return response()->json([
                 "status" => "success",
