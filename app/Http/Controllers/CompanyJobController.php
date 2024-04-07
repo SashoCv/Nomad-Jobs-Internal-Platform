@@ -269,8 +269,7 @@ class CompanyJobController extends Controller
                 "message" => "Job retrieved successfully",
                 "data" => $companyJob
             ], 200);
-        } else {
-            if (Auth::user()->role_id == 3) {
+        } else if (Auth::user()->role_id == 3){
                 $companyJob = CompanyJob::with(['company', 'user'])->where('id', $id)->where('company_id', Auth::user()->company_id)->first();
 
                 return response()->json([
@@ -278,6 +277,18 @@ class CompanyJobController extends Controller
                     "message" => "Job retrieved successfully",
                     "data" => $companyJob
                 ], 200);
+            
+        } else if (Auth::user()->role_id == 4) {
+            $assignedJob = AssignedJob::where('user_id', Auth::user()->id)->where('company_job_id', $id)->first();
+            if ($assignedJob) {
+                $companyJob = CompanyJob::with(['company', 'user'])->where('id', $id)->first();
+                return response()->json([
+                    "status" => "success",
+                    "message" => "Job retrieved successfully",
+                    "data" => $companyJob
+                ], 200);
+            } else {
+                return response()->json(['message' => 'You are not authorized to view this job'], 401);
             }
         }
     }
