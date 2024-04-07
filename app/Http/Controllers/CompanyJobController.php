@@ -253,12 +253,12 @@ class CompanyJobController extends Controller
 
             if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
                 $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
-                $agents = [];
+                $agentsIds = [];
                 foreach ($assignedJobs as $assignedJob) {
                     $agent = User::where('id', $assignedJob->user_id)->first();
-                    $agents[] = $agent;
+                    $agentsIds[] = $agent->id;
                 }
-                $companyJob->agents = $agents;
+                $companyJob->agentsIds = $agentsIds;
             }
 
             return response()->json([
