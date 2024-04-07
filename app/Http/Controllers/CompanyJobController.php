@@ -316,7 +316,7 @@ class CompanyJobController extends Controller
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
             $companyJob = CompanyJob::find($request->id);
 
-            $companyJob->user_id = Auth::user()->id;
+            $companyJob->user_id = $request->user_id;
             $companyJob->company_id = $request->company_id;
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
@@ -336,12 +336,8 @@ class CompanyJobController extends Controller
 
                 if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
                     if ($request->agentsIds || $request->agentsIds == []) {
-                        $assignedJobsForThisAgent = AssignedJob::where('company_job_id', $companyJob->id)->get();
-                        if ($assignedJobsForThisAgent) {
-                            foreach ($assignedJobsForThisAgent as $assignedJob) {
-                                $assignedJob->delete();
-                            }
-                        }
+                        
+                        AssignedJob::where('company_job_id', $companyJob->id)->delete();
                         $agents = $request->agentsIds;
                         foreach ($agents as $agentId) {
                             $assignedJob = new AssignedJob();
