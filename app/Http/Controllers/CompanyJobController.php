@@ -319,6 +319,8 @@ class CompanyJobController extends Controller
             $companyJob->company_id = $request->company_id;
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
+            $companyJob->job_description = $request->job_description;
+
 
             $companyForThisJob = Company::where('id', $request->company_id)->first();
             $companyForThisJob = $companyForThisJob->nameOfCompany;
@@ -370,6 +372,8 @@ class CompanyJobController extends Controller
             $companyJob->company_id = Auth::user()->company_id;
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
+            $companyJob->job_description = $request->job_description;
+
 
             $companyForThisJob = Company::where('id', Auth::user()->company_id)->first();
             $companyForThisJob = $companyForThisJob->nameOfCompany;
