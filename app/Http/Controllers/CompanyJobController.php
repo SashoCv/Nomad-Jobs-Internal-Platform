@@ -335,7 +335,7 @@ class CompanyJobController extends Controller
                 UsersNotificationRepository::createNotificationForUsers($notification);
 
                 if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                    if ($request->agentsIds) {
+                    if ($request->agentsIds || $request->agentsIds == []) {
                         $assignedJobsForThisAgent = AssignedJob::where('company_job_id', $companyJob->id)->get();
                         if ($assignedJobsForThisAgent) {
                             foreach ($assignedJobsForThisAgent as $assignedJob) {
