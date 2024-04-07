@@ -269,15 +269,14 @@ class CompanyJobController extends Controller
                 "message" => "Job retrieved successfully",
                 "data" => $companyJob
             ], 200);
-        } else if (Auth::user()->role_id == 3){
-                $companyJob = CompanyJob::with(['company', 'user'])->where('id', $id)->where('company_id', Auth::user()->company_id)->first();
+        } else if (Auth::user()->role_id == 3) {
+            $companyJob = CompanyJob::with(['company', 'user'])->where('id', $id)->where('company_id', Auth::user()->company_id)->first();
 
-                return response()->json([
-                    "status" => "success",
-                    "message" => "Job retrieved successfully",
-                    "data" => $companyJob
-                ], 200);
-            
+            return response()->json([
+                "status" => "success",
+                "message" => "Job retrieved successfully",
+                "data" => $companyJob
+            ], 200);
         } else if (Auth::user()->role_id == 4) {
             $assignedJob = AssignedJob::where('user_id', Auth::user()->id)->where('company_job_id', $id)->first();
             if ($assignedJob) {
@@ -337,18 +336,20 @@ class CompanyJobController extends Controller
                 if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
                     if ($request->agentsIds || $request->agentsIds == []) {
 
-                       $deleteAgentsForAssignedJob = AssignedJob::where('company_job_id', $companyJob->id)->get();
-                          foreach ($deleteAgentsForAssignedJob as $deleteAgentForAssignedJob) {
+                        $deleteAgentsForAssignedJob = AssignedJob::where('company_job_id', $companyJob->id)->get();
+                        foreach ($deleteAgentsForAssignedJob as $deleteAgentForAssignedJob) {
                             $deleteAgentForAssignedJob->delete();
                         }
-                        
-                        $agents = $request->agentsIds;
-                        foreach ($agents as $agentId) {
-                            $assignedJob = new AssignedJob();
-                            $assignedJob->user_id = $agentId;
-                            $assignedJob->company_job_id = $companyJob->id;
 
-                            $assignedJob->save();
+                        $agents = $request->agentsIds;
+                        if ($agents != []) {
+                            foreach ($agents as $agentId) {
+                                $assignedJob = new AssignedJob();
+                                $assignedJob->user_id = $agentId;
+                                $assignedJob->company_job_id = $companyJob->id;
+
+                                $assignedJob->save();
+                            }
                         }
                     }
                 }
