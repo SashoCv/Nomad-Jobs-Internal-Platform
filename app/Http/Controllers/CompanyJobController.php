@@ -35,7 +35,7 @@ class CompanyJobController extends Controller
 
             $allJobPostingsQuery = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
-                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.contract_type', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->whereNull('company_jobs.deleted_at');
 
             if ($companyId) {
@@ -53,7 +53,7 @@ class CompanyJobController extends Controller
             $allJobPostings = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
                 ->where('company_jobs.company_id', Auth::user()->company_id)
-                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description','company_jobs.contract_type', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
                 ->get();
 
@@ -72,7 +72,7 @@ class CompanyJobController extends Controller
             $allJobPostings = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
                 ->where('company_jobs.company_id', $companyIds)
-                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
                 ->get();
 
@@ -93,7 +93,7 @@ class CompanyJobController extends Controller
             $allJobPostings = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
                 ->whereIn('company_jobs.id', $companyJobIds)
-                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
                 ->get();
 
@@ -132,6 +132,8 @@ class CompanyJobController extends Controller
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
+            $companyJob->contract_type = $request->contract_type;
+
 
             if ($companyJob->save()) {
 
@@ -178,6 +180,8 @@ class CompanyJobController extends Controller
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
+            $companyJob->contract_type = $request->contract_type;
+
 
 
             if ($companyJob->save()) {
@@ -320,6 +324,7 @@ class CompanyJobController extends Controller
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
+            $companyJob->contract_type = $request->contract_type;
 
 
             $companyForThisJob = Company::where('id', $request->company_id)->first();

@@ -729,7 +729,7 @@ class SearchController extends Controller
     public function searchCandidateNew(Request $request)
     {
         $searchEverything = $request->searchEverything;
-        $query = Candidate::with(['company', 'status', 'position']);
+        $query = Candidate::with(['company', 'status', 'position','agentCandidates']);
 
         $userRoleId = Auth::user()->role_id;
 
@@ -745,6 +745,9 @@ class SearchController extends Controller
         }
 
         if (!$searchEverything) {
+            
+            $query->whereDoesntHave('agentCandidates');
+
             $query->when($request->searchName, function ($q) use ($request) {
                 $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')
                     ->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%');

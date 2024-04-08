@@ -44,4 +44,9 @@ class Candidate extends Model
     {
         return $this->belongsTo(Position::class, 'position_id');
     }
+
+    public function agentCandidates()
+    {
+        return $this->hasMany(AgentCandidate::class);
+    }
 }

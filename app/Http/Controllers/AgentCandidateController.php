@@ -22,27 +22,46 @@ class AgentCandidateController extends Controller
     public function agentAddCandidateForAssignedJob(Request $request)
     {
         try {
-            $agentCandidate = new AgentCandidate();
-            $agentCandidate->user_id = Auth::user()->id;
-            $agentCandidate->company_job_id = $request->company_job_id;
-            $agentCandidate->candidate_id = $request->candidate_id;
+            $candidate = new Candidate();
 
-            $notificationData = [
-                'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
-                'type' => 'Agent add Candidate for Assigned Job',
-            ];
+            $candidate->fullName = $request->fullName;
+            $candidate->email = $request->email;
+            $candidate->phone = $request->phone;
+            $candidate->country = $request->country;
+            $candidate->nationality = $request->nationality;
+            $candidate->gender = $request->gender;
+            $candidate->passport = $request->passport;
 
-            if($agentCandidate->save()){
+            if($candidate->save()){
+                $agentCandidate = new AgentCandidate();
+                $agentCandidate->user_id = Auth::user()->id;
+                $agentCandidate->company_job_id = $request->company_job_id;
+                $agentCandidate->candidate_id = $candidate->id;
+    
+                $notificationData = [
+                    'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
+                    'type' => 'Agent add Candidate for Assigned Job',
+                ];
+
+                if($agentCandidate->save()){
                 
-                $notification = NotificationRepository::createNotification($notificationData);
-                UsersNotificationRepository::createNotificationForUsers($notification);
-
+                    $notification = NotificationRepository::createNotification($notificationData);
+                    UsersNotificationRepository::createNotificationForUsers($notification);
+    
+                    return response()->json([
+                        'success' => true,
+                        'status' => 200,
+                        'data' => $agentCandidate
+                    ]);
+                }
+            } else {
                 return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $agentCandidate
+                    'success' => false,
+                    'status' => 500,
+                    'data' => 'Failed to add candidate'
                 ]);
             }
+           
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
