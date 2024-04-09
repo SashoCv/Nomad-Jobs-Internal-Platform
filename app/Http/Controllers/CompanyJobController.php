@@ -133,6 +133,15 @@ class CompanyJobController extends Controller
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
             $companyJob->contract_type = $request->contract_type;
+            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
+            $companyJob->salary= $request->salary;
+            $companyJob->bonus= $request->bonus;
+            $companyJob->workTime= $request->workTime;
+            $companyJob->additionalWork= $request->additionalWork;
+            $companyJob->vacationDays= $request->vacationDays;
+            $companyJob->rent= $request->rent;
+            $companyJob->food= $request->food;
+            $companyJob->otherDescription= $request->otherDescription;
 
 
             if ($companyJob->save()) {
@@ -181,7 +190,15 @@ class CompanyJobController extends Controller
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
             $companyJob->contract_type = $request->contract_type;
-
+            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
+            $companyJob->salary= $request->salary;
+            $companyJob->bonus= $request->bonus;
+            $companyJob->workTime= $request->workTime;
+            $companyJob->additionalWork= $request->additionalWork;
+            $companyJob->vacationDays= $request->vacationDays;
+            $companyJob->rent= $request->rent;
+            $companyJob->food= $request->food;
+            $companyJob->otherDescription= $request->otherDescription;
 
 
             if ($companyJob->save()) {
@@ -217,7 +234,15 @@ class CompanyJobController extends Controller
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
-
+            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
+            $companyJob->salary= $request->salary;
+            $companyJob->bonus= $request->bonus;
+            $companyJob->workTime= $request->workTime;
+            $companyJob->additionalWork= $request->additionalWork;
+            $companyJob->vacationDays= $request->vacationDays;
+            $companyJob->rent= $request->rent;
+            $companyJob->food= $request->food;
+            $companyJob->otherDescription= $request->otherDescription;
 
             if ($companyJob->save()) {
 
@@ -325,7 +350,15 @@ class CompanyJobController extends Controller
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
             $companyJob->contract_type = $request->contract_type;
-
+            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
+            $companyJob->salary= $request->salary;
+            $companyJob->bonus= $request->bonus;
+            $companyJob->workTime= $request->workTime;
+            $companyJob->additionalWork= $request->additionalWork;
+            $companyJob->vacationDays= $request->vacationDays;
+            $companyJob->rent= $request->rent;
+            $companyJob->food= $request->food;
+            $companyJob->otherDescription= $request->otherDescription;
 
             $companyForThisJob = Company::where('id', $request->company_id)->first();
             $companyForThisJob = $companyForThisJob->nameOfCompany;
@@ -378,7 +411,15 @@ class CompanyJobController extends Controller
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
-
+            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
+            $companyJob->salary= $request->salary;
+            $companyJob->bonus= $request->bonus;
+            $companyJob->workTime= $request->workTime;
+            $companyJob->additionalWork= $request->additionalWork;
+            $companyJob->vacationDays= $request->vacationDays;
+            $companyJob->rent= $request->rent;
+            $companyJob->food= $request->food;
+            $companyJob->otherDescription= $request->otherDescription;
 
             $companyForThisJob = Company::where('id', Auth::user()->company_id)->first();
             $companyForThisJob = $companyForThisJob->nameOfCompany;

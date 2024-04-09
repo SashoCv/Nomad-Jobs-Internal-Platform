@@ -85,6 +85,8 @@ class CompanyController extends Controller
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->description = $request->description;
+            $company->nameOfContactPerson = $request->nameOfContactPerson;
+            $company->phoneOfContactPerson = $request->phoneOfContactPerson;
 
 
             if ($request->employedByMonths) {
