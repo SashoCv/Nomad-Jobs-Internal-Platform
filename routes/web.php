@@ -48,5 +48,5 @@ Route::get('/', function () {
 
 // Route::get('scriptForPassport', [CandidateController::class, 'script']);
 
-// Route::get('scriptForPassportDelete', [FileController::class, 'index']);
+Route::get('scriptForPassportDelete', [FileController::class, 'index']);
 

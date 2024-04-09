@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
@@ -19,9 +20,21 @@ class FileController extends Controller
      */
   public function index()
     {
-        $duplicatedFiles = File::where('candidate_id',626)->get();
+        $documentsThatNeedToBeViewed = DB::table('files')
+        ->join('categories', 'files.category_id', '=', 'categories.id')
+        ->select('files.id', 'files.fileName', 'files.category_id', 'categories.nameOfCategory')
+        ->where('files.fileName', 'like', 'ТД%')
+        ->orWhere('files.fileName','like','%passport%')
+        ->orWhere(function($query) {
+            $query->whereRaw('LOWER(categories.nameOfCategory) = LOWER(?)', ['ВИЗА']);
+        })
+        ->get();
 
-        dd($duplicatedFiles);
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $documentsThatNeedToBeViewed
+        ]);
     }
 
 public function downloadAllFile($id)
