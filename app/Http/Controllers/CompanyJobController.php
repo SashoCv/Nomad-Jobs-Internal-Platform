@@ -406,11 +406,12 @@ class CompanyJobController extends Controller
             if (Auth::user()->role_id == 3) {
             $companyJob = CompanyJob::where('id', $request->id)->where('company_id', Auth::user()->company_id)->first();
 
-            $companyJob->user_id = Auth::user()->id;
-            $companyJob->company_id = Auth::user()->company_id;
+            $companyJob->user_id = $request->user_id;
+            $companyJob->company_id = $request->company_id;
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
+            $companyJob->contract_type = $request->contract_type;
             $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
             $companyJob->salary= $request->salary;
             $companyJob->bonus= $request->bonus;
