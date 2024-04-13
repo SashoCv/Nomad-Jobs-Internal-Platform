@@ -74,9 +74,17 @@ class AgentCandidateController extends Controller
         $candidateData = [
             'user_id' => Auth::user()->id,
             'company_job_id' => $request->company_job_id,
+            'candidate_id' => $person->id,
         ];
 
-        $agentCandidate = AgentCandidate::create($candidateData);
+        $agentCandidate = new AgentCandidate();
+
+        $agentCandidate->user_id = $candidateData['user_id'];
+        $agentCandidate->candidate_id = $candidateData['candidate_id'];
+        $agentCandidate->company_job_id = $candidateData['company_job_id'];
+
+        $agentCandidate->save();
+
 
         $notification = NotificationRepository::createNotification($notificationData);
         UsersNotificationRepository::createNotificationForUsers($notification);
