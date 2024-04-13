@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use App\Tasks\CreateCandidateTask;
+use GuzzleHttp\Promise\Create;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -22,36 +23,71 @@ class AgentCandidateController extends Controller
 
     public function agentAddCandidateForAssignedJob(Request $request)
     {
-        $createCandidateTask = new CreateCandidateTask();
+        $person = new Candidate();
 
-        $candidate = $createCandidateTask->run($request);
+        $person->status_id = $request->status_id;
+        $person->type_id = $request->type_id;
+        $person->company_id = $request->company_id;
+        $person->gender = $request->gender;
+        $person->email = $request->email;
+        $person->nationality = $request->nationality;
+        $person->date = $request->date;
+        $person->phoneNumber = $request->phoneNumber;
+        $person->address = $request->address;
+        $person->passport = $request->passport;
+        $person->fullName = $request->fullName;
+        $person->fullNameCyrillic = $request->fullNameCyrillic;
+        $person->birthday = $request->birthday;
+        $person->placeOfBirth = $request->placeOfBirth;
+        $person->country = $request->country;
+        $person->area = $request->area;
+        $person->areaOfResidence = $request->areaOfResidence;
+        $person->addressOfResidence = $request->addressOfResidence;
+        $person->periodOfResidence = $request->periodOfResidence;
+        $person->passportValidUntil = $request->passportValidUntil;
+        $person->passportIssuedBy = $request->passportIssuedBy;
+        $person->passportIssuedOn = $request->passportIssuedOn;
+        $person->addressOfWork = $request->addressOfWork;
+        $person->nameOfFacility = $request->nameOfFacility;
+        $person->education = $request->education;
+        $person->specialty = $request->specialty;
+        $person->qualification = $request->qualification;
+        $person->contractExtensionPeriod = $request->contractExtensionPeriod;
+        $person->salary = $request->salary;
+        $person->workingTime = $request->workingTime;
+        $person->workingDays = $request->workingDays;
+        $person->martialStatus = $request->martialStatus;
+        $person->contractPeriod = $request->contractPeriod;
+        $person->contractType = $request->contractType;
+        $person->position_id = $request->position_id;
+        $person->dossierNumber = $request->dossierNumber;
+        $person->notes = $request->notes;
+        $person->user_id = $request->user_id;
 
-        if ($candidate['success'] == false) {
-            return response()->json(['message' => 'Failed to add candidate'], 500);
-        } else {
-            $notificationData = [
-                'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
-                'type' => 'Agent add Candidate for Assigned Job',
-            ];
+        $person->save();
 
-            $candidateData = [
-                'candidate_id' => $candidate['candidate']->id,
-                'company_job_id' => $request->company_job_id,
-            ];
+        $notificationData = [
+            'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
+            'type' => 'Agent add Candidate for Assigned Job',
+        ];
 
-            $agentCandidate = AgentCandidate::create($candidateData);
+        $candidateData = [
+            'user_id' => Auth::user()->id,
+            'company_job_id' => $request->company_job_id,
+        ];
 
-            $notification = NotificationRepository::createNotification($notificationData);
-            UsersNotificationRepository::createNotificationForUsers($notification);
+        $agentCandidate = AgentCandidate::create($candidateData);
 
-            return response()->json(
-                [
-                    'message' => 'Candidate added successfully',
-                    'agentCandidate' => $agentCandidate,
-                ],
-                200
-            );
-        }
+        $notification = NotificationRepository::createNotification($notificationData);
+        UsersNotificationRepository::createNotificationForUsers($notification);
+
+        return response()->json(
+            [
+                'message' => 'Candidate added successfully',
+                'agentCandidate' => $agentCandidate,
+            ],
+            200
+        );
     }
 
     /**
