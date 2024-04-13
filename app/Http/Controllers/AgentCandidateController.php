@@ -6,6 +6,7 @@ use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
+use App\Tasks\CreateCandidateTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -21,58 +22,40 @@ class AgentCandidateController extends Controller
 
     public function agentAddCandidateForAssignedJob(Request $request)
     {
-        try {
-            $candidate = new Candidate();
+        $createCandidateTask = new CreateCandidateTask();
 
-            $candidate->fullName = $request->fullName;
-            $candidate->email = $request->email;
-            $candidate->phone = $request->phone;
-            $candidate->country = $request->country;
-            $candidate->nationality = $request->nationality;
-            $candidate->gender = $request->gender;
-            $candidate->passport = $request->passport;
+        $candidate = $createCandidateTask->run($request);
 
-            if($candidate->save()){
-                $agentCandidate = new AgentCandidate();
-                $agentCandidate->user_id = Auth::user()->id;
-                $agentCandidate->company_job_id = $request->company_job_id;
-                $agentCandidate->candidate_id = $candidate->id;
-    
-                $notificationData = [
-                    'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
-                    'type' => 'Agent add Candidate for Assigned Job',
-                ];
+        if ($candidate['success'] == false) {
+            return response()->json(['message' => 'Failed to add candidate'], 500);
+        } else {
+            $notificationData = [
+                'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
+                'type' => 'Agent add Candidate for Assigned Job',
+            ];
 
-                if($agentCandidate->save()){
-                
-                    $notification = NotificationRepository::createNotification($notificationData);
-                    UsersNotificationRepository::createNotificationForUsers($notification);
-    
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $agentCandidate
-                    ]);
-                }
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'data' => 'Failed to add candidate'
-                ]);
-            }
-           
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => $e->getMessage()
-            ]);
+            $candidateData = [
+                'candidate_id' => $candidate['candidate']->id,
+                'company_job_id' => $request->company_job_id,
+            ];
+
+            $agentCandidate = AgentCandidate::create($candidateData);
+
+            $notification = NotificationRepository::createNotification($notificationData);
+            UsersNotificationRepository::createNotificationForUsers($notification);
+
+            return response()->json(
+                [
+                    'message' => 'Candidate added successfully',
+                    'agentCandidate' => $agentCandidate,
+                ],
+                200
+            );
         }
     }
 
     /**
-        * Here i get all candidates for assigned job
+     * Here i get all candidates for assigned job
      */
     public function getCandidatesForAssignedJob($id)
     {
