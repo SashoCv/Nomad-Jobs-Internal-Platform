@@ -121,9 +121,17 @@ class AgentCandidateController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function getAllCandidatesFromAgents()
     {
-        //
+        try {
+            $user_id = Auth::user()->id;
+            $candidates = AgentCandidate::where('user_id', $user_id)->with(['candidate', 'companyJob'])->get();
+
+            return response()->json(['candidates' => $candidates], 200);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['message' => 'Failed to get candidates'], 500);
+        }
     }
 
     /**

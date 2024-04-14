@@ -15,4 +15,15 @@ class AgentCandidate extends Model
         'company_job_id',
         'candidate_id',
     ];
+
+    public function candidate()
+    {
+        return $this->belongsTo(Candidate::class);
+    }
+
+    public function companyJob()
+    {
+        return $this->belongsTo(CompanyJob::class);
+    }
 }
+
