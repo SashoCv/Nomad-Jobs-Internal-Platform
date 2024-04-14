@@ -127,22 +127,35 @@ class AgentCandidateController extends Controller
         try {
             $user_id = Auth::user()->id;
 
-            $candidates = DB::table('agent_candidates')
-                ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
-                ->join('users', 'agent_candidates.user_id', '=', 'users.id')
-                ->select('candidates.*')
-                ->where('agent_candidates.user_id', $user_id)
-                ->get();
-
             if ($request->company_job_id !== null) {
+                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                    $candidates = DB::table('agent_candidates')
+                        ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
+                        ->join('users', 'agent_candidates.user_id', '=', 'users.id')
+                        ->select('candidates.*', 'users.email')
+                        ->where('agent_candidates.company_job_id', $request->company_job_id)
+                        ->get();
+                } else if (Auth::user()->role_id == 4) {
+                    $candidates = DB::table('agent_candidates')
+                        ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
+                        ->join('users', 'agent_candidates.user_id', '=', 'users.id')
+                        ->select('candidates.*', 'users.email')
+                        ->where('agent_candidates.user_id', $user_id)
+                        ->where('agent_candidates.company_job_id', $request->company_job_id)
+                        ->get();
+                }
+            } else {
                 $candidates = DB::table('agent_candidates')
                     ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
                     ->join('users', 'agent_candidates.user_id', '=', 'users.id')
-                    ->select('candidates.*')
+                    ->select('candidates.*', 'users.email')
                     ->where('agent_candidates.user_id', $user_id)
-                    ->where('agent_candidates.company_job_id', $request->company_job_id)
                     ->get();
             }
+
+
+
+
 
             return response()->json(['candidates' => $candidates], 200);
         } catch (\Exception $e) {
