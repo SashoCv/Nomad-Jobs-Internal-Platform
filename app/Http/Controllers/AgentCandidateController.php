@@ -26,7 +26,7 @@ class AgentCandidateController extends Controller
         $person = new Candidate();
 
         $person->status_id = $request->status_id;
-        $person->type_id = $request->type_id;
+        $person->type_id = "3";
         $person->company_id = $request->company_id;
         $person->gender = $request->gender;
         $person->email = $request->email;
