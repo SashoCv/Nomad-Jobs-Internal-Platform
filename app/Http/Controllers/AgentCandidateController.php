@@ -10,6 +10,7 @@ use App\Tasks\CreateCandidateTask;
 use GuzzleHttp\Promise\Create;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AgentCandidateController extends Controller
@@ -121,11 +122,27 @@ class AgentCandidateController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getAllCandidatesFromAgents()
+    public function getAllCandidatesFromAgents($company_job_id)
     {
         try {
             $user_id = Auth::user()->id;
-            $candidates = AgentCandidate::where('user_id', $user_id)->with(['candidate', 'companyJob'])->get();
+
+            $candidates = DB::table('agent_candidates')
+                ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
+                ->join('users', 'agent_candidates.user_id', '=', 'users.id')
+                ->select('candidates.*')
+                ->where('agent_candidates.user_id', $user_id)
+                ->get();
+
+            if ($company_job_id !== null) {
+                $candidates = DB::table('agent_candidates')
+                    ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
+                    ->join('users', 'agent_candidates.user_id', '=', 'users.id')
+                    ->select('candidates.*')
+                    ->where('agent_candidates.user_id', $user_id)
+                    ->where('agent_candidates.company_job_id', $company_job_id)
+                    ->get();
+            }
 
             return response()->json(['candidates' => $candidates], 200);
         } catch (\Exception $e) {
