@@ -122,7 +122,7 @@ class AgentCandidateController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getAllCandidatesFromAgents($company_job_id)
+    public function getAllCandidatesFromAgents(Request $request)
     {
         try {
             $user_id = Auth::user()->id;
@@ -134,13 +134,13 @@ class AgentCandidateController extends Controller
                 ->where('agent_candidates.user_id', $user_id)
                 ->get();
 
-            if ($company_job_id !== null) {
+            if ($request->company_job_id !== null) {
                 $candidates = DB::table('agent_candidates')
                     ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
                     ->join('users', 'agent_candidates.user_id', '=', 'users.id')
                     ->select('candidates.*')
                     ->where('agent_candidates.user_id', $user_id)
-                    ->where('agent_candidates.company_job_id', $company_job_id)
+                    ->where('agent_candidates.company_job_id', $request->company_job_id)
                     ->get();
             }
 
