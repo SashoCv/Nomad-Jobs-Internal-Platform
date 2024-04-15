@@ -6,8 +6,6 @@ use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
-use App\Tasks\CreateCandidateTask;
-use GuzzleHttp\Promise\Create;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -65,38 +63,42 @@ class AgentCandidateController extends Controller
         $person->notes = $request->notes;
         $person->user_id = $request->user_id;
 
-        $person->save();
+        
+        if($person->save()){
 
-        $notificationData = [
-            'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
-            'type' => 'Agent add Candidate for Assigned Job',
-        ];
-
-        $candidateData = [
-            'user_id' => Auth::user()->id,
-            'company_job_id' => $request->company_job_id,
-            'candidate_id' => $person->id,
-        ];
-
-        $agentCandidate = new AgentCandidate();
-
-        $agentCandidate->user_id = $candidateData['user_id'];
-        $agentCandidate->candidate_id = $candidateData['candidate_id'];
-        $agentCandidate->company_job_id = $candidateData['company_job_id'];
-
-        $agentCandidate->save();
-
-
-        $notification = NotificationRepository::createNotification($notificationData);
-        UsersNotificationRepository::createNotificationForUsers($notification);
-
-        return response()->json(
-            [
-                'message' => 'Candidate added successfully',
-                'agentCandidate' => $agentCandidate,
-            ],
-            200
-        );
+            $notificationData = [
+                'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
+                'type' => 'Agent add Candidate for Assigned Job',
+            ];
+    
+            $candidateData = [
+                'user_id' => Auth::user()->id,
+                'company_job_id' => $request->company_job_id,
+                'candidate_id' => $person->id,
+            ];
+    
+            $agentCandidate = new AgentCandidate();
+    
+            $agentCandidate->user_id = $candidateData['user_id'];
+            $agentCandidate->candidate_id = $candidateData['candidate_id'];
+            $agentCandidate->company_job_id = $candidateData['company_job_id'];
+    
+            $agentCandidate->save();
+    
+    
+            $notification = NotificationRepository::createNotification($notificationData);
+            UsersNotificationRepository::createNotificationForUsers($notification);
+    
+            return response()->json(
+                [
+                    'message' => 'Candidate added successfully',
+                    'agentCandidate' => $agentCandidate,
+                ],
+                200
+            );
+        } else {
+            return response()->json(['message' => 'Failed to add candidate'], 500);
+        }
     }
 
     /**
@@ -134,7 +136,7 @@ class AgentCandidateController extends Controller
                         ->join('users', 'agent_candidates.user_id', '=', 'users.id')
                         ->select('candidates.*', 'users.email')
                         ->where('agent_candidates.company_job_id', $request->company_job_id)
-                        ->get();
+                        ->paginate(20);
                 } else if (Auth::user()->role_id == 4) {
                     $candidates = DB::table('agent_candidates')
                         ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
@@ -142,7 +144,7 @@ class AgentCandidateController extends Controller
                         ->select('candidates.*', 'users.email')
                         ->where('agent_candidates.user_id', $user_id)
                         ->where('agent_candidates.company_job_id', $request->company_job_id)
-                        ->get();
+                        ->paginate(20);
                 }
             } else {
                 $candidates = DB::table('agent_candidates')
@@ -150,7 +152,7 @@ class AgentCandidateController extends Controller
                     ->join('users', 'agent_candidates.user_id', '=', 'users.id')
                     ->select('candidates.*', 'users.email')
                     ->where('agent_candidates.user_id', $user_id)
-                    ->get();
+                    ->paginate(20);
             }
 
 
