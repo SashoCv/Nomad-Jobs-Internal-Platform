@@ -193,7 +193,7 @@ class CandidateController extends Controller
     public function show($id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $person = Candidate::with(['categories','company', 'position'])->where('id', '=', $id)->first();
+            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->first();
             $agent = AgentCandidate::where('candidate_id', '=', $id)->first();
             if (isset($agent)) {
                 $user = User::where('id', '=', $agent->user_id)->first();
@@ -203,14 +203,16 @@ class CandidateController extends Controller
                 $person->agentFullName = null;
             }
         } else if (Auth::user()->role_id == 3) {
-            $person = Candidate::with(['categories','company', 'position'])->where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
+            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
         } else if (Auth::user()->role_id == 5) {
-            // $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            // $userOwnersArray = [];
-            // foreach ($userOwners as $userOwner) {
-            //     array_push($userOwnersArray, $userOwner->company_id);
-            // }
-            $person = Candidate::with(['categories','company', 'position'])->where('id', '=', $id)->first();
+            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
+            $userOwnersArray = [];
+            foreach ($userOwners as $userOwner) {
+                array_push($userOwnersArray, $userOwner->company_id);
+            }
+            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
+        } else if (Auth::user()->role_id == 4) {
+            $person = Candidate::with(['categories', 'company', 'position'])->first();
         }
 
         if (isset($person)) {
@@ -262,36 +264,36 @@ class CandidateController extends Controller
 
     public function showPersonNew($id)
     {
-        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
-        $person = DB::table('candidates')
-            ->join('companies', 'companies.id', '=', 'candidates.company_id')
-            ->where('candidates.id', $id)
-            ->select('candidates.*', 'companies.nameOfCompany')->first();
-        }else if(Auth::user()->role_id == 3){
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             $person = DB::table('candidates')
-            ->join('companies', 'companies.id', '=', 'candidates.company_id')
-            ->where('candidates.id', $id)
-            ->where('candidates.company_id', Auth::user()->company_id)
-            ->select('candidates.*', 'companies.nameOfCompany')->first();
-        }else if(Auth::user()->role_id == 5){
+                ->join('companies', 'companies.id', '=', 'candidates.company_id')
+                ->where('candidates.id', $id)
+                ->select('candidates.*', 'companies.nameOfCompany')->first();
+        } else if (Auth::user()->role_id == 3) {
+            $person = DB::table('candidates')
+                ->join('companies', 'companies.id', '=', 'candidates.company_id')
+                ->where('candidates.id', $id)
+                ->where('candidates.company_id', Auth::user()->company_id)
+                ->select('candidates.*', 'companies.nameOfCompany')->first();
+        } else if (Auth::user()->role_id == 5) {
             $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
             $userOwnersArray = [];
             foreach ($userOwners as $userOwner) {
                 array_push($userOwnersArray, $userOwner->company_id);
             }
             $person = DB::table('candidates')
-            ->join('companies', 'companies.id', '=', 'candidates.company_id')
-            ->where('candidates.id', $id)
-            ->whereIn('candidates.company_id', $userOwnersArray)
-            ->select('candidates.*', 'companies.nameOfCompany')->first();
+                ->join('companies', 'companies.id', '=', 'candidates.company_id')
+                ->where('candidates.id', $id)
+                ->whereIn('candidates.company_id', $userOwnersArray)
+                ->select('candidates.*', 'companies.nameOfCompany')->first();
         }
-        if(isset($person)){
+        if (isset($person)) {
             return response()->json([
                 'success' => true,
                 'status' => 200,
                 'data' => $person,
             ], 200);
-        }else{
+        } else {
             return response()->json([
                 'success' => true,
                 'status' => 500,
