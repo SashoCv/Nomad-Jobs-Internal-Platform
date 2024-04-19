@@ -212,7 +212,14 @@ class CandidateController extends Controller
             }
             $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
         } else if (Auth::user()->role_id == 4) {
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->first();
+            $candidatesInsertByAgent = AgentCandidate::where('user_id', '=', Auth::user()->id)->get();
+            $candidatesInsertByAgentArray = [];
+
+            foreach ($candidatesInsertByAgent as $candidateInsertByAgent) {
+                array_push($candidatesInsertByAgentArray, $candidateInsertByAgent->candidate_id);
+            }
+            
+            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('id', $candidatesInsertByAgentArray)->first();
         }
 
         if (isset($person)) {
