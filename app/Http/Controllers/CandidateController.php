@@ -212,7 +212,7 @@ class CandidateController extends Controller
             }
             $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
         } else if (Auth::user()->role_id == 4) {
-            $person = Candidate::with(['categories', 'company', 'position'])->first();
+            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->first();
         }
 
         if (isset($person)) {
