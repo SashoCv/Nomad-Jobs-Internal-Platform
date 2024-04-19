@@ -546,9 +546,18 @@ class CandidateController extends Controller
                     ]);
                 }
             } else if (Auth::user()->role_id == 4) {
+                $personDelete = Candidate::findOrFail($id);
+
+                if($personDelete->update_at != null){
+                    return response()->json([
+                        'success' => false,
+                        'status' => 500,
+                        'message' => 'You can not delete this candidate!',
+                    ]);
+                }
+                
                 $agentCandidate = AgentCandidate::where('candidate_id', '=', $id)->where('user_id', '=', Auth::user()->id)->first();
                 $agentCandidate->delete();
-                $personDelete = Candidate::findOrFail($id);
 
                 if ($personDelete->delete()) {
                     return response()->json([
