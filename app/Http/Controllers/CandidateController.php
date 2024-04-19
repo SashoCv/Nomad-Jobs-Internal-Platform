@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\PDF as DomPDFPDF;
+use Illuminate\Support\Facades\Log;
 use PDF;
 use PhpOffice\PhpWord\Writer\PDF\DomPDF;
 
@@ -218,7 +219,7 @@ class CandidateController extends Controller
             foreach ($candidatesInsertByAgent as $candidateInsertByAgent) {
                 array_push($candidatesInsertByAgentArray, $candidateInsertByAgent->candidate_id);
             }
-            
+
             $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('id', $candidatesInsertByAgentArray)->first();
         }
 
@@ -516,28 +517,53 @@ class CandidateController extends Controller
 
     public function destroy($id)
     {
-        $personDelete = Candidate::findOrFail($id);
+        try {
+            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                $personDelete = Candidate::findOrFail($id);
 
-        $files = File::where('candidate_id', '=', $id)->get();
+                $files = File::where('candidate_id', '=', $id)->get();
 
-        foreach ($files as $file) {
-            if (isset($file->filePath)) {
-                unlink(storage_path() . '/app/public/' . $file->filePath);
+                if ($files->count() > 0) {
+                    foreach ($files as $file) {
+                        if (isset($file->filePath)) {
+                            unlink(storage_path() . '/app/public/' . $file->filePath);
+                        }
+                        $file->delete();
+                    }
+
+                    $categoriesForCandidate = Category::where('candidate_id', '=', $id)->get();
+
+                    foreach ($categoriesForCandidate as $category) {
+                        $category->delete();
+                    }
+                }
+
+                if ($personDelete->delete()) {
+                    return response()->json([
+                        'success' => true,
+                        'status' => 200,
+                        'message' => 'Proof! Your employ has been deleted!',
+                    ]);
+                }
+            } else if (Auth::user()->role_id == 4) {
+                $agentCandidate = AgentCandidate::where('candidate_id', '=', $id)->where('user_id', '=', Auth::user()->id)->first();
+                $agentCandidate->delete();
+                $personDelete = Candidate::findOrFail($id);
+
+                if ($personDelete->delete()) {
+                    return response()->json([
+                        'success' => true,
+                        'status' => 200,
+                        'message' => 'Proof! Your employ has been deleted!',
+                    ]);
+                }
             }
-
-            $file->delete();
-        }
-        $categoriesForCandidate = Category::where('candidate_id', '=', $id)->get();
-
-        foreach ($categoriesForCandidate as $category) {
-            $category->delete();
-        }
-
-        if ($personDelete->delete()) {
+        } catch (\Exception $e) {
+            Log::info("message", $e->getMessage());
             return response()->json([
-                'success' => true,
-                'status' => 200,
-                'message' => 'Proof! Your employ has been deleted!',
+                'success' => false,
+                'status' => 500,
+                'message' => 'Something went wrong!',
             ]);
         }
     }
