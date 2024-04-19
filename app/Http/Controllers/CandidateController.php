@@ -205,12 +205,12 @@ class CandidateController extends Controller
         } else if (Auth::user()->role_id == 3) {
             $person = Candidate::with(['categories','company', 'position'])->where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
         } else if (Auth::user()->role_id == 5) {
-            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = [];
-            foreach ($userOwners as $userOwner) {
-                array_push($userOwnersArray, $userOwner->company_id);
-            }
-            $person = Candidate::with(['categories','company', 'position'])->where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
+            // $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
+            // $userOwnersArray = [];
+            // foreach ($userOwners as $userOwner) {
+            //     array_push($userOwnersArray, $userOwner->company_id);
+            // }
+            $person = Candidate::with(['categories','company', 'position'])->where('id', '=', $id)->first();
         }
 
         if (isset($person)) {
@@ -221,7 +221,7 @@ class CandidateController extends Controller
             ], 200);
         } else {
             return response()->json([
-                'success' => true,
+                'success' => false,
                 'status' => 500,
                 'data' => [],
             ], 500);
