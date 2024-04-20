@@ -729,7 +729,7 @@ class SearchController extends Controller
     public function searchCandidateNew(Request $request)
     {
         $searchEverything = $request->searchEverything;
-        $query = Candidate::with(['company', 'status', 'position', 'user'])->select('candidates.*', 'companies.*', 'statuses.*', 'positions.*','user.firstName','user.lastName');
+        $query = Candidate::with(['company', 'status', 'position', 'user'])->select('candidates.*', 'companies.*', 'statuses.*', 'positions.*', 'user.firstName', 'user.lastName');
 
         $userRoleId = Auth::user()->role_id;
 
@@ -750,7 +750,9 @@ class SearchController extends Controller
 
         if (!$searchEverything) {
 
-            $query->where('user_id', '!=', 4);
+            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
+                $query->where('user_id', '!=', 4);
+            }
 
             $query->when($request->searchName, function ($q) use ($request) {
                 $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')
