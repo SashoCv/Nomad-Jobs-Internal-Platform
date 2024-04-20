@@ -749,15 +749,14 @@ class SearchController extends Controller
         }
 
         if (!$searchEverything) {
-
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
-                $query->where('user_id', '!=', 4);
-            }
-
             $query->when($request->searchName, function ($q) use ($request) {
                 $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')
                     ->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%');
             })
+                ->when($request->quartal, function ($q) use ($request) {
+                    $q->where('quartal', '=', $request->quartal);
+                })
+                
                 ->when($request->searchCompany, function ($q) use ($request) {
                     $q->where('company_id', '=', $request->searchCompany);
                 })

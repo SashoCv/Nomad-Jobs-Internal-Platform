@@ -20,6 +20,35 @@ use PhpOffice\PhpWord\Writer\PDF\DomPDF;
 
 class CandidateController extends Controller
 {
+    public function addQuartalToAllCandidates()
+    {
+        $candidates = Candidate::all();
+
+        foreach ($candidates as $candidate) {
+            $candidateDate = $candidate->date;
+            $candidateYear = date('Y', strtotime($candidateDate));
+            $candidateMonth = date('m', strtotime($candidateDate));
+
+            if($candidateMonth >= 1 && $candidateMonth <= 3){
+                $quartal = '1' . "/" . $candidateYear;
+            } else if($candidateMonth >= 4 && $candidateMonth <= 6){
+                $quartal = '2' . "/" . $candidateYear;
+            } else if($candidateMonth >= 7 && $candidateMonth <= 9){
+                $quartal = '3' . "/" . $candidateYear;
+            } else if($candidateMonth >= 10 && $candidateMonth <= 12){
+                $quartal = '4' . "/" . $candidateYear;
+            }
+
+            $candidate->quartal = $quartal;
+            $candidate->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'message' => 'Quartal added to all candidates',
+        ]);
+    }
 
     public function generateCandidatePdf()
     {
@@ -555,7 +584,7 @@ class CandidateController extends Controller
                         'message' => 'You can not delete this candidate!',
                     ]);
                 }
-                
+
                 $agentCandidate = AgentCandidate::where('candidate_id', '=', $id)->where('user_id', '=', Auth::user()->id)->first();
                 $agentCandidate->delete();
 
