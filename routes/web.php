@@ -48,8 +48,8 @@ Route::get('/', function () {
 
 // Route::get('scriptForPassport', [CandidateController::class, 'script']);
 
-Route::get('scriptForPassportDelete', [FileController::class, 'index']);
+// Route::get('scriptForPassportDelete', [FileController::class, 'index']);
 
-Route::get('generateCandidatePdf', [CandidateController::class, 'generateCandidatePdf']);
+// Route::get('generateCandidatePdf', [CandidateController::class, 'generateCandidatePdf']);
 
-Route::get('addQuartalToAllCandidates', [CandidateController::class, 'addQuartalToAllCandidates']);
+// Route::get('addQuartalToAllCandidates', [CandidateController::class, 'addQuartalToAllCandidates']);
