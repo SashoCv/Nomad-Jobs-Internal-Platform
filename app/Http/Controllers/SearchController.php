@@ -658,7 +658,7 @@ class SearchController extends Controller
 
         $companiesQuery = Company::with(['industry', 'candidates']);
 
-        if(Auth::user()->role_id === 5){
+        if (Auth::user()->role_id === 5) {
             $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
             $companyIds = $companyOwner->pluck('company_id');
 
@@ -729,7 +729,7 @@ class SearchController extends Controller
     public function searchCandidateNew(Request $request)
     {
         $searchEverything = $request->searchEverything;
-        $query = Candidate::with(['company', 'status', 'position','agentCandidates']);
+        $query = Candidate::with(['company', 'status', 'position', 'user'])->select('candidates.*', 'companies.*', 'statuses.*', 'positions.*','user.firstName','user.lastName');
 
         $userRoleId = Auth::user()->role_id;
 
@@ -737,7 +737,11 @@ class SearchController extends Controller
             $query->where('company_id', Auth::user()->company_id);
         }
 
-        if($userRoleId === 5){
+        if ($userRoleId === 4) {
+            $query->where('user_id', Auth::user()->id);
+        }
+
+        if ($userRoleId === 5) {
             $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
             $companyIds = $companyOwner->pluck('company_id');
 
@@ -745,8 +749,8 @@ class SearchController extends Controller
         }
 
         if (!$searchEverything) {
-            
-            $query->whereDoesntHave('agentCandidates');
+
+            $query->where('user_id', '!=', 4);
 
             $query->when($request->searchName, function ($q) use ($request) {
                 $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')

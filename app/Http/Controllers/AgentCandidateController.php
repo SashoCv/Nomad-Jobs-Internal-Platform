@@ -61,7 +61,7 @@ class AgentCandidateController extends Controller
         $person->position_id = $request->position_id;
         $person->dossierNumber = $request->dossierNumber;
         $person->notes = $request->notes;
-        $person->user_id = $request->user_id;
+        $person->user_id = Auth::user()->id;
 
         
         if($person->save()){
