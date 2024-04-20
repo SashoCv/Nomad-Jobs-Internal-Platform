@@ -159,6 +159,10 @@ class CandidateController extends Controller
             $person->dossierNumber = $request->dossierNumber;
             $person->notes = $request->notes;
             $person->user_id = $request->user_id;
+            
+            $quartalyYear = date('Y', strtotime($request->date));
+            $quartalyMonth = date('m', strtotime($request->date));
+            $person->quartal = $quartalyMonth . "/" . $quartalyYear;
 
 
             if ($request->hasFile('personPassport')) {
@@ -480,7 +484,10 @@ class CandidateController extends Controller
             $person->dossierNumber = $dossierNumber;
             $person->notes = $notes;
             $person->user_id = $userId;
-
+            
+            $quartalyYear = date('Y', strtotime($request->date));
+            $quartalyMonth = date('m', strtotime($request->date));
+            $person->quartal = $quartalyMonth . "/" . $quartalyYear;
 
             if ($request->hasFile('personPassport')) {
                 Storage::disk('public')->put('personPassports', $request->file('personPassport'));
