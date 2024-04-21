@@ -56,4 +56,4 @@ Route::get('/', function () {
 
 // Route::get('getFirstQuartal', [CandidateController::class, 'getFirstQuartal']);
 
-Route::get('documentsThatCanBeViewedByCompany', [FileController::class, 'index']);
+// Route::get('documentsThatCanBeViewedByCompany', [FileController::class, 'index']);
