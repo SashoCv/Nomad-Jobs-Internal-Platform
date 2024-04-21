@@ -53,3 +53,7 @@ Route::get('/', function () {
 // Route::get('generateCandidatePdf', [CandidateController::class, 'generateCandidatePdf']);
 
 // Route::get('addQuartalToAllCandidates', [CandidateController::class, 'addQuartalToAllCandidates']);
+
+// Route::get('getFirstQuartal', [CandidateController::class, 'getFirstQuartal']);
+
+Route::get('documentsThatCanBeViewedByCompany', [FileController::class, 'index']);
