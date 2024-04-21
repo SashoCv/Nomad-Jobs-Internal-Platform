@@ -49,6 +49,7 @@ class CandidateController extends Controller
         $firstQuartal = "1" . "/" . $currentYear;
         
         foreach ($candidates as $candidate) {
+            dd($candidate->quartal, $firstQuartal);
             if($candidate->quartal < $firstQuartal){
                 $firstQuartal = $candidate->quartal;
             }
