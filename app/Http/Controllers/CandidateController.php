@@ -26,7 +26,7 @@ class CandidateController extends Controller
         $candidates = Candidate::all();
 
         foreach ($candidates as $candidate) {
-            if($candidate->user_id == null){
+            if ($candidate->user_id == null) {
                 $candidate->addedBy = 11;
             } else {
                 $candidate->addedBy = $candidate->user_id;
@@ -47,13 +47,21 @@ class CandidateController extends Controller
         $currentYear = date('Y');
 
         $firstQuartal = "1" . "/" . $currentYear;
-        
+
         foreach ($candidates as $candidate) {
-            dd($candidate->quartal, $firstQuartal);
-            if($candidate->quartal < $firstQuartal){
-                $firstQuartal = $candidate->quartal;
+            $candidateQuartal = $candidate->quartal;
+
+            // Convert candidate's quartal to timestamp for comparison
+            $candidateTimestamp = strtotime($candidateQuartal);
+            $firstQuartalTimestamp = strtotime($firstQuartal);
+
+            if ($candidateTimestamp < $firstQuartalTimestamp) {
+                $firstQuartal = $candidateQuartal;
             }
         }
+
+        dd($firstQuartal);
+
 
         return response()->json([
             'success' => true,
@@ -70,13 +78,13 @@ class CandidateController extends Controller
             $candidateYear = date('Y', strtotime($candidateDate));
             $candidateMonth = date('m', strtotime($candidateDate));
 
-            if($candidateMonth >= 1 && $candidateMonth <= 3){
+            if ($candidateMonth >= 1 && $candidateMonth <= 3) {
                 $quartal = '1' . "/" . $candidateYear;
-            } else if($candidateMonth >= 4 && $candidateMonth <= 6){
+            } else if ($candidateMonth >= 4 && $candidateMonth <= 6) {
                 $quartal = '2' . "/" . $candidateYear;
-            } else if($candidateMonth >= 7 && $candidateMonth <= 9){
+            } else if ($candidateMonth >= 7 && $candidateMonth <= 9) {
                 $quartal = '3' . "/" . $candidateYear;
-            } else if($candidateMonth >= 10 && $candidateMonth <= 12){
+            } else if ($candidateMonth >= 10 && $candidateMonth <= 12) {
                 $quartal = '4' . "/" . $candidateYear;
             }
 
@@ -97,7 +105,7 @@ class CandidateController extends Controller
 
         return PDF::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
     }
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -201,7 +209,7 @@ class CandidateController extends Controller
             $person->notes = $request->notes;
             $person->user_id = $request->user_id;
             $person->addedBy = Auth::user()->id;
-            
+
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
             $person->quartal = $quartalyMonth . "/" . $quartalyYear;
@@ -626,7 +634,7 @@ class CandidateController extends Controller
             } else if (Auth::user()->role_id == 4) {
                 $personDelete = Candidate::findOrFail($id);
 
-                if($personDelete->update_at != null){
+                if ($personDelete->update_at != null) {
                     return response()->json([
                         'success' => false,
                         'status' => 500,
