@@ -20,6 +20,25 @@ use PhpOffice\PhpWord\Writer\PDF\DomPDF;
 
 class CandidateController extends Controller
 {
+    public function getFirstQuartal()
+    {
+        $candidates = Candidate::all();
+        $currentYear = date('Y');
+
+        $firstQuartal = "1" . "/" . $currentYear;
+        
+        foreach ($candidates as $candidate) {
+            if($candidate->quartal < $firstQuartal){
+                $firstQuartal = $candidate->quartal;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'date' => $firstQuartal,
+        ]);
+    }
     public function addQuartalToAllCandidates()
     {
         $candidates = Candidate::all();
@@ -50,13 +69,13 @@ class CandidateController extends Controller
         ]);
     }
 
-    public function generateCandidatePdf()
+    public function generateCandidatePdf($id)
     {
-        // return view('cvTemplate');
-        $candidates = Candidate::all();
+        $candidate = Candidate::where('id', '=', $id)->first();
 
-        return PDF::loadView('cvTemplate', compact('candidates'))->download('candidates.pdf');
+        return PDF::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
     }
+    
     /**
      * Display a listing of the resource.
      *
@@ -159,6 +178,7 @@ class CandidateController extends Controller
             $person->dossierNumber = $request->dossierNumber;
             $person->notes = $request->notes;
             $person->user_id = $request->user_id;
+            $person->addedBy = Auth::user()->id;
             
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
@@ -484,7 +504,7 @@ class CandidateController extends Controller
             $person->dossierNumber = $dossierNumber;
             $person->notes = $notes;
             $person->user_id = $userId;
-            
+
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
             $person->quartal = $quartalyMonth . "/" . $quartalyYear;

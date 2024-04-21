@@ -773,7 +773,7 @@ class SearchController extends Controller
                     $q->where('contractType', '=', $request->contractType);
                 })
                 ->when($request->user_id, function ($q) use ($request) {
-                    $q->where('user_id', '=', $request->searchAddedBy);
+                    $q->where('user_id', '=', $request->user_id);
                 });
 
             $result = $query->orderBy('id', 'DESC')->paginate(20);
