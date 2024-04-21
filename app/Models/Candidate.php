@@ -9,6 +9,11 @@ class Candidate extends Model
 {
     use HasFactory;
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function type()
     {
         return $this->belongsTo(Type::class, 'type_id');
@@ -43,5 +48,10 @@ class Candidate extends Model
     public function position()
     {
         return $this->belongsTo(Position::class, 'position_id');
+    }
+
+    public function agentCandidates()
+    {
+        return $this->hasMany(AgentCandidate::class);
     }
 }
