@@ -31,13 +31,6 @@ class FileController extends Controller
             })
             ->get();
 
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'test' => 'test',
-                'data' => $documentsThatCanBeViewedByCompany
-            ]);
-
         foreach ($documentsThatCanBeViewedByCompany as $document) {
             DB::table('files')
             ->where('id', $document->id)
