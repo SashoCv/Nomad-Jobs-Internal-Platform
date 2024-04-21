@@ -54,7 +54,7 @@ Route::get('/', function () {
 
 // Route::get('addQuartalToAllCandidates', [CandidateController::class, 'addQuartalToAllCandidates']);
 
-Route::get('getFirstQuartal', [CandidateController::class, 'getFirstQuartal']);
+// Route::get('getFirstQuartal', [CandidateController::class, 'getFirstQuartal']);
 
 // Route::get('documentsThatCanBeViewedByCompany', [FileController::class, 'index']);
 
