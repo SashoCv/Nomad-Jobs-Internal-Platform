@@ -49,18 +49,20 @@ class CandidateController extends Controller
         $firstQuartal = "1" . "/" . $currentYear;
 
         foreach ($candidates as $candidate) {
-            $candidateQuartal = $candidate->quartal;
+            // Extract quartal and year from the candidate's quartal
+            $candidateParts = explode('/', $candidate->quartal);
+            $candidateQuartal = intval($candidateParts[0]); // Extract quartal
+            $candidateYear = intval($candidateParts[1]); // Extract year
 
-            // Convert candidate's quartal to timestamp for comparison
-            $candidateTimestamp = strtotime($candidateQuartal);
-            $firstQuartalTimestamp = strtotime($firstQuartal);
-
-            if ($candidateTimestamp < $firstQuartalTimestamp) {
-                $firstQuartal = $candidateQuartal;
+            // Check if candidate's year is earlier or if it's the same year but with a smaller quartal
+            if ($candidateYear < $currentYear || ($candidateYear == $currentYear && $candidateQuartal < 1)) {
+                $firstQuartal = $candidate->quartal;
+                $currentYear = $candidateYear; // Update current year for future comparisons
             }
         }
 
         dd($firstQuartal);
+
 
 
         return response()->json([
