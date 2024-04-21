@@ -20,6 +20,23 @@ use PhpOffice\PhpWord\Writer\PDF\DomPDF;
 
 class CandidateController extends Controller
 {
+
+    public function scriptForAddedBy()
+    {
+        $candidates = Candidate::all();
+
+        foreach ($candidates as $candidate) {
+            $candidate->addedBy = $candidate->user_id;
+            $candidate->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'message' => 'Added by added to all candidates',
+        ]);
+    }
+
     public function getFirstQuartal()
     {
         $candidates = Candidate::all();
