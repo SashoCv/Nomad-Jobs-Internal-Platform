@@ -753,8 +753,8 @@ class SearchController extends Controller
                 $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')
                     ->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%');
             })
-                ->when($request->quartal, function ($q) use ($request) {
-                    $q->where('quartal', '=', $request->quartal);
+                ->when($request->searchQuartal, function ($q) use ($request) {
+                    $q->where('quartal', '=', $request->searchQuartal);
                 })
 
                 ->when($request->searchCompany, function ($q) use ($request) {
@@ -773,7 +773,7 @@ class SearchController extends Controller
                     $q->where('contractType', '=', $request->contractType);
                 })
                 ->when($request->user_id, function ($q) use ($request) {
-                    $q->where('user_id', '=', $request->user_id);
+                    $q->where('user_id', '=', $request->searchAddedBy);
                 });
 
             $result = $query->orderBy('id', 'DESC')->paginate(20);
