@@ -773,7 +773,11 @@ class SearchController extends Controller
                     $q->where('contractType', '=', $request->contractType);
                 })
                 ->when($request->searchAddedBy, function ($q) use ($request) {
-                    $q->where('addedBy', '=', $request->searchAddedBy);
+                    if ($request->searchAddedBy === 'notDefined') {
+                        $q->whereNull('addedBy');
+                    } else {
+                        $q->where('addedBy', '=', $request->searchAddedBy);
+                    }
                 })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
