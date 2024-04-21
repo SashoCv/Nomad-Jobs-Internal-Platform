@@ -26,7 +26,11 @@ class CandidateController extends Controller
         $candidates = Candidate::all();
 
         foreach ($candidates as $candidate) {
-            $candidate->addedBy = $candidate->user_id ?? 11;
+            if($candidate->user_id == null){
+                $candidate->addedBy = 11;
+            } else {
+                $candidate->addedBy = $candidate->user_id;
+            }
             $candidate->save();
         }
 
