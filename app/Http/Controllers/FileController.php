@@ -33,8 +33,8 @@ class FileController extends Controller
 
         foreach ($documentsThatCanBeViewedByCompany as $document) {
             DB::table('files')
-            ->where('id', $document->id)
-            ->update(['company_restriction' => 0]);
+                ->where('id', $document->id)
+                ->update(['company_restriction' => 0]);
         }
 
         return response()->json([
@@ -52,6 +52,12 @@ class FileController extends Controller
         $files = File::where('candidate_id', $candidate_id)
             ->where('category_id', '=', 8)
             ->get(["filePath", "fileName"]);
+
+        if (Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
+            $files = File::where('candidate_id', $candidate_id)
+                ->where('company_restriction', 0)
+                ->get(["filePath", "fileName"]);
+        }
 
         $zip = new ZipArchive;
         $zipFileName = $candidate->fullName . '_documents.zip';
@@ -136,27 +142,27 @@ class FileController extends Controller
     public function show($id)
     {
         $userRoleId = Auth::user()->role_id;
-    
+
         $categoriesQuery = Category::where('candidate_id', null)->orWhere('candidate_id', $id);
-    
+
         if ($userRoleId == 2) {
             $categoriesQuery->where('role_id', 2)->orWhere('role_id', 3);
         } elseif ($userRoleId == 3 || $userRoleId == 4 || $userRoleId == 5) {
             $categoriesQuery->where('role_id', 3);
         }
-    
+
         $categories = $categoriesQuery->orderBy('id', 'asc')->get();
-    
+
         $filesQuery = File::where('candidate_id', $id);
-    
+
         if ($userRoleId == 3 || $userRoleId == 4 || $userRoleId == 5) {
             $filesQuery->where('company_restriction', 0);
         }
-    
+
         $files = $filesQuery->get();
-    
+
         $candidatePassport = ($userRoleId == 1) ? Candidate::where('id', $id)->value('passportPath') : null;
-    
+
         return response()->json([
             'success' => true,
             'status' => 200,
@@ -165,7 +171,7 @@ class FileController extends Controller
             'candidatePassport' => $candidatePassport,
         ]);
     }
-    
+
 
     /**
      * Update the specified resource in storage.
