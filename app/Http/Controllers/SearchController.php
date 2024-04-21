@@ -756,7 +756,7 @@ class SearchController extends Controller
                 ->when($request->quartal, function ($q) use ($request) {
                     $q->where('quartal', '=', $request->quartal);
                 })
-                
+
                 ->when($request->searchCompany, function ($q) use ($request) {
                     $q->where('company_id', '=', $request->searchCompany);
                 })
@@ -798,15 +798,22 @@ class SearchController extends Controller
             $result = $query->get();
         }
 
+        $candidates = Candidate::all();
+        $currentYear = date('Y');
 
+        $firstQuartal = "1" . "/" . $currentYear;
 
-
-
+        foreach ($candidates as $candidate) {
+            if ($candidate->quartal < $firstQuartal) {
+                $firstQuartal = $candidate->quartal;
+            }
+        }
 
         return response()->json([
             'success' => true,
             'status' => 200,
-            'data' => $result
+            'data' => $result,
+            'firstQuartal' => $firstQuartal
         ]);
     }
 }
