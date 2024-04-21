@@ -772,6 +772,9 @@ class SearchController extends Controller
                 ->when($request->contractType, function ($q) use ($request) {
                     $q->where('contractType', '=', $request->contractType);
                 })
+                ->when($request->searchAddedBy, function ($q) use ($request) {
+                    $q->where('addedBy', '=', $request->searchAddedBy);
+                })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
                 });
