@@ -34,6 +34,7 @@ class FileController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 200,
+                'test' => 'test',
                 'data' => $documentsThatCanBeViewedByCompany
             ]);
 
