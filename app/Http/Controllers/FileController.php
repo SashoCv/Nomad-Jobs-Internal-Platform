@@ -150,7 +150,7 @@ class FileController extends Controller
         $filesQuery = File::where('candidate_id', $id);
     
         if ($userRoleId == 3 || $userRoleId == 4 || $userRoleId == 5) {
-            $filesQuery->where('company_restriction', 1);
+            $filesQuery->where('company_restriction', 0);
         }
     
         $files = $filesQuery->get();
