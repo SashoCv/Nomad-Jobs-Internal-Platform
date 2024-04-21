@@ -53,11 +53,6 @@ class FileController extends Controller
             ->where('category_id', '=', 8)
             ->get(["filePath", "fileName"]);
 
-        if (Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
-            $files = File::where('candidate_id', $candidate_id)
-                ->where('company_restriction', 0)
-                ->get(["filePath", "fileName"]);
-        }
 
         $zip = new ZipArchive;
         $zipFileName = $candidate->fullName . '_documents.zip';
