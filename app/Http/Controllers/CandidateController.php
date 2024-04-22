@@ -214,7 +214,18 @@ class CandidateController extends Controller
 
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
-            $person->quartal = $quartalyMonth . "/" . $quartalyYear;
+            
+            if ($quartalyMonth >= 1 && $quartalyMonth <= 3) {
+                $quartal = '1' . "/" . $quartalyYear;
+            } else if ($quartalyMonth >= 4 && $quartalyMonth <= 6) {
+                $quartal = '2' . "/" . $quartalyYear;
+            } else if ($quartalyMonth >= 7 && $quartalyMonth <= 9) {
+                $quartal = '3' . "/" . $quartalyYear;
+            } else if ($quartalyMonth >= 10 && $quartalyMonth <= 12) {
+                $quartal = '4' . "/" . $quartalyYear;
+            }
+
+            $person->quartal = $quartal;
 
 
             if ($request->hasFile('personPassport')) {
