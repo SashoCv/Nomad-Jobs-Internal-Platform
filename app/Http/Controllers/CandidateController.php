@@ -46,6 +46,7 @@ class CandidateController extends Controller
             'success' => true,
             'status' => 200,
             'message' => 'Seasonal added to all candidates',
+            'data' => $candidates ?? []
         ]);
     }
     
