@@ -259,15 +259,20 @@ class CandidateController extends Controller
 
             $person->quartal = $quartal;
 
-            if ($quartalyMonth > 5 && $quartalyMonth < 9) {
-                $person->seasonal = 'summer' . '/' . $quartalyYear;
-            } else if ($quartalyMonth > 11 || $quartalyMonth <= 2) {
-                $person->seasonal = 'winter' . '/' . ($quartalyMonth > 11 ? $quartalyYear : $quartalyYear - 1);
-            } else if ($quartalyMonth > 2 && $quartalyMonth <= 5) {
-                $person->seasonal = 'spring' . '/' . $quartalyYear;
-            } else if ($quartalyMonth > 8 && $quartalyMonth <= 11) {
-                $person->seasonal = 'autumn' . '/' . $quartalyYear;
+            if($request->contractType == '90days'){
+                if ($quartalyMonth > 5 && $quartalyMonth < 9) {
+                    $person->seasonal = 'summer' . '/' . $quartalyYear;
+                } else if ($quartalyMonth > 11 || $quartalyMonth <= 2) {
+                    $person->seasonal = 'winter' . '/' . ($quartalyMonth > 11 ? $quartalyYear : $quartalyYear - 1);
+                } else if ($quartalyMonth > 2 && $quartalyMonth <= 5) {
+                    $person->seasonal = 'spring' . '/' . $quartalyYear;
+                } else if ($quartalyMonth > 8 && $quartalyMonth <= 11) {
+                    $person->seasonal = 'autumn' . '/' . $quartalyYear;
+                }
+            } else {
+                $person->seasonal = Null;
             }
+           
             
 
 
