@@ -20,6 +20,29 @@ use PhpOffice\PhpWord\Writer\PDF\DomPDF;
 
 class CandidateController extends Controller
 {
+    public function scriptForSeasonal()
+    {
+        $candidates = Candidate::where('contractType','=','90days')->get();
+    
+        foreach ($candidates as $candidate) {
+            $year = date('Y', strtotime($candidate->date));
+            $month = date('m', strtotime($candidate->date));
+            
+            if ($month >= 5 && $month <= 9) {
+                $candidate->seasonal = 'summer' . '/' . $year;
+            } else if ($month >= 11 || $month <= 2) {
+                $candidate->seasonal = 'winter' . '/' . ($month >= 11 ? $year : $year - 1);
+            }
+            else if ($month >= 2 && $month <= 5) {
+                $candidate->seasonal = 'spring' . '/' . $year;
+            }
+            else if ($month >= 8 && $month <= 11) {
+                $candidate->seasonal = 'autumn' . '/' . $year;
+            }
+            $candidate->save();
+        }
+    }
+    
 
     public function scriptForAddedBy()
     {
@@ -101,9 +124,11 @@ class CandidateController extends Controller
         ]);
     }
 
-    public function generateCandidatePdf($id)
+    public function generateCandidatePdf()
     {
-        $candidate = Candidate::where('id', '=', $id)->first();
+        $candidate = Candidate::where('id', '=', 101)->first();
+        return view('cvTemplate', compact('candidate'));
+        // $candidate = Candidate::where('id', '=', $id)->first();
 
         return PDF::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
     }
@@ -214,7 +239,7 @@ class CandidateController extends Controller
 
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
-            
+
             if ($quartalyMonth >= 1 && $quartalyMonth <= 3) {
                 $quartal = '1' . "/" . $quartalyYear;
             } else if ($quartalyMonth >= 4 && $quartalyMonth <= 6) {
@@ -226,6 +251,17 @@ class CandidateController extends Controller
             }
 
             $person->quartal = $quartal;
+
+            if ($quartalyMonth > 5 && $quartalyMonth < 9) {
+                $person->seasonal = 'summer' . '/' . $quartalyYear;
+            } else if ($quartalyMonth > 11 || $quartalyMonth <= 2) {
+                $person->seasonal = 'winter' . '/' . ($quartalyMonth > 11 ? $quartalyYear : $quartalyYear - 1);
+            } else if ($quartalyMonth > 2 && $quartalyMonth <= 5) {
+                $person->seasonal = 'spring' . '/' . $quartalyYear;
+            } else if ($quartalyMonth > 8 && $quartalyMonth <= 11) {
+                $person->seasonal = 'autumn' . '/' . $quartalyYear;
+            }
+            
 
 
             if ($request->hasFile('personPassport')) {

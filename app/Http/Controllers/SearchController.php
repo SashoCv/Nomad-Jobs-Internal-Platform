@@ -756,7 +756,9 @@ class SearchController extends Controller
                 ->when($request->searchQuartal, function ($q) use ($request) {
                     $q->where('quartal', '=', $request->searchQuartal);
                 })
-
+                ->when($request->searchSeasonal, function ($q) use ($request) {
+                    $q->where('seasonal', '=', $request->searchSeasonal);
+                })
                 ->when($request->searchCompany, function ($q) use ($request) {
                     $q->where('company_id', '=', $request->searchCompany);
                 })
