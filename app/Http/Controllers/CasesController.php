@@ -16,11 +16,7 @@ class CasesController extends Controller
     public function index()
     {
         try {
-            if (Auth::user()->role_id != 1 || Auth::user()->role_id != 2) {
-                return response()->json([
-                    'message' => 'You are not authorized to view cases'
-                ], 401);
-            }
+           
             $cases = Cases::all();
             return response()->json([
                 'message' => 'Cases fetched successfully',
