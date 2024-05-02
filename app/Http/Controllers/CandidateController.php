@@ -27,7 +27,7 @@ class CandidateController extends Controller
         foreach ($candidates as $candidate) {
             $year = date('Y', strtotime($candidate->date));
             $month = date('m', strtotime($candidate->date));
-            
+
             if ($month >= 5 && $month <= 9) {
                 $candidate->seasonal = 'summer' . '/' . $year;
             } else if ($month >= 11 || $month <= 2) {
@@ -41,6 +41,12 @@ class CandidateController extends Controller
             }
             $candidate->save();
         }
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'message' => 'Seasonal added to all candidates',
+        ]);
     }
     
 
