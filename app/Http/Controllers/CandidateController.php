@@ -23,6 +23,8 @@ class CandidateController extends Controller
     public function scriptForSeasonal()
     {
         $candidates = Candidate::where('contractType','=','90days')->get();
+
+        
         foreach ($candidates as $candidate) {
             $year = date('Y', strtotime($candidate->date));
             $month = date('m', strtotime($candidate->date));
