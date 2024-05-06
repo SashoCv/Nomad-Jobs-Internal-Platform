@@ -59,4 +59,9 @@ class Candidate extends Model
     {
         return $this->belongsTo(Cases::class, 'case_id');
     }
+
+    public function asignCandidateToNomadOffice()
+    {
+        return $this->hasMany(AsignCandidateToNomadOffice::class);
+    }
 }

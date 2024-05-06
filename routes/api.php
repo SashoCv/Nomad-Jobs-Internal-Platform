@@ -206,6 +206,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
+    Route::get('getCandidateFromAgent', [AsignCandidateToNomadOfficeController::class, 'index']);
 
     // Cases
     Route::get('getCases', [CasesController::class, 'index']);
