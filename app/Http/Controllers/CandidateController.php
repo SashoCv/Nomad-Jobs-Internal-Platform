@@ -23,7 +23,7 @@ class CandidateController extends Controller
     public function scriptForSeasonal()
     {
         $candidates = Candidate::where('contractType','=','90days')->get();
-    
+
         foreach ($candidates as $candidate) {
             $year = date('Y', strtotime($candidate->date));
             $month = date('m', strtotime($candidate->date));
@@ -49,7 +49,7 @@ class CandidateController extends Controller
             'data' => $candidates ?? []
         ]);
     }
-    
+
 
     public function scriptForAddedBy()
     {
@@ -90,10 +90,6 @@ class CandidateController extends Controller
                 $currentYear = $candidateYear; // Update current year for future comparisons
             }
         }
-
-        dd($firstQuartal);
-
-
 
         return response()->json([
             'success' => true,
@@ -243,6 +239,7 @@ class CandidateController extends Controller
             $person->notes = $request->notes;
             $person->user_id = $request->user_id;
             $person->addedBy = Auth::user()->id;
+            $person->case_id = $request->case_id;
 
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
@@ -272,8 +269,8 @@ class CandidateController extends Controller
             } else {
                 $person->seasonal = Null;
             }
-           
-            
+
+
 
 
             if ($request->hasFile('personPassport')) {
@@ -595,6 +592,7 @@ class CandidateController extends Controller
             $person->dossierNumber = $dossierNumber;
             $person->notes = $notes;
             $person->user_id = $userId;
+            $person->case_id = $request->case_id;
 
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
