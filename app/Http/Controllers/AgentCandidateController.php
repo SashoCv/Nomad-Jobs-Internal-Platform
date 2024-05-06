@@ -186,7 +186,6 @@ class AgentCandidateController extends Controller
      */
     public function edit(AgentCandidate $agentCandidate)
     {
-        //
     }
 
     /**
