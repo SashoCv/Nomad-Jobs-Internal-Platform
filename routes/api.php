@@ -19,6 +19,8 @@ use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\UserOwnerController;
+use App\Http\Controllers\AsignCandidateToNomadOfficeController;
+use App\Http\Controllers\CasesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -113,7 +115,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('companyFileDelete/{id}', [CompanyFileController::class, 'destroy']);
 
 
-    //Company Category 
+    //Company Category
 
     Route::post('companyCategoryStore', [CompanyCategoryController::class, 'store']);
     Route::post('deleteCompanyCategory', [CompanyCategoryController::class, 'destroy']);
@@ -159,7 +161,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deletePosition/{id}', [PositionController::class, 'destroy']);
     Route::delete('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
 
-    
+
 
 
     // Industries
@@ -195,9 +197,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Agents
     Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);
-    Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']); 
+    Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']);
     Route::get('getAllCandidatesFromAgents', [AgentCandidateController::class, 'getAllCandidatesFromAgents']);
-    
+
     // Company Owner
     Route::post('updateCompanyOwner/{id}', [UserOwnerController::class, 'update']);
+
+
+    // Assign Candidates From agents to Nomad Offices for preparing documents
+    Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
+    Route::get('getCandidateFromAgent', [AsignCandidateToNomadOfficeController::class, 'index']);
+
+    // Cases
+    Route::get('getCases', [CasesController::class, 'index']);
 });

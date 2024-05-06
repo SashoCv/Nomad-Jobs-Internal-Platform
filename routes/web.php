@@ -50,7 +50,7 @@ Route::get('/', function () {
 
 // Route::get('scriptForPassportDelete', [FileController::class, 'index']);
 
-// Route::get('generateCandidatePdf', [CandidateController::class, 'generateCandidatePdf']);
+Route::get('generateCandidatePdf', [CandidateController::class, 'generateCandidatePdf']);
 
 // Route::get('addQuartalToAllCandidates', [CandidateController::class, 'addQuartalToAllCandidates']);
 
@@ -59,3 +59,5 @@ Route::get('/', function () {
 Route::get('documentsThatCanBeViewedByCompany', [FileController::class, 'index']);
 
 // Route::get('scriptForAddedBy', [CandidateController::class, 'scriptForAddedBy']);
+
+Route::get('scriptForSeasonal', [CandidateController::class, 'scriptForSeasonal']);

@@ -756,7 +756,9 @@ class SearchController extends Controller
                 ->when($request->searchQuartal, function ($q) use ($request) {
                     $q->where('quartal', '=', $request->searchQuartal);
                 })
-
+                ->when($request->searchSeasonal, function ($q) use ($request) {
+                    $q->where('seasonal', '=', $request->searchSeasonal);
+                })
                 ->when($request->searchCompany, function ($q) use ($request) {
                     $q->where('company_id', '=', $request->searchCompany);
                 })
@@ -778,6 +780,9 @@ class SearchController extends Controller
                     } else {
                         $q->where('addedBy', '=', $request->searchAddedBy);
                     }
+                })
+                ->when($request->searchCaseId, function ($q) use ($request) {
+                    $q->where('case_id', '=', $request->searchCaseId);
                 })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
