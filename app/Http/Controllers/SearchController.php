@@ -781,6 +781,9 @@ class SearchController extends Controller
                         $q->where('addedBy', '=', $request->searchAddedBy);
                     }
                 })
+                ->when($request->searchCaseId, function ($q) use ($request) {
+                    $q->where('case_id', '=', $request->searchCaseId);
+                })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
                 });
