@@ -60,7 +60,7 @@
                     </tr>
                     <tr>
                         <td style="text-align: center;">
-                            <p style="font-size: 14px; color: rgba(69, 80, 86, 0.74); line-height: 18px; margin: 0;">&copy; <strong>www.nomadjobs.kz</strong></p>
+                            <p style="font-size: 14px; color: rgba(69, 80, 86, 0.74); line-height: 18px; margin: 0;">&copy; <strong>www.nomadjobs.kg</strong></p>
                             <p style="font-size: 14px; color: rgba(69, 80, 86, 0.74); line-height: 18px; margin: 0;">&copy; <strong>https://www.nomadjobs.cloud/</strong></p>
                         </td>
                     </tr>
