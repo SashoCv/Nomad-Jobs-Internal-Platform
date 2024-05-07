@@ -191,22 +191,22 @@ class LoginController extends Controller
                     }
                 }
 
-                // $user = User::where('email', $request->email)->first();
-                // if ($user) {
+                $user = User::where('email', $request->email)->first();
+                if ($user) {
 
-                //     $domain = URL::to('https://nomad-cloud.netlify.app/');
-                //     $url = $domain;
+                    $domain = URL::to('https://www.nomadjobs.cloud/');
+                    $url = $domain;
 
-                //     $data['url'] = $url;
-                //     $data['email'] = $request->email;
-                //     $data['password'] = $request->password;
-                //     $data['title'] = 'Login credentials for Nomad Cloud';
-                //     $data['body'] = "Please click on below link";
+                    $data['url'] = $url;
+                    $data['email'] = $request->email;
+                    $data['password'] = $request->password;
+                    $data['title'] = 'Login credentials for Nomad Cloud';
+                    $data['body'] = "Please click on below link";
 
-                //     Mail::send('loginLink', ['data' => $data], function ($message) use ($data) {
-                //         $message->to($data['email'])->subject($data['title']);
-                //     });
-                // }
+                    Mail::send('loginLink', ['data' => $data], function ($message) use ($data) {
+                        $message->to($data['email'])->subject($data['title']);
+                    });
+                }
 
                 return response()->json([
                     'success' => true,
