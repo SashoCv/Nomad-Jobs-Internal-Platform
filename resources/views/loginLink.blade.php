@@ -23,7 +23,7 @@
                     </tr>
                     <tr>
                         <td style="text-align: center;">
-                                <img src="https://nomadjobs.kg/images/NP_black_logo.svg" title="logo" alt="logo" style="height: 100px; width: 100%">
+                                <img src="/public/images/Logo.webp" title="logo" alt="logo" style="height: 100px; width: 100%">
                         </td>
                     </tr>
                     <tr>
