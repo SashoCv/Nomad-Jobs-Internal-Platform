@@ -521,6 +521,12 @@ class CandidateController extends Controller
                 $notes = $request->notes;
             }
 
+            if ($request->case_id === 'null') {
+                $case_id = Null;
+            } else {
+                $case_id = $request->case_id;
+            }
+
             if ($request->periodOfResidence === 'null') {
                 $periodOfResidence = Null;
             } else {
@@ -593,7 +599,7 @@ class CandidateController extends Controller
             $person->dossierNumber = $dossierNumber;
             $person->notes = $notes;
             $person->user_id = $userId;
-            $person->case_id = $request->case_id;
+            $person->case_id = $case_id;
 
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
