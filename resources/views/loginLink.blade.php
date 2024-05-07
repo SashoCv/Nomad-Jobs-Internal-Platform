@@ -24,7 +24,7 @@
                     <tr>
                         <td style="text-align: center;">
                             <a href="https://nomadjobs.cloud/login" title="logo" target="_blank">
-                                <img src="https://nomadjobs.kz/images/NP_black_logo.svg" title="logo" alt="logo" style="height: 100px;">
+                                <img src="https://nomadjobs.kg/images/NP_black_logo.svg" title="logo" alt="logo" style="height: 100px;">
                             </a>
                         </td>
                     </tr>
