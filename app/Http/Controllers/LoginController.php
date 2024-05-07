@@ -198,6 +198,8 @@ class LoginController extends Controller
                     $url = $domain;
 
                     $data['url'] = $url;
+                    $data['firstName'] = $request->firstName;
+                    $data['lastName'] = $request->lastName;
                     $data['email'] = $request->email;
                     $data['password'] = $request->password;
                     $data['title'] = 'Login credentials for Nomad Cloud';
