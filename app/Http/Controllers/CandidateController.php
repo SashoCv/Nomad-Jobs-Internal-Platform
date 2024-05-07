@@ -240,7 +240,12 @@ class CandidateController extends Controller
             $person->notes = $request->notes;
             $person->user_id = $request->user_id;
             $person->addedBy = Auth::user()->id;
-            $person->case_id = $request->case_id;
+            if ($request->case_id === 'null') {
+                $case_id = Null;
+            } else {
+                $case_id = $request->case_id;
+            }
+            $person->case_id = $case_id;
 
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
