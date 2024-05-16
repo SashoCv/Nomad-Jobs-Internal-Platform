@@ -77,54 +77,53 @@
             <td>Семеен статус</td>
             <td>{{$candidate->martialStatus}}</td>
         </tr>
-        <tr>
-            <td>Религия</td>
-            <td></td>
-        </tr>
     </table>
 
+    @if(isset($candidate->experiences))
     <h2 class="descriptionTitle">ТРУДОВ СТАЖ</h2>
+    @foreach($candidate->experiences as $experience)
     <table class="marginBottom">
         <tr>
             <td>Дати (от-до)</td>
-            <td></td>
+            <td>{{$experience->start_date}} - {{$experience->end_date}}</td>
         </tr>
         <tr>
-            <td>Име и вид на обучаващата или образователната организация</td>
-            <td></td>
+            <td>Име на Компания</td>
+            <td>{{$experience->company_name}}</td>
         </tr>
         <tr>
             <td>Специалност</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>Придобитата квалификация</td>
-            <td></td>
+            <td>{{$experience->position}}</td>
         </tr>
     </table>
-
-    <h2 class="descriptionTitle">ОБРАЗОВАНИЕ И ОБУЧЕНИЕ</h2>
+    @endforeach
+    @endif
+    
+    @if(isset($candidate->educations))
+    <h2 class="descriptionTitle">ОБРАЗОВАНИЕ</h2>
+    @foreach($candidate->educations as $education)
     <table class="marginBottom">
         <tr>
             <td>Дати (от-до)</td>
-            <td></td>
+            <td>{{$education->start_date}} - {{$education->end_date}}</td>
         </tr>
         <tr>
-            <td>Име и адрес на работодателя</td>
-            <td></td>
+            <td>Име на Училище</td>
+            <td>{{$education->school_name}}</td>
         </tr>
         <tr>
-            <td>Заемана длъжност</td>
-            <td></td>
+            <td>Степен</td>
+            <td>{{$education->degree}}</td>
         </tr>
         <tr>
-            <td>Основни дейности и отговорности</td>
-            <td></td>
+            <td>област на изучаване</td>
+            <td>{{$education->field_of_study}}</td>
         </tr>
     </table>
-
+    @endforeach
+    @endif
     <h2 class="descriptionTitle">УМЕНИЯ И КОМПЕТЕНЦИИ</h2>
-    <textarea style="width: 100%;" name="" id="" cols="30" rows="10"></textarea>
+    <textarea style="width: 100%;" name="" id="" cols="30" rows="10">{{$candidate->notes_for_cv}}</textarea>
 
 </body>
 

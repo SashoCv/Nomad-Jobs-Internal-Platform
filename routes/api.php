@@ -210,4 +210,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Cases
     Route::get('getCases', [CasesController::class, 'index']);
+
+    //CV For Candidates
+    Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
+    
 });
