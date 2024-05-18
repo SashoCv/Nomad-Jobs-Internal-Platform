@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
+use App\Models\Education;
 use App\Models\File;
 use App\Models\Position;
 use App\Models\User;
@@ -17,6 +18,7 @@ use Barryvdh\DomPDF\PDF as DomPDFPDF;
 use Illuminate\Support\Facades\Log;
 use PDF;
 use PhpOffice\PhpWord\Writer\PDF\DomPDF;
+use Svg\Tag\Rect;
 
 class CandidateController extends Controller
 {
@@ -128,9 +130,11 @@ class CandidateController extends Controller
         ]);
     }
 
-    public function generateCandidatePdf()
+    public function generateCandidatePdf(Request $request)
     {
+        $candidateId = $request->id;
         $candidate = Candidate::where('id', '=', 101)->first();
+        // dd($candidate);
         return view('cvTemplate', compact('candidate'));
         // $candidate = Candidate::where('id', '=', $id)->first();
 
@@ -240,6 +244,9 @@ class CandidateController extends Controller
             $person->notes = $request->notes;
             $person->user_id = $request->user_id;
             $person->addedBy = Auth::user()->id;
+            $educations = $request->education ?? [];
+            $experiences = $request->experience ?? [];
+
             if ($request->case_id === 'null') {
                 $case_id = Null;
             } else {
