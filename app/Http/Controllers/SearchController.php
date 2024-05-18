@@ -738,8 +738,8 @@ class SearchController extends Controller
         }
 
         if ($userRoleId === 4) {
-            $query->with('agent_candidates')
-                ->whereHas('agent_candidates', function ($q) {
+            $query->with('agentCandidates')
+                ->whereHas('agentCandidates', function ($q) {
                     $q->where('user_id', Auth::user()->id);
                 });
         }
