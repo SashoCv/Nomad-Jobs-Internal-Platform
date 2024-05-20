@@ -95,7 +95,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('candidateToWorker/{id}', [CandidateController::class, 'worker']);
     Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
 
-    Route::get('generateCandidatePdf/{id}', [CandidateController::class, 'generateCandidatePdf']);
 
 
 
