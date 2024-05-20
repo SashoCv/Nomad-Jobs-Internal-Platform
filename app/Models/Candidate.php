@@ -64,4 +64,14 @@ class Candidate extends Model
     {
         return $this->hasMany(AsignCandidateToNomadOffice::class);
     }
+
+    public function education()
+    {
+        return $this->hasMany(Education::class);
+    }
+
+    public function experience()
+    {
+        return $this->hasMany(Experience::class);
+    }
 }

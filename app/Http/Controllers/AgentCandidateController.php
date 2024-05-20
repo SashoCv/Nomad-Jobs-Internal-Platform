@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
+use App\Models\Education;
+use App\Models\Experience;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use Illuminate\Http\Request;
@@ -63,9 +65,37 @@ class AgentCandidateController extends Controller
         $person->notes = $request->notes;
         $person->user_id = $request->user_id;
         $person->addedBy = Auth::user()->id;
-
+        $educations = $request->educations ?? [];
+        $experiences = $request->experiences ?? [];
         
         if($person->save()){
+
+
+            if(count($educations) > 0){
+                foreach ($educations as $education) {
+                    $newEducation = new Education();
+                    $newEducation->candidate_id = $person->id;
+                    $newEducation->school_name = $education['school_name'];
+                    $newEducation->degree = $education['degree'];
+                    $newEducation->field_of_study = $education['field_of_study'];
+                    $newEducation->start_date = $education['start_date'];
+                    $newEducation->end_date = $education['end_date'];
+                    $newEducation->save();
+                }
+            }
+
+
+            if(count($experiences) > 0){
+                foreach ($experiences as $experience) {
+                    $newExperience = new Experience();
+                    $newExperience->candidate_id = $person->id;
+                    $newExperience->company_name = $experience['company_name'];
+                    $newExperience->position = $experience['position'];
+                    $newExperience->start_date = $experience['start_date'];
+                    $newExperience->end_date = $experience['end_date'];
+                    $newExperience->save();
+                }
+            }
 
             $notificationData = [
                 'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
@@ -74,15 +104,18 @@ class AgentCandidateController extends Controller
     
             $candidateData = [
                 'user_id' => Auth::user()->id,
-                'company_job_id' => $request->company_job_id,
+                'company_job_id' => (int) $request->company_job_id,
                 'candidate_id' => $person->id,
             ];
+
+
     
             $agentCandidate = new AgentCandidate();
     
             $agentCandidate->user_id = $candidateData['user_id'];
-            $agentCandidate->candidate_id = $candidateData['candidate_id'];
             $agentCandidate->company_job_id = $candidateData['company_job_id'];
+            $agentCandidate->candidate_id = $candidateData['candidate_id'];
+           
     
             $agentCandidate->save();
     

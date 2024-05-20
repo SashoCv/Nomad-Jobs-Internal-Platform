@@ -738,7 +738,10 @@ class SearchController extends Controller
         }
 
         if ($userRoleId === 4) {
-            $query->where('user_id', Auth::user()->id);
+            $query->with('agentCandidates')
+                ->whereHas('agentCandidates', function ($q) {
+                    $q->where('user_id', Auth::user()->id);
+                });
         }
 
         if ($userRoleId === 5) {
@@ -816,15 +819,16 @@ class SearchController extends Controller
         $firstQuartal = "1" . "/" . $currentYear;
 
         foreach ($candidates as $candidate) {
-            // Extract quartal and year from the candidate's quartal
-            $candidateParts = explode('/', $candidate->quartal);
-            $candidateQuartal = intval($candidateParts[0]); // Extract quartal
-            $candidateYear = intval($candidateParts[1]); // Extract year
-
-            // Check if candidate's year is earlier or if it's the same year but with a smaller quartal
-            if ($candidateYear < $currentYear || ($candidateYear == $currentYear && $candidateQuartal < 1)) {
-                $firstQuartal = $candidate->quartal;
-                $currentYear = $candidateYear; // Update current year for future comparisons
+            if($candidate->quartal){
+                $candidateParts = explode('/', $candidate->quartal);
+                $candidateQuartal = intval($candidateParts[0]); // Extract quartal
+                $candidateYear = intval($candidateParts[1]); // Extract year
+    
+                // Check if candidate's year is earlier or if it's the same year but with a smaller quartal
+                if ($candidateYear < $currentYear || ($candidateYear == $currentYear && $candidateQuartal < 1)) {
+                    $firstQuartal = $candidate->quartal;
+                    $currentYear = $candidateYear; // Update current year for future comparisons
+                }
             }
         }
 

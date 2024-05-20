@@ -61,3 +61,4 @@ Route::get('documentsThatCanBeViewedByCompany', [FileController::class, 'index']
 // Route::get('scriptForAddedBy', [CandidateController::class, 'scriptForAddedBy']);
 
 Route::get('scriptForSeasonal', [CandidateController::class, 'scriptForSeasonal']);
+Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
