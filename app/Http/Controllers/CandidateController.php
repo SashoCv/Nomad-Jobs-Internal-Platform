@@ -133,7 +133,7 @@ class CandidateController extends Controller
     public function generateCandidatePdf(Request $request)
     {
         if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
-            $candidateId = $request->id;
+            $candidateId = $request->candidateId;
             $candidate = Candidate::where('id', '=', $candidateId)->first();
     
     
