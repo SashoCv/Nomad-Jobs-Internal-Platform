@@ -132,13 +132,20 @@ class CandidateController extends Controller
 
     public function generateCandidatePdf(Request $request)
     {
-        $candidateId = $request->id;
-        $candidate = Candidate::where('id', '=', 101)->first();
-        // dd($candidate);
-        return view('cvTemplate', compact('candidate'));
-        // $candidate = Candidate::where('id', '=', $id)->first();
-
-        return PDF::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
+        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
+            $candidateId = $request->id;
+            $candidate = Candidate::where('id', '=', $candidateId)->first();
+    
+    
+            return PDF::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 401,
+                'message' => 'You are not authorized to generate pdf',
+            ]);
+        }
+       
     }
 
     /**
