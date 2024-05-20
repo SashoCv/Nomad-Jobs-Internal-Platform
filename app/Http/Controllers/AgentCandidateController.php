@@ -70,6 +70,7 @@ class AgentCandidateController extends Controller
         
         if($person->save()){
 
+
             if(count($educations) > 0){
                 foreach ($educations as $education) {
                     $newEducation = new Education();
@@ -82,6 +83,7 @@ class AgentCandidateController extends Controller
                     $newEducation->save();
                 }
             }
+
 
             if(count($experiences) > 0){
                 foreach ($experiences as $experience) {
@@ -102,15 +104,18 @@ class AgentCandidateController extends Controller
     
             $candidateData = [
                 'user_id' => Auth::user()->id,
-                'company_job_id' => $request->company_job_id,
+                'company_job_id' => (int) $request->company_job_id,
                 'candidate_id' => $person->id,
             ];
+
+
     
             $agentCandidate = new AgentCandidate();
     
             $agentCandidate->user_id = $candidateData['user_id'];
-            $agentCandidate->candidate_id = $candidateData['candidate_id'];
             $agentCandidate->company_job_id = $candidateData['company_job_id'];
+            $agentCandidate->candidate_id = $candidateData['candidate_id'];
+           
     
             $agentCandidate->save();
     
