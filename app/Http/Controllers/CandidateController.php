@@ -581,7 +581,7 @@ class CandidateController extends Controller
             $person = Candidate::where('id', '=', $id)->first();
 
             $person->status_id = $request->status_id;
-            $person->type_id = $request->type_id;
+            $person->type_id = 1;
             $person->company_id = $request->company_id;
             $person->gender = $request->gender;
             $person->email = $email;
