@@ -732,6 +732,10 @@ class SearchController extends Controller
         $query = Candidate::with(['company', 'status', 'position', 'user']);
 
         $userRoleId = Auth::user()->role_id;
+        
+        if ($userRoleId === 1 || $userRoleId === 2) {
+            $query->where('type_id', '!=', 3);
+        }
 
         if ($userRoleId === 3) {
             $query->where('company_id', Auth::user()->company_id);
