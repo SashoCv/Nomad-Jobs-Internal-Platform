@@ -76,6 +76,11 @@ class AsignCandidateToNomadOfficeController extends Controller
 
 
         if($asignCandidateToNomadOffice->save()){
+
+            $candidate = Candidate::find($request->candidate_id);
+            $candidate->type_id = 1;
+            $candidate->save();
+
             return response()->json([
                 'message' => 'Candidate assigned to nomad office successfully',
                 'data' => $asignCandidateToNomadOffice

@@ -83,7 +83,7 @@ class CompanyFileController extends Controller
                 'success' => true,
                 'status' => 200,
                 'files' => $companyFiles,
-                'categories' => $companyCategories
+                'CompanyCategories' => $companyCategories
             ]);
         } else if (Auth::user()->role_id == 3) {
             $companyCategories = CompanyCategory::where('company_id', '=', $id)->where('role_id', '=', 3)->get();
@@ -91,7 +91,7 @@ class CompanyFileController extends Controller
                 'success' => true,
                 'status' => 200,
                 'files' => $companyFiles,
-                'categories' => $companyCategories
+                'CompanyCategories' => $companyCategories
             ]);
         }
     }
