@@ -139,9 +139,7 @@ class FileController extends Controller
     
         $categoriesQuery = Category::where('candidate_id', null)->orWhere('candidate_id', $id);
     
-        if ($userRoleId == 2) {
-            $categoriesQuery->where('role_id', 2)->orWhere('role_id', 3);
-        } elseif ($userRoleId == 3 || $userRoleId == 4 || $userRoleId == 5) {
+       if ($userRoleId == 3 || $userRoleId == 4 || $userRoleId == 5) {
             $categoriesQuery->where('role_id', 3);
         }
     
