@@ -78,7 +78,7 @@ class CompanyFileController extends Controller
                 'CompanyCategories' => $companyCategories,
             ]);
         } else if (Auth::user()->role_id == 2) {
-            $companyCategories = CompanyCategory::where('company_id', '=', $id)->where('role_id', '=', 2)->orWhere('role_id', '=', 3)->get();
+            $companyCategories = CompanyCategory::where('company_id', '=', $id)->where('role_id', '=', 2)->get();
             return response()->json([
                 'success' => true,
                 'status' => 200,
