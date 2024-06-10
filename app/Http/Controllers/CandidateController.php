@@ -368,10 +368,7 @@ class CandidateController extends Controller
             $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
         } else if (Auth::user()->role_id == 5) {
             $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = [];
-            foreach ($userOwners as $userOwner) {
-                array_push($userOwnersArray, $userOwner->company_id);
-            }
+            $userOwnersArray = $userOwners->pluck('company_id')->toArray();
             $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
         } else if (Auth::user()->role_id == 4) {
             $candidatesInsertByAgent = AgentCandidate::where('user_id', '=', Auth::user()->id)->get();
