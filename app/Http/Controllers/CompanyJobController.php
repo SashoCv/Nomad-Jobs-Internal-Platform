@@ -282,6 +282,9 @@ class CompanyJobController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
             $companyJob = CompanyJob::where('id', $id)->first();
+            $company = Company::where('id', $companyJob->company_id)->first();
+            $companyJob->companyImage = $company->logoPath;
+            $companyJob->address = $company->addressOne;
 
             if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
                 $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
@@ -300,6 +303,9 @@ class CompanyJobController extends Controller
             ], 200);
         } else if (Auth::user()->role_id == 3) {
             $companyJob = CompanyJob::where('id', $id)->where('company_id', Auth::user()->company_id)->first();
+            $company = Company::where('id', $companyJob->company_id)->first();
+            $companyJob->companyImage = $company->logoPath;
+            $companyJob->address = $company->addressOne;
 
             return response()->json([
                 "status" => "success",
@@ -309,7 +315,12 @@ class CompanyJobController extends Controller
         } else if (Auth::user()->role_id == 4) {
             $assignedJob = AssignedJob::where('user_id', Auth::user()->id)->where('company_job_id', $id)->first();
             if ($assignedJob) {
+                
                 $companyJob = CompanyJob::where('id', $id)->first();
+                $company = Company::where('id', $companyJob->company_id)->first();
+                $companyJob->companyImage = $company->logoPath;
+                $companyJob->address = $company->addressOne;
+
                 return response()->json([
                     "status" => "success",
                     "message" => "Job retrieved successfully",
