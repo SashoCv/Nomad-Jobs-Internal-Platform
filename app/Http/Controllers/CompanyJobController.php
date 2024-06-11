@@ -35,8 +35,9 @@ class CompanyJobController extends Controller
 
             $allJobPostingsQuery = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
-                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.contract_type', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
-                ->whereNull('company_jobs.deleted_at');
+                ->select('company_jobs.id','companies.logoPath','companies.addressOne', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.contract_type', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->whereNull('company_jobs.deleted_at')
+                ->orderBy('company_jobs.created_at', 'desc');
 
             if ($companyId) {
                 $allJobPostingsQuery->where('companies.id', $companyId);
@@ -53,8 +54,9 @@ class CompanyJobController extends Controller
             $allJobPostings = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
                 ->where('company_jobs.company_id', Auth::user()->company_id)
-                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description','company_jobs.contract_type', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->select('company_jobs.id','companies.logoPath','companies.addressOne', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description','company_jobs.contract_type', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
+                ->orderBy('company_jobs.created_at', 'desc')
                 ->get();
 
             return response()->json([
@@ -72,8 +74,9 @@ class CompanyJobController extends Controller
             $allJobPostings = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
                 ->where('company_jobs.company_id', $companyIds)
-                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->select('company_jobs.id','companies.logoPath','companies.addressOne', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
+                ->orderBy('company_jobs.created_at', 'desc')
                 ->get();
 
             return response()->json([
@@ -93,8 +96,9 @@ class CompanyJobController extends Controller
             $allJobPostings = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
                 ->whereIn('company_jobs.id', $companyJobIds)
-                ->select('company_jobs.id', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
+                ->select('company_jobs.id','companies.logoPath','companies.addressOne', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
+                ->orderBy('company_jobs.created_at', 'desc')
                 ->get();
 
             return response()->json([
