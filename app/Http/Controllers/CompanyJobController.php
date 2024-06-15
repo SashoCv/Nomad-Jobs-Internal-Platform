@@ -230,7 +230,7 @@ class CompanyJobController extends Controller
             } else {
                 return response()->json(['message' => 'Job creation failed'], 400);
             }
-        } else if (Auth::role()->id == 5) {
+        } else  {
             $companyJob = new CompanyJob();
 
             $companyJob->user_id = Auth::user()->id;
