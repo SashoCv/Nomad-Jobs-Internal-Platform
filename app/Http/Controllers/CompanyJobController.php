@@ -65,15 +65,17 @@ class CompanyJobController extends Controller
                 "data" => $allJobPostings
             ], 200);
         } else if (Auth::user()->role_id == 5) {
+
             $userOwner = UserOwner::where('user_id', Auth::user()->id)->get();
             $companyIds = [];
+
             foreach ($userOwner as $owner) {
                 $companyIds[] = $owner->company_id;
             }
 
             $allJobPostings = DB::table('company_jobs')
                 ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
-                ->where('company_jobs.company_id', $companyIds)
+                ->whereIn('company_jobs.company_id', $companyIds)
                 ->select('company_jobs.id','companies.logoPath','companies.companyCity', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
                 ->orderBy('company_jobs.created_at', 'desc')
