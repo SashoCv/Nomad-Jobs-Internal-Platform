@@ -34,10 +34,18 @@ class CompanyController extends Controller
                 'status' => 200,
                 'data' => $companies
             ]);
-        } else {
+        } else if (Auth::user()->role_id == 5) {
+            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
+            $userOwnersArray = [];
+            foreach ($userOwners as $userOwner) {
+                array_push($userOwnersArray, $userOwner->company_id);
+            }
+            $companies = Company::whereIn('id', $userOwnersArray)->get(['id', 'nameOfCompany','has_owner','addressOne', 'addressTwo', 'addressThree']);
+
+
             return response()->json([
                 'status' => 500,
-                'data' => []
+                'data' => $companies
             ]);
         }
     }
