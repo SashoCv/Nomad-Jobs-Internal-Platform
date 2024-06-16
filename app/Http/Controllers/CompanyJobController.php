@@ -290,7 +290,8 @@ class CompanyJobController extends Controller
             $companyJob = CompanyJob::where('id', $id)->first();
             $company = Company::where('id', $companyJob->company_id)->first();
             $companyJob->companyImage = $company->logoPath;
-            $companyJob->address = $company->companyCity;
+            $companyJob->companyCity = $company->companyCity;
+            $companyJob->companyName = $company->nameOfCompany;
 
             if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
                 $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
@@ -311,7 +312,9 @@ class CompanyJobController extends Controller
             $companyJob = CompanyJob::where('id', $id)->where('company_id', Auth::user()->company_id)->first();
             $company = Company::where('id', $companyJob->company_id)->first();
             $companyJob->companyImage = $company->logoPath;
-            $companyJob->address = $company->companyCity;
+            $companyJob->companyCity = $company->companyCity;
+            $companyJob->companyName = $company->nameOfCompany;
+
 
             return response()->json([
                 "status" => "success",
@@ -325,7 +328,9 @@ class CompanyJobController extends Controller
                 $companyJob = CompanyJob::where('id', $id)->first();
                 $company = Company::where('id', $companyJob->company_id)->first();
                 $companyJob->companyImage = $company->logoPath;
-                $companyJob->address = $company->companyCity;
+                $companyJob->companyCity = $company->companyCity;
+                $companyJob->companyName = $company->nameOfCompany;
+
 
                 return response()->json([
                     "status" => "success",
