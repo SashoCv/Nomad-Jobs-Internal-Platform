@@ -792,7 +792,7 @@ class SearchController extends Controller
                     $q->where('case_id', '=', $request->searchCaseId);
                 })
                 ->when($request->nationality, function ($q) use ($request) {
-                    $q->where('nationality', 'Like', $request->nationality);
+                    $q->where('nationality', 'LIKE', '%' . $request->nationality . '%');
                 })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
