@@ -39,7 +39,7 @@ class ArrivalController extends Controller
     {
         try {
             if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $arrivals = Arrival::where('is_arrived', false)->get();
+                $arrivals = Arrival::with(['company', 'candidate'])->where('is_arrived', false)->get();
             } else {
                 $arrivals = []; // Here i need to implement the logic to get the arrivals for the Company
             }
