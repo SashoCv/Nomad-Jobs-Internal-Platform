@@ -47,7 +47,7 @@ class InvoiceCompanyController extends Controller
                     $query->whereBetween('invoice_date', [$request->monthFrom, $request->monthTo]);
                 }
 
-                $invoicesForCompany = $query->get();
+                $invoicesForCompany = $query->orderBy('invoice_date', 'desc')->get();
 
                 return response()->json($invoicesForCompany);
             } else {
