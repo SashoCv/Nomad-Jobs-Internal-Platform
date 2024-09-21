@@ -44,7 +44,7 @@ class CompanyController extends Controller
 
 
             return response()->json([
-                'status' => 500,
+                'status' => 200,
                 'data' => $companies
             ]);
         }

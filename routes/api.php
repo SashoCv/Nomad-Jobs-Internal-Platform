@@ -219,7 +219,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Company Invoice
     Route::post('storeCompanyInvoice', [InvoiceCompanyController::class, 'store']);
-    Route::get('getCompanyInvoices/{companyId}', [InvoiceCompanyController::class, 'index']);
+    Route::get('getCompanyInvoices', [InvoiceCompanyController::class, 'index']);
     Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyController::class, 'destroy']);
     Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
     Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
