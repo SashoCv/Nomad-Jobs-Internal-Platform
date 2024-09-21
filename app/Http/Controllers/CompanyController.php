@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\CompanyAdress;
 use App\Models\File;
 use App\Models\User;
 use App\Models\UserOwner;
@@ -84,18 +85,29 @@ class CompanyController extends Controller
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
             $company->contactPerson = $request->contactPerson;
-            $company->companyCity = $request->companyCity;
             $company->EGN = $request->EGN;
             $company->dateBornDirector = $request->dateBornDirector;
-            $company->addressOne = $request->addressOne;
-            $company->addressTwo = $request->addressTwo;
-            $company->addressThree = $request->addressThree;
+//            $company->addressOne = $request->addressOne;
+//            $company->addressTwo = $request->addressTwo;
+//            $company->addressThree = $request->addressThree;
+//            $company->companyCity = $request->companyCity;
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->description = $request->description;
             $company->nameOfContactPerson = $request->nameOfContactPerson;
             $company->phoneOfContactPerson = $request->phoneOfContactPerson;
 
+            if ($request->addreses) {
+                foreach ($request->addreses as $address) {
+                    $companyAddress = new CompanyAdress();
+                    $companyAddress->company_id = $company->id;
+                    $companyAddress->address = $address['address'];
+                    $companyAddress->city = $address['city'];
+                    $companyAddress->state = $address['state'];
+                    $companyAddress->zip_code = $address['zip_code'];
+                    $companyAddress->save();
+                }
+            }
 
             if ($request->employedByMonths) {
                 $employedByMonths = json_decode(json_encode($request->employedByMonths));
