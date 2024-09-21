@@ -20,7 +20,10 @@ use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\UserOwnerController;
 use App\Http\Controllers\AsignCandidateToNomadOfficeController;
+use App\Http\Controllers\InvoiceCompanyController;
 use App\Http\Controllers\CasesController;
+use App\Http\Controllers\ArrivalController;
+use App\Http\Controllers\ItemInvoiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -212,5 +215,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //CV For Candidates
     Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
-    
+
+
+    //Company Invoice
+    Route::post('storeCompanyInvoice', [InvoiceCompanyController::class, 'store']);
+    Route::get('getCompanyInvoices/{companyId}', [InvoiceCompanyController::class, 'index']);
+    Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyController::class, 'destroy']);
+    Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
+    Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
+
+
+    // Arrivals
+    Route::post('storeArrival', [ArrivalController::class, 'store']);
+    Route::get('getAllArrivals', [ArrivalController::class, 'index']);
+    Route::post('isArrived/{id}', [ArrivalController::class, 'isArrived']);
+    Route::delete('deleteArrival/{id}', [ArrivalController::class, 'destroy']);
 });
