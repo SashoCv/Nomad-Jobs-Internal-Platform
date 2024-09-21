@@ -25,7 +25,7 @@ class Company extends Model
         return $this->hasMany(MonthCompany::class, 'company_id');
     }
 
-    public function company_adresses(): HasMany
+    public function company_addresses(): HasMany
     {
         return $this->hasMany(CompanyAdress::class, 'company_id');
     }

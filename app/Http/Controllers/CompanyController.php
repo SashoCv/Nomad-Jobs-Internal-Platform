@@ -22,7 +22,7 @@ class CompanyController extends Controller
     public function index()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $companies = Company::get(['id', 'nameOfCompany','has_owner','addressOne', 'addressTwo', 'addressThree']);
+            $companies = Company::with('company_addresses')->get();
 
             return response()->json([
                 'status' => 200,
@@ -41,7 +41,7 @@ class CompanyController extends Controller
             foreach ($userOwners as $userOwner) {
                 array_push($userOwnersArray, $userOwner->company_id);
             }
-            $companies = Company::whereIn('id', $userOwnersArray)->get(['id', 'nameOfCompany','has_owner','addressOne', 'addressTwo', 'addressThree']);
+            $companies = Company::with('company_addresses')->whereIn('id', $userOwnersArray)->get();
 
 
             return response()->json([
@@ -56,7 +56,7 @@ class CompanyController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -97,8 +97,8 @@ class CompanyController extends Controller
             $company->nameOfContactPerson = $request->nameOfContactPerson;
             $company->phoneOfContactPerson = $request->phoneOfContactPerson;
 
-            if ($request->addreses) {
-                foreach ($request->addreses as $address) {
+            if ($request->addresses) {
+                foreach ($request->addresses as $address) {
                     $companyAddress = new CompanyAdress();
                     $companyAddress->company_id = $company->id;
                     $companyAddress->address = $address['address'];
