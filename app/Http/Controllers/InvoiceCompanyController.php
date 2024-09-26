@@ -74,13 +74,13 @@ class InvoiceCompanyController extends Controller
                 $invoiceCompany->payment_date = $request->payment_date;
                 $invoiceCompany->payment_amount = $request->payment_amount;
                 $invoiceCompany->is_paid = $request->is_paid;
+                $items = $request->items;
 
+                if(!$items) {
+                    return response()->json('Items are required');
+                }
                 if ($invoiceCompany->save()) {
-                    $items = $request->items;
-
-                    if(!$items) {
-                        return response()->json('Items are required');
-                    }
+                    
                     foreach ($items as $item) {
                         $itemInvoice = new ItemInvoice();
                         $itemInvoice->invoice_companies_id = $invoiceCompany->id;
