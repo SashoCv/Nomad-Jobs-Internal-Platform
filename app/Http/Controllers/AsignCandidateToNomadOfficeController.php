@@ -12,19 +12,16 @@ class AsignCandidateToNomadOfficeController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
         try{
-            if(Auth::user()->role_id == 1){
+            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
                 $candidatesAddByAgent = Candidate::with(['company', 'status', 'position', 'user','cases','agentCandidates'])
                ->whereHas('agentCandidates')->get();
             } else {
-                $candidatesAddByAgent = Candidate::with(['company', 'status', 'position', 'user','cases','agentCandidates','asignCandidateToNomadOffice'])
-               ->whereHas('asignCandidateToNomadOffice', function($query){
-                   $query->where('nomad_office_id', Auth::user()->id);
-               })->get();
+                $candidatesAddByAgent = [];
             }
 
 
@@ -47,7 +44,7 @@ class AsignCandidateToNomadOfficeController extends Controller
      */
     public function create()
     {
-       
+
     }
 
     /**
@@ -58,7 +55,7 @@ class AsignCandidateToNomadOfficeController extends Controller
      */
     public function assignCandidateToNomadOffice(Request $request)
     {
-        if(Auth::user()->role_id != 1){
+        if(Auth::user()->role_id != 1 && Auth::user()->role_id != 2){
             return response()->json([
                 'message' => 'You are not authorized to assign candidate to nomad office'
             ], 401);
