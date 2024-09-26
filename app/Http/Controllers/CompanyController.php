@@ -96,6 +96,9 @@ class CompanyController extends Controller
             $company->description = $request->description;
             $company->nameOfContactPerson = $request->nameOfContactPerson;
             $company->phoneOfContactPerson = $request->phoneOfContactPerson;
+            $company->director_idCard = $request->director_idCard;
+            $company->director_date_of_birth = $request->director_date_of_birth;
+            $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
 
             if ($request->addresses) {
                 foreach ($request->addresses as $address) {
@@ -192,7 +195,7 @@ class CompanyController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
@@ -262,6 +265,9 @@ class CompanyController extends Controller
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->employedByMonths = $employedByMonths;
             $company->description = $description;
+            $company->director_idCard = $request->director_idCard;
+            $company->director_date_of_birth = $request->director_date_of_birth;
+            $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
 
 
             if ($company->save()) {

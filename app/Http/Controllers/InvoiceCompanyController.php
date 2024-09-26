@@ -80,7 +80,7 @@ class InvoiceCompanyController extends Controller
                     return response()->json('Items are required');
                 }
                 if ($invoiceCompany->save()) {
-                    
+
                     foreach ($items as $item) {
                         $itemInvoice = new ItemInvoice();
                         $itemInvoice->invoice_companies_id = $invoiceCompany->id;
