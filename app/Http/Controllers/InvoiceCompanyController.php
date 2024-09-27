@@ -17,9 +17,14 @@ class InvoiceCompanyController extends Controller
     {
         try {
             if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $query = InvoiceCompany::with(['itemInvoice' => function ($query) {
+            $query = InvoiceCompany::with([
+                'company' => function ($query) {
+                    $query->select('id', 'nameOfCompany');
+                },
+                'itemInvoice' => function ($query) {
                     $query->select('id', 'invoice_companies_id', 'item_name', 'quantity', 'price', 'total', 'unit');
-                }]);
+                }
+            ]);
 
                 $query->whereBetween('invoice_date', [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()]);
 
@@ -47,7 +52,8 @@ class InvoiceCompanyController extends Controller
                     $query->whereBetween('invoice_date', [$request->monthFrom, $request->monthTo]);
                 }
 
-                $invoicesForCompany = $query->orderBy('invoice_date', 'desc')->get();
+                $perPage = $request->get('per_page', 15);
+                $invoicesForCompany = $query->orderBy('invoice_date', 'desc')->paginate($perPage);
 
                 return response()->json($invoicesForCompany);
             } else {
