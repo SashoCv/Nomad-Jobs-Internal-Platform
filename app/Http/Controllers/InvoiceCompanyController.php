@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\InvoicesExport;
 use App\Models\Company;
 use App\Models\InvoiceCompany;
 use App\Models\ItemInvoice;
@@ -10,21 +11,28 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Excel;
 
 class InvoiceCompanyController extends Controller
 {
+    protected $excel;
+
+    public function __construct(Excel $excel)
+    {
+        $this->excel = $excel;
+    }
     public function index(Request $request): JsonResponse
     {
         try {
             if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $query = InvoiceCompany::with([
-                'company' => function ($query) {
-                    $query->select('id', 'nameOfCompany');
-                },
-                'itemInvoice' => function ($query) {
-                    $query->select('id', 'invoice_companies_id', 'item_name', 'quantity', 'price', 'total', 'unit');
-                }
-            ]);
+                $query = InvoiceCompany::with([
+                    'company' => function ($query) {
+                        $query->select('id', 'nameOfCompany');
+                    },
+                    'itemInvoice' => function ($query) {
+                        $query->select('id', 'invoice_companies_id', 'item_name', 'quantity', 'price', 'total', 'unit');
+                    }
+                ]);
 
                 $query->whereBetween('invoice_date', [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()]);
 
@@ -67,7 +75,7 @@ class InvoiceCompanyController extends Controller
     public function store(Request $request)
     {
         try {
-            if(Auth::user()->role_id == "1" || Auth::user()->role_id == "2") {
+            if (Auth::user()->role_id == "1" || Auth::user()->role_id == "2") {
 
                 $invoiceCompany = new InvoiceCompany();
 
@@ -82,7 +90,7 @@ class InvoiceCompanyController extends Controller
                 $invoiceCompany->is_paid = $request->is_paid;
                 $items = $request->items;
 
-                if(!$items) {
+                if (!$items) {
                     return response()->json('Items are required');
                 }
                 if ($invoiceCompany->save()) {
@@ -105,7 +113,6 @@ class InvoiceCompanyController extends Controller
                         'message' => 'Invoice saved successfully',
                         'invoice' => $invoiceCompany
                     ]);
-
                 } else {
                     return response()->json('Invoice was not saved');
                 }
@@ -120,7 +127,7 @@ class InvoiceCompanyController extends Controller
     public function destroy($id): JsonResponse
     {
         try {
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
                 $invoiceCompany = InvoiceCompany::find($id);
                 $itemInvoice = ItemInvoice::where('invoice_companies_id', $id)->get();
@@ -138,7 +145,6 @@ class InvoiceCompanyController extends Controller
             } else {
                 return response()->json('You are not authorized to perform this action');
             }
-
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
         }
@@ -147,7 +153,7 @@ class InvoiceCompanyController extends Controller
     public function invoicePaid(Request $request, $id): JsonResponse
     {
         try {
-            if(Auth::user()->role_id != 1 || Auth::user()->role_id != 2) {
+            if (Auth::user()->role_id != 1 || Auth::user()->role_id != 2) {
                 return response()->json('You are not authorized to perform this action');
             }
 
@@ -156,7 +162,7 @@ class InvoiceCompanyController extends Controller
             $invoiceCompany->is_paid = true;
             $invoiceCompany->payment_date = $request->payment_date;
 
-            if($invoiceCompany->save()) {
+            if ($invoiceCompany->save()) {
                 return response()->json([
                     'message' => 'Invoice paid successfully',
                     'invoice' => $invoiceCompany
@@ -164,7 +170,65 @@ class InvoiceCompanyController extends Controller
             } else {
                 return response()->json('Invoice was not paid');
             }
+        } catch (\Exception $e) {
+            return response()->json($e->getMessage());
+        }
+    }
 
+    public function downloadExcelForInvoices(Request $request)
+    {
+        try {
+            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                $currentYear = Carbon::now()->year;
+
+                $dateFrom = $request->input('date_from') ? Carbon::parse($request->input('date_from')) : Carbon::create($currentYear, 1, 1);
+                $dateTo = $request->input('date_to') ? Carbon::parse($request->input('date_to')) : Carbon::create($currentYear, 12, 31);
+
+                $invoices = InvoiceCompany::with([
+                    'company' => function ($query) {
+                        $query->select('id', 'nameOfCompany');
+                    },
+                    'itemInvoice' => function ($query) {
+                        $query->select('id', 'invoice_companies_id', 'item_name', 'quantity', 'price', 'total', 'unit');
+                    }
+                ])
+                    ->whereBetween('invoice_date', [$dateFrom, $dateTo])
+                    ->get();
+
+                $data = [];
+                foreach ($invoices as $invoice) {
+                    $invoiceItems = [];
+
+                    foreach ($invoice->itemInvoice as $item) {
+                        $invoiceItems[] = [
+                            'Item Name' => $item->item_name,
+                            'Quantity' => $item->quantity,
+                            'Price' => $item->price,
+                            'Total' => $item->total,
+                            'Unit' => $item->unit,
+                        ];
+                    }
+
+                    $data[] = [
+                        'Company Name' => $invoice->company->nameOfCompany,
+                        'Invoice Number' => $invoice->invoice_number,
+                        'Invoice Date' => $invoice->invoice_date,
+                        'Status' => $invoice->status,
+                        'Invoice Amount' => $invoice->invoice_amount,
+                        'Due Date' => $invoice->due_date,
+                        'Payment Date' => $invoice->payment_date,
+                        'Payment Amount' => $invoice->payment_amount,
+                        'Is Paid' => $invoice->is_paid,
+                        'Items' => $invoiceItems,
+                    ];
+                }
+
+                $fileName = 'invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
+
+                return $this->excel->download(new InvoicesExport($data), $fileName);
+            } else {
+                return response()->json('You are not authorized to perform this action');
+            }
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
         }

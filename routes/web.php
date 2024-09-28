@@ -8,6 +8,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MonthCompanyController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\InvoiceCompanyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,6 +26,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
 
 // Route::get('searchCompany', [SearchController::class, 'searchCompany']);
 // Route::post('storePosition', [CompanyJobController::class, 'store']);
