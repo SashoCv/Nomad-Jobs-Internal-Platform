@@ -3,33 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Arrival;
+use App\Models\ArrivalCandidate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ArrivalController extends Controller
 {
-    public function isArrived($id): JsonResponse
-    {
-        try {
-            $arrival = Arrival::find($id);
-
-            if($arrival->is_arrived) {
-                $arrival->is_arrived = false;
-            } else {
-                $arrival->is_arrived = true;
-            }
-
-            $arrival->save();
-
-            return response()->json([
-                'message' => 'Arrival status updated successfully',
-                'arrival' => $arrival
-            ]);
-        } catch (\Exception $e) {
-            return response()->json($e->getMessage());
-        }
-    }
     /**
      * Display a listing of the resource.
      *
@@ -39,7 +19,7 @@ class ArrivalController extends Controller
     {
         try {
             if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $arrivals = Arrival::with(['company', 'candidate'])->where('is_arrived', false)->get();
+                $arrivals = Arrival::with(['company', 'candidate'])->get();
             } else {
                 $arrivals = []; // Here i need to implement the logic to get the arrivals for the Company
             }

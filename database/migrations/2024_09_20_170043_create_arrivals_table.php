@@ -22,7 +22,6 @@ return new class extends Migration
             $table->string('arrival_location');
             $table->string('arrival_flight')->nullable();
             $table->string('where_to_stay')->nullable();
-            $table->boolean('is_arrived')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

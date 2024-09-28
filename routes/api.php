@@ -24,6 +24,8 @@ use App\Http\Controllers\InvoiceCompanyController;
 use App\Http\Controllers\CasesController;
 use App\Http\Controllers\ArrivalController;
 use App\Http\Controllers\ItemInvoiceController;
+use App\Http\Controllers\ArrivalCandidateController;
+use App\Http\Controllers\StatusArrivalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -228,6 +230,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // Arrivals
     Route::post('storeArrival', [ArrivalController::class, 'store']);
     Route::get('getAllArrivals', [ArrivalController::class, 'index']);
-    Route::post('isArrived/{id}', [ArrivalController::class, 'isArrived']);
     Route::delete('deleteArrival/{id}', [ArrivalController::class, 'destroy']);
+
+
+    // Status Arrivals
+    Route::get('getStatusArrivals', [StatusArrivalController::class, 'index']);
+
+    // Candidates for Arrivals
+    Route::post('storeStatusForArrivalCandidate', [ArrivalCandidateController::class, 'store']);
+    Route::get('getArrivalCandidatesWithStatuses', [ArrivalCandidateController::class, 'index']);
+    Route::post('updateStatusForArrivalCandidate/{id}', [ArrivalCandidateController::class, 'update']);
+    Route::delete('deleteArrivalCandidate/{id}', [ArrivalCandidateController::class, 'destroy']);
 });
