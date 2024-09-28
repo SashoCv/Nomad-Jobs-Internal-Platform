@@ -197,14 +197,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deleteAssignedJob/{id}', [AssignedJobController::class, 'deleteAssignedJob']);
     Route::get('getAssignedJobsForAgent', [AssignedJobController::class, 'getAssignedJobsForAgent']);
 
+    // Company Owner
+    Route::post('updateCompanyOwner/{id}', [UserOwnerController::class, 'update']);
+
     // Agents
     Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);
     Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']);
     Route::get('getAllCandidatesFromAgents', [AgentCandidateController::class, 'getAllCandidatesFromAgents']);
-
-    // Company Owner
-    Route::post('updateCompanyOwner/{id}', [UserOwnerController::class, 'update']);
-
 
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
