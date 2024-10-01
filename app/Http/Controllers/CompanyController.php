@@ -269,6 +269,17 @@ class CompanyController extends Controller
             $company->director_date_of_birth = $request->director_date_of_birth;
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
 
+            if ($request->company_addresses) {
+                foreach ($request->addresses as $address) {
+                    $companyAddress = new CompanyAdress();
+                    $companyAddress->company_id = $company->id;
+                    $companyAddress->address = $address['address'];
+                    $companyAddress->city = $address['city'];
+                    $companyAddress->state = $address['state'];
+                    $companyAddress->zip_code = $address['zip_code'];
+                    $companyAddress->save();
+                }
+            }
 
             if ($company->save()) {
                 return response()->json([
