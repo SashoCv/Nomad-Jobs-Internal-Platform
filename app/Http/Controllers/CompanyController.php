@@ -101,7 +101,7 @@ class CompanyController extends Controller
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
 
             if ($request->company_addresses) {
-                foreach ($request->addresses as $address) {
+                foreach ($request->company_addresses as $address) {
                     $companyAddress = new CompanyAdress();
                     $companyAddress->company_id = $company->id;
                     $companyAddress->address = $address['address'];
@@ -270,7 +270,7 @@ class CompanyController extends Controller
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
 
             if ($request->company_addresses) {
-                foreach ($request->addresses as $address) {
+                foreach ($request->company_addresses as $address) {
                     $companyAddress = new CompanyAdress();
                     $companyAddress->company_id = $company->id;
                     $companyAddress->address = $address['address'];
