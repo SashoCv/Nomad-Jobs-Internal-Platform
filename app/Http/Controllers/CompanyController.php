@@ -147,21 +147,21 @@ class CompanyController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
         if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $company = Company::with('industry')->where('id', '=', $id)->first();
+            $company = Company::with(['industry','company_addresses'])->where('id', '=', $id)->first();
         } else if(Auth::user()->role_id == 3) {
-            $company = Company::with('industry')->where('id', '=', Auth::user()->company_id)->first();
+            $company = Company::with(['industry','company_addresses'])->where('id', '=', Auth::user()->company_id)->first();
         } else if(Auth::user()->role_id == 5) {
             $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
             $userOwnersArray = [];
             foreach($userOwners as $userOwner) {
                 array_push($userOwnersArray, $userOwner->company_id);
             }
-            $company = Company::with('industry')->whereIn('id', $userOwnersArray)->where('id', '=', $id)->first();
+            $company = Company::with(['industry','company_addresses'])->whereIn('id', $userOwnersArray)->where('id', '=', $id)->first();
         }
 
         if($company){

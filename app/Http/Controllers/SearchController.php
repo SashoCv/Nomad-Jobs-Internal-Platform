@@ -656,7 +656,7 @@ class SearchController extends Controller
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
 
-        $companiesQuery = Company::with(['industry', 'candidates']);
+        $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
 
         if (Auth::user()->role_id === 5) {
             $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();

@@ -15,7 +15,6 @@ return new class extends Migration
     {
         Schema::table('companies', function (Blueprint $table) {
             $table->string('director_idCard')->nullable();
-            $table->string('director_date_of_birth')->nullable();
             $table->string('director_date_of_issue_idCard')->nullable();
         });
     }
