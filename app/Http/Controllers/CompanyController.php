@@ -114,7 +114,6 @@ class CompanyController extends Controller
 
                 if ($request->company_addresses) {
                     foreach ($request->company_addresses as $address) {
-                        dd($address);
                         $companyAddress = new CompanyAdress();
                         $companyAddress->company_id = $company->id;
                         $companyAddress->address = $address['address'];
