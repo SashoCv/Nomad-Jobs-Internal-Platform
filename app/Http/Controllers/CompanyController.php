@@ -109,7 +109,7 @@ class CompanyController extends Controller
 
             $company->employedByMonths = $employedByMonths ?? Null;
 
-            $company_addresses =  json_decode(json_encode($request->company_addresses));
+            $company_addresses = json_decode($request->company_addresses, true);
             Log::info('company_addresses:', [$company_addresses]);
             Log::info('request_company_addresses:', [$request->company_addresses]);
 
