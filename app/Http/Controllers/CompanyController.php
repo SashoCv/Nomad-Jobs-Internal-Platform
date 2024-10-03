@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\UserOwner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 
@@ -108,12 +109,14 @@ class CompanyController extends Controller
 
             $company->employedByMonths = $employedByMonths ?? Null;
 
-
+            $company_addresses =  json_decode(json_encode($request->company_addresses));
+            Log::info('company_addresses:', [$company_addresses]);
+            Log::info('request_company_addresses:', [$request->company_addresses]);
 
             if ($company->save()) {
 
-                if ($request->company_addresses) {
-                    foreach ($request->company_addresses as $address) {
+                if ($company_addresses) {
+                    foreach ($company_addresses as $address) {
                         $companyAddress = new CompanyAdress();
                         $companyAddress->company_id = $company->id;
                         $companyAddress->address = $address['address'];
