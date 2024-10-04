@@ -279,6 +279,10 @@ class CompanyController extends Controller
 
             if ($company->save()) {
                 if ($company_addresses) {
+                    $companyAddresses = CompanyAdress::where('company_id', '=', $company->id)->get();
+                    foreach ($companyAddresses as $companyAddress) {
+                        $companyAddress->delete();
+                    }
                     foreach ($company_addresses as $address) {
                         $companyAddress = new CompanyAdress();
                         $companyAddress->company_id = $company->id;
