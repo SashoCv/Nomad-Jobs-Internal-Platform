@@ -41,8 +41,10 @@ class InvoiceCompanyController extends Controller
                     $query->where('company_id', $request->company_id);
                 }
 
-                if ($request->is_paid) {
-                    $query->where('is_paid', $request->is_paid);
+                if ($request->is_paid == true) {
+                    $query->where('is_paid', '=', '1');
+                } else if ($request->is_paid == false) {
+                    $query->where('is_paid', '=', '0');
                 }
 
                 if ($request->status) {
@@ -64,6 +66,12 @@ class InvoiceCompanyController extends Controller
                 $perPage = $request->get('per_page', 15);
                 $invoicesForCompany = $query->orderBy('invoice_date', 'desc')->paginate($perPage);
 
+                if($invoicesForCompany->is_paid == 1){
+                    $invoicesForCompany->is_paid = true;
+                } else {
+                    $invoicesForCompany->is_paid = false;
+                }
+
                 return response()->json($invoicesForCompany);
             } else {
                 return response()->json('You are not authorized to perform this action');
@@ -83,7 +91,6 @@ class InvoiceCompanyController extends Controller
                 $invoiceCompany->company_id = $request->company_id;
                 $invoiceCompany->invoice_number = $request->invoice_number;
                 $invoiceCompany->invoice_date = $request->invoice_date;
-                $invoiceCompany->status = $request->status;
                 $invoiceCompany->invoice_amount = $request->invoice_amount;
                 $invoiceCompany->due_date = $request->due_date;
                 $invoiceCompany->payment_date = $request->payment_date;
@@ -91,11 +98,18 @@ class InvoiceCompanyController extends Controller
                 $invoiceCompany->is_paid = $request->is_paid;
                 $items = $request->items;
 
+                if($request->is_paid == 1){
+                    $isPaid = true;
+                } else {
+                    $isPaid = false;
+                }
+
+
                 if (!$items) {
                     return response()->json('Items are required');
                 }
 
-                if($request->is_paid === true){
+                if($isPaid){
                     $invoiceCompany->status = 'Paid';
                 } else {
                     $invoiceCompany->status = 'Unpaid';
@@ -116,6 +130,12 @@ class InvoiceCompanyController extends Controller
                     }
 
                     $invoiceCompany->itemInvoice = $itemInvoice;
+
+                    if($invoiceCompany->is_paid == 1){
+                        $invoiceCompany->is_paid = true;
+                    } else {
+                        $invoiceCompany->is_paid = false;
+                    }
 
                     return response()->json([
                         'message' => 'Invoice saved successfully',
@@ -207,6 +227,12 @@ class InvoiceCompanyController extends Controller
                     $query->select('id', 'invoice_companies_id', 'item_name', 'quantity', 'price', 'total', 'unit');
                 }
             ])->find($id);
+
+            if($invoiceCompany->is_paid == 1){
+                $invoiceCompany->is_paid = true;
+            } else {
+                $invoiceCompany->is_paid = false;
+            }
 
             return response()->json($invoiceCompany);
         } catch (\Exception $e) {
