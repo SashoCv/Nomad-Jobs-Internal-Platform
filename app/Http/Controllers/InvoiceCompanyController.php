@@ -94,10 +94,10 @@ class InvoiceCompanyController extends Controller
 
                 $invoiceCompany->company_id = $request->company_id;
                 $invoiceCompany->invoice_number = $request->invoice_number;
-                $invoiceCompany->invoice_date = $request->invoice_date;
+                $invoiceCompany->invoice_date = Carbon::parse($request->invoice_date)->format('Y-m-d');
                 $invoiceCompany->invoice_amount = $request->invoice_amount;
-                $invoiceCompany->due_date = $request->due_date;
-                $invoiceCompany->payment_date = $request->payment_date;
+                $invoiceCompany->due_date = Carbon::parse($request->due_date)->format('Y-m-d');
+                $invoiceCompany->payment_date = Carbon::parse($request->payment_date)->format('Y-m-d');
                 $invoiceCompany->payment_amount = $request->payment_amount;
                 $invoiceCompany->is_paid = $request->is_paid;
                 $items = $request->items;
@@ -163,11 +163,11 @@ class InvoiceCompanyController extends Controller
 
             $invoiceCompany->company_id = $request->company_id;
             $invoiceCompany->invoice_number = $request->invoice_number;
-            $invoiceCompany->invoice_date = $request->invoice_date;
+            $invoiceCompany->invoice_date = Carbon::parse($request->invoice_date)->format('Y-m-d');
             $invoiceCompany->status = $request->status;
             $invoiceCompany->invoice_amount = $request->invoice_amount;
-            $invoiceCompany->due_date = $request->due_date;
-            $invoiceCompany->payment_date = $request->payment_date;
+            $invoiceCompany->due_date = Carbon::parse($request->due_date)->format('Y-m-d');
+            $invoiceCompany->payment_date = Carbon::parse($request->payment_date)->format('Y-m-d');
             $invoiceCompany->payment_amount = $request->payment_amount;
             $invoiceCompany->is_paid = $request->is_paid;
             $items = $request->items;
@@ -237,6 +237,14 @@ class InvoiceCompanyController extends Controller
             } else {
                 $invoiceCompany->is_paid = false;
             }
+
+            $invoiceCompany->getCollection()->transform(function ($invoice) {
+                $invoice->due_date = Carbon::parse($invoice->due_date)->format('m-d-Y');
+                $invoice->invoice_date = Carbon::parse($invoice->invoice_date)->format('m-d-Y');
+                $invoice->payment_date = Carbon::parse($invoice->payment_date)->format('m-d-Y');
+                $invoice->is_paid = $invoice->is_paid == 1 ? true : false;
+                return $invoice;
+            });
 
             return response()->json($invoiceCompany);
         } catch (\Exception $e) {
