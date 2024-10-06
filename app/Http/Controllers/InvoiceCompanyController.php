@@ -54,15 +54,19 @@ class InvoiceCompanyController extends Controller
                 }
 
                 if ($request->payment_date) {
-                    $query->where('payment_date', $request->payment_date);
+                    $paymentDate = Carbon::parse($request->payment_date)->format('Y-m-d');
+                    $query->where('payment_date', $paymentDate);
                 }
 
                 if ($request->due_date) {
-                    $query->where('due_date', $request->due_date);
+                    $dueDate = Carbon::parse($request->due_date)->format('Y-m-d');
+                    $query->where('due_date', $dueDate);
                 }
 
                 if ($request->monthFrom && $request->monthTo) {
-                    $query->whereBetween('invoice_date', [$request->monthFrom, $request->monthTo]);
+                    $monthFrom = Carbon::parse($request->monthFrom)->format('Y-m-d');
+                    $monthTo = Carbon::parse($request->monthTo)->format('Y-m-d');
+                    $query->whereBetween('invoice_date', [$monthFrom, $monthTo]);
                 }
 
                 $perPage = $request->get('per_page', 15);
