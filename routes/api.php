@@ -225,6 +225,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
     Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
     Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
+    Route::get('getCompanyInvoices/{id}', [InvoiceCompanyController::class, 'show']);
+    Route::post('updateInvoice/{id}', [InvoiceCompanyController::class, 'update']);
 
 
     // Arrivals
