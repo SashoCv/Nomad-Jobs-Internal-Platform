@@ -70,7 +70,7 @@ class InvoiceCompanyController extends Controller
                 }
 
                 $perPage = $request->get('per_page', 15);
-                $invoicesForCompany = $query->orderBy('invoice_date', 'desc')->paginate($perPage);
+                $invoicesForCompany = $query->orderBy('id', 'desc')->paginate($perPage);
 
                 $invoicesForCompany->getCollection()->transform(function ($invoice) {
                     $invoice->due_date = Carbon::parse($invoice->due_date)->format('m-d-Y');
