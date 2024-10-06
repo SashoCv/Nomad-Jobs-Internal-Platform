@@ -42,6 +42,7 @@ class InvoiceCompanyController extends Controller
                 }
 
                 if ($request->has('is_paid')) {
+                    Log::info('is_paid value: ', [$request->is_paid]);
                     $query->where('is_paid', $request->is_paid ? 1 : 0);
                 }
 
