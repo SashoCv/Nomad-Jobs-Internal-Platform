@@ -41,12 +41,8 @@ class InvoiceCompanyController extends Controller
                     $query->where('company_id', $request->company_id);
                 }
 
-                if ($request->is_paid == true) {
-                    $query->where('is_paid', '=', 1);
-                }
-
-                if ($request->is_paid == false) {
-                    $query->where('is_paid', '=', 0);
+                if ($request->has('is_paid')) {
+                    $query->where('is_paid', $request->is_paid ? 1 : 0);
                 }
 
                 if ($request->status) {
