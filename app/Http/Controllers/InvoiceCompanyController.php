@@ -68,11 +68,10 @@ class InvoiceCompanyController extends Controller
                 $perPage = $request->get('per_page', 15);
                 $invoicesForCompany = $query->orderBy('invoice_date', 'desc')->paginate($perPage);
 
-                if($invoicesForCompany->is_paid == 1){
-                    $invoicesForCompany->is_paid = true;
-                } else {
-                    $invoicesForCompany->is_paid = false;
-                }
+                $invoicesForCompany->getCollection()->transform(function ($invoice) {
+                    $invoice->is_paid = $invoice->is_paid == 1 ? true : false;
+                    return $invoice;
+                });
 
                 return response()->json($invoicesForCompany);
             } else {
