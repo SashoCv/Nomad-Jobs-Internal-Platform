@@ -164,7 +164,6 @@ class InvoiceCompanyController extends Controller
             $invoiceCompany->company_id = $request->company_id;
             $invoiceCompany->invoice_number = $request->invoice_number;
             $invoiceCompany->invoice_date = Carbon::parse($request->invoice_date)->format('Y-m-d');
-            $invoiceCompany->status = $request->status;
             $invoiceCompany->invoice_amount = $request->invoice_amount;
             $invoiceCompany->due_date = Carbon::parse($request->due_date)->format('Y-m-d');
             $invoiceCompany->payment_date = Carbon::parse($request->payment_date)->format('Y-m-d');
@@ -176,7 +175,13 @@ class InvoiceCompanyController extends Controller
                 return response()->json('Items are required');
             }
 
-            if($request->is_paid){
+            if($request->is_paid == 1){
+                $isPaid = true;
+            } else {
+                $isPaid = false;
+            }
+
+            if($isPaid){
                 $invoiceCompany->status = 'Paid';
             } else {
                 $invoiceCompany->status = 'Unpaid';
