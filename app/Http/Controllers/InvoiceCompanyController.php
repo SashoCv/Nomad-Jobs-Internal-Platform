@@ -41,11 +41,11 @@ class InvoiceCompanyController extends Controller
                     $query->where('company_id', $request->company_id);
                 }
 
-                if ($request->is_paid == "true") {
+                if ($request->is_paid === "true") {
                     $query->where('is_paid', 1);
                 }
 
-                if($request->is_paid == "false"){
+                if($request->is_paid === "false"){
                     $query->where('is_paid', 0);
                 }
 
@@ -68,6 +68,11 @@ class InvoiceCompanyController extends Controller
                 $perPage = $request->get('per_page', 15);
                 $invoicesForCompany = $query->orderBy('invoice_date', 'desc')->paginate($perPage);
 
+                if($invoicesForCompany->is_paid == 1){
+                    $invoicesForCompany->is_paid = true;
+                } else {
+                    $invoicesForCompany->is_paid = false;
+                }
 
                 return response()->json($invoicesForCompany);
             } else {
