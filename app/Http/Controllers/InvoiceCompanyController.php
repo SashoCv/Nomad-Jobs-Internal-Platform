@@ -69,6 +69,9 @@ class InvoiceCompanyController extends Controller
                 $invoicesForCompany = $query->orderBy('invoice_date', 'desc')->paginate($perPage);
 
                 $invoicesForCompany->getCollection()->transform(function ($invoice) {
+                    $invoice->due_date = Carbon::parse($invoice->due_date)->format('m-d-Y');
+                    $invoice->invoice_date = Carbon::parse($invoice->invoice_date)->format('m-d-Y');
+                    $invoice->payment_date = Carbon::parse($invoice->payment_date)->format('m-d-Y');
                     $invoice->is_paid = $invoice->is_paid == 1 ? true : false;
                     return $invoice;
                 });
