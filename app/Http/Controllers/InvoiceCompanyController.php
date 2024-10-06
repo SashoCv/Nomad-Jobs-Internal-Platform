@@ -42,11 +42,11 @@ class InvoiceCompanyController extends Controller
                 }
 
                 if ($request->is_paid == true) {
-                    $query->where('is_paid', '=', '1');
+                    $query->where('is_paid', '=', 1);
                 }
 
                 if ($request->is_paid == false) {
-                    $query->where('is_paid', '=', '0');
+                    $query->where('is_paid', '=', 0);
                 }
 
                 if ($request->status) {
