@@ -95,8 +95,10 @@ class InvoiceCompanyController extends Controller
                     return response()->json('Items are required');
                 }
 
-                if($request->is_paid){
+                if($request->is_paid === true){
                     $invoiceCompany->status = 'Paid';
+                } else {
+                    $invoiceCompany->status = 'Unpaid';
                 }
 
                 if ($invoiceCompany->save()) {
@@ -152,6 +154,8 @@ class InvoiceCompanyController extends Controller
 
             if($request->is_paid){
                 $invoiceCompany->status = 'Paid';
+            } else {
+                $invoiceCompany->status = 'Unpaid';
             }
 
             if ($invoiceCompany->save()) {
