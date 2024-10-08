@@ -71,11 +71,23 @@ class ItemInvoiceController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\ItemInvoice  $itemInvoice
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, ItemInvoice $itemInvoice)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $itemInvoice = ItemInvoice::find($id);
+            $itemInvoice->price = $request->price;
+            $itemInvoice->total = $request->total;
+            $itemInvoice->percentage = $request->percentage;
+            $itemInvoice->amount = $request->amount;
+            $itemInvoice->items_for_invoices_id = $request->items_for_invoices_id;
+
+            $itemInvoice->save();
+            return response()->json(['message' => 'Item invoice updated successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to update item invoice'], 500);
+        }
     }
 
     /**

@@ -67,3 +67,6 @@ Route::get('/', function () {
 
 // Route::get('scriptForSeasonal', [CandidateController::class, 'scriptForSeasonal']);
 // Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
+
+
+Route::get('InvoiceCompanyCandidates', [\App\Http\Controllers\InvoiceCompanyCandidateController::class, 'index']);

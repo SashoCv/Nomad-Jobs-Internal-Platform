@@ -15,15 +15,20 @@ class ItemInvoice extends Model
 
     protected $fillable = [
         'invoice_companies_id',
-        'item_name',
-        'quantity',
+        'items_for_invoices_id',
+        'percentage',
         'price',
         'total',
-        'unit',
+        'amount',
     ];
 
     public function invoiceCompany(): BelongsTo
     {
         return $this->belongsTo(InvoiceCompany::class, 'invoice_companies_id');
+    }
+
+    public function itemForInvoice(): BelongsTo
+    {
+        return $this->belongsTo(ItemsForInvoices::class, 'items_for_invoices_id');
     }
 }

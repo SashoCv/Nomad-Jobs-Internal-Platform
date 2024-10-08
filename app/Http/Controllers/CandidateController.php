@@ -26,7 +26,7 @@ class CandidateController extends Controller
     {
         $candidates = Candidate::where('contractType','=','90days')->get();
 
-        
+
         foreach ($candidates as $candidate) {
             $year = date('Y', strtotime($candidate->date));
             $month = date('m', strtotime($candidate->date));
@@ -135,8 +135,8 @@ class CandidateController extends Controller
         if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
             $candidateId = $request->candidateId;
             $candidate = Candidate::where('id', '=', $candidateId)->first();
-    
-    
+
+
             return PDF::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
         } else {
             return response()->json([
@@ -145,7 +145,37 @@ class CandidateController extends Controller
                 'message' => 'You are not authorized to generate pdf',
             ]);
         }
-       
+
+    }
+
+    public function getCandidatesForCompany($id)
+    {
+
+        try {
+            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                $candidates = Candidate::where('company_id', '=', $id)->select('id', 'fullName')->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $candidates,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 401,
+                    'message' => 'You are not authorized to perform this action',
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Failed to get candidates',
+            ]);
+        }
+
     }
 
     /**

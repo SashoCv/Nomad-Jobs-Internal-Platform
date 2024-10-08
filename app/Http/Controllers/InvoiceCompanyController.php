@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\InvoicesExport;
 use App\Models\Company;
 use App\Models\InvoiceCompany;
+use App\Models\InvoiceCompanyCandidate;
 use App\Models\ItemInvoice;
 use App\Models\UserOwner;
 use Carbon\Carbon;
@@ -105,6 +106,7 @@ class InvoiceCompanyController extends Controller
                 $invoiceCompany->payment_amount = $request->payment_amount;
                 $invoiceCompany->is_paid = $request->is_paid;
                 $items = $request->items;
+                $candidate_id = $request->candidate_id;
 
                 if($request->is_paid == 1){
                     $isPaid = true;
@@ -128,16 +130,24 @@ class InvoiceCompanyController extends Controller
                     foreach ($items as $item) {
                         $itemInvoice = new ItemInvoice();
                         $itemInvoice->invoice_companies_id = $invoiceCompany->id;
-                        $itemInvoice->item_name = $item['item_name'];
-                        $itemInvoice->quantity = $item['quantity'];
                         $itemInvoice->price = $item['price'];
                         $itemInvoice->total = $item['total'];
-                        $itemInvoice->unit = $item['unit'];
+                        $itemInvoice->percentage = $item['percentage'];
+                        $itemInvoice->amount = $item['amount'];
+                        $itemInvoice->items_for_invoices_id = $item['items_for_invoices_id'];
+
 
                         $itemInvoice->save();
                     }
 
+                    $invoiceCompanyCandidates = new InvoiceCompanyCandidate();
+                    $invoiceCompanyCandidates->invoice_company_id = $invoiceCompany->id;
+                    $invoiceCompanyCandidates->candidate_id = $candidate_id;
+                    $invoiceCompanyCandidates->save();
+
+
                     $invoiceCompany->itemInvoice = $itemInvoice;
+                    $invoiceCompany->candidate_id = $candidate_id;
 
                     if($invoiceCompany->is_paid == 1){
                         $invoiceCompany->is_paid = true;
@@ -175,6 +185,10 @@ class InvoiceCompanyController extends Controller
             $invoiceCompany->is_paid = $request->is_paid;
             $items = $request->items;
 
+            $invoiceCompanyCandidate = InvoiceCompanyCandidate::where('invoice_companies_id', $id)->first();
+            $invoiceCompanyCandidate->candidate_id = $request->candidate_id;
+            $invoiceCompanyCandidate->save();
+
             if (!$items) {
                 return response()->json('Items are required');
             }
@@ -204,16 +218,17 @@ class InvoiceCompanyController extends Controller
                 foreach ($items as $item) {
                     $itemInvoice = new ItemInvoice();
                     $itemInvoice->invoice_companies_id = $invoiceCompany->id;
-                    $itemInvoice->item_name = $item['item_name'];
-                    $itemInvoice->quantity = $item['quantity'];
                     $itemInvoice->price = $item['price'];
                     $itemInvoice->total = $item['total'];
-                    $itemInvoice->unit = $item['unit'];
+                    $itemInvoice->percentage = $item['percentage'];
+                    $itemInvoice->amount = $item['amount'];
+                    $itemInvoice->items_for_invoices_id = $item['items_for_invoices_id'];
 
                     $itemInvoice->save();
                 }
 
                 $invoiceCompany->itemInvoice = $itemInvoice;
+                $invoiceCompany->candidate_id = $request->candidate_id;
 
                 return response()->json([
                     'message' => 'Invoice updated successfully',
@@ -237,7 +252,7 @@ class InvoiceCompanyController extends Controller
                     $query->select('id', 'nameOfCompany');
                 },
                 'itemInvoice' => function ($query) {
-                    $query->select('id', 'invoice_companies_id', 'item_name', 'quantity', 'price', 'total', 'unit');
+                    $query->select('id', 'invoice_companies_id','items_for_invoices_id', 'price', 'percentage', 'amount',  'total');
                 }
             ])->find($id);
 

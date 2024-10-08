@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\StatusArrival;
+use App\Models\ItemsForInvoices;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
-class StatusArrivalController extends Controller
+class ItemsForInvoicesController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,20 +15,10 @@ class StatusArrivalController extends Controller
     public function index()
     {
         try {
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $statusArrivals = StatusArrival::select('id', 'statusName')->get();
-            } else {
-                return response()->json([
-                    'message' => 'You are not authorized to view this page'
-                ]);
-            }
-
-            return response()->json([
-                'message' => 'Status Arrivals retrieved successfully',
-                'statusArrivals' => $statusArrivals
-            ]);
+            $itemsForInvoices = ItemsForInvoices::select('id', 'name')->get();
+            return response()->json($itemsForInvoices);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+            return response()->json(['error' => 'Error fetching items for invoices']);
         }
     }
 
@@ -57,10 +46,10 @@ class StatusArrivalController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\StatusArrival  $statusArrival
+     * @param  \App\Models\ItemsForInvoices  $itemsForInvoices
      * @return \Illuminate\Http\Response
      */
-    public function show(StatusArrival $statusArrival)
+    public function show(ItemsForInvoices $itemsForInvoices)
     {
         //
     }
@@ -68,10 +57,10 @@ class StatusArrivalController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\StatusArrival  $statusArrival
+     * @param  \App\Models\ItemsForInvoices  $itemsForInvoices
      * @return \Illuminate\Http\Response
      */
-    public function edit(StatusArrival $statusArrival)
+    public function edit(ItemsForInvoices $itemsForInvoices)
     {
         //
     }
@@ -80,10 +69,10 @@ class StatusArrivalController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\StatusArrival  $statusArrival
+     * @param  \App\Models\ItemsForInvoices  $itemsForInvoices
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, StatusArrival $statusArrival)
+    public function update(Request $request, ItemsForInvoices $itemsForInvoices)
     {
         //
     }
@@ -91,10 +80,10 @@ class StatusArrivalController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\StatusArrival  $statusArrival
+     * @param  \App\Models\ItemsForInvoices  $itemsForInvoices
      * @return \Illuminate\Http\Response
      */
-    public function destroy(StatusArrival $statusArrival)
+    public function destroy(ItemsForInvoices $itemsForInvoices)
     {
         //
     }
