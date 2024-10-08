@@ -113,12 +113,58 @@ class InvoiceCompanyCandidateController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\InvoiceCompanyCandidate  $invoiceCompanyCandidate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(InvoiceCompanyCandidate $invoiceCompanyCandidate)
+    public function show($id)
     {
-        //
+        try {
+            // Fetch the invoice company candidate with related models
+            $invoiceCompanyCandidate = InvoiceCompanyCandidate::with([
+                'invoiceCompany' => function ($query) {
+                    $query->select('id', 'company_id', 'invoice_number', 'invoice_date', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid')
+                        ->with([
+                            'company' => function ($query) {
+                                $query->select('id', 'nameOfCompany'); // Select only required columns
+                            },
+                            'itemInvoice' => function ($query) {
+                                $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total')
+                                    ->with([
+                                        'itemForInvoice' => function ($query) {
+                                            $query->select('id', 'name'); // Select only required columns
+                                        }
+                                    ]);
+                            }
+                        ]);
+                },
+                'candidate' => function ($query) {
+                    $query->select('id', 'fullName'); // Select only required columns
+                }
+            ])
+                ->select('id', 'candidate_id', 'invoice_company_id') // Select only required columns from the main model
+                ->where('id', $id)
+                ->first();
+
+            // Check if record was found
+            if (!$invoiceCompanyCandidate) {
+                return response()->json(['error' => 'Invoice company candidate not found'], 404); // Return 404 if not found
+            }
+
+            // Format dates inside the invoiceCompany object
+            if ($invoiceCompanyCandidate->invoiceCompany) {
+                $invoiceCompanyCandidate->invoiceCompany->invoice_date = Carbon::parse($invoiceCompanyCandidate->invoiceCompany->invoice_date)->format('m-d-Y');
+                $invoiceCompanyCandidate->invoiceCompany->payment_date = Carbon::parse($invoiceCompanyCandidate->invoiceCompany->payment_date)->format('m-d-Y');
+                $invoiceCompanyCandidate->invoiceCompany->is_paid = (bool) $invoiceCompanyCandidate->invoiceCompany->is_paid; // Convert to boolean
+            }
+
+            // Return the transformed data as JSON
+            return response()->json($invoiceCompanyCandidate);
+
+        } catch (\Exception $e) {
+            Log::error($e->getMessage()); // Log the error message
+            return response()->json(['error' => 'Error fetching invoice company candidate'], 500); // Return 500 status code
+        }
     }
+
 
     /**
      * Show the form for editing the specified resource.
