@@ -26,16 +26,8 @@ class InvoiceCompanyCandidateController extends Controller
                 'invoiceCompany' => function ($query) {
                     $query->select('id', 'company_id', 'invoice_number', 'invoice_date', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid')
                         ->with([
-                            'company' => function ($query) {
-                                $query->select('id', 'nameOfCompany'); // Select only required columns
-                            },
                             'itemInvoice' => function ($query) {
-                                $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total')
-                                    ->with([
-                                        'itemForInvoice' => function ($query) {
-                                            $query->select('id', 'name'); // Select only required columns
-                                        }
-                                    ]);
+                                $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total'); // Select required columns only
                             }
                         ]);
                 },
@@ -82,10 +74,11 @@ class InvoiceCompanyCandidateController extends Controller
             return response()->json($invoiceCompanyCandidates);
 
         } catch (\Exception $e) {
-            Log::error($e->getMessage()); // Use Log::error for exceptions
+            Log::error($e->getMessage()); // Log the exception message
             return response()->json(['error' => 'Error fetching invoice company candidates'], 500); // Return 500 status code
         }
     }
+
 
 
     /**
