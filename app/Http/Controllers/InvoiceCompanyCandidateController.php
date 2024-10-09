@@ -193,10 +193,19 @@ class InvoiceCompanyCandidateController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\InvoiceCompanyCandidate  $invoiceCompanyCandidate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(InvoiceCompanyCandidate $invoiceCompanyCandidate)
+    public function destroy($id)
     {
-        //
+       try{
+            $invoiceCompanyCandidate = InvoiceCompanyCandidate::find($id);
+            $invoiceCompanyCandidate->delete();
+            return response()->json([
+                'message' => 'Invoice Company Candidate deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['error' => 'Error deleting invoice company candidate'], 500);
+       }
     }
 }

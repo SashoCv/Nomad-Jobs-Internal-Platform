@@ -222,11 +222,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Company Invoice
     Route::post('storeCompanyInvoice', [InvoiceCompanyController::class, 'store']);
-    Route::get('getCompanyInvoices', [InvoiceCompanyController::class, 'index']);
-    Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyController::class, 'destroy']);
+//    Route::get('getCompanyInvoices', [InvoiceCompanyController::class, 'index']);
+    Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyCandidateController::class, 'destroy']);
     Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
     Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
-    Route::get('getCompanyInvoices/{id}', [InvoiceCompanyController::class, 'show']);
+//    Route::get('getCompanyInvoices/{id}', [InvoiceCompanyController::class, 'show']);
     Route::post('updateInvoice/{id}', [InvoiceCompanyController::class, 'update']);
     Route::get('invoiceCompanyCandidates', [InvoiceCompanyCandidateController::class, 'index']);
     Route::get('invoiceCompanyCandidates/{id}', [InvoiceCompanyCandidateController::class, 'show']);
