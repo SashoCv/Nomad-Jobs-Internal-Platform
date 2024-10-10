@@ -15,19 +15,29 @@ class InvoiceCompanyCandidateController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            // Fetch filters from the request
-            $filters = request()->only(['is_paid', 'invoice_number', 'company_id', 'candidate_id', 'dateFrom', 'dateTo']);
+            $filters = $request->all();
 
-            // Query the InvoiceCompanyCandidate model with related models
+            if (!empty($filters['dateFrom']) && !empty($filters['dateTo'])) {
+                // Ensure the date format is correct before parsing
+                try {
+                    $filters['dateFrom'] = Carbon::createFromFormat('m-d-Y', $filters['dateFrom'])->format('Y-m-d');
+                    $filters['dateTo'] = Carbon::createFromFormat('m-d-Y', $filters['dateTo'])->format('Y-m-d');
+                } catch (\Exception $e) {
+                    Log::info('Invalid date format. Use m-d-Y format');
+                    return response()->json(['error' => 'Invalid date format. Use m-d-Y format'], 400);
+                }
+            }
+
+
             $invoiceCompanyCandidates = InvoiceCompanyCandidate::with([
                 'invoiceCompany' => function ($query) {
                     $query->select('id', 'company_id', 'invoice_number', 'invoice_date', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid')
                         ->with([
                             'itemInvoice' => function ($query) {
-                                $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total'); // Select required columns only
+                                $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total');
                             }
                         ]);
                 },
@@ -36,14 +46,14 @@ class InvoiceCompanyCandidateController extends Controller
                 }
             ])
                 ->select('id', 'candidate_id', 'invoice_company_id') // Select only required columns from the main model
-                ->when(isset($filters['is_paid']), function ($query) use ($filters) {
-                    return $query->whereHas('invoiceCompany', function ($subQuery) use ($filters) {
-                        $subQuery->where('is_paid', $filters['is_paid'] === "true" ? 1 : 0);
+                ->when(isset($filters['is_paid']), function ($query) use ($request) {
+                    return $query->whereHas('invoiceCompany', function ($subQuery) use ($request) {
+                        $subQuery->where('is_paid', $request->is_paid === "true" ? 1 : 0);
                     });
                 })
                 ->when(isset($filters['company_id']), function ($query) use ($filters) {
                     return $query->whereHas('invoiceCompany', function ($subQuery) use ($filters) {
-                        $subQuery->where('company_id', $filters['company_id']);
+                        $subQuery->where('company_id', (int) $filters['company_id']);
                     });
                 })
                 ->when(isset($filters['candidate_id']), function ($query) use ($filters) {
@@ -54,27 +64,27 @@ class InvoiceCompanyCandidateController extends Controller
                         $subQuery->whereBetween('invoice_date', [$filters['dateFrom'], $filters['dateTo']]);
                     });
                 })
-                ->whereHas('invoiceCompany') // Ensure that the invoice company is not null
+                ->whereHas('invoiceCompany')
                 ->orderBy('id', 'desc')
                 ->paginate(15);
 
-            // Transform the collection for the response
             $invoiceCompanyCandidates->getCollection()->transform(function ($invoice) {
-                // Format dates inside the invoice_company object
                 if ($invoice->invoiceCompany) {
-                    $invoice->invoiceCompany->invoice_date = Carbon::parse($invoice->invoiceCompany->invoice_date)->format('m-d-Y');
-                    $invoice->invoiceCompany->payment_date = Carbon::parse($invoice->invoiceCompany->payment_date)->format('m-d-Y');
-                    $invoice->invoiceCompany->is_paid = (bool) $invoice->invoiceCompany->is_paid; // Convert to boolean
+                    $invoice->invoiceCompany->invoice_date = $invoice->invoiceCompany->invoice_date ?
+                        Carbon::parse($invoice->invoiceCompany->invoice_date)->format('m-d-Y') : null;
+                    $invoice->invoiceCompany->payment_date = $invoice->invoiceCompany->payment_date ?
+                        Carbon::parse($invoice->invoiceCompany->payment_date)->format('m-d-Y') : null;
+
+                    $invoice->invoiceCompany->is_paid = (bool) $invoice->invoiceCompany->is_paid;
                 }
 
                 return $invoice;
             });
 
-            // Return the transformed data as JSON
             return response()->json($invoiceCompanyCandidates);
 
         } catch (\Exception $e) {
-            Log::error($e->getMessage()); // Log the exception message
+            Log::error($e->getMessage(), ['stack' => $e->getTraceAsString()]);
             return response()->json(['error' => 'Error fetching invoice company candidates'], 500); // Return 500 status code
         }
     }
