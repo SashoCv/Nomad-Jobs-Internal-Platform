@@ -42,7 +42,7 @@ class InvoiceCompanyCandidateController extends Controller
                         ]);
                 },
                 'candidate' => function ($query) {
-                    $query->select('id', 'fullName'); // Select only required columns
+                    $query->select('id', 'fullNameCyrillic', 'periodOfResidence'); // Select only required columns
                 }
             ])
                 ->select('id', 'candidate_id', 'invoice_company_id') // Select only required columns from the main model
@@ -94,11 +94,19 @@ class InvoiceCompanyCandidateController extends Controller
     public function filterAutoCompleteCandidateThatHaveInvoice(Request $request)
     {
         try {
-            $fetchAllCandidates = InvoiceCompanyCandidate::with(['candidate:id,fullNameCyrillic'])
+            $fetchAllCandidates = InvoiceCompanyCandidate::with(['candidate:id,fullName,fullNameCyrillic,company_id'])
                 ->whereHas('candidate', function ($query) use ($request) {
                     $searchName = $request->input('searchName');
-                    $query->where('fullName', 'like', '%' . $searchName . '%')
-                        ->orWhere('fullNameCyrillic', 'like', '%' . $searchName . '%');
+                    $companyId = $request->input('company_id'); // земи го company_id од барањето
+
+                    $query->where(function ($q) use ($searchName) {
+                        $q->where('fullName', 'like', '%' . $searchName . '%')
+                            ->orWhere('fullNameCyrillic', 'like', '%' . $searchName . '%');
+                    });
+
+                    if ($companyId) {
+                        $query->where('company_id', $companyId); // додади филтер за company_id
+                    }
                 })
                 ->get();
 
