@@ -91,14 +91,22 @@ class InvoiceCompanyCandidateController extends Controller
 
 
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function filterAutoCompleteCandidateThatHaveInvoice(Request $request)
     {
-        //
+        try {
+            $fetchAllCandidates = InvoiceCompanyCandidate::with(['candidate:id,fullNameCyrillic'])
+                ->whereHas('candidate', function ($query) use ($request) {
+                    $searchName = $request->input('searchName');
+                    $query->where('fullName', 'like', '%' . $searchName . '%')
+                        ->orWhere('fullNameCyrillic', 'like', '%' . $searchName . '%');
+                })
+                ->get();
+
+            return response()->json($fetchAllCandidates);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['error' => 'Error fetching candidates'], 500);
+        }
     }
 
     /**

@@ -230,6 +230,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('updateInvoice/{id}', [InvoiceCompanyController::class, 'update']);
     Route::get('invoiceCompanyCandidates', [InvoiceCompanyCandidateController::class, 'index']);
     Route::get('invoiceCompanyCandidates/{id}', [InvoiceCompanyCandidateController::class, 'show']);
+    Route::get('filterAutoCompleteCandidateThatHaveInvoice', [InvoiceCompanyCandidateController::class, 'filterAutoCompleteCandidateThatHaveInvoice']);
 
 
     //Items For Invoice
