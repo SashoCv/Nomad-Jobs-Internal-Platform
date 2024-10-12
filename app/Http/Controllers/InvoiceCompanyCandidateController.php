@@ -6,6 +6,7 @@ use App\Http\Transformers\TransformInvoiceCompanyCandidates;
 use App\Models\InvoiceCompanyCandidate;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class InvoiceCompanyCandidateController extends Controller
@@ -93,29 +94,37 @@ class InvoiceCompanyCandidateController extends Controller
 
     public function filterAutoCompleteCandidateThatHaveInvoice(Request $request)
     {
-        try {
-            $fetchAllCandidates = InvoiceCompanyCandidate::with(['candidate:id,fullName,fullNameCyrillic,company_id'])
-                ->whereHas('candidate', function ($query) use ($request) {
-                    $searchName = $request->input('searchName');
-                    $companyId = $request->input('company_id'); // земи го company_id од барањето
+    try {
+        $searchName = $request->input('searchName');
+        $companyId = $request->input('company_id');
 
-                    $query->where(function ($q) use ($searchName) {
-                        $q->where('fullName', 'like', '%' . $searchName . '%')
-                            ->orWhere('fullNameCyrillic', 'like', '%' . $searchName . '%');
-                    });
+        // Прв упит за добивање на уникатните candidate_id
+        $uniqueCandidateIds = InvoiceCompanyCandidate::select(DB::raw('MIN(id) as id'))
+            ->whereHas('candidate', function ($query) use ($searchName, $companyId) {
+                $query->where(function ($q) use ($searchName) {
+                    $q->where('fullName', 'like', '%' . $searchName . '%')
+                        ->orWhere('fullNameCyrillic', 'like', '%' . $searchName . '%');
+                });
+                if ($companyId) {
+                    $query->where('company_id', $companyId);
+                }
+            })
+            ->groupBy('candidate_id')
+            ->pluck('id');
 
-                    if ($companyId) {
-                        $query->where('company_id', $companyId); // додади филтер за company_id
-                    }
-                })
-                ->get();
+        // Втор упит за добивање на деталите за кандидатите со користење на добиените уникатни candidate_id
+        $fetchAllCandidates = InvoiceCompanyCandidate::whereIn('id', $uniqueCandidateIds)
+            ->with(['candidate:id,fullName,fullNameCyrillic,company_id'])
+            ->get();
 
-            return response()->json($fetchAllCandidates);
-        } catch (\Exception $e) {
-            Log::error($e->getMessage());
-            return response()->json(['error' => 'Error fetching candidates'], 500);
-        }
+        return response()->json($fetchAllCandidates);
+
+    } catch (\Exception $e) {
+        Log::error($e->getMessage());
+        return response()->json(['error' => 'Error fetching candidates'], 500);
     }
+}
+
 
     /**
      * Store a newly created resource in storage.
