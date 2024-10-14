@@ -145,8 +145,9 @@ class InvoiceCompanyController extends Controller
                     $invoiceCompanyCandidates->candidate_id = $candidate_id;
                     $invoiceCompanyCandidates->save();
 
+                    $itemInvoice = ItemInvoice::where('invoice_companies_id', $invoiceCompany->id)->get();
 
-                    $invoiceCompany->itemInvoice = $itemInvoice;
+                    $invoiceCompany->items = $itemInvoice;
                     $invoiceCompany->candidate_id = $candidate_id;
 
                     if($invoiceCompany->is_paid == 1){
@@ -184,10 +185,6 @@ class InvoiceCompanyController extends Controller
             $invoiceCompany->payment_amount = $request->payment_amount;
             $invoiceCompany->is_paid = $request->is_paid;
             $items = $request->items;
-
-            $invoiceCompanyCandidate = InvoiceCompanyCandidate::where('invoice_company_id', $id)->first();
-            $invoiceCompanyCandidate->candidate_id = $request->candidate_id;
-            $invoiceCompanyCandidate->save();
 
             if (!$items) {
                 return response()->json('Items are required');
@@ -227,7 +224,13 @@ class InvoiceCompanyController extends Controller
                     $itemInvoice->save();
                 }
 
-                $invoiceCompany->itemInvoice = $itemInvoice;
+
+                $invoiceCompanyCandidate = InvoiceCompanyCandidate::where('invoice_company_id', $id)->first();
+                $invoiceCompanyCandidate->candidate_id = $request->candidate_id;
+                $invoiceCompanyCandidate->save();
+
+                $itemInvoice = ItemInvoice::where('invoice_companies_id', $id)->get();
+                $invoiceCompany->items = $itemInvoice;
                 $invoiceCompany->candidate_id = $request->candidate_id;
 
                 return response()->json([
