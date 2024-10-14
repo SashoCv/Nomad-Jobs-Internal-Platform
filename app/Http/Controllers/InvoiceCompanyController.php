@@ -183,8 +183,7 @@ class InvoiceCompanyController extends Controller
             $invoiceCompany->payment_date = Carbon::parse($request->payment_date)->format('Y-m-d');
             $invoiceCompany->payment_amount = $request->payment_amount;
             $invoiceCompany->is_paid = $request->is_paid;
-
-            $items = $request->item_invoice;
+            $items = $request->items;
 
             $invoiceCompanyCandidate = InvoiceCompanyCandidate::where('invoice_company_id', $id)->first();
             $invoiceCompanyCandidate->candidate_id = $request->candidate_id;
