@@ -56,7 +56,16 @@ class ArrivalController extends Controller
             $arrival->arrival_flight = $request->arrival_flight;
             $arrival->where_to_stay = $request->where_to_stay;
 
-            $arrival->save();
+            if($arrival->save()){
+                $arrivalCandidate = new ArrivalCandidate();
+
+                $arrivalCandidate->arrival_id = $arrival->id;
+                $arrivalCandidate->status_arrival_id = 1;
+                $arrivalCandidate->status_description = 'Arrival created';
+                $arrivalCandidate->status_date = $request->arrival_date;
+
+                $arrivalCandidate->save();
+            }
 
             return response()->json([
                 'message' => 'Arrival created successfully',
