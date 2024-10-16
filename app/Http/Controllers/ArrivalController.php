@@ -41,38 +41,36 @@ class ArrivalController extends Controller
      */
     public function store(Request $request)
     {
-        if(Auth::user()->role_id != 1 || Auth::user()->role_id != 2) {
-            return response()->json('You are not authorized to perform this action');
-        }
+        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            try {
+                $arrival = new Arrival();
 
-        try {
-            $arrival = new Arrival();
+                $arrival->company_id = $request->company_id;
+                $arrival->candidate_id = $request->candidate_id;
+                $arrival->arrival_date = $request->arrival_date;
+                $arrival->arrival_time = $request->arrival_time;
+                $arrival->arrival_location = $request->arrival_location;
+                $arrival->arrival_flight = $request->arrival_flight;
+                $arrival->where_to_stay = $request->where_to_stay;
 
-            $arrival->company_id = $request->company_id;
-            $arrival->candidate_id = $request->candidate_id;
-            $arrival->arrival_date = $request->arrival_date;
-            $arrival->arrival_time = $request->arrival_time;
-            $arrival->arrival_location = $request->arrival_location;
-            $arrival->arrival_flight = $request->arrival_flight;
-            $arrival->where_to_stay = $request->where_to_stay;
+                if ($arrival->save()) {
+                    $arrivalCandidate = new ArrivalCandidate();
 
-            if($arrival->save()){
-                $arrivalCandidate = new ArrivalCandidate();
+                    $arrivalCandidate->arrival_id = $arrival->id;
+                    $arrivalCandidate->status_arrival_id = 1;
+                    $arrivalCandidate->status_description = 'Arrival created';
+                    $arrivalCandidate->status_date = $request->arrival_date;
 
-                $arrivalCandidate->arrival_id = $arrival->id;
-                $arrivalCandidate->status_arrival_id = 1;
-                $arrivalCandidate->status_description = 'Arrival created';
-                $arrivalCandidate->status_date = $request->arrival_date;
+                    $arrivalCandidate->save();
+                }
 
-                $arrivalCandidate->save();
+                return response()->json([
+                    'message' => 'Arrival created successfully',
+                    'arrival' => $arrival
+                ]);
+            } catch (\Exception $e) {
+                return response()->json($e->getMessage());
             }
-
-            return response()->json([
-                'message' => 'Arrival created successfully',
-                'arrival' => $arrival
-            ]);
-        } catch (\Exception $e) {
-            return response()->json($e->getMessage());
         }
     }
 
