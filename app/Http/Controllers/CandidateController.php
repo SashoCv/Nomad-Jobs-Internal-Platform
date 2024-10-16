@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
+use App\Models\Arrival;
+use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Education;
@@ -380,7 +382,7 @@ class CandidateController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\Candidate  $candidate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
@@ -409,6 +411,13 @@ class CandidateController extends Controller
             }
 
             $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('id', $candidatesInsertByAgentArray)->first();
+        }
+
+        $arrivalThisCandidate = Arrival::whehere('candidate_id', '=', $id)->first();
+        $person->arrival = false;
+
+        if($arrivalThisCandidate){
+            $person->arrival = true;
         }
 
         if (isset($person)) {
