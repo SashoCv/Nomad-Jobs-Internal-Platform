@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +48,7 @@ class ArrivalController extends Controller
 
                 $arrival->company_id = $request->company_id;
                 $arrival->candidate_id = $request->candidate_id;
-                $arrival->arrival_date = $request->arrival_date;
+                $arrival->arrival_date =  Carbon::createFromFormat('m-d-Y',$request->arrival_date)->format('Y-m-d');
                 $arrival->arrival_time = $request->arrival_time;
                 $arrival->arrival_location = $request->arrival_location;
                 $arrival->arrival_flight = $request->arrival_flight;
