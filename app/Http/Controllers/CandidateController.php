@@ -413,11 +413,12 @@ class CandidateController extends Controller
             $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('id', $candidatesInsertByAgentArray)->first();
         }
 
-        $arrivalThisCandidate = Arrival::whehere('candidate_id', '=', $id)->first();
-        $person->arrival = false;
+        $arrivalThisCandidate = Arrival::where('candidate_id', '=', $id)->first();
 
         if($arrivalThisCandidate){
             $person->arrival = true;
+        } else {
+            $person->arrival = false;
         }
 
         if (isset($person)) {
