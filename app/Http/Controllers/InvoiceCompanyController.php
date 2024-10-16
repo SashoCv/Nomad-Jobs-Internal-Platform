@@ -101,8 +101,7 @@ class InvoiceCompanyController extends Controller
                 $invoiceCompany->invoice_number = $request->invoice_number;
                 $invoiceCompany->invoice_date = Carbon::createFromFormat('m-d-Y', $request->invoice_date)->format('Y-m-d');
                 $invoiceCompany->invoice_amount = $request->invoice_amount;
-                $invoiceCompany->due_date = Carbon::parse($request->due_date)->format('Y-m-d');
-                $invoiceCompany->payment_date = Carbon::parse($request->payment_date)->format('Y-m-d');
+                $invoiceCompany->payment_date = Carbon::createFromFormat('m-d-Y',$request->payment_date)->format('Y-m-d');
                 $invoiceCompany->payment_amount = $request->payment_amount;
                 $invoiceCompany->is_paid = $request->is_paid;
                 $items = $request->items;
@@ -178,10 +177,9 @@ class InvoiceCompanyController extends Controller
 
             $invoiceCompany->company_id = $request->company_id;
             $invoiceCompany->invoice_number = $request->invoice_number;
-            $invoiceCompany->invoice_date = Carbon::parse($request->invoice_date)->format('Y-m-d');
+            $invoiceCompany->invoice_date = Carbon::createFromFormat('m-d-Y',$request->invoice_date)->format('Y-m-d');
             $invoiceCompany->invoice_amount = $request->invoice_amount;
-            $invoiceCompany->due_date = Carbon::parse($request->due_date)->format('Y-m-d');
-            $invoiceCompany->payment_date = Carbon::parse($request->payment_date)->format('Y-m-d');
+            $invoiceCompany->payment_date = Carbon::createFromFormat('m-d-Y',$request->payment_date)->format('Y-m-d');
             $invoiceCompany->payment_amount = $request->payment_amount;
             $invoiceCompany->is_paid = $request->is_paid;
             $items = $request->items;
