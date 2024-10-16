@@ -78,17 +78,17 @@ class ArrivalController extends Controller
 
     public function destroy($id): JsonResponse
     {
-        if(Auth::user()->role_id != 1 || Auth::user()->role_id != 2) {
-            return response()->json('You are not authorized to perform this action');
-        }
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            try {
+                $arrival = Arrival::find($id);
+                $arrival->delete();
 
-        try {
-            $arrival = Arrival::find($id);
-            $arrival->delete();
-
-            return response()->json('Arrival deleted successfully');
-        } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+                return response()->json('Arrival deleted successfully');
+            } catch (\Exception $e) {
+                return response()->json($e->getMessage());
+            }
+        } else {
+            return response()->json('You are not authorized to delete this arrival');
         }
     }
 }
