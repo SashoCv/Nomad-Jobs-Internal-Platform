@@ -53,6 +53,7 @@ class ArrivalController extends Controller
                 $arrival->arrival_location = $request->arrival_location;
                 $arrival->arrival_flight = $request->arrival_flight;
                 $arrival->where_to_stay = $request->where_to_stay;
+                $arrival->numberCandidate = $request->numberCandidate;  // new field
 
                 if ($arrival->save()) {
                     $arrivalCandidate = new ArrivalCandidate();
@@ -72,6 +73,33 @@ class ArrivalController extends Controller
             } catch (\Exception $e) {
                 return response()->json($e->getMessage());
             }
+        } else {
+            return response()->json('You are not authorized to create an arrival');
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $arrival = Arrival::find($id);
+
+            $arrival->company_id = $request->company_id;
+            $arrival->candidate_id = $request->candidate_id;
+            $arrival->arrival_date =  Carbon::createFromFormat('m-d-Y',$request->arrival_date)->format('Y-m-d');
+            $arrival->arrival_time = $request->arrival_time;
+            $arrival->arrival_location = $request->arrival_location;
+            $arrival->arrival_flight = $request->arrival_flight;
+            $arrival->where_to_stay = $request->where_to_stay;
+            $arrival->numberCandidate = $request->numberCandidate;  // new field
+
+            $arrival->save();
+
+            return response()->json([
+                'message' => 'Arrival updated successfully',
+                'arrival' => $arrival
+            ]);
+        } catch (\Exception $e) {
+            return response()->json($e->getMessage());
         }
     }
 
