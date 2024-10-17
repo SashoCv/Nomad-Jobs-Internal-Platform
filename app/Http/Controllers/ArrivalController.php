@@ -53,7 +53,7 @@ class ArrivalController extends Controller
                 $arrival->arrival_location = $request->arrival_location;
                 $arrival->arrival_flight = $request->arrival_flight;
                 $arrival->where_to_stay = $request->where_to_stay;
-                $arrival->numberCandidate = $request->numberCandidate;  // new field
+                $arrival->phone_number = $request->phone_number;  // new field
 
                 if ($arrival->save()) {
                     $arrivalCandidate = new ArrivalCandidate();
@@ -90,7 +90,7 @@ class ArrivalController extends Controller
             $arrival->arrival_location = $request->arrival_location;
             $arrival->arrival_flight = $request->arrival_flight;
             $arrival->where_to_stay = $request->where_to_stay;
-            $arrival->numberCandidate = $request->numberCandidate;  // new field
+            $arrival->phone_number = $request->phone_number;  // new field
 
             $arrival->save();
 
