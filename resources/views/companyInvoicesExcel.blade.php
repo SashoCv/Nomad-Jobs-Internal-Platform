@@ -13,10 +13,15 @@
             <tr>
                 <th>Invoice Number</th>
                 <th>Company Name</th>
+                <th>Candidate Name</th>
                 <th>Invoice Date</th>
-                <th>Due Date</th>
+                @foreach($companyInvoices as $companyInvoice)
+                    @foreach($companyInvoice['Items'] as $invoiceItem)
+                        <th>{{ $invoiceItem['Item Name'] }}</th>
+                    @endforeach
+                @endforeach
+                <th>Amount For Invoice</th>
                 <th>Status</th>
-                <th>Amount</th>
             </tr>
         </thead>
         <tbody>
@@ -24,10 +29,13 @@
                 <tr>
                     <td>{{ $companyInvoice['Invoice Number'] }}</td>
                     <td>{{ $companyInvoice['Company Name'] }}</td>
+                    <td>{{ $companyInvoice['candidate'] }}</td>
                     <td>{{ $companyInvoice['Invoice Date'] }}</td>
-                    <td>{{ $companyInvoice['Due Date'] }}</td>
-                    <td>{{ $companyInvoice['Status'] }}</td>
+                    @foreach($companyInvoice['Items'] as $invoiceItem)
+                        <td>{{ $invoiceItem['Total'] }} / {{ $invoiceItem['Percentage'] }}%</td>
+                    @endforeach
                     <td>{{ $companyInvoice['Invoice Amount'] }}</td>
+                    <td>{{ $companyInvoice['Status'] }}</td>
                 </tr>
             @endforeach
         </tbody>

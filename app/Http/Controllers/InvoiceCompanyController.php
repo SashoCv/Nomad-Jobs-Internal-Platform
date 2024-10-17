@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\InvoiceCompany;
 use App\Models\InvoiceCompanyCandidate;
 use App\Models\ItemInvoice;
+use App\Models\ItemsForInvoices;
 use App\Models\UserOwner;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -330,62 +331,55 @@ class InvoiceCompanyController extends Controller
         }
     }
 
-//    public function downloadExcelForInvoices(Request $request)  TODO: Need to change data structure
-//    {
-//        try {
+    public function downloadExcelForInvoices(Request $request)
+    {
+        try {
 //            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-//                $currentYear = Carbon::now()->year;
-//
-//                $dateFrom = $request->input('date_from') ? Carbon::parse($request->input('date_from')) : Carbon::create($currentYear, 1, 1);
-//                $dateTo = $request->input('date_to') ? Carbon::parse($request->input('date_to')) : Carbon::create($currentYear, 12, 31);
-//
-//                $invoices = InvoiceCompany::with([
-//                    'company' => function ($query) {
-//                        $query->select('id', 'nameOfCompany');
-//                    },
-//                    'itemInvoice' => function ($query) {
-//                        $query->select('id', 'invoice_companies_id', 'item_name', 'quantity', 'price', 'total', 'unit');
-//                    }
-//                ])
-//                    ->whereBetween('invoice_date', [$dateFrom, $dateTo])
-//                    ->get();
-//
-//                $data = [];
-//                foreach ($invoices as $invoice) {
-//                    $invoiceItems = [];
-//
-//                    foreach ($invoice->itemInvoice as $item) {
-//                        $invoiceItems[] = [
-//                            'Item Name' => $item->item_name,
-//                            'Quantity' => $item->quantity,
-//                            'Price' => $item->price,
-//                            'Total' => $item->total,
-//                            'Unit' => $item->unit,
-//                        ];
-//                    }
-//
-//                    $data[] = [
-//                        'Company Name' => $invoice->company->nameOfCompany,
-//                        'Invoice Number' => $invoice->invoice_number,
-//                        'Invoice Date' => $invoice->invoice_date,
-//                        'Status' => $invoice->status,
-//                        'Invoice Amount' => $invoice->invoice_amount,
-//                        'Due Date' => $invoice->due_date,
-//                        'Payment Date' => $invoice->payment_date,
-//                        'Payment Amount' => $invoice->payment_amount,
-//                        'Is Paid' => $invoice->is_paid,
-//                        'Items' => $invoiceItems,
-//                    ];
-//                }
-//
-//                $fileName = 'invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
-//
-//                return $this->excel->download(new InvoicesExport($data), $fileName);
+                $currentYear = Carbon::now()->year;
+
+                $dateFrom = $request->input('date_from') ? Carbon::parse($request->input('date_from')) : Carbon::create($currentYear, 1, 1);
+                $dateTo = $request->input('date_to') ? Carbon::parse($request->input('date_to')) : Carbon::create($currentYear, 12, 31);
+
+                $invoices = InvoiceCompanyCandidate::with('candidate', 'invoiceCompany', 'invoiceCompany.company', 'invoiceCompany.itemInvoice')
+                    ->whereHas('invoiceCompany', function ($query) use ($dateFrom, $dateTo) {
+                        $query->whereBetween('invoice_date', [$dateFrom, $dateTo]);
+                    })
+                    ->get();
+
+
+                $data = [];
+                foreach ($invoices as $invoice) {
+                    $invoiceItems = [];
+
+                    foreach ($invoice->invoiceCompany->itemInvoice as $item) {
+                        $itemName = ItemsForInvoices::where('id', $item->items_for_invoices_id)->first();
+
+                        $invoiceItems[] = [
+                            'Item Name' => $itemName->name,
+                            'Total' => $item->total,
+                            'Percentage' => $item->percentage,
+                        ];
+                    }
+                    $data[] = [
+                        'Company Name' => $invoice->invoiceCompany->company->nameOfCompany,
+                        'candidate' => $invoice->candidate->fullNameCyrillic,
+                        'Invoice Number' => $invoice->invoiceCompany->invoice_number,
+                        'Invoice Date' => $invoice->invoiceCompany->invoice_date,
+                        'Status' => $invoice->invoiceCompany->status,
+                        'Invoice Amount' => $invoice->invoiceCompany->invoice_amount,
+                        'Payment Amount' => $invoice->invoiceCompany->payment_amount,
+                        'Items' => $invoiceItems,
+                    ];
+                }
+
+                $fileName = 'invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
+
+                return $this->excel->download(new InvoicesExport($data), $fileName);
 //            } else {
 //                return response()->json('You are not authorized to perform this action');
 //            }
-//        } catch (\Exception $e) {
-//            return response()->json($e->getMessage());
-//        }
-//    }
+        } catch (\Exception $e) {
+            return response()->json($e->getMessage());
+        }
+    }
 }

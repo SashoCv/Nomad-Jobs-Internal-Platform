@@ -72,3 +72,5 @@ Route::get('/', function () {
 Route::get('InvoiceCompanyCandidates', [\App\Http\Controllers\InvoiceCompanyCandidateController::class, 'index']);
 Route::get('InvoiceCompanyCandidates/{id}', [\App\Http\Controllers\InvoiceCompanyCandidateController::class, 'show']);
 Route::get('filterAutoCompleteCandidateThatHaveInvoice', [\App\Http\Controllers\InvoiceCompanyCandidateController::class, 'filterAutoCompleteCandidateThatHaveInvoice']);
+
+Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
