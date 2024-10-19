@@ -23,7 +23,7 @@ class ArrivalCandidateController extends Controller
                 $query->where('status_arrival_id', $statusId);
             }
 
-            $arrivalCandidates = $query->get();
+            $arrivalCandidates = $query->paginate();
 
             return response()->json([
                 'message' => 'Arrival Candidates retrieved successfully',
