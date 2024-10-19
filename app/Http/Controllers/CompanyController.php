@@ -53,15 +53,27 @@ class CompanyController extends Controller
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    public function validateCompanyByEik($eik)
+    {
+        $allCompanies = Company::all();
+        $company = $allCompanies->where('EIK', '=', $eik)->first();
+
+        if($company){
+            return true;
+        } else {
+            return false;
+        }
+    }
     public function store(Request $request)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+
+            $eik = $request->EIK;
+
+            if($this->validateCompanyByEik($eik)){
+                throw new \Exception('Company with this EIK already exists!');
+            }
+
 
             $company = new Company();
 
@@ -98,7 +110,6 @@ class CompanyController extends Controller
             $company->nameOfContactPerson = $request->nameOfContactPerson;
             $company->phoneOfContactPerson = $request->phoneOfContactPerson;
             $company->director_idCard = $request->director_idCard;
-            $company->director_date_of_birth = $request->director_date_of_birth;
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
 
 
