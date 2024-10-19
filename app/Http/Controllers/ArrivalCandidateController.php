@@ -15,7 +15,7 @@ class ArrivalCandidateController extends Controller
     public function index(Request $request)
     {
         try {
-            $statusId = $request->input('status_id');
+            $statusId = $request->status_id;
 
             $query = ArrivalCandidate::with(['arrival.candidate', 'statusArrival']);
 
