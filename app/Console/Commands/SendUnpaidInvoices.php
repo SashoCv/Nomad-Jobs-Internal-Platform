@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\InvoiceCompany;
+use App\Models\InvoiceCompanyCandidate;
+use App\Models\ItemsForInvoices;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
@@ -24,48 +26,44 @@ class SendUnpaidInvoices extends Command
 
     public function handle()
     {
-        $unpaidInvoices = InvoiceCompany::with([
-            'company' => function ($query) {
-                $query->select('id', 'nameOfCompany');
-            },
-            'itemInvoice' => function ($query) {
-                $query->select('id', 'invoice_companies_id', 'item_name', 'quantity', 'price', 'total', 'unit');
-            }
-        ])->where('is_paid', 0)->get();
+        $currentYear = Carbon::now()->year;
 
-        if ($unpaidInvoices->isEmpty()) {
-            $this->info('No unpaid invoices found.');
-            return;
-        }
+        $dateFrom = Carbon::create($currentYear, 1, 1);
+        $dateTo = Carbon::create($currentYear, 12, 31);
+
+        $invoices = InvoiceCompanyCandidate::with('candidate', 'invoiceCompany', 'invoiceCompany.company', 'invoiceCompany.itemInvoice')
+            ->whereHas('invoiceCompany', function ($query) use ($dateFrom, $dateTo) {
+                $query->whereBetween('invoice_date', [$dateFrom, $dateTo]);
+            })
+            ->get();
+
 
         $data = [];
-        foreach ($unpaidInvoices as $invoice) {
+        foreach ($invoices as $invoice) {
             $invoiceItems = [];
-            foreach ($invoice->itemInvoice as $item) {
+
+            foreach ($invoice->invoiceCompany->itemInvoice as $item) {
+                $itemName = ItemsForInvoices::where('id', $item->items_for_invoices_id)->first();
+
                 $invoiceItems[] = [
-                    'Item Name' => $item->item_name,
-                    'Quantity' => $item->quantity,
-                    'Price' => $item->price,
+                    'Item Name' => $itemName->name,
                     'Total' => $item->total,
-                    'Unit' => $item->unit,
+                    'Percentage' => $item->percentage,
                 ];
             }
-
             $data[] = [
-                'Company Name' => $invoice->company->nameOfCompany,
-                'Invoice Number' => $invoice->invoice_number,
-                'Invoice Date' => $invoice->invoice_date,
-                'Status' => $invoice->status,
-                'Invoice Amount' => $invoice->invoice_amount,
-                'Due Date' => $invoice->due_date,
-                'Payment Date' => $invoice->payment_date,
-                'Payment Amount' => $invoice->payment_amount,
-                'Is Paid' => $invoice->is_paid,
+                'Company Name' => $invoice->invoiceCompany->company->nameOfCompany,
+                'candidate' => $invoice->candidate->fullNameCyrillic,
+                'Invoice Number' => $invoice->invoiceCompany->invoice_number,
+                'Invoice Date' => $invoice->invoiceCompany->invoice_date,
+                'Status' => $invoice->invoiceCompany->status,
+                'Invoice Amount' => $invoice->invoiceCompany->invoice_amount,
+                'Payment Amount' => $invoice->invoiceCompany->payment_amount,
                 'Items' => $invoiceItems,
             ];
         }
-
         $fileName = 'unpaid_invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
+
         Excel::store(new InvoicesExport($data), $fileName, 'local');
 
         Mail::to('sasocvetanoski@gmail.com')->send(new UnpaidInvoicesExcelMail($fileName)); // Change this email address
