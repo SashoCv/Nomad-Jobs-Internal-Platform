@@ -108,6 +108,9 @@ class ArrivalController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             try {
+                $arrivalCandidates = ArrivalCandidate::where('arrival_id', $id)->first();
+                $arrivalCandidates->delete();
+
                 $arrival = Arrival::find($id);
                 $arrival->delete();
 
