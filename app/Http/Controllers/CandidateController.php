@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
+use App\Models\Arrival;
+use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Education;
@@ -26,7 +28,7 @@ class CandidateController extends Controller
     {
         $candidates = Candidate::where('contractType','=','90days')->get();
 
-        
+
         foreach ($candidates as $candidate) {
             $year = date('Y', strtotime($candidate->date));
             $month = date('m', strtotime($candidate->date));
@@ -135,8 +137,8 @@ class CandidateController extends Controller
         if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
             $candidateId = $request->candidateId;
             $candidate = Candidate::where('id', '=', $candidateId)->first();
-    
-    
+
+
             return PDF::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
         } else {
             return response()->json([
@@ -145,7 +147,37 @@ class CandidateController extends Controller
                 'message' => 'You are not authorized to generate pdf',
             ]);
         }
-       
+
+    }
+
+    public function getCandidatesForCompany($id)
+    {
+
+        try {
+            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                $candidates = Candidate::where('company_id', '=', $id)->select('id', 'fullName')->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $candidates,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 401,
+                    'message' => 'You are not authorized to perform this action',
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Failed to get candidates',
+            ]);
+        }
+
     }
 
     /**
@@ -350,7 +382,7 @@ class CandidateController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\Candidate  $candidate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
@@ -380,6 +412,14 @@ class CandidateController extends Controller
             }
 
             $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('id', $candidatesInsertByAgentArray)->first();
+        }
+
+        $arrivalThisCandidate = Arrival::where('candidate_id', '=', $id)->first();
+
+        if($arrivalThisCandidate){
+            $person->arrival = true;
+        } else {
+            $person->arrival = false;
         }
 
         if (isset($person)) {

@@ -13,6 +13,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MonthCompanyController;
+use App\Http\Controllers\ItemsForInvoicesController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
@@ -20,7 +21,13 @@ use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\UserOwnerController;
 use App\Http\Controllers\AsignCandidateToNomadOfficeController;
+use App\Http\Controllers\InvoiceCompanyController;
 use App\Http\Controllers\CasesController;
+use App\Http\Controllers\ArrivalController;
+use App\Http\Controllers\ItemInvoiceController;
+use App\Http\Controllers\InvoiceCompanyCandidateController;
+use App\Http\Controllers\ArrivalCandidateController;
+use App\Http\Controllers\StatusArrivalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -94,7 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('favoriteCandidates/{id}', [FavoriteController::class, 'index']);
     Route::post('candidateToWorker/{id}', [CandidateController::class, 'worker']);
     Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
-
+    Route::get('getCandidatesForCompany/{id}', [CandidateController::class, 'getCandidatesForCompany']);
 
 
 
@@ -194,14 +201,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deleteAssignedJob/{id}', [AssignedJobController::class, 'deleteAssignedJob']);
     Route::get('getAssignedJobsForAgent', [AssignedJobController::class, 'getAssignedJobsForAgent']);
 
+    // Company Owner
+    Route::post('updateCompanyOwner/{id}', [UserOwnerController::class, 'update']);
+
     // Agents
     Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);
     Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']);
     Route::get('getAllCandidatesFromAgents', [AgentCandidateController::class, 'getAllCandidatesFromAgents']);
-
-    // Company Owner
-    Route::post('updateCompanyOwner/{id}', [UserOwnerController::class, 'update']);
-
 
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
@@ -212,5 +218,40 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //CV For Candidates
     Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
-    
+
+
+    //Company Invoice
+    Route::post('storeCompanyInvoice', [InvoiceCompanyController::class, 'store']);
+//    Route::get('getCompanyInvoices', [InvoiceCompanyController::class, 'index']);
+    Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyCandidateController::class, 'destroy']);
+    Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
+    Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
+//    Route::get('getCompanyInvoices/{id}', [InvoiceCompanyController::class, 'show']);
+    Route::post('updateInvoice/{id}', [InvoiceCompanyController::class, 'update']);
+    Route::get('invoiceCompanyCandidates', [InvoiceCompanyCandidateController::class, 'index']);
+    Route::get('invoiceCompanyCandidates/{id}', [InvoiceCompanyCandidateController::class, 'show']);
+    Route::get('filterAutoCompleteCandidateThatHaveInvoice', [InvoiceCompanyCandidateController::class, 'filterAutoCompleteCandidateThatHaveInvoice']);
+
+
+    //Items For Invoice
+    Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
+    Route::post('updateItemForInvoice/{id}', [ItemInvoiceController::class, 'update']);
+    Route::get('itemForCompanyInvoices', [ItemsForInvoicesController::class, 'index']);
+
+
+    // Arrivals
+    Route::post('storeArrival', [ArrivalController::class, 'store']);
+    Route::post('updateArrival/{id}', [ArrivalController::class, 'update']);
+    Route::get('getAllArrivals', [ArrivalController::class, 'index']);
+    Route::delete('deleteArrival/{id}', [ArrivalController::class, 'destroy']);
+
+
+    // Status Arrivals
+    Route::get('getStatusArrivals', [StatusArrivalController::class, 'index']);
+
+    // Candidates for Arrivals
+    Route::post('storeStatusForArrivalCandidate', [ArrivalCandidateController::class, 'store']);
+    Route::get('getArrivalCandidatesWithStatuses', [ArrivalCandidateController::class, 'index']);
+    Route::post('updateStatusForArrivalCandidate/{id}', [ArrivalCandidateController::class, 'update']);
+    Route::delete('deleteArrivalCandidate/{id}', [ArrivalCandidateController::class, 'destroy']);
 });

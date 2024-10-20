@@ -656,7 +656,7 @@ class SearchController extends Controller
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
 
-        $companiesQuery = Company::with(['industry', 'candidates']);
+        $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
 
         if (Auth::user()->role_id === 5) {
             $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
@@ -732,7 +732,7 @@ class SearchController extends Controller
         $query = Candidate::with(['company', 'status', 'position', 'user']);
 
         $userRoleId = Auth::user()->role_id;
-        
+
         if ($userRoleId === 1 || $userRoleId === 2) {
             $query->where('type_id', '!=', 3);
         }
@@ -791,6 +791,9 @@ class SearchController extends Controller
                 ->when($request->searchCaseId, function ($q) use ($request) {
                     $q->where('case_id', '=', $request->searchCaseId);
                 })
+                ->when($request->nationality, function ($q) use ($request) {
+                    $q->where('nationality', 'LIKE', '%' . $request->nationality . '%');
+                })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
                 });
@@ -827,7 +830,7 @@ class SearchController extends Controller
                 $candidateParts = explode('/', $candidate->quartal);
                 $candidateQuartal = intval($candidateParts[0]); // Extract quartal
                 $candidateYear = intval($candidateParts[1]); // Extract year
-    
+
                 // Check if candidate's year is earlier or if it's the same year but with a smaller quartal
                 if ($candidateYear < $currentYear || ($candidateYear == $currentYear && $candidateQuartal < 1)) {
                     $firstQuartal = $candidate->quartal;

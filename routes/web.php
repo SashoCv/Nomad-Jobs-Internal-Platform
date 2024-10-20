@@ -8,6 +8,8 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MonthCompanyController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ArrivalCandidateController;
+use App\Http\Controllers\InvoiceCompanyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,6 +26,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+//Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
+//Route::get('getArrivalCandidates', [ArrivalCandidateController::class, 'index']);
 
 
 // Route::get('searchCompany', [SearchController::class, 'searchCompany']);
@@ -62,3 +67,10 @@ Route::get('/', function () {
 
 // Route::get('scriptForSeasonal', [CandidateController::class, 'scriptForSeasonal']);
 // Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
+
+
+//Route::get('InvoiceCompanyCandidates', [\App\Http\Controllers\InvoiceCompanyCandidateController::class, 'index']);
+//Route::get('InvoiceCompanyCandidates/{id}', [\App\Http\Controllers\InvoiceCompanyCandidateController::class, 'show']);
+//Route::get('filterAutoCompleteCandidateThatHaveInvoice', [\App\Http\Controllers\InvoiceCompanyCandidateController::class, 'filterAutoCompleteCandidateThatHaveInvoice']);
+//
+//Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);

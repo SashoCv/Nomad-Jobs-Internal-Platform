@@ -13,10 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('notifications', function (Blueprint $table) {
+        Schema::create('invoice_company_candidates', function (Blueprint $table) {
             $table->id();
-            $table->string('notification_message');
-            $table->string('notification_type');
+            $table->foreignId('candidate_id')->constrained()->onDelete('cascade');
+            $table->foreignId('invoice_company_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('notifications');
+        Schema::dropIfExists('invoice_company_candidates');
     }
 };
