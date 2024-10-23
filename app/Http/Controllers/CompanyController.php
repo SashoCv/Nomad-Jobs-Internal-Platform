@@ -282,7 +282,6 @@ class CompanyController extends Controller
             $company->employedByMonths = $employedByMonths;
             $company->description = $description;
             $company->director_idCard = $request->director_idCard;
-            $company->director_date_of_birth = $request->director_date_of_birth;
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
 
             $company_addresses = json_decode($request->company_addresses, true);
