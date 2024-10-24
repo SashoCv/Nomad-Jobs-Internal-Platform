@@ -16,12 +16,20 @@ class ArrivalCandidateController extends Controller
     {
         try {
             $statusId = $request->status_id;
+            $fromDate = $request->from_date;
+            $toDate = $request->to_date;
 
             $query = ArrivalCandidate::with(['arrival.candidate', 'statusArrival']);
 
             if ($statusId) {
                 $query->where('status_arrival_id', $statusId);
             }
+
+            if($fromDate && $toDate) {
+                $query->whereBetween('status_date', [$fromDate, $toDate]);
+            }
+
+            $query->orderBy('status_date', 'asc');
 
             $arrivalCandidates = $query->paginate();
 
