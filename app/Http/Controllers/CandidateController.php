@@ -236,7 +236,7 @@ class CandidateController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -356,6 +356,14 @@ class CandidateController extends Controller
 
                     $file->save();
                 }
+
+                $storeCategory = new Category();
+                $storeCategory->candidate_id = $person->id;
+                $storeCategory->nameOfCategory = "Documents For Arrival Candidates";
+                $storeCategory->role_id = 2;
+                $storeCategory->isGenerated = 0;
+
+                $storeCategory->save();
 
                 return response()->json([
                     'success' => true,
