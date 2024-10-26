@@ -3,7 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArrivalCandidate;
+use App\Models\Candidate;
+use App\Models\Category;
+use App\Models\CompanyCategory;
+use App\Models\File;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
 {
@@ -144,6 +150,39 @@ class ArrivalCandidateController extends Controller
             return response()->json('Arrival Candidate deleted successfully');
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
+        }
+    }
+
+    public function downloadDocumentsForArrivalCandidates($candidateId)
+    {
+        if(!Auth::user()){
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        $candidateCategoryId = Category::where('candidate_id', $candidateId)->where('nameOfCategory', 'Documents For Arrival Candidates')->first()->id;
+
+        $files = File::where('candidate_id', $candidateId)->where('category_id', $candidateCategoryId)->get(['fileName', 'filePath']);
+
+        $candidate = Candidate::find($candidateId);
+
+        $zip = new ZipArchive();
+        $zipFileName = $candidate->fullName . '_arrival_documents.zip';
+        $zipFilePath = storage_path('app/' . $zipFileName);
+
+        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($files as $file) {
+                $filePath = public_path('storage/' . $file->filePath);
+                if (file_exists($filePath)) {
+                    $fileName = $file->fileName;
+                    $fileExtension = substr(strrchr($filePath, '.'), 1);
+                    $fileName .= '.' . $fileExtension;
+                    $zip->addFile($filePath, $fileName);
+                }
+            }
+            $zip->close();
+
+            return response()->download($zipFilePath, $zipFileName);
+        } else {
+            return response()->json(['message' => 'Failed to create the zip file'], 500);
         }
     }
 }
