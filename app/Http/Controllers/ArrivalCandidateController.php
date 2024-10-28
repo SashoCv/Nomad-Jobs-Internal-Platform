@@ -39,6 +39,29 @@ class ArrivalCandidateController extends Controller
 
             $arrivalCandidates = $query->paginate();
 
+            $arrivalCandidates->getCollection()->transform(function ($arrivalCandidate) {
+                $candidateId = $arrivalCandidate->arrival->candidate->id ?? null;
+
+                if ($candidateId) {
+                    $candidateCategoryId = Category::where('candidate_id', $candidateId)
+                        ->where('nameOfCategory', 'Documents For Arrival Candidates')
+                        ->first()
+                        ->id ?? null;
+
+                    if ($candidateCategoryId) {
+                        $files = File::where('candidate_id', $candidateId)
+                            ->where('category_id', $candidateCategoryId)
+                            ->exists();
+
+                        $arrivalCandidate->has_files = $files ? true : false;
+                    } else {
+                        $arrivalCandidate->has_files = false;
+                    }
+                }
+
+                return $arrivalCandidate;
+            });
+
             return response()->json([
                 'message' => 'Arrival Candidates retrieved successfully',
                 'arrivalCandidates' => $arrivalCandidates
