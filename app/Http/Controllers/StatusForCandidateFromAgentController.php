@@ -10,11 +10,16 @@ class StatusForCandidateFromAgentController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        //
+        try {
+            $statusForCandidateFromAgent = StatusForCandidateFromAgent::all();
+            return response()->json($statusForCandidateFromAgent);
+        } catch (\Exception $e) {
+            return response()->json($e->getMessage(), 500);
+        }
     }
 
     /**
