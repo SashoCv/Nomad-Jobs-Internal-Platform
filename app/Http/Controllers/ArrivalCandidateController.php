@@ -35,7 +35,7 @@ class ArrivalCandidateController extends Controller
                 $query->whereBetween('status_date', [$fromDate, $toDate]);
             }
 
-            $query->orderBy('status_date', 'asc');
+            $query->orderByRaw('STR_TO_DATE(status_date, "%Y-%m-%d") ASC');
 
             $arrivalCandidates = $query->paginate();
 
