@@ -25,5 +25,15 @@ class AgentCandidate extends Model
     {
         return $this->belongsTo(CompanyJob::class);
     }
+
+    public function statusForCandidateFromAgent()
+    {
+        return $this->belongsTo(StatusForCandidateFromAgent::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
 

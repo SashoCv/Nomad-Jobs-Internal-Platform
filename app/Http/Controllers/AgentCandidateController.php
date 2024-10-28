@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AgentCandidateResource;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
+use App\Models\CandidateStatusForCandidateFromAgent;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Repository\NotificationRepository;
@@ -67,7 +69,7 @@ class AgentCandidateController extends Controller
         $person->addedBy = Auth::user()->id;
         $educations = $request->educations ?? [];
         $experiences = $request->experiences ?? [];
-        
+
         if($person->save()){
 
 
@@ -101,28 +103,29 @@ class AgentCandidateController extends Controller
                 'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
                 'type' => 'Agent add Candidate for Assigned Job',
             ];
-    
+
             $candidateData = [
                 'user_id' => Auth::user()->id,
                 'company_job_id' => (int) $request->company_job_id,
                 'candidate_id' => $person->id,
+                'status_id' => 1,
             ];
 
 
-    
+
             $agentCandidate = new AgentCandidate();
-    
+
             $agentCandidate->user_id = $candidateData['user_id'];
             $agentCandidate->company_job_id = $candidateData['company_job_id'];
             $agentCandidate->candidate_id = $candidateData['candidate_id'];
-           
-    
+            $agentCandidate->staus_for_candidate_from_agent_id = $candidateData['status_id'];
+
             $agentCandidate->save();
-    
-    
+
+
             $notification = NotificationRepository::createNotification($notificationData);
             UsersNotificationRepository::createNotificationForUsers($notification);
-    
+
             return response()->json(
                 [
                     'message' => 'Candidate added successfully',
@@ -156,44 +159,33 @@ class AgentCandidateController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function getAllCandidatesFromAgents(Request $request)
     {
         try {
             $user_id = Auth::user()->id;
+            $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user']);
 
-            if ($request->company_job_id !== null) {
+            if ($request->company_job_id != null) {
                 if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                    $candidates = DB::table('agent_candidates')
-                        ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
-                        ->join('users', 'agent_candidates.user_id', '=', 'users.id')
-                        ->select('candidates.*', 'users.email')
-                        ->where('agent_candidates.company_job_id', $request->company_job_id)
-                        ->paginate(20);
+                    $query->where('company_job_id', $request->company_job_id);
                 } else if (Auth::user()->role_id == 4) {
-                    $candidates = DB::table('agent_candidates')
-                        ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
-                        ->join('users', 'agent_candidates.user_id', '=', 'users.id')
-                        ->select('candidates.*', 'users.email')
-                        ->where('agent_candidates.user_id', $user_id)
-                        ->where('agent_candidates.company_job_id', $request->company_job_id)
-                        ->paginate(20);
+                    $query->where('user_id', $user_id)
+                        ->where('company_job_id', $request->company_job_id);
                 }
             } else {
-                $candidates = DB::table('agent_candidates')
-                    ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
-                    ->join('users', 'agent_candidates.user_id', '=', 'users.id')
-                    ->select('candidates.*', 'users.email')
-                    ->where('agent_candidates.user_id', $user_id)
-                    ->paginate(20);
+                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                    $query->where('status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id);
+                } else {
+                    $query->where('user_id', $user_id);
+                }
             }
 
+            // Paginate the results
+            $candidates = $query->paginate(20);
 
-
-
-
-            return response()->json(['candidates' => $candidates], 200);
+            return AgentCandidateResource::collection($candidates);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Failed to get candidates'], 500);
