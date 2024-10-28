@@ -7,8 +7,10 @@ use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\CompanyCategory;
 use App\Models\File;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
@@ -31,8 +33,12 @@ class ArrivalCandidateController extends Controller
                 $query->where('status_arrival_id', $statusId);
             }
 
-            if($fromDate && $toDate) {
-                $query->whereBetween('status_date', [$fromDate, $toDate]);
+            if ($fromDate && $toDate) {
+                // Ensure the format in STR_TO_DATE matches your date format
+                $query->whereBetween(DB::raw('STR_TO_DATE(status_date, "%m-%d-%Y")'), [
+                    Carbon::parse($fromDate)->format('Y-m-d'),
+                    Carbon::parse($toDate)->format('Y-m-d')
+                ]);
             }
 
             $query->orderByRaw('STR_TO_DATE(status_date, "%m-%d-%Y") ASC');
