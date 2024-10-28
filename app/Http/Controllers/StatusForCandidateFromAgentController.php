@@ -15,7 +15,7 @@ class StatusForCandidateFromAgentController extends Controller
     public function index()
     {
         try {
-            $statusForCandidateFromAgent = StatusForCandidateFromAgent::all();
+            $statusForCandidateFromAgent = StatusForCandidateFromAgent::all(['id', 'name']);
             return response()->json($statusForCandidateFromAgent);
         } catch (\Exception $e) {
             return response()->json($e->getMessage(), 500);
