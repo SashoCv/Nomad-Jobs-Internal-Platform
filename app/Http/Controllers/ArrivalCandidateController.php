@@ -34,10 +34,9 @@ class ArrivalCandidateController extends Controller
             }
 
             if ($fromDate && $toDate) {
-                // Ensure the format in STR_TO_DATE matches your date format
                 $query->whereBetween(DB::raw('STR_TO_DATE(status_date, "%m-%d-%Y")'), [
-                    Carbon::parse($fromDate)->format('m-d-Y'),
-                    Carbon::parse($toDate)->format('m-d-Y')
+                    $fromDate,
+                    $toDate
                 ]);
             }
 
