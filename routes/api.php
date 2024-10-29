@@ -211,6 +211,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']);
     Route::get('getAllCandidatesFromAgents', [AgentCandidateController::class, 'getAllCandidatesFromAgents']);
     Route::get('statusForCandidateFromAgent', [StatusForCandidateFromAgentController::class, 'index']);
+    Route::post('updateStatusForCandidateFromAgent/{id}', [StatusForCandidateFromAgentController::class, 'update']);
+    Route::delete('deleteCandidateFromAgent/{id}', [AgentCandidateController::class, 'destroy']);
+
 
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);

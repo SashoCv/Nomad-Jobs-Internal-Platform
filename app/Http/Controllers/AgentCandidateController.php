@@ -159,7 +159,7 @@ class AgentCandidateController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return \Illuminate\Http\JsonResponse
      */
     public function getAllCandidatesFromAgents(Request $request)
     {
@@ -182,10 +182,56 @@ class AgentCandidateController extends Controller
                 }
             }
 
-            // Paginate the results
-            $candidates = $query->paginate(20);
+            $candidates = $query->get();
 
-            return AgentCandidateResource::collection($candidates);
+            $allCandidates = AgentCandidateResource::collection($candidates);
+
+            $result = [];
+
+            foreach ($allCandidates as $candidate) {
+                $companyId = $candidate->companyJob->company->id;
+
+                if (!isset($result[$companyId])) {
+                    $result[$companyId] = [
+                        'company' => [
+                            'id' => $candidate->companyJob->company->id,
+                            'name' => $candidate->companyJob->company->nameOfCompany,
+                        ],
+                        'candidates' => [],
+                    ];
+                }
+
+
+                $result[$companyId]['candidates'][] = [
+                    'id' => $candidate->id,
+                    'user_id' => $candidate->user_id,
+                    'status_for_candidate_from_agent_id' => $candidate->status_for_candidate_from_agent_id,
+                    'fullName' => $candidate->candidate->fullName,
+                    'phoneNumber' => $candidate->candidate->phoneNumber,
+                    'nationality' => $candidate->candidate->nationality,
+                    'birthday' => $candidate->candidate->birthday,
+                    'status_for_candidate_from_agent' => [
+                        'id' => $candidate->statusForCandidateFromAgent->id,
+                        'name' => $candidate->statusForCandidateFromAgent->name,
+                    ],
+                    'Agent' => [
+                        'id' => $candidate->user->id,
+                        'firstName' => $candidate->user->firstName,
+                        'lastName' => $candidate->user->lastName,
+                        'email' => $candidate->user->email,
+                    ],
+                    'companyJob' => [
+                        'id' => $candidate->companyJob->id,
+                        'job_title' => $candidate->companyJob->job_title,
+                        'salary' => $candidate->companyJob->salary,
+                        'contract_type' => $candidate->companyJob->contract_type,
+                    ]
+                ];
+            }
+
+
+            return response()->json($result);
+
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Failed to get candidates'], 500);
@@ -229,10 +275,20 @@ class AgentCandidateController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(AgentCandidate $agentCandidate)
+    public function destroy($id)
     {
-        //
+        try {
+            $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
+            if ($agentCandidate) {
+                $agentCandidate->delete();
+                return response()->json(['message' => 'Candidate deleted successfully'], 200);
+            } else {
+                return response()->json(['message' => 'Candidate not found'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json($e->getMessage(), 500);
+        }
     }
 }
