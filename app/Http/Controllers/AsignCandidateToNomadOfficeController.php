@@ -62,7 +62,9 @@ class AsignCandidateToNomadOfficeController extends Controller
             $allCandidatesFromAgentForThisCompany = AgentCandidate::with(['candidate', 'companyJob', 'statusForCandidateFromAgent', 'user'])
                 ->whereHas('companyJob', function($query) use ($companyId) {
                     $query->where('company_id', $companyId);
-                })->get();
+                })
+                ->where('status_for_candidate_from_agent_id', 3)
+                ->get();
 
             $candidates = [];
 
@@ -73,11 +75,16 @@ class AsignCandidateToNomadOfficeController extends Controller
             $candidatesIds = array_column($candidates, 'id');
 
             foreach ($candidatesIds as $candidatesId){
-                $assignCandidateToNomadOffice = new AsignCandidateToNomadOffice();
-                $assignCandidateToNomadOffice->admin_id = Auth::user()->id;
+                $assignCandidateToNomadOffice = AgentCandidate::where('candidate_id', $candidatesId)->first();
                 $assignCandidateToNomadOffice->nomad_office_id = $nomadOfficeId;
-                $assignCandidateToNomadOffice->candidate_id = $candidatesId;
                 $assignCandidateToNomadOffice->save();
+            }
+
+            if($candidatesIds == []){
+                return response()->json([
+                    'message' => 'No candidates found for this company',
+                    'data' => $candidatesIds
+                ], 404);
             }
 
             return response()->json([

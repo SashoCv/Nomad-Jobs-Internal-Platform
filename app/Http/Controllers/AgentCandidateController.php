@@ -175,9 +175,12 @@ class AgentCandidateController extends Controller
                         ->where('company_job_id', $request->company_job_id);
                 }
             } else {
-                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                if (Auth::user()->role_id == 1) {
                     $query->where('status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id);
-                } else {
+                } else if (Auth::user()->role_id == 1){
+                    $query->where(Auth::user()->id == $query->nomad_office_id);
+                }
+                else {
                     $query->where('user_id', $user_id);
                 }
             }
