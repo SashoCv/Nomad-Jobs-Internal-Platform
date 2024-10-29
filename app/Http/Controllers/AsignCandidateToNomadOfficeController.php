@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgentCandidate;
 use App\Models\AsignCandidateToNomadOffice;
 use App\Models\Candidate;
 use Illuminate\Http\Request;
@@ -55,36 +56,38 @@ class AsignCandidateToNomadOfficeController extends Controller
      */
     public function assignCandidateToNomadOffice(Request $request)
     {
-        if(Auth::user()->role_id != 1 && Auth::user()->role_id != 2){
+        try {
+            $companyId = $request->company_id;
+            $nomadOfficeId = $request->nomad_office_id;
+            $allCandidatesFromAgentForThisCompany = AgentCandidate::with(['candidate', 'companyJob', 'statusForCandidateFromAgent', 'user'])
+                ->whereHas('companyJob', function($query) use ($companyId) {
+                    $query->where('company_id', $companyId);
+                })->get();
+
+            $candidates = [];
+
+            foreach ($allCandidatesFromAgentForThisCompany as $candidateFromAgent){
+                $candidates[]= $candidateFromAgent['candidate'];
+            }
+
+            $candidatesIds = array_column($candidates, 'id');
+
+            foreach ($candidatesIds as $candidatesId){
+                $assignCandidateToNomadOffice = new AsignCandidateToNomadOffice();
+                $assignCandidateToNomadOffice->admin_id = Auth::user()->id;
+                $assignCandidateToNomadOffice->nomad_office_id = $nomadOfficeId;
+                $assignCandidateToNomadOffice->candidate_id = $candidatesId;
+                $assignCandidateToNomadOffice->save();
+            }
+
             return response()->json([
-                'message' => 'You are not authorized to assign candidate to nomad office'
-            ], 401);
-        }
-
-        $request->validate([
-            'nomad_office_id' => 'required',
-            'candidate_id' => 'required',
-        ]);
-
-        $asignCandidateToNomadOffice = new AsignCandidateToNomadOffice();
-        $asignCandidateToNomadOffice->admin_id = Auth::user()->id;
-        $asignCandidateToNomadOffice->nomad_office_id = $request->nomad_office_id;
-        $asignCandidateToNomadOffice->candidate_id = $request->candidate_id;
-
-
-        if($asignCandidateToNomadOffice->save()){
-
-            $candidate = Candidate::find($request->candidate_id);
-            $candidate->type_id = 1;
-            $candidate->save();
-
-            return response()->json([
-                'message' => 'Candidate assigned to nomad office successfully',
-                'data' => $asignCandidateToNomadOffice
+                'message' => 'Candidates assigned to nomad office successfully',
+                'data' => $candidatesIds
             ], 200);
-        }else{
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to assign candidate to nomad office'
+                'message' => 'Failed to assign candidate to nomad office',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
