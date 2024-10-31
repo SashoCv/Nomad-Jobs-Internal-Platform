@@ -144,11 +144,13 @@ class AgentCandidateController extends Controller
     public function getCandidatesForAssignedJob($id)
     {
         try {
-            $candidates = Candidate::whereHas('agentCandidates', function ($query) use ($id) {
-                $query->where('company_job_id', $id);
-            })->get();
+            $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
+                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id');
 
-            return response()->json(['candidates' => $candidates], 200);
+            $candidates = $query->where('company_job_id', $id)->paginate(20);
+
+            return AgentCandidateResource::collection($candidates);
+
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Failed to get candidates'], 500);
