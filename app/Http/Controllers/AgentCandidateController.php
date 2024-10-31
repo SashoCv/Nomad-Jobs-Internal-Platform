@@ -118,7 +118,7 @@ class AgentCandidateController extends Controller
             $agentCandidate->user_id = $candidateData['user_id'];
             $agentCandidate->company_job_id = $candidateData['company_job_id'];
             $agentCandidate->candidate_id = $candidateData['candidate_id'];
-            $agentCandidate->staus_for_candidate_from_agent_id = $candidateData['status_id'];
+            $agentCandidate->status_for_candidate_from_agent_id = $candidateData['status_id'];
 
             $agentCandidate->save();
 
