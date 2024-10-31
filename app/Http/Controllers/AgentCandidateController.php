@@ -159,7 +159,7 @@ class AgentCandidateController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function getAllCandidatesFromAgents(Request $request)
     {
@@ -185,55 +185,10 @@ class AgentCandidateController extends Controller
                 }
             }
 
-            $candidates = $query->get();
+            $candidates = $query->paginate(20);
 
-            $allCandidates = AgentCandidateResource::collection($candidates);
-
-            $result = [];
-
-            foreach ($allCandidates as $candidate) {
-                $companyId = $candidate->companyJob->company->id;
-
-                if (!isset($result[$companyId])) {
-                    $result[$companyId] = [
-                        'company' => [
-                            'id' => $candidate->companyJob->company->id,
-                            'name' => $candidate->companyJob->company->nameOfCompany,
-                        ],
-                        'candidates' => [],
-                    ];
-                }
-
-
-                $result[$companyId]['candidates'][] = [
-                    'id' => $candidate->id,
-                    'user_id' => $candidate->user_id,
-                    'status_for_candidate_from_agent_id' => $candidate->status_for_candidate_from_agent_id,
-                    'fullName' => $candidate->candidate->fullName,
-                    'phoneNumber' => $candidate->candidate->phoneNumber,
-                    'nationality' => $candidate->candidate->nationality,
-                    'birthday' => $candidate->candidate->birthday,
-                    'status_for_candidate_from_agent' => [
-                        'id' => $candidate->statusForCandidateFromAgent->id,
-                        'name' => $candidate->statusForCandidateFromAgent->name,
-                    ],
-                    'Agent' => [
-                        'id' => $candidate->user->id,
-                        'firstName' => $candidate->user->firstName,
-                        'lastName' => $candidate->user->lastName,
-                        'email' => $candidate->user->email,
-                    ],
-                    'companyJob' => [
-                        'id' => $candidate->companyJob->id,
-                        'job_title' => $candidate->companyJob->job_title,
-                        'salary' => $candidate->companyJob->salary,
-                        'contract_type' => $candidate->companyJob->contract_type,
-                    ]
-                ];
-            }
-
-
-            return response()->json($result);
+            // Use `AgentCandidateResource::collection` on paginated data
+            return AgentCandidateResource::collection($candidates);
 
         } catch (\Exception $e) {
             Log::error($e->getMessage());
