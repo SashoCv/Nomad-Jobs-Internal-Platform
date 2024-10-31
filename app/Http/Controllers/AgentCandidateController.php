@@ -170,7 +170,7 @@ class AgentCandidateController extends Controller
                 if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
                     $query->where('company_job_id', $request->company_job_id);
                 } else if (Auth::user()->role_id == 4) {
-                    $query->where('user_id', $user_id)
+                    $query->where('agent_candidates.user_id', $user_id)
                         ->where('company_job_id', $request->company_job_id);
                 }
             } else {
