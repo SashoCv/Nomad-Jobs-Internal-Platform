@@ -745,7 +745,9 @@ class SearchController extends Controller
 
         if ($userRoleId === 4) {
             $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
-                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')->paginate(20);
+                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
+                ->where('agent_candidates.user_id', Auth::user()->id)
+                ->paginate(20);
 
 
             return AgentCandidateResource::collection($candidatesQuery);
