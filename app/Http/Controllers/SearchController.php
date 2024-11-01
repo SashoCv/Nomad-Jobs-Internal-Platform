@@ -748,7 +748,7 @@ class SearchController extends Controller
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')->paginate(20);
 
 
-            $candidates = AgentCandidateResource::collection($candidatesQuery);
+            return AgentCandidateResource::collection($candidatesQuery);
         }
 
         if ($userRoleId === 5) {
@@ -842,19 +842,12 @@ class SearchController extends Controller
             }
         }
 
-        if($userRoleId === 4) {
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $candidates,
-            ]);
-        } else {
             return response()->json([
                 'success' => true,
                 'status' => 200,
                 'data' => $result,
                 'firstQuartal' => $firstQuartal
             ]);
-        }
+
     }
 }
