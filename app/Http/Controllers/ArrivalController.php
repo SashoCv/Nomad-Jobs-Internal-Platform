@@ -66,12 +66,8 @@ class ArrivalController extends Controller
 
                     $arrivalCandidate->save();
 
-                    $data = [
-                        'arrival' => $arrival,
-                        'arrivalCandidate' => $arrivalCandidate
-                    ];
 
-                    Mail::send('arrival', ['data' => $data], function ($message) use ($data) {
+                    Mail::send('arrival', ['data' => $arrival], function ($message) use ($arrival) {
                         $message->to('sasocvetanoski@gmail.com')->subject('Arrival created');
                     });
                 }
