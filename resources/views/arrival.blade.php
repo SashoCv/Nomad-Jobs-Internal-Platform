@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="en-US">
-
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
-    <title>Candidate Arrival Notification</title>
-    <meta name="description" content="Candidate Arrival Details">
+    <title>Arrival Notification for {{ $data['candidateName'] }}</title>
     <style type="text/css">
         body {
             margin: 0;
@@ -48,28 +46,26 @@
 </head>
 
 <body>
-
 <div class="container">
-    <h2>Candidate Arrival Information</h2>
+    <h2>Arrival Notification for {{ $data['candidateName'] }}</h2>
     <p>Hello,</p>
-    <p>A candidate is arriving soon with the following details:</p>
+    <p>The following candidate is scheduled to arrive soon:</p>
 
     <div class="info">
-        <p><strong>Company ID:</strong> {{ $data['company_id'] }}</p>
-        <p><strong>Candidate ID:</strong> {{ $data['candidate_id'] }}</p>
+        <p><strong>Candidate Name:</strong> {{ $data['candidateName'] }}</p>
+        <p><strong>Company:</strong> {{ $data['companyName'] }}</p>
+        <p><strong>Status:</strong> {{ $data['status'] }}</p>
         <p><strong>Arrival Date:</strong> {{ $data['arrival_date'] }}</p>
         <p><strong>Arrival Time:</strong> {{ $data['arrival_time'] }}</p>
-        <p><strong>Arrival Location:</strong> {{ $data['arrival_location'] }}</p>
+        <p><strong>Location:</strong> {{ $data['arrival_location'] }}</p>
         <p><strong>Flight:</strong> {{ $data['arrival_flight'] }}</p>
-        <p><strong>Where to Stay:</strong> {{ $data['where_to_stay'] }}</p>
+        <p><strong>Accommodation:</strong> {{ $data['where_to_stay'] }}</p>
         <p><strong>Contact Phone:</strong> {{ $data['phone_number'] }}</p>
     </div>
 
     <!-- Google Calendar Link -->
-    <a href="https://calendar.google.com/calendar/r/eventedit?text=Candidate+Arrival&dates={{ date('Ymd\THis\Z', strtotime($data['arrival_date'] . ' ' . $data['arrival_time'])) }}/{{ date('Ymd\THis\Z', strtotime($data['arrival_date'] . ' ' . $data['arrival_time'] . ' +1 hour')) }}&details=Candidate+arriving+from+flight+{{ $data['arrival_flight'] }}&location={{ urlencode($data['arrival_location']) }}&sf=true&output=xml"
+    <a href="https://calendar.google.com/calendar/r/eventedit?text=Arrival+of+{{ urlencode($data['candidateName']) }}&dates={{ date('Ymd\THis\Z', strtotime($data['arrival_date'] . ' ' . $data['arrival_time'])) }}/{{ date('Ymd\THis\Z', strtotime($data['arrival_date'] . ' ' . $data['arrival_time'] . ' +1 hour')) }}&details=Arrival+of+{{ urlencode($data['candidateName']) }}+via+flight+{{ urlencode($data['arrival_flight']) }}+at+{{ urlencode($data['arrival_location']) }}.+Stay+at+{{ urlencode($data['where_to_stay']) }}&location={{ urlencode($data['arrival_location']) }}&sf=true&output=xml"
        class="calendar-link" target="_blank">Add to Google Calendar</a>
 </div>
-
 </body>
-
 </html>

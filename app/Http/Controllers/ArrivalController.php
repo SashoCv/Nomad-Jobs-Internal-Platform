@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendEmailForArrivalCandidates;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use Carbon\Carbon;
@@ -67,9 +68,7 @@ class ArrivalController extends Controller
                     $arrivalCandidate->save();
 
 
-                    Mail::send('arrival', ['data' => $arrival], function ($message) use ($arrival) {
-                        $message->to('sasocvetanoski@gmail.com')->subject('Arrival created');
-                    });
+                    dispatch(new SendEmailForArrivalCandidates($arrival, $arrivalCandidate->status_arrival_id));
                 }
 
                 return response()->json([
