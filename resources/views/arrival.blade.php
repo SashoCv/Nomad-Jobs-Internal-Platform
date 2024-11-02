@@ -13,6 +13,8 @@
 <body marginheight="0" topmargin="0" marginwidth="0" style="margin: 0px; background-color: #f2f3f8;" leftmargin="0">
 
     Test Arrival
+
+    {{$data}}
 </body>
 
 </html>
