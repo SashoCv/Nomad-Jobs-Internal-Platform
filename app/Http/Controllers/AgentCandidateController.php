@@ -193,7 +193,6 @@ class AgentCandidateController extends Controller
 
             $candidates = $query->paginate(20);
 
-            Log::info('candidates: ', [$candidates]);
             return AgentCandidateResource::collection($candidates);
 
         } catch (\Exception $e) {
