@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class ArrivalController extends Controller
 {
@@ -64,6 +65,15 @@ class ArrivalController extends Controller
                     $arrivalCandidate->status_date = $request->arrival_date;
 
                     $arrivalCandidate->save();
+
+                    $data = [
+                        'arrival' => $arrival,
+                        'arrivalCandidate' => $arrivalCandidate
+                    ];
+
+                    Mail::send('arrival', ['data' => $data], function ($message) use ($data) {
+                        $message->to('sasocvetanoski@gmail.com')->subject('Arrival created');
+                    });
                 }
 
                 return response()->json([
