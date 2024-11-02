@@ -136,27 +136,31 @@ class FileController extends Controller
     public function show($id)
     {
         $userRoleId = Auth::user()->role_id;
-    
+
         $categoriesQuery = Category::where('candidate_id', null)->orWhere('candidate_id', $id);
-    
+
         if ($userRoleId == 2) {
-            $categoriesQuery->where('role_id', 2)->orWhere('role_id', 3);
-        } elseif ($userRoleId == 3 || $userRoleId == 4 || $userRoleId == 5) {
+            $categoriesQuery->where('role_id', 2)->orWhere('role_id', 3)->orWhere('role_id', 4)->orWhere('role_id', 5);
+        } elseif ($userRoleId == 3) {
             $categoriesQuery->where('role_id', 3);
+        } elseif ($userRoleId == 4) {
+            $categoriesQuery->where('role_id', 4);
+        } elseif ($userRoleId == 5) {
+            $categoriesQuery->where('role_id', 5);
         }
-    
+
         $categories = $categoriesQuery->orderBy('id', 'asc')->get();
-    
+
         $filesQuery = File::where('candidate_id', $id);
-    
+
         if ($userRoleId == 3 || $userRoleId == 4 || $userRoleId == 5) {
             $filesQuery->where('company_restriction', 0);
         }
-    
+
         $files = $filesQuery->get();
-    
+
         $candidatePassport = ($userRoleId == 1) ? Candidate::where('id', $id)->value('passportPath') : null;
-    
+
         return response()->json([
             'success' => true,
             'status' => 200,
@@ -165,7 +169,7 @@ class FileController extends Controller
             'candidatePassport' => $candidatePassport,
         ]);
     }
-    
+
 
     /**
      * Update the specified resource in storage.
