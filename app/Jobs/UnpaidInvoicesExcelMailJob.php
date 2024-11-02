@@ -35,6 +35,7 @@ class UnpaidInvoicesExcelMailJob implements ShouldQueue
      */
     public function handle()
     {
+        Log::info("Sending email with unpaid invoices report");
         try {
             Mail::send('excelWithUnpaidInvoices', [], function ($message)  {
                 $message->to('sasocvetanoski@gmail.com')
