@@ -55,7 +55,7 @@
         <p><strong>Candidate Name:</strong> {{ $data['candidateName'] }}</p>
         <p><strong>Company:</strong> {{ $data['companyName'] }}</p>
         <p><strong>Status:</strong> {{ $data['status'] }}</p>
-        <p><strong>Arrival Date:</strong> {{ $data['changedStatusDate'] }}</p>
+        <p><strong>Date:</strong> {{ $data['changedStatusDate'] }}</p>
         <p><strong>Contact Phone:</strong> {{ $data['phone_number'] }}</p>
         <p><strong>Description:</strong> {{ $data['description'] }}</p>
     </div>

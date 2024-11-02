@@ -68,13 +68,10 @@ class SendUnpaidInvoices extends Command
         $fileName = 'unpaid_invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
         $filePath = storage_path("app/{$fileName}");
 
-        // Зачувување на Excel датотеката
         Excel::store(new InvoicesExport($data), $fileName, 'local');
 
-        // Логирање на патеката на зачуваната датотека
         Log::info('Unpaid invoices exported successfully.', ['file_path' => $filePath]);
 
-        // Испраќање на мејлот со пратена датотека
         dispatch(new UnpaidInvoicesExcelMailJob($fileName));
 
         Storage::delete($fileName);
