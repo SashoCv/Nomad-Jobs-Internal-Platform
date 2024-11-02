@@ -16,7 +16,6 @@ class SendEmailForArrivalCandidates implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $queue = 'mail';
     protected $arrival;
     protected $statusId;
 
@@ -24,6 +23,9 @@ class SendEmailForArrivalCandidates implements ShouldQueue
     {
         $this->arrival = $arrival;
         $this->statusId = $statusId;
+
+        // Set the queue name here
+        $this->onQueue('mail');
     }
 
     public function handle()
