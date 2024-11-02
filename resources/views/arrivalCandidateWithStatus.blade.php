@@ -2,7 +2,7 @@
 <html lang="en-US">
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
-    <title>Arrival Notification for {{ $data['candidateName'] }}</title>
+    <title>{{ $data['status'] }} Notification for {{ $data['candidateName'] }}</title>
     <style type="text/css">
         body {
             margin: 0;
@@ -47,7 +47,7 @@
 
 <body>
 <div class="container">
-    <h2>Arrival Notification for {{ $data['candidateName'] }}</h2>
+    <h2>{{ $data['status'] }} Notification for {{ $data['candidateName'] }}</h2>
     <p>Hello,</p>
     <p>The following candidate is scheduled to arrive soon:</p>
 
