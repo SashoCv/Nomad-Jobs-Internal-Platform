@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
@@ -147,7 +148,9 @@ class ArrivalCandidateController extends Controller
             $arrivalCandidate->status_description = $request->status_description;
             $arrivalCandidate->status_date = $request->status_date;
 
-            $arrivalCandidate->save();
+            if($arrivalCandidate->save()){
+                dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
+            }
 
             return response()->json([
                 'message' => 'Arrival Candidate updated successfully',
