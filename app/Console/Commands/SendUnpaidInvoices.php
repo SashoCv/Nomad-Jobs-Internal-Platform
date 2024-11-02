@@ -2,10 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\UnpaidInvoicesExcelMailJob;
 use App\Models\InvoiceCompany;
 use App\Models\InvoiceCompanyCandidate;
 use App\Models\ItemsForInvoices;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
@@ -62,11 +64,18 @@ class SendUnpaidInvoices extends Command
                 'Items' => $invoiceItems,
             ];
         }
-        $fileName = 'unpaid_invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
 
+        $fileName = 'unpaid_invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
+        $filePath = storage_path("app/{$fileName}");
+
+        // Зачувување на Excel датотеката
         Excel::store(new InvoicesExport($data), $fileName, 'local');
 
-        Mail::to('sasocvetanoski@gmail.com')->send(new UnpaidInvoicesExcelMail($fileName)); // Change this email address
+        // Логирање на патеката на зачуваната датотека
+        Log::info('Unpaid invoices exported successfully.', ['file_path' => $filePath]);
+
+        // Испраќање на мејлот со пратена датотека
+        dispatch(new UnpaidInvoicesExcelMailJob($fileName));
 
         Storage::delete($fileName);
 
