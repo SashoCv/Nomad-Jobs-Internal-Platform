@@ -11,6 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class SendEmailForArrivalCandidates implements ShouldQueue
 {
@@ -23,13 +24,14 @@ class SendEmailForArrivalCandidates implements ShouldQueue
     {
         $this->arrival = $arrival;
         $this->statusId = $statusId;
-
-        // Set the queue name here
         $this->onQueue('mail');
     }
 
     public function handle()
     {
+        // Log to check if the handle method is being executed
+        Log::info("SendEmailForArrivalCandidates Job Started.");
+
         $candidate = Candidate::find($this->arrival->candidate_id);
         $company = Company::find($this->arrival->company_id);
         $status = StatusArrival::find($this->statusId)->statusName;
@@ -46,8 +48,17 @@ class SendEmailForArrivalCandidates implements ShouldQueue
             'phone_number' => $this->arrival->phone_number,
         ];
 
-        Mail::send('emails.arrival', ['data' => $data], function ($message) use ($data) {
-            $message->to('sasocvetanoski@gmail.com')->subject('Arrival Notification for ' . $data['candidateName']);
-        });
+        try {
+            Mail::send('emails.arrival', ['data' => $data], function ($message) use ($data) {
+                $message->to('sasocvetanoski@gmail.com')
+                    ->subject('Arrival Notification for ' . $data['candidateName']);
+            });
+
+            // Log success
+            Log::info("Email sent successfully to " . $data['candidateName']);
+        } catch (\Exception $e) {
+            // Log any error if mail fails to send
+            Log::error("Error sending email: " . $e->getMessage());
+        }
     }
 }
