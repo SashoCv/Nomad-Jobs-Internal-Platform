@@ -6,6 +6,7 @@ use App\Http\Resources\AgentCandidateResource;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\CandidateStatusForCandidateFromAgent;
+use App\Models\Category;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Repository\NotificationRepository;
@@ -111,6 +112,12 @@ class AgentCandidateController extends Controller
                 'status_id' => 1,
             ];
 
+            $categoryForFiles = new Category();
+            $categoryForFiles->role_id = 4;
+            $categoryForFiles->nameOfCategory = 'files from agent';
+            $categoryForFiles->candidate_id = $person->id;
+            $categoryForFiles->isGenerated = 0;
+            $categoryForFiles->save();
 
 
             $agentCandidate = new AgentCandidate();
