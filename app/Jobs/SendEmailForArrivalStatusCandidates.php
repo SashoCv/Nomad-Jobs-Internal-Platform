@@ -41,6 +41,12 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         $status = StatusArrival::find($statusId)->statusName;
         $arrivalCandidate = ArrivalCandidate::find($this->arrivalCandidateId);
 
+        Log::info("Arrival ID: " . $arrivalId);
+        Log::info("Status ID: " . $statusId);
+        Log::info('candidate: ' , [$candidate]);
+        Log::info('company: ', [$company]);
+        Log::info('status: ' . $status);
+        Log::info('arrivalCandidate: ', [$arrivalCandidate]);
         $data = [
             'candidateName' => $candidate->fullName,
             'companyName' => $company->nameOfCompany,
