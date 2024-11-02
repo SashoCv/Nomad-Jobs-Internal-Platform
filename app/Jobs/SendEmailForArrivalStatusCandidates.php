@@ -33,14 +33,11 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         Log::info("SendEmailForArrivalCandidates Job Started.");
 
         $arrivalCandidate = ArrivalCandidate::find($this->arrivalCandidateId);
-        Log::info("Arrival Candidate: ", [$arrivalCandidate]);
         $arrival = Arrival::find($arrivalCandidate->arrival_id);
-        Log::info("Arrival: ", [$arrival]);
         $candidate = Candidate::find($arrival->candidate_id);
         $company = Company::find($arrival->company_id);
 
         $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
-        Log::info("Status Arrival: ", [$statusArrival]);
         $status = $statusArrival->statusName;
 
 
