@@ -32,21 +32,18 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         // Log to check if the handle method is being executed
         Log::info("SendEmailForArrivalCandidates Job Started.");
 
-        $arrivalId = ArrivalCandidate::find($this->arrivalCandidateId)->arrival_id;
-        $statusId = ArrivalCandidate::find($this->arrivalCandidateId)->status_id;
-
-        $arrival = Arrival::find($arrivalId);
+        $arrivalCandidate = ArrivalCandidate::find($this->arrivalCandidateId);
+        Log::info("Arrival Candidate: ", [$arrivalCandidate]);
+        $arrival = Arrival::find($arrivalCandidate->arrival_id);
+        Log::info("Arrival: ", [$arrival]);
         $candidate = Candidate::find($arrival->candidate_id);
         $company = Company::find($arrival->company_id);
-        $status = StatusArrival::find($statusId)->statusName;
-        $arrivalCandidate = ArrivalCandidate::find($this->arrivalCandidateId);
 
-        Log::info("Arrival ID: " . $arrivalId);
-        Log::info("Status ID: " . $statusId);
-        Log::info('candidate: ' , [$candidate]);
-        Log::info('company: ', [$company]);
-        Log::info('status: ' . $status);
-        Log::info('arrivalCandidate: ', [$arrivalCandidate]);
+        $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
+        Log::info("Status Arrival: ", [$statusArrival]);
+        $status = $statusArrival->statusName;
+
+
         $data = [
             'candidateName' => $candidate->fullName,
             'companyName' => $company->nameOfCompany,
