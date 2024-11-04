@@ -5,25 +5,62 @@ namespace App\Http\Controllers;
 use App\Http\Resources\AgentCandidateResource;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
-use App\Models\CandidateStatusForCandidateFromAgent;
 use App\Models\Category;
 use App\Models\Education;
 use App\Models\Experience;
+use App\Models\File;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class AgentCandidateController extends Controller
 {
     public function __construct(
-        private UsersNotificationRepository $usersNotificationRepository,
-        private NotificationRepository $notificationRepository,
     ) {
     }
 
+    public function downloadDocumentsForCandidatesFromAgent($candidateId)
+    {
+        if(!Auth::user()){
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        $candidateCategoryId = Category::where('candidate_id', $candidateId)->where('nameOfCategory', 'files from agent')->first()->id;
+
+        if(!$candidateCategoryId){
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+        $files = File::where('candidate_id', $candidateId)->where('category_id', $candidateCategoryId)->get(['fileName', 'filePath']);
+
+        if(!$files){
+            return response()->json(['message' => 'Files not found'], 404);
+        }
+        $candidate = Candidate::find($candidateId);
+
+        $zip = new ZipArchive();
+        $zipFileName = $candidate->fullName . '_agent_documents.zip';
+        $zipFilePath = storage_path('app/' . $zipFileName);
+
+        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($files as $file) {
+                $filePath = public_path('storage/' . $file->filePath);
+                if (file_exists($filePath)) {
+                    $fileName = $file->fileName;
+                    $fileExtension = substr(strrchr($filePath, '.'), 1);
+                    $fileName .= '.' . $fileExtension;
+                    $zip->addFile($filePath, $fileName);
+                }
+            }
+            $zip->close();
+
+            return response()->download($zipFilePath, $zipFileName);
+        } else {
+            return response()->json(['message' => 'Failed to create the zip file'], 500);
+        }
+    }
 
     public function agentAddCandidateForAssignedJob(Request $request)
     {
@@ -201,45 +238,6 @@ class AgentCandidateController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\Response
-     */
-    public function show(AgentCandidate $agentCandidate)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(AgentCandidate $agentCandidate)
-    {
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, AgentCandidate $agentCandidate)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function destroy($id)
     {
         try {

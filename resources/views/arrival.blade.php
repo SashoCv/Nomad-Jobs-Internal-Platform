@@ -58,7 +58,7 @@
         <p><strong>Arrival Date:</strong> {{ $data['arrival_date'] }}</p>
         <p><strong>Arrival Time:</strong> {{ $data['arrival_time'] }}</p>
         <p><strong>Location:</strong> {{ $data['arrival_location'] }}</p>
-        <p><strong>Flight:</strong> {{ $data['arrival_flight'] }}</p>
+        <p><strong>Transport:</strong> {{ $data['arrival_flight'] }}</p>
         <p><strong>Accommodation:</strong> {{ $data['where_to_stay'] }}</p>
         <p><strong>Contact Phone:</strong> {{ $data['phone_number'] }}</p>
     </div>
