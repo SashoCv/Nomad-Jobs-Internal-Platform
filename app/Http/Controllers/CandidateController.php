@@ -8,6 +8,7 @@ use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Education;
+use App\Models\Experience;
 use App\Models\File;
 use App\Models\Position;
 use App\Models\User;
@@ -457,6 +458,20 @@ class CandidateController extends Controller
                 array_push($userOwnersArray, $userOwner->company_id);
             }
             $person = Candidate::where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
+        }
+
+        $education = Education::where('candidate_id', '=', $id)->get();
+        if(isset($education)){
+            $person->education = $education;
+        } else {
+            $person->education = [];
+        }
+
+        $workExperience = Experience::where('candidate_id', '=', $id)->get();
+        if(isset($workExperience)){
+            $person->workExperience = $workExperience;
+        } else {
+            $person->workExperience = [];
         }
 
         if (isset($person)) {
