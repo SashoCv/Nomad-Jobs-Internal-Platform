@@ -161,8 +161,7 @@ class FileController extends Controller
 
         if($userRoleId == 4) {
             $filesQuery = File::where('candidate_id', $id)
-                ->whereIn('category_id', $categoriesIds)
-                ->get();
+                ->whereIn('category_id', $categoriesIds);
         }
 
         $files = $filesQuery->get();
