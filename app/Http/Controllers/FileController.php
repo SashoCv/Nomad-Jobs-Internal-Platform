@@ -152,11 +152,17 @@ class FileController extends Controller
         }
 
         $categories = $categoriesQuery->orderBy('id', 'asc')->get();
-
+        $categoriesIds = $categories->pluck('id');
         $filesQuery = File::where('candidate_id', $id);
 
-        if ($userRoleId == 3 || $userRoleId == 4 || $userRoleId == 5) {
+        if ($userRoleId == 3 || $userRoleId == 5) {
             $filesQuery->where('company_restriction', 0);
+        }
+
+        if($userRoleId == 4) {
+            $filesQuery = File::where('candidate_id', $id)
+                ->whereIn('category_id', $categoriesIds)
+                ->get();
         }
 
         $files = $filesQuery->get();
