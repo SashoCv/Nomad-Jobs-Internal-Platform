@@ -64,11 +64,16 @@ class AgentCandidateController extends Controller
 
     public function agentAddCandidateForAssignedJob(Request $request)
     {
+        $getCompanyJob = DB::table('company_jobs')->where('id', $request->company_job_id)->first();
+        if(!$getCompanyJob){
+            return response()->json(['message' => 'Job not found'], 404);
+        }
+        $companyId = $getCompanyJob->company_id;
         $person = new Candidate();
 
         $person->status_id = $request->status_id;
         $person->type_id = "3";
-        $person->company_id = $request->company_id;
+        $person->company_id = $companyId;
         $person->gender = $request->gender;
         $person->email = $request->email;
         $person->nationality = $request->nationality;
