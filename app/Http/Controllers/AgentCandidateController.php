@@ -220,6 +220,9 @@ class AgentCandidateController extends Controller
             } else {
                 if (Auth::user()->role_id == 1) {
                     $query->where('status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id);
+                    if($request->status_for_candidate_from_agent_id == 3){
+                        $query->where('nomad_office_id', null);
+                    }
                 } else if (Auth::user()->role_id == 2){
                     $query->where('agent_candidates.nomad_office_id', $user_id)
                         ->where('agent_candidates.status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id);
