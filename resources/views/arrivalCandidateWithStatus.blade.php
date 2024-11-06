@@ -64,8 +64,9 @@
     <a href="https://calendar.google.com/calendar/r/eventedit?text={{ $data['status'] }}+of+{{ urlencode($data['candidateName']) }}&dates={{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'])) }}/{{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'] . ' +1 hour')) }}&details=Arrival+of+{{ urlencode($data['candidateName']) }}+at+{{ urlencode($data['companyName']) }}&location={{ urlencode($data['companyName']) }}&sf=true&output=xml"
        class="calendar-link" target="_blank">Add to Google Calendar</a>
 
-    <a href="data:text/calendar;charset=utf-8,BEGIN:VCALENDAR%0D%0AVERSION:2.0%0D%0ABEGIN:VEVENT%0D%0AUID:{{ uniqid() }}@hotmail.com%0D%0ADTSTAMP:{{ date('Ymd\THis\Z') }}%0D%0ADTSTART:{{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'])) }}%0D%0ADTEND:{{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'] . ' +1 hour')) }}%0D%0ASUMMARY:{{ urlencode($data['status']) }}+of+{{ urlencode($data['candidateName']) }}%0D%0ADESCRIPTION:Arrival+of+{{ urlencode($data['candidateName']) }}+at+{{ urlencode($data['companyName']) }}%0D%0ALOCATION:{{ urlencode($data['companyName']) }}%0D%0AEND:VEVENT%0D%0AEND:VCALENDAR"
-       class="calendar-link" download="arrival_of_{{ urlencode($data['candidateName']) }}.ics">Add to Outlook Calendar</a>
+    <a href="https://outlook.live.com/calendar/0/deeplink/compose?subject=Event+Title&startdt=2024-11-06T09:00:00&enddt=2024-11-06T10:00:00&body=Event+Description&location=Event+Location">
+        Add to Outlook Calendar
+    </a>
 </div>
 </body>
 </html>
