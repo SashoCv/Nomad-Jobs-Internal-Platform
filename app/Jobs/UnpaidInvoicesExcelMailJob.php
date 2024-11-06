@@ -39,9 +39,7 @@ class UnpaidInvoicesExcelMailJob implements ShouldQueue
         Log::info("File name: " . $this->fileName);
         try {
             Mail::send('excelWithUnpaidInvoices', [], function ($message)  {
-                $message->to('nikoleta@nomadpartners.bg')
-                    ->to('marin@nomadpartners.bg')
-                    ->to('sashko@nomadpartners.bg')
+                $message->to('sasocvetanoski@gmail.com')
                     ->attach(storage_path('app/' . $this->fileName))
                     ->subject('Unpaid Invoices Report');
             });
