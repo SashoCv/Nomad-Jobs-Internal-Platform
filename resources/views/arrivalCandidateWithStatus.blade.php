@@ -64,9 +64,8 @@
     <a href="https://calendar.google.com/calendar/r/eventedit?text={{ $data['status'] }}+of+{{ urlencode($data['candidateName']) }}&dates={{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'])) }}/{{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'] . ' +1 hour')) }}&details=Arrival+of+{{ urlencode($data['candidateName']) }}+at+{{ urlencode($data['companyName']) }}&location={{ urlencode($data['companyName']) }}&sf=true&output=xml"
        class="calendar-link" target="_blank">Add to Google Calendar</a>
 
-    <a href="https://outlook.live.com/calendar/0/deeplink/compose?subject=Event+Title&startdt=2024-11-06T09:00:00&enddt=2024-11-06T10:00:00&body=Event+Description&location=Event+Location">
-        Add to Outlook Calendar
-    </a>
+    <a href="https://outlook.live.com/calendar/0/deeplink/compose?subject={{ urlencode($data['status']) }}+of+{{ urlencode($data['candidateName']) }}&startdt={{ date('Y-m-d\TH:i:s\Z', strtotime($data['changedStatusDate'])) }}&enddt={{ date('Y-m-d\TH:i:s\Z', strtotime($data['changedStatusDate'] . ' +1 hour')) }}&body=Arrival+of+{{ urlencode($data['candidateName']) }}+at+{{ urlencode($data['companyName']) }}&location={{ urlencode($data['companyName']) }}"
+       class="calendar-link" target="_blank">Add to Outlook Calendar</a>
 </div>
 </body>
 </html>
