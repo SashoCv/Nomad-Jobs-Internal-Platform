@@ -53,7 +53,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('login', [LoginController::class, 'login']);
 Route::get('test', [CompanyController::class, 'test']);
 Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
-Route::get('downloadDocumentsForArrivalCandidates/{candidateId}', [ArrivalCandidateController::class, 'downloadDocumentsForArrivalCandidates']);
+Route::get('downloadDocumentsForArrivalCandidate/{candidateId}', [ArrivalCandidateController::class, 'downloadDocumentsForArrivalCandidates']);
 Route::get('downloadDocumentsForCandidatesFromAgent/{candidateId}', [AgentCandidateController::class, 'downloadDocumentsForCandidatesFromAgent']);
 
 
