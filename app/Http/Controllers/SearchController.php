@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AgentCandidateResource;
+use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Company;
 use App\Models\CompanyFile;
@@ -742,10 +744,13 @@ class SearchController extends Controller
         }
 
         if ($userRoleId === 4) {
-            $query->with('agentCandidates')
-                ->whereHas('agentCandidates', function ($q) {
-                    $q->where('user_id', Auth::user()->id);
-                });
+            $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
+                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
+                ->where('agent_candidates.user_id', Auth::user()->id)
+                ->paginate(20);
+
+
+            return AgentCandidateResource::collection($candidatesQuery);
         }
 
         if ($userRoleId === 5) {
@@ -839,11 +844,12 @@ class SearchController extends Controller
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $result,
-            'firstQuartal' => $firstQuartal
-        ]);
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result,
+                'firstQuartal' => $firstQuartal
+            ]);
+
     }
 }

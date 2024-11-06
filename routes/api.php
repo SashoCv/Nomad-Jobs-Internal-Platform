@@ -28,6 +28,7 @@ use App\Http\Controllers\ItemInvoiceController;
 use App\Http\Controllers\InvoiceCompanyCandidateController;
 use App\Http\Controllers\ArrivalCandidateController;
 use App\Http\Controllers\StatusArrivalController;
+use App\Http\Controllers\StatusForCandidateFromAgentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +53,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('login', [LoginController::class, 'login']);
 Route::get('test', [CompanyController::class, 'test']);
 Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
+Route::get('downloadDocumentsForArrivalCandidate/{candidateId}', [ArrivalCandidateController::class, 'downloadDocumentsForArrivalCandidates']);
+Route::get('downloadDocumentsForCandidatesFromAgent/{candidateId}', [AgentCandidateController::class, 'downloadDocumentsForCandidatesFromAgent']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -208,6 +211,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);
     Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']);
     Route::get('getAllCandidatesFromAgents', [AgentCandidateController::class, 'getAllCandidatesFromAgents']);
+    Route::get('statusForCandidateFromAgent', [StatusForCandidateFromAgentController::class, 'index']);
+    Route::post('updateStatusForCandidateFromAgent/{id}', [StatusForCandidateFromAgentController::class, 'update']);
+    Route::delete('deleteCandidateFromAgent/{id}', [AgentCandidateController::class, 'destroy']);
 
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);

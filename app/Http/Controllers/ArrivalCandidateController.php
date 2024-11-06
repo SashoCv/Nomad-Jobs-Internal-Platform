@@ -2,8 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\ArrivalCandidate;
+use App\Models\Candidate;
+use App\Models\Category;
+use App\Models\CompanyCategory;
+use App\Models\File;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
 {
@@ -16,6 +23,8 @@ class ArrivalCandidateController extends Controller
     {
         try {
             $statusId = $request->status_id;
+            $fromDate = $request->from_date;
+            $toDate = $request->to_date;
 
             $query = ArrivalCandidate::with(['arrival.candidate', 'statusArrival']);
 
@@ -23,7 +32,36 @@ class ArrivalCandidateController extends Controller
                 $query->where('status_arrival_id', $statusId);
             }
 
+            if($fromDate && $toDate) {
+                $query->whereBetween('status_date', [$fromDate, $toDate]);
+            }
+
+            $query->orderByRaw('STR_TO_DATE(status_date, "%m-%d-%Y") ASC');
+
             $arrivalCandidates = $query->paginate();
+
+            $arrivalCandidates->getCollection()->transform(function ($arrivalCandidate) {
+                $candidateId = $arrivalCandidate->arrival->candidate->id ?? null;
+
+                if ($candidateId) {
+                    $candidateCategoryId = Category::where('candidate_id', $candidateId)
+                        ->where('nameOfCategory', 'Documents For Arrival Candidates')
+                        ->first()
+                        ->id ?? null;
+
+                    if ($candidateCategoryId) {
+                        $files = File::where('candidate_id', $candidateId)
+                            ->where('category_id', $candidateCategoryId)
+                            ->exists();
+
+                        $arrivalCandidate->has_files = $files ? true : false;
+                    } else {
+                        $arrivalCandidate->has_files = false;
+                    }
+                }
+
+                return $arrivalCandidate;
+            });
 
             return response()->json([
                 'message' => 'Arrival Candidates retrieved successfully',
@@ -110,7 +148,9 @@ class ArrivalCandidateController extends Controller
             $arrivalCandidate->status_description = $request->status_description;
             $arrivalCandidate->status_date = $request->status_date;
 
-            $arrivalCandidate->save();
+            if($arrivalCandidate->save()){
+                dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
+            }
 
             return response()->json([
                 'message' => 'Arrival Candidate updated successfully',
@@ -136,6 +176,41 @@ class ArrivalCandidateController extends Controller
             return response()->json('Arrival Candidate deleted successfully');
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
+        }
+    }
+
+    public function downloadDocumentsForArrivalCandidates($candidateId)
+    {
+
+        $candidateCategoryId = Category::where('candidate_id', $candidateId)->where('nameOfCategory', 'Documents For Arrival Candidates')->first()->id;
+
+
+        $files = File::where('candidate_id', $candidateId)->where('category_id', $candidateCategoryId)->get(['fileName', 'filePath']);
+
+        if(!$files){
+            return response()->json(['message' => 'Files not found'], 404);
+        }
+        $candidate = Candidate::find($candidateId);
+
+        $zip = new ZipArchive();
+        $zipFileName = $candidate->fullName . '_arrival_documents.zip';
+        $zipFilePath = storage_path('app/' . $zipFileName);
+
+        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($files as $file) {
+                $filePath = public_path('storage/' . $file->filePath);
+                if (file_exists($filePath)) {
+                    $fileName = $file->fileName;
+                    $fileExtension = substr(strrchr($filePath, '.'), 1);
+                    $fileName .= '.' . $fileExtension;
+                    $zip->addFile($filePath, $fileName);
+                }
+            }
+            $zip->close();
+
+            return response()->download($zipFilePath, $zipFileName);
+        } else {
+            return response()->json(['message' => 'Failed to create the zip file'], 500);
         }
     }
 }

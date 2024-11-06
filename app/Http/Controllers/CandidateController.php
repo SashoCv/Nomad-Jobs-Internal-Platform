@@ -8,6 +8,7 @@ use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Education;
+use App\Models\Experience;
 use App\Models\File;
 use App\Models\Position;
 use App\Models\User;
@@ -236,7 +237,7 @@ class CandidateController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -357,6 +358,14 @@ class CandidateController extends Controller
                     $file->save();
                 }
 
+                $storeCategory = new Category();
+                $storeCategory->candidate_id = $person->id;
+                $storeCategory->nameOfCategory = "Documents For Arrival Candidates";
+                $storeCategory->role_id = 2;
+                $storeCategory->isGenerated = 0;
+
+                $storeCategory->save();
+
                 return response()->json([
                     'success' => true,
                     'status' => 200,
@@ -422,6 +431,20 @@ class CandidateController extends Controller
             $person->arrival = false;
         }
 
+        $education = Education::where('candidate_id', '=', $id)->get();
+        if(isset($education)){
+            $person->education = $education;
+        } else {
+            $person->education = [];
+        }
+
+        $workExperience = Experience::where('candidate_id', '=', $id)->get();
+        if(isset($workExperience)){
+            $person->workExperience = $workExperience;
+        } else {
+            $person->workExperience = [];
+        }
+
         if (isset($person)) {
             return response()->json([
                 'success' => true,
@@ -447,6 +470,20 @@ class CandidateController extends Controller
             $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
             $userOwnersArray = $userOwners->pluck('company_id')->toArray();
             $person = Candidate::where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
+        }
+
+        $education = Education::where('candidate_id', '=', $id)->get();
+        if(isset($education)){
+            $person->education = $education;
+        } else {
+            $person->education = [];
+        }
+
+        $workExperience = Experience::where('candidate_id', '=', $id)->get();
+        if(isset($workExperience)){
+            $person->workExperience = $workExperience;
+        } else {
+            $person->workExperience = [];
         }
 
         if (isset($person)) {

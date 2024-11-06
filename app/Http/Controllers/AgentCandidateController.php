@@ -2,33 +2,78 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AgentCandidateResource;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
+use App\Models\Category;
 use App\Models\Education;
 use App\Models\Experience;
+use App\Models\File;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class AgentCandidateController extends Controller
 {
     public function __construct(
-        private UsersNotificationRepository $usersNotificationRepository,
-        private NotificationRepository $notificationRepository,
     ) {
     }
 
+    public function downloadDocumentsForCandidatesFromAgent($candidateId)
+    {
+        if(!Auth::user()){
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        $candidateCategoryId = Category::where('candidate_id', $candidateId)->where('nameOfCategory', 'files from agent')->first()->id;
+
+        if(!$candidateCategoryId){
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+        $files = File::where('candidate_id', $candidateId)->where('category_id', $candidateCategoryId)->get(['fileName', 'filePath']);
+
+        if(!$files){
+            return response()->json(['message' => 'Files not found'], 404);
+        }
+        $candidate = Candidate::find($candidateId);
+
+        $zip = new ZipArchive();
+        $zipFileName = $candidate->fullName . '_agent_documents.zip';
+        $zipFilePath = storage_path('app/' . $zipFileName);
+
+        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($files as $file) {
+                $filePath = public_path('storage/' . $file->filePath);
+                if (file_exists($filePath)) {
+                    $fileName = $file->fileName;
+                    $fileExtension = substr(strrchr($filePath, '.'), 1);
+                    $fileName .= '.' . $fileExtension;
+                    $zip->addFile($filePath, $fileName);
+                }
+            }
+            $zip->close();
+
+            return response()->download($zipFilePath, $zipFileName);
+        } else {
+            return response()->json(['message' => 'Failed to create the zip file'], 500);
+        }
+    }
 
     public function agentAddCandidateForAssignedJob(Request $request)
     {
+        $getCompanyJob = DB::table('company_jobs')->where('id', $request->company_job_id)->first();
+        if(!$getCompanyJob){
+            return response()->json(['message' => 'Job not found'], 404);
+        }
+        $companyId = $getCompanyJob->company_id;
         $person = new Candidate();
 
         $person->status_id = $request->status_id;
         $person->type_id = "3";
-        $person->company_id = $request->company_id;
+        $person->company_id = $companyId;
         $person->gender = $request->gender;
         $person->email = $request->email;
         $person->nationality = $request->nationality;
@@ -67,7 +112,7 @@ class AgentCandidateController extends Controller
         $person->addedBy = Auth::user()->id;
         $educations = $request->educations ?? [];
         $experiences = $request->experiences ?? [];
-        
+
         if($person->save()){
 
 
@@ -101,28 +146,35 @@ class AgentCandidateController extends Controller
                 'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate to job',
                 'type' => 'Agent add Candidate for Assigned Job',
             ];
-    
+
             $candidateData = [
                 'user_id' => Auth::user()->id,
                 'company_job_id' => (int) $request->company_job_id,
                 'candidate_id' => $person->id,
+                'status_id' => 1,
             ];
 
+            $categoryForFiles = new Category();
+            $categoryForFiles->role_id = 4;
+            $categoryForFiles->nameOfCategory = 'files from agent';
+            $categoryForFiles->candidate_id = $person->id;
+            $categoryForFiles->isGenerated = 0;
+            $categoryForFiles->save();
 
-    
+
             $agentCandidate = new AgentCandidate();
-    
+
             $agentCandidate->user_id = $candidateData['user_id'];
             $agentCandidate->company_job_id = $candidateData['company_job_id'];
             $agentCandidate->candidate_id = $candidateData['candidate_id'];
-           
-    
+            $agentCandidate->status_for_candidate_from_agent_id = $candidateData['status_id'];
+
             $agentCandidate->save();
-    
-    
+
+
             $notification = NotificationRepository::createNotification($notificationData);
             UsersNotificationRepository::createNotificationForUsers($notification);
-    
+
             return response()->json(
                 [
                     'message' => 'Candidate added successfully',
@@ -141,106 +193,71 @@ class AgentCandidateController extends Controller
     public function getCandidatesForAssignedJob($id)
     {
         try {
-            $candidates = Candidate::whereHas('agentCandidates', function ($query) use ($id) {
-                $query->where('company_job_id', $id);
-            })->get();
+            $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
+                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id');
 
-            return response()->json(['candidates' => $candidates], 200);
+            $candidates = $query->where('company_job_id', $id)->paginate(20);
+
+            return AgentCandidateResource::collection($candidates);
+
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Failed to get candidates'], 500);
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
     public function getAllCandidatesFromAgents(Request $request)
     {
         try {
             $user_id = Auth::user()->id;
+            $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
+                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
+                ->orderBy('company_jobs.company_id', 'desc');
 
-            if ($request->company_job_id !== null) {
+            if ($request->company_job_id != null) {
                 if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                    $candidates = DB::table('agent_candidates')
-                        ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
-                        ->join('users', 'agent_candidates.user_id', '=', 'users.id')
-                        ->select('candidates.*', 'users.email')
-                        ->where('agent_candidates.company_job_id', $request->company_job_id)
-                        ->paginate(20);
+                    $query->where('company_job_id', $request->company_job_id);
                 } else if (Auth::user()->role_id == 4) {
-                    $candidates = DB::table('agent_candidates')
-                        ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
-                        ->join('users', 'agent_candidates.user_id', '=', 'users.id')
-                        ->select('candidates.*', 'users.email')
-                        ->where('agent_candidates.user_id', $user_id)
-                        ->where('agent_candidates.company_job_id', $request->company_job_id)
-                        ->paginate(20);
+                    $query->where('agent_candidates.user_id', $user_id)
+                        ->where('company_job_id', $request->company_job_id);
                 }
             } else {
-                $candidates = DB::table('agent_candidates')
-                    ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
-                    ->join('users', 'agent_candidates.user_id', '=', 'users.id')
-                    ->select('candidates.*', 'users.email')
-                    ->where('agent_candidates.user_id', $user_id)
-                    ->paginate(20);
+                if (Auth::user()->role_id == 1) {
+                    $query->where('status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id);
+                    if($request->status_for_candidate_from_agent_id == 3){
+                        $query->where('nomad_office_id', null);
+                    }
+                } else if (Auth::user()->role_id == 2){
+                    $query->where('agent_candidates.nomad_office_id', $user_id)
+                        ->where('agent_candidates.status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id);
+                } else if (Auth::user()->role_id == 4) {
+                    $query->where('agent_candidates.user_id', $user_id);
+                }
             }
 
+            $candidates = $query->paginate(20);
 
+            return AgentCandidateResource::collection($candidates);
 
-
-
-            return response()->json(['candidates' => $candidates], 200);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Failed to get candidates'], 500);
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\Response
-     */
-    public function show(AgentCandidate $agentCandidate)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(AgentCandidate $agentCandidate)
-    {
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, AgentCandidate $agentCandidate)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\AgentCandidate  $agentCandidate
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(AgentCandidate $agentCandidate)
-    {
-        //
+        try {
+            $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
+            if ($agentCandidate) {
+                $agentCandidate->delete();
+                return response()->json(['message' => 'Candidate deleted successfully'], 200);
+            } else {
+                return response()->json(['message' => 'Candidate not found'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json($e->getMessage(), 500);
+        }
     }
 }
