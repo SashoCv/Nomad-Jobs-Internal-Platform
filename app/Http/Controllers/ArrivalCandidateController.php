@@ -181,14 +181,10 @@ class ArrivalCandidateController extends Controller
 
     public function downloadDocumentsForArrivalCandidates($candidateId)
     {
-        if(!Auth::user()){
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+
         $candidateCategoryId = Category::where('candidate_id', $candidateId)->where('nameOfCategory', 'Documents For Arrival Candidates')->first()->id;
 
-        if(!$candidateCategoryId){
-            return response()->json(['message' => 'Category not found'], 404);
-        }
+
         $files = File::where('candidate_id', $candidateId)->where('category_id', $candidateCategoryId)->get(['fileName', 'filePath']);
 
         if(!$files){
