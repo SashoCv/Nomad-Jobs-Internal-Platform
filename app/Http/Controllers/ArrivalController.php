@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\SendEmailForArrivalCandidates;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
+use App\Models\Category;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -66,6 +67,14 @@ class ArrivalController extends Controller
                     $arrivalCandidate->status_date = $request->arrival_date;
 
                     $arrivalCandidate->save();
+
+
+                    $category = new Category();
+                    $category->nameOfCategory = 'Documents For Arrival Candidates';
+                    $category->candidate_id = $request->candidate_id;
+                    $category->role_id = 2;
+                    $category->isGenerated = 0;
+                    $category->save();
 
 
                     dispatch(new SendEmailForArrivalCandidates($arrival, $arrivalCandidate->status_arrival_id));
