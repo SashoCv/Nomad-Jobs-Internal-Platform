@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgentCandidate;
 use App\Models\AssignedJob;
 use App\Models\Company;
 use App\Models\CompanyJob;
@@ -324,7 +325,7 @@ class CompanyJobController extends Controller
         } else if (Auth::user()->role_id == 4) {
             $assignedJob = AssignedJob::where('user_id', Auth::user()->id)->where('company_job_id', $id)->first();
             if ($assignedJob) {
-                
+
                 $companyJob = CompanyJob::where('id', $id)->first();
                 $company = Company::where('id', $companyJob->company_id)->first();
                 $companyJob->companyImage = $company->logoPath;
@@ -424,7 +425,7 @@ class CompanyJobController extends Controller
             } else {
                 return response()->json(['message' => 'Job update failed'], 400);
             }
-        } else 
+        } else
             if (Auth::user()->role_id == 3) {
             $companyJob = CompanyJob::where('id', $request->id)->where('company_id', Auth::user()->company_id)->first();
 
@@ -471,12 +472,17 @@ class CompanyJobController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\CompanyJob  $companyJob
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
             $companyJob = CompanyJob::find($id);
+
+            $allCandidatesFromAgent = AgentCandidate::where('company_job_id', $id)->get();
+            foreach ($allCandidatesFromAgent as $candidate) {
+                $candidate->delete();
+            }
             if ($companyJob->delete()) {
                 return response()->json([
                     "status" => "success",
