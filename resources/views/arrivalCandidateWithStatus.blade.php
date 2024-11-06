@@ -63,9 +63,6 @@
     <!-- Google Calendar Link -->
     <a href="https://calendar.google.com/calendar/r/eventedit?text={{ $data['status'] }}+of+{{ urlencode($data['candidateName']) }}&dates={{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'])) }}/{{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'] . ' +1 hour')) }}&details=Arrival+of+{{ urlencode($data['candidateName']) }}+at+{{ urlencode($data['companyName']) }}&location={{ urlencode($data['companyName']) }}&sf=true&output=xml"
        class="calendar-link" target="_blank">Add to Google Calendar</a>
-
-    <a href="https://outlook.live.com/calendar/0/deeplink/compose?subject={{ urlencode($data['status']) }}+of+{{ urlencode($data['candidateName']) }}&startdt={{ date('Y-m-d\TH:i:s\Z', strtotime($data['changedStatusDate'] . ' 09:00:00')) }}&enddt={{ date('Y-m-d\TH:i:s\Z', strtotime($data['changedStatusDate'] . ' 09:00:00 +1 hour')) }}&body=Arrival+of+{{ urlencode($data['candidateName']) }}&sf=true"
-       class="calendar-link" target="_blank">Add to Outlook Calendar</a>
 </div>
 </body>x`x`
 </html>
