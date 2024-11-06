@@ -63,6 +63,9 @@
     <!-- Google Calendar Link -->
     <a href="https://calendar.google.com/calendar/r/eventedit?text={{ $data['status'] }}+of+{{ urlencode($data['candidateName']) }}&dates={{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'])) }}/{{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'] . ' +1 hour')) }}&details=Arrival+of+{{ urlencode($data['candidateName']) }}+at+{{ urlencode($data['companyName']) }}&location={{ urlencode($data['companyName']) }}&sf=true&output=xml"
        class="calendar-link" target="_blank">Add to Google Calendar</a>
+
+    <a href="data:text/calendar;charset=utf-8,BEGIN:VCALENDAR%0D%0AVERSION:2.0%0D%0ABEGIN:VEVENT%0D%0AUID:{{ uniqid() }}@hotmail.com%0D%0ADTSTAMP:{{ date('Ymd\THis\Z') }}%0D%0ADTSTART:{{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'])) }}%0D%0ADTEND:{{ date('Ymd\THis\Z', strtotime($data['changedStatusDate'] . ' +1 hour')) }}%0D%0ASUMMARY:{{ $data['status'] }} of {{ $data['candidateName'] }}%0D%0ADESCRIPTION:Arrival of {{ $data['candidateName'] }} at {{ $data['companyName'] }}%0D%0ALOCATION:{{ $data['companyName'] }}%0D%0AEND:VEVENT%0D%0AEND:VCALENDAR"
+       class="calendar-link" download="event.ics">Add to Outlook Calendar</a>
 </div>
 </body>
 </html>
