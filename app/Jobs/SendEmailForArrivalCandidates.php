@@ -50,10 +50,7 @@ class SendEmailForArrivalCandidates implements ShouldQueue
 
         try {
             Mail::send('arrival', ['data' => $data], function ($message) use ($data) {
-                $message->to('katya@nomadpartners.bg')
-                    ->to('sashko@nomadpartners.bg')
-                    ->to('georgi@nomadpartners.bg')
-                    ->to('milen@nomadpartners.bg')
+                $message->to(['katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg', 'sasocvetanoski@gmail.com'])
                     ->subject('Arrival Notification for ' . $data['candidateName']);
             });
 
