@@ -103,7 +103,7 @@ class CompanyController extends Controller
 //            $company->addressOne = $request->addressOne;
 //            $company->addressTwo = $request->addressTwo;
 //            $company->addressThree = $request->addressThree;
-//            $company->companyCity = $request->companyCity;
+            $company->companyCity = $request->companyCity;
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->description = $request->description;
