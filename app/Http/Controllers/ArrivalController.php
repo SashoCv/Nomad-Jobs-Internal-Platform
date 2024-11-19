@@ -69,12 +69,18 @@ class ArrivalController extends Controller
                     $arrivalCandidate->save();
 
 
-                    $category = new Category();
-                    $category->nameOfCategory = 'Documents For Arrival Candidates';
-                    $category->candidate_id = $request->candidate_id;
-                    $category->role_id = 2;
-                    $category->isGenerated = 0;
-                    $category->save();
+                    $existingCategory = Category::where('candidate_id', $request->candidate_id)
+                        ->where('nameOfCategory', 'Documents For Arrival Candidates')
+                        ->first();
+
+                    if (!$existingCategory) {
+                        $category = new Category();
+                        $category->nameOfCategory = 'Documents For Arrival Candidates';
+                        $category->candidate_id = $request->candidate_id;
+                        $category->role_id = 2;
+                        $category->isGenerated = 0;
+                        $category->save();
+                    }
 
 
                     dispatch(new SendEmailForArrivalCandidates($arrival, $arrivalCandidate->status_arrival_id));

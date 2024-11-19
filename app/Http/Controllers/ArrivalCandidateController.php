@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalStatusCandidates;
+use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
@@ -148,7 +149,28 @@ class ArrivalCandidateController extends Controller
             $arrivalCandidate->status_description = $request->status_description;
             $arrivalCandidate->status_date = $request->status_date;
 
+            $candidateId = Arrival::where('id', $arrivalCandidate->arrival_id)->first()->candidate_id;
+            $candidate = Candidate::where('id', $candidateId)->first();
             if($arrivalCandidate->save()){
+                if($arrivalCandidate->status_arrival_id == 1){
+                    $candidate->status_id = 5; // Pristignal
+                }
+                if($arrivalCandidate->status_arrival_id == 3){
+                    $candidate->status_id = 6; // Procedura za ERPR
+                }
+                if($arrivalCandidate->status_arrival_id == 4){
+                    $candidate->status_id = 22; // Procedura za pismo
+                }
+                if($arrivalCandidate->status_arrival_id == 5){
+                    $candidate->status_id = 7; // Snimka za ERPR
+                }
+                if($arrivalCandidate->status_arrival_id == 6){
+                    $candidate->status_id = 8; // Poluchava ERPR
+                }
+                if($arrivalCandidate->status_arrival_id == 9){
+                    $candidate->status_id = 9; // Naznachen za rabota
+                }
+
                 dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
             }
 
