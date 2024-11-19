@@ -17,7 +17,7 @@ class StatusArrivalController extends Controller
     {
         try {
             if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $statusArrivals = StatusArrival::select('id', 'statusName')->get();
+                $statusArrivals = StatusArrival::select('id', 'statusName')->orderBy('order_statuses')->get();
             } else {
                 return response()->json([
                     'message' => 'You are not authorized to view this page'
