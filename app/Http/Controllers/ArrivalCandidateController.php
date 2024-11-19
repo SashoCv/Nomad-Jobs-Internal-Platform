@@ -151,6 +151,7 @@ class ArrivalCandidateController extends Controller
 
             $candidateId = Arrival::where('id', $arrivalCandidate->arrival_id)->first()->candidate_id;
             $candidate = Candidate::where('id', $candidateId)->first();
+
             if($arrivalCandidate->save()){
                 if($arrivalCandidate->status_arrival_id == 1){
                     $candidate->status_id = 5; // Pristignal
@@ -170,6 +171,8 @@ class ArrivalCandidateController extends Controller
                 if($arrivalCandidate->status_arrival_id == 9){
                     $candidate->status_id = 9; // Naznachen za rabota
                 }
+
+                $candidate->save();
 
                 dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
             }
