@@ -15,12 +15,9 @@ class StatusArrivalSeeder extends Seeder
     public function run()
     {
         $statuses = [
-            ['statusName' => 'Пристигнал'],
-            ['statusName' => 'Миграция'],
-            ['statusName' => 'Процедура за ЕРПР'],
-            ['statusName' => 'Процедура за Писмо'],
-            ['statusName' => 'Снимка за ЕРПР'],
-            ['statusName' => 'Получаване на ЕРПР'],
+            ['statusName' => 'Получил за виза'],
+            ['statusName' => 'Очаква се'],
+            ['statusName' => 'Назначен на работа']
         ];
 
         StatusArrival::insert($statuses);
