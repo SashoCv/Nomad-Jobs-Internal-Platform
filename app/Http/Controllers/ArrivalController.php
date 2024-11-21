@@ -62,8 +62,8 @@ class ArrivalController extends Controller
                     $arrivalCandidate = new ArrivalCandidate();
 
                     $arrivalCandidate->arrival_id = $arrival->id;
-                    $arrivalCandidate->status_arrival_id = 1;
-                    $arrivalCandidate->status_description = 'Arrival created';
+                    $arrivalCandidate->status_arrival_id = 8;
+                    $arrivalCandidate->status_description = 'Arrival Expected';
                     $arrivalCandidate->status_date = Carbon::parse($arrival->arrival_date)->format('m-d-Y');
 
                     $arrivalCandidate->save();
