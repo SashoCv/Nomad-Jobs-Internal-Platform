@@ -64,7 +64,7 @@ class ArrivalController extends Controller
                     $arrivalCandidate->arrival_id = $arrival->id;
                     $arrivalCandidate->status_arrival_id = 1;
                     $arrivalCandidate->status_description = 'Arrival created';
-                    $arrivalCandidate->status_date = $request->arrival_time;
+                    $arrivalCandidate->status_date = $arrival->arrival_date;
 
                     $arrivalCandidate->save();
 
