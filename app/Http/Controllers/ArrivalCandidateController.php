@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalStatusCandidates;
+use App\Jobs\SendEmailToCompany;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
@@ -169,10 +170,14 @@ class ArrivalCandidateController extends Controller
                     if ($candidate->status_id !== $newStatusId) {
                         $candidate->status_id = $newStatusId;
                         $candidate->save();
-
-                        dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
                     }
                 }
+
+                if($arrivalCandidate->status_arrival_id == 1) {
+                   dispatch(new SendEmailToCompany($arrivalCandidate->id));
+                }
+
+                dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
             }
 
             return response()->json([

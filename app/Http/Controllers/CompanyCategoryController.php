@@ -41,7 +41,7 @@ class CompanyCategoryController extends Controller
 
             $category = new CompanyCategory();
 
-            $category->role_id = $request->role_id;
+            $category->role_id = Auth::user()->role_id;
             $category->companyNameCategory = $request->companyNameCategory;
             $category->company_id = $request->company_id;
 
