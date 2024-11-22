@@ -63,7 +63,7 @@
         <p>Best regards,</p>
         <p><strong>Nomad Partners</strong></p>
         <p>
-            <a href="https://www.nomadpartners.com" target="_blank">Visit Our Website</a>
+            <a href="https://www.nomadpartners.bg" target="_blank">Visit Our Website</a>
         </p>
     </div>
 </div>
