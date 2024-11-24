@@ -134,6 +134,7 @@ class ArrivalController extends Controller
                 'arrival' => $arrival
             ]);
         } catch (\Exception $e) {
+            Log::info($e->getMessage());
             return response()->json($e->getMessage());
         }
     }
