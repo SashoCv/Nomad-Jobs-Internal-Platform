@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class ArrivalController extends Controller
@@ -45,58 +46,66 @@ class ArrivalController extends Controller
      */
     public function store(Request $request)
     {
-        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+
             try {
-                $arrival = new Arrival();
+                DB::beginTransaction();
 
-                $arrival->company_id = $request->company_id;
-                $arrival->candidate_id = $request->candidate_id;
-                $arrival->arrival_date =  Carbon::createFromFormat('m-d-Y',$request->arrival_date)->format('Y-m-d');
-                $arrival->arrival_time = $request->arrival_time;
-                $arrival->arrival_location = $request->arrival_location;
-                $arrival->arrival_flight = $request->arrival_flight;
-                $arrival->where_to_stay = $request->where_to_stay;
-                $arrival->phone_number = $request->phone_number;  // new field
+                $candidateId = $request->candidate_id;
+                $arrival = Arrival::firstOrNew(['candidate_id' => $candidateId]);
 
-                if ($arrival->save()) {
-                    $arrivalCandidate = new ArrivalCandidate();
+                $arrival->fill([
+                    'company_id' => $request->company_id,
+                    'arrival_date' => Carbon::createFromFormat('m-d-Y', $request->arrival_date)->format('Y-m-d'),
+                    'arrival_time' => $request->arrival_time,
+                    'arrival_location' => $request->arrival_location,
+                    'arrival_flight' => $request->arrival_flight,
+                    'where_to_stay' => $request->where_to_stay,
+                    'phone_number' => $request->phone_number,
+                ]);
 
-                    $arrivalCandidate->arrival_id = $arrival->id;
-                    $arrivalCandidate->status_arrival_id = 8;
-                    $arrivalCandidate->status_description = 'Arrival Expected';
-                    $arrivalCandidate->status_date = Carbon::parse($arrival->arrival_date)->format('m-d-Y');
-
-                    $arrivalCandidate->save();
-
-
-                    $existingCategory = Category::where('candidate_id', $request->candidate_id)
-                        ->where('nameOfCategory', 'Documents For Arrival Candidates')
-                        ->first();
-
-                    if (!$existingCategory) {
-                        $category = new Category();
-                        $category->nameOfCategory = 'Documents For Arrival Candidates';
-                        $category->candidate_id = $request->candidate_id;
-                        $category->role_id = 2;
-                        $category->isGenerated = 0;
-                        $category->save();
-                    }
-
-
-                    dispatch(new SendEmailForArrivalCandidates($arrival, $arrivalCandidate->status_arrival_id));
+                if (!$arrival->save()) {
+                    throw new \Exception('Failed to save arrival details.');
                 }
+
+                $arrivalCandidate = new ArrivalCandidate([
+                    'arrival_id' => $arrival->id,
+                    'status_arrival_id' => 8,
+                    'status_description' => 'Arrival Expected',
+                    'status_date' => Carbon::parse($arrival->arrival_date)->format('m-d-Y'),
+                ]);
+                $arrivalCandidate->save();
+
+                $existingCategory = Category::firstOrCreate(
+                    [
+                        'candidate_id' => $candidateId,
+                        'nameOfCategory' => 'Documents For Arrival Candidates',
+                    ],
+                    [
+                        'role_id' => 2,
+                        'isGenerated' => 0,
+                    ]
+                );
+
+                dispatch(new SendEmailForArrivalCandidates($arrival, $arrivalCandidate->status_arrival_id));
+
+                DB::commit();
 
                 return response()->json([
                     'message' => 'Arrival created successfully',
-                    'arrival' => $arrival
-                ]);
+                    'arrival' => $arrival,
+                ], 201);
+
             } catch (\Exception $e) {
-                return response()->json($e->getMessage());
+                DB::rollBack();
+                return response()->json(['error' => $e->getMessage()], 500);
             }
-        } else {
-            return response()->json('You are not authorized to create an arrival');
         }
+
+        return response()->json(['error' => 'You are not authorized to create an arrival'], 403);
     }
+
+
 
     public function update(Request $request, $id)
     {
