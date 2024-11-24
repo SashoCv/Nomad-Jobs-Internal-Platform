@@ -44,7 +44,7 @@ class CompanyJobController extends Controller
                 $allJobPostingsQuery->where('companies.id', $companyId);
             }
 
-            $allJobPostings = $allJobPostingsQuery->paginate();
+            $allJobPostings = $allJobPostingsQuery->get();
 
             return response()->json([
                 "status" => "success",
@@ -58,7 +58,7 @@ class CompanyJobController extends Controller
                 ->select('company_jobs.id','companies.logoPath','companies.companyCity', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description','company_jobs.contract_type', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
                 ->orderBy('company_jobs.created_at', 'desc')
-                ->paginate();
+                ->get();
 
             return response()->json([
                 "status" => "success",
@@ -80,7 +80,7 @@ class CompanyJobController extends Controller
                 ->select('company_jobs.id','companies.logoPath','companies.companyCity', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
                 ->orderBy('company_jobs.created_at', 'desc')
-                ->paginate();
+                ->get();
 
             return response()->json([
                 "status" => "success",
@@ -102,7 +102,7 @@ class CompanyJobController extends Controller
                 ->select('company_jobs.id','companies.logoPath','companies.companyCity', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
                 ->where('company_jobs.deleted_at', null)
                 ->orderBy('company_jobs.created_at', 'desc')
-                ->paginate();
+                ->get();
 
             return response()->json([
                 "status" => "success",
