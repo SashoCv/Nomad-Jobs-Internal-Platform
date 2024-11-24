@@ -37,11 +37,11 @@ class LoginController extends Controller
             ]);
         }
     }
-    
-    
+
+
     public function admins()
     {
-       
+
 
             $admins = User::where('role_id', 1)->where('email', '!=', "phoenix.dev.mk@gmail.com")->get();
 
@@ -50,12 +50,12 @@ class LoginController extends Controller
                 "status" => 200,
                 "data" => $admins
             ]);
-  
+
             return response()->json([
                 "status" => 500,
                 "message" => "you dont have permission to see admins"
             ]);
-        
+
     }
 
 
@@ -98,10 +98,9 @@ class LoginController extends Controller
 
             $token = $user->createToken('token')->plainTextToken;
             $user->token = $token;
-            $expires_at =  Carbon::now()->addHours(7);
-            $expires_at = date($expires_at);
+            $expires_at = Carbon::now()->addHours(48)->toDateTimeString();
 
-         
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
@@ -178,7 +177,7 @@ class LoginController extends Controller
                 if($user->role_id === "5"){
                     $companiesIds = $request->companies;
                     $companiesArray = array_map('intval', explode(',', $companiesIds));
-    
+
                     foreach ($companiesArray as $companyId) {
                         $company = Company::find($companyId);
                         $company->has_owner = true;
@@ -306,7 +305,7 @@ class LoginController extends Controller
                 $user->userPicturePath = $name;
                 $user->userPictureName = $request->file('userPicture')->getClientOriginalName();
             }
-            
+
             if ($request->hasFile('signature')) {
                 Storage::disk('public')->put('adminSignatures', $request->file('signature'));
                 $name = Storage::disk('public')->put('adminSignatures', $request->file('signature'));
@@ -317,7 +316,7 @@ class LoginController extends Controller
 
             if ($user->save()) {
                     $companiesIds = $request->companies;
-                    
+
                     if($companiesIds){
                         $findAllUserOwners = UserOwner::where('user_id', $id)->get();
                             if($findAllUserOwners){
@@ -328,21 +327,21 @@ class LoginController extends Controller
                                     $userOwner->delete();
                                 }
                             }
-    
+
                         $companiesArray = array_map('intval', explode(',', $companiesIds));
 
                         foreach ($companiesArray as $companyId) {
-                            
+
                             $company = Company::find($companyId);
                             $company->has_owner = true;
                             $company->save();
-    
+
                             $userOwner = new UserOwner();
                             $userOwner->user_id = $id;
                             $userOwner->company_id = $companyId;
                             $userOwner->save();
                         }
-                    }    
+                    }
                 return response()->json([
                     'success' => true,
                     'status' => 200,
@@ -371,7 +370,7 @@ class LoginController extends Controller
         if (Auth::user()->role_id == 1) {
             if ($userDelete->delete()) {
                 $userOwnerExists = UserOwner::where('user_id', $id)->get();
-                
+
                 if($userOwnerExists){
                     foreach($userOwnerExists as $userOwner){
                         $company = Company::find($userOwner->company_id);

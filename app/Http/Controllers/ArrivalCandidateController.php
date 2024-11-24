@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalStatusCandidates;
+use App\Jobs\SendEmailToCompany;
+use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
@@ -148,18 +150,45 @@ class ArrivalCandidateController extends Controller
             $arrivalCandidate->status_description = $request->status_description;
             $arrivalCandidate->status_date = $request->status_date;
 
-            if($arrivalCandidate->save()){
+            $candidateId = Arrival::where('id', $arrivalCandidate->arrival_id)->first()->candidate_id;
+            $candidate = Candidate::where('id', $candidateId)->first();
+
+            if ($arrivalCandidate->save()) {
+
+                $statusMapping = [
+                    1 => 5,  // Pristignal
+                    3 => 6,  // Procedura za ERPR
+                    4 => 22, // Procedura za pismo
+                    5 => 7,  // Snimka za ERPR
+                    6 => 8,  // Poluchava ERPR
+                    9 => 9,  // Naznachen za rabota
+                ];
+
+                if (isset($statusMapping[$arrivalCandidate->status_arrival_id])) {
+                    $newStatusId = $statusMapping[$arrivalCandidate->status_arrival_id];
+
+                    if ($candidate->status_id !== $newStatusId) {
+                        $candidate->status_id = $newStatusId;
+                        $candidate->save();
+                    }
+                }
+
+                if($arrivalCandidate->status_arrival_id == 1) {
+                   dispatch(new SendEmailToCompany($arrivalCandidate->id));
+                }
+
                 dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
             }
 
             return response()->json([
                 'message' => 'Arrival Candidate updated successfully',
-                'arrivalCandidate' => $arrivalCandidate
+                'arrivalCandidate' => $arrivalCandidate,
             ]);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
