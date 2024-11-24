@@ -21,6 +21,7 @@ class Arrival extends Model
         'arrival_location',
         'arrival_flight',
         'where_to_stay',
+        'phone_number',
     ];
 
     public function company(): BelongsTo

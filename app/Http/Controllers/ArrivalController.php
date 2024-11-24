@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ArrivalController extends Controller
@@ -114,6 +115,7 @@ class ArrivalController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            Log::info('Request', $request->all());
             $arrival = Arrival::find($id);
 
             $arrival->company_id = $request->company_id;
@@ -123,7 +125,7 @@ class ArrivalController extends Controller
             $arrival->arrival_location = $request->arrival_location;
             $arrival->arrival_flight = $request->arrival_flight;
             $arrival->where_to_stay = $request->where_to_stay;
-            $arrival->phone_number = $request->phone_number;  // new field
+            $arrival->phone_number = $request->phone_number;
 
             $arrival->save();
 
