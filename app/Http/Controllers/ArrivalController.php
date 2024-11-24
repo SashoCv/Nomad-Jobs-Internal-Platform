@@ -115,7 +115,7 @@ class ArrivalController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            Log::info('Request', $request->all());
+            Log::info('Request', [$request]);
             $arrival = Arrival::find($id);
 
             $arrival->company_id = $request->company_id;
