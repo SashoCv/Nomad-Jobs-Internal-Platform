@@ -16,7 +16,7 @@ class StatusSeeder extends Seeder
     public function run()
     {
         DB::table('statuses')->insert([
-            'nameOfStatus' => 'Процедура за Писмо',
+            'nameOfStatus' => 'Очаква се',
         ]);
     }
 }

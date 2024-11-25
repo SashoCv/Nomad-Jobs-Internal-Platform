@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\SendEmailForArrivalCandidates;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
+use App\Models\Candidate;
 use App\Models\Category;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -80,6 +81,10 @@ class ArrivalController extends Controller
                 if(!$arrivalCandidate->save()) {
                     throw new \Exception('Failed to save arrival candidate details.');
                 }
+
+                $candidateChangeStatus = Candidate::where('id', $candidateId)->first();
+                $candidateChangeStatus->status_id = 17;
+                $candidateChangeStatus->save();
 
                 $existingCategory = Category::firstOrCreate(
                     [
