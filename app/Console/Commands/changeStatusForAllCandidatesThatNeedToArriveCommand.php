@@ -47,36 +47,41 @@ class changeStatusForAllCandidatesThatNeedToArriveCommand extends Command
         $updatedCount = 0;
 
         foreach ($allCandidatesWithStatusVisa as $candidate) {
-            $arrival = new Arrival();
-            $arrival->company_id = $candidate->company_id;
-            $arrival->candidate_id = $candidate->id;
-            $arrival->arrival_date = null;
-            $arrival->arrival_time = null;
-            $arrival->arrival_location = null;
-            $arrival->arrival_flight = null;
-            $arrival->where_to_stay = null;
-            $arrival->phone_number = null;
+            $arrivalExists = Arrival::where('candidate_id', $candidate->id)->first();
 
-            if ($arrival->save()) {
-                $arrivalCandidate = new ArrivalCandidate();
-                $arrivalCandidate->arrival_id = $arrival->id;
-                $arrivalCandidate->status_arrival_id = 7;
-                $arrivalCandidate->status_description = 'Получил виза';
-                $arrivalCandidate->status_date = Carbon::now()->format('d-m-Y');
-                $arrivalCandidate->save();
+            if (!$arrivalExists) {
+                $arrival = new Arrival();
+                $arrival->company_id = $candidate->company_id;
+                $arrival->candidate_id = $candidate->id;
+                $arrival->arrival_date = null;
+                $arrival->arrival_time = null;
+                $arrival->arrival_location = null;
+                $arrival->arrival_flight = null;
+                $arrival->where_to_stay = null;
+                $arrival->phone_number = null;
 
-                $category = new Category();
-                $category->nameOfCategory = 'Documents For Arrival Candidates';
-                $category->candidate_id = $arrival->candidate_id;
-                $category->role_id = 2;
-                $category->isGenerated = 0;
-                $category->save();
+                if ($arrival->save()) {
+                    $arrivalCandidate = new ArrivalCandidate();
+                    $arrivalCandidate->arrival_id = $arrival->id;
+                    $arrivalCandidate->status_arrival_id = 7;
+                    $arrivalCandidate->status_description = 'Получил виза';
+                    $arrivalCandidate->status_date = Carbon::now()->format('d-m-Y');
+                    $arrivalCandidate->save();
 
-                $updatedCount++;
+                    $category = new Category();
+                    $category->nameOfCategory = 'Documents For Arrival Candidates';
+                    $category->candidate_id = $arrival->candidate_id;
+                    $category->role_id = 2;
+                    $category->isGenerated = 0;
+                    $category->save();
+
+                    $updatedCount++;
+                }
+
             }
-
             $this->output->progressAdvance();
         }
+
 
         $this->output->progressFinish();
 
