@@ -32,6 +32,7 @@ class CompanyJobController extends Controller
     {
         $user = Auth::user();
         $roleId = $user->role_id;
+        $contractType = $request->contract_type;
 
         $query = DB::table('company_jobs')
             ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
@@ -52,7 +53,7 @@ class CompanyJobController extends Controller
             ->whereNull('company_jobs.deleted_at')
             ->orderBy('company_jobs.created_at', 'desc');
 
-        if ($contractType = $request->contract_type) {
+        if ($contractType) {
             $query->where('company_jobs.contract_type', $contractType);
         }
 
