@@ -127,7 +127,12 @@ class ArrivalController extends Controller
             $arrival->where_to_stay = $request->where_to_stay;
             $arrival->phone_number = $request->phone_number;
 
-            $arrival->save();
+            if($arrival->save()) {
+                $arrivalCandidate = ArrivalCandidate::where('arrival_id', $id)->first();
+                $arrivalCandidate->status_date = Carbon::parse($arrival->arrival_date)->format('m-d-Y');
+
+                $arrivalCandidate->save();
+            }
 
             return response()->json([
                 'message' => 'Arrival updated successfully',
