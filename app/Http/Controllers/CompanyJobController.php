@@ -52,8 +52,8 @@ class CompanyJobController extends Controller
             ->whereNull('company_jobs.deleted_at')
             ->orderBy('company_jobs.created_at', 'desc');
 
-        if ($request->contract_type) {
-            $query->where('company_jobs.contract_type', $request->contract_type);
+        if ($contractType = $request->contract_type) {
+            $query->where('company_jobs.contract_type', $contractType);
         }
 
         switch ($roleId) {
