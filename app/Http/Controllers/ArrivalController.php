@@ -75,7 +75,7 @@ class ArrivalController extends Controller
                     'arrival_id' => $arrival->id,
                     'status_arrival_id' => 8,
                     'status_description' => 'Arrival Expected',
-                    'status_date' => Carbon::parse($arrival->arrival_date)->format('m-d-Y'),
+                    'status_date' => Carbon::parse($arrival->arrival_date)->format('d-m-Y'),
                 ]);
 
                 if(!$arrivalCandidate->save()) {
@@ -134,7 +134,7 @@ class ArrivalController extends Controller
 
             if($arrival->save()) {
                 $arrivalCandidate = ArrivalCandidate::where('arrival_id', $id)->first();
-                $arrivalCandidate->status_date = Carbon::parse($arrival->arrival_date)->format('m-d-Y');
+                $arrivalCandidate->status_date = Carbon::parse($arrival->arrival_date)->format('d-m-Y');
 
                 $arrivalCandidate->save();
             }

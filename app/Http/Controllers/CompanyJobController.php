@@ -30,87 +30,79 @@ class CompanyJobController extends Controller
 
     public function index(Request $request)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        $user = Auth::user();
+        $roleId = $user->role_id;
+        $contractType = $request->contract_type;
 
-            $companyId = $request->company_id;
+        $query = DB::table('company_jobs')
+            ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+            ->select(
+                'company_jobs.id',
+                'companies.logoPath',
+                'companies.companyCity',
+                'company_jobs.company_id',
+                'company_jobs.job_title',
+                'company_jobs.number_of_positions',
+                'company_jobs.contract_type',
+                'company_jobs.job_description',
+                'companies.nameOfCompany',
+                'company_jobs.created_at',
+                'company_jobs.updated_at',
+                'company_jobs.deleted_at'
+            )
+            ->whereNull('company_jobs.deleted_at')
+            ->orderBy('company_jobs.created_at', 'desc');
 
-            $allJobPostingsQuery = DB::table('company_jobs')
-                ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
-                ->select('company_jobs.id','companies.logoPath','companies.companyCity', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.contract_type', 'company_jobs.job_description', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
-                ->whereNull('company_jobs.deleted_at')
-                ->orderBy('company_jobs.created_at', 'desc');
-
-            if ($companyId) {
-                $allJobPostingsQuery->where('companies.id', $companyId);
-            }
-
-            $allJobPostings = $allJobPostingsQuery->get();
-
-            return response()->json([
-                "status" => "success",
-                "message" => "Job retrieved successfully",
-                "data" => $allJobPostings
-            ], 200);
-        } else if (Auth::user()->role_id == 3) {
-            $allJobPostings = DB::table('company_jobs')
-                ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
-                ->where('company_jobs.company_id', Auth::user()->company_id)
-                ->select('company_jobs.id','companies.logoPath','companies.companyCity', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description','company_jobs.contract_type', 'companies.nameOfCompany', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
-                ->where('company_jobs.deleted_at', null)
-                ->orderBy('company_jobs.created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                "status" => "success",
-                "message" => "Job retrieved successfully",
-                "data" => $allJobPostings
-            ], 200);
-        } else if (Auth::user()->role_id == 5) {
-
-            $userOwner = UserOwner::where('user_id', Auth::user()->id)->get();
-            $companyIds = [];
-
-            foreach ($userOwner as $owner) {
-                $companyIds[] = $owner->company_id;
-            }
-
-            $allJobPostings = DB::table('company_jobs')
-                ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
-                ->whereIn('company_jobs.company_id', $companyIds)
-                ->select('company_jobs.id','companies.logoPath','companies.companyCity', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
-                ->where('company_jobs.deleted_at', null)
-                ->orderBy('company_jobs.created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                "status" => "success",
-                "message" => "Job retrieved successfully",
-                "data" => $allJobPostings
-            ], 200);
-        } else if (Auth::user()->role_id == 4) {
-
-            $assignedJobs = AssignedJob::where('user_id', Auth::user()->id)->get();
-
-            $companyJobIds = [];
-            foreach ($assignedJobs as $assignedJob) {
-                $companyJobIds[] = $assignedJob->company_job_id;
-            }
-
-            $allJobPostings = DB::table('company_jobs')
-                ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
-                ->whereIn('company_jobs.id', $companyJobIds)
-                ->select('company_jobs.id','companies.logoPath','companies.companyCity', 'company_jobs.company_id', 'company_jobs.job_title', 'company_jobs.number_of_positions', 'company_jobs.job_description', 'companies.nameOfCompany','company_jobs.contract_type', 'company_jobs.created_at', 'company_jobs.updated_at', 'company_jobs.deleted_at')
-                ->where('company_jobs.deleted_at', null)
-                ->orderBy('company_jobs.created_at', 'desc')
-                ->get();
-
-            return response()->json([
-                "status" => "success",
-                "message" => "Job retrieved successfully",
-                "data" => $allJobPostings
-            ], 200);
+        if ($contractType) {
+            $query->where('company_jobs.contract_type', $contractType);
         }
+
+        switch ($roleId) {
+            case 1:
+            case 2:
+                if ($companyId = $request->company_id) {
+                    $query->where('companies.id', $companyId);
+                }
+                break;
+
+            case 3:
+                // Company-specific role
+                $query->where('company_jobs.company_id', $user->company_id);
+                break;
+
+            case 5:
+                // COMPANY OWNER
+                $companyIds = UserOwner::where('user_id', $user->id)
+                    ->pluck('company_id')
+                    ->toArray();
+                $query->whereIn('company_jobs.company_id', $companyIds);
+                break;
+
+            case 4:
+                // AGENT
+                $companyJobIds = AssignedJob::where('user_id', $user->id)
+                    ->pluck('company_job_id')
+                    ->toArray();
+                $query->whereIn('company_jobs.id', $companyJobIds);
+                break;
+
+            default:
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Unauthorized access",
+                ], 403);
+        }
+
+        $allJobPostings = $query->get();
+
+        // Return the response
+        return response()->json([
+            "status" => "success",
+            "message" => "Job retrieved successfully",
+            "data" => $allJobPostings
+        ], 200);
     }
+
 
     /**
      * Show the form for creating a new resource.
