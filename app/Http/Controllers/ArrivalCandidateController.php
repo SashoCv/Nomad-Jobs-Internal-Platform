@@ -10,6 +10,7 @@ use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\CompanyCategory;
 use App\Models\File;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpWord\Shared\ZipArchive;
@@ -28,7 +29,6 @@ class ArrivalCandidateController extends Controller
             $fromDate = $request->from_date;
             $toDate = $request->to_date;
 
-
             $query = ArrivalCandidate::with(['arrival.candidate', 'statusArrival']);
 
             if ($statusId) {
@@ -36,6 +36,8 @@ class ArrivalCandidateController extends Controller
             }
 
             if($fromDate && $toDate) {
+                $fromDate = Carbon::createFromFormat('m-d-Y', $fromDate)->format('d-m-Y');
+                $toDate = Carbon::createFromFormat('m-d-Y', $toDate)->format('d-m-Y');
                 $query->whereBetween('status_date', [$fromDate, $toDate]);
             }
 
