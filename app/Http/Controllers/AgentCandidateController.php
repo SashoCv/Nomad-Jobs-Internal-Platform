@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class AgentCandidateController extends Controller
@@ -112,6 +113,20 @@ class AgentCandidateController extends Controller
         $person->addedBy = Auth::user()->id;
         $educations = $request->educations ?? [];
         $experiences = $request->experiences ?? [];
+
+        if ($request->hasFile('personPassport')) {
+            Storage::disk('public')->put('personPassports', $request->file('personPassport'));
+            $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
+            $person->passportPath = $name;
+            $person->passportName = $request->file('personPassport')->getClientOriginalName();
+        }
+
+        if ($request->hasFile('personPicture')) {
+            Storage::disk('public')->put('personImages', $request->file('personPicture'));
+            $name = Storage::disk('public')->put('companyImages', $request->file('personPicture'));
+            $person->personPicturePath = $name;
+            $person->personPictureName = $request->file('personPicture')->getClientOriginalName();
+        }
 
         if($person->save()){
 
@@ -213,6 +228,7 @@ class AgentCandidateController extends Controller
             $user_id = Auth::user()->id;
             $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
+                ->where('status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id)
                 ->orderBy('company_jobs.company_id', 'desc');
 
             if ($request->company_job_id != null) {

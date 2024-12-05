@@ -93,7 +93,7 @@ class CompanyJobController extends Controller
                 ], 403);
         }
 
-        $allJobPostings = $query->get();
+        $allJobPostings = $query->paginate();
 
         // Return the response
         return response()->json([
