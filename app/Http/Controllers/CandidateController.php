@@ -25,6 +25,21 @@ use Svg\Tag\Rect;
 
 class CandidateController extends Controller
 {
+
+    public function getCandidatesWhoseContractsAreExpiring()
+    {
+        $currentDate = date('Y-m-d');
+        $fourMonthsBefore = date('Y-m-d', strtotime($currentDate . ' - 4 months'));
+        $candidates = Candidate::with(['company', 'status', 'position', 'user'])
+            ->where('contractPeriodDate', '<=', $fourMonthsBefore)
+            ->get();
+
+       return response()->json([
+           'success' => true,
+           'status' => 200,
+           'data' => $candidates,
+       ]);
+    }
     public function scriptForSeasonal()
     {
         $candidates = Candidate::where('contractType','=','90days')->get();

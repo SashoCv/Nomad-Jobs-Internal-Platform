@@ -260,4 +260,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getArrivalCandidatesWithStatuses', [ArrivalCandidateController::class, 'index']);
     Route::post('updateStatusForArrivalCandidate/{id}', [ArrivalCandidateController::class, 'update']);
     Route::delete('deleteArrivalCandidate/{id}', [ArrivalCandidateController::class, 'destroy']);
+
+
+    // Candidates whose contracts are expiring
+    Route::get('getCandidatesWhoseContractsAreExpiring', [CandidateController::class, 'getCandidatesWhoseContractsAreExpiring']);
+
 });
