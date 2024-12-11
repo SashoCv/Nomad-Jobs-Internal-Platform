@@ -81,7 +81,7 @@ class MedicalInsuranceController extends Controller
 
             $medicalInsurances = MedicalInsurance::with('candidate')
                 ->whereBetween('dateTo', [$thirtyDaysAgo, $currentDate])
-                ->get();
+                ->paginate();
 
             return response()->json([
                 'success' => true,
