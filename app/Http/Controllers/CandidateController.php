@@ -30,7 +30,7 @@ class CandidateController extends Controller
     public function getCandidatesWhoseContractsAreExpiring()
     {
         $currentDate = date('Y-m-d');
-        $fourMonthsBefore = date('Y-m-d', strtotime($currentDate . ' - 4 months'));
+        $fourMonthsBefore = date('Y-m-d', strtotime($currentDate . ' + 4 months'));
         $candidates = Candidate::select('id', 'fullName','date','contractPeriodDate', 'company_id', 'status_id', 'position_id')
         ->with([
             'company' => function ($query) {
@@ -44,7 +44,7 @@ class CandidateController extends Controller
             }
         ])
             ->where('contractPeriodDate', '<=', $fourMonthsBefore)
-            ->orWhereBetween('contractPeriodDate', [$fourMonthsBefore, $currentDate])
+            ->orderBy('contractPeriodDate', 'desc')
             ->paginate();
 
        return response()->json([
