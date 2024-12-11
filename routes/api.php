@@ -29,6 +29,7 @@ use App\Http\Controllers\InvoiceCompanyCandidateController;
 use App\Http\Controllers\ArrivalCandidateController;
 use App\Http\Controllers\StatusArrivalController;
 use App\Http\Controllers\StatusForCandidateFromAgentController;
+use App\Http\Controllers\MedicalInsuranceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -265,4 +266,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Candidates whose contracts are expiring
     Route::get('getCandidatesWhoseContractsAreExpiring', [CandidateController::class, 'getCandidatesWhoseContractsAreExpiring']);
 
+
+    // Medical Insurance
+    Route::post('storeMedicalInsuranceForCandidate', [MedicalInsuranceController::class, 'store']);
 });
