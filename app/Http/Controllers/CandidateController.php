@@ -44,6 +44,7 @@ class CandidateController extends Controller
             }
         ])
             ->where('contractPeriodDate', '<=', $fourMonthsBefore)
+            ->orWhereBetween('contractPeriodDate', [$fourMonthsBefore, $currentDate])
             ->paginate();
 
        return response()->json([
