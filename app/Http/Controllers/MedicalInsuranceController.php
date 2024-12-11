@@ -77,10 +77,10 @@ class MedicalInsuranceController extends Controller
     {
         try {
             $currentDate = date('Y-m-d');
-            $thirtyDaysAgo = date('Y-m-d', strtotime('-30 days', strtotime($currentDate)));
+            $thirtyDaysAgo = date('Y-m-d', strtotime('+30 days', strtotime($currentDate)));
 
             $medicalInsurances = MedicalInsurance::with('candidate')
-                ->whereBetween('dateTo', [$thirtyDaysAgo, $currentDate])
+                ->where('dateTo', '<=', $thirtyDaysAgo)
                 ->paginate();
 
             return response()->json([
