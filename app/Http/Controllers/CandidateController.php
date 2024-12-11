@@ -302,6 +302,18 @@ class CandidateController extends Controller
             $educations = $request->education ?? [];
             $experiences = $request->experience ?? [];
 
+
+            preg_match('/\d+/', $request->contractPeriod, $matches);
+            $contractPeriod = isset($matches[0]) ? (int) $matches[0] : null;
+
+            if($contractPeriod === null){
+                $contractPeriodDate = null;
+            } else {
+                $contractPeriodDate = $request->date->addYears($contractPeriod);
+            }
+
+            $person->contractPeriodDate = $contractPeriodDate;
+
             if ($request->case_id === 'null') {
                 $case_id = Null;
             } else {
