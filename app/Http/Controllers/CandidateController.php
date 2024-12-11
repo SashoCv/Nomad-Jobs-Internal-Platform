@@ -13,6 +13,7 @@ use App\Models\File;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOwner;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -309,7 +310,8 @@ class CandidateController extends Controller
             if($contractPeriod === null){
                 $contractPeriodDate = null;
             } else {
-                $contractPeriodDate = $request->date->addYears($contractPeriod);
+                $date = Carbon::parse($request->date);
+                $contractPeriodDate = $date->addYears($contractPeriod);
             }
 
             $person->contractPeriodDate = $contractPeriodDate;
@@ -731,7 +733,8 @@ class CandidateController extends Controller
             if($contractPeriod === null){
                 $contractPeriodDate = null;
             } else {
-                $contractPeriodDate = $request->date->addYears($contractPeriod);
+                $date = Carbon::parse($request->date);
+                $contractPeriodDate = $date->addYears($contractPeriod);
             }
 
             $person->contractPeriodDate = $contractPeriodDate;
