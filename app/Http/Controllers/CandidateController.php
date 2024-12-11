@@ -725,6 +725,17 @@ class CandidateController extends Controller
             $quartalyMonth = date('m', strtotime($request->date));
             $person->quartal = $quartalyMonth . "/" . $quartalyYear;
 
+            preg_match('/\d+/', $request->contractPeriod, $matches);
+            $contractPeriod = isset($matches[0]) ? (int) $matches[0] : null;
+
+            if($contractPeriod === null){
+                $contractPeriodDate = null;
+            } else {
+                $contractPeriodDate = $request->date->addYears($contractPeriod);
+            }
+
+            $person->contractPeriodDate = $contractPeriodDate;
+
             if($request->contractType == '90days'){
                 if ($quartalyMonth > 5 && $quartalyMonth < 9) {
                     $person->seasonal = 'summer' . '/' . $quartalyYear;
