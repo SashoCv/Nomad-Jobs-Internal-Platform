@@ -269,4 +269,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Medical Insurance
     Route::post('storeMedicalInsuranceForCandidate', [MedicalInsuranceController::class, 'store']);
+    Route::get('getMedicalInsuranceForCandidates', [MedicalInsuranceController::class, 'show']);
 });

@@ -16,4 +16,9 @@ class MedicalInsurance extends Model
         'dateFrom',
         'dateTo',
     ];
+
+    public function candidate()
+    {
+        return $this->belongsTo(Candidate::class, 'candidate_id');
+    }
 }

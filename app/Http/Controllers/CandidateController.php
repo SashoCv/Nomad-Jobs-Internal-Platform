@@ -33,7 +33,7 @@ class CandidateController extends Controller
         $fourMonthsBefore = date('Y-m-d', strtotime($currentDate . ' - 4 months'));
         $candidates = Candidate::with(['company', 'status', 'position', 'user'])
             ->where('contractPeriodDate', '<=', $fourMonthsBefore)
-            ->get();
+            ->paginate();
 
        return response()->json([
            'success' => true,

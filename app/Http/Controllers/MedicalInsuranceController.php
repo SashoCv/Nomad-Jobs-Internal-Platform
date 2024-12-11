@@ -71,11 +71,31 @@ class MedicalInsuranceController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\MedicalInsurance  $medicalInsurance
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(MedicalInsurance $medicalInsurance)
+    public function show()
     {
-        //
+        try {
+            $currentDate = date('Y-m-d');
+            $thirtyDaysAgo = date('Y-m-d', strtotime('-30 days', strtotime($currentDate)));
+
+            $medicalInsurances = MedicalInsurance::with('candidate')
+                ->whereBetween('dateTo', [$thirtyDaysAgo, $currentDate])
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $medicalInsurances
+            ]);
+        } catch (\Exception $e) {
+            Log::info('Medical Insurance fetch failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Medical Insurance fetch failed'
+            ]);
+        }
     }
 
     /**
