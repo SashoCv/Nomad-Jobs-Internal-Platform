@@ -31,7 +31,18 @@ class CandidateController extends Controller
     {
         $currentDate = date('Y-m-d');
         $fourMonthsBefore = date('Y-m-d', strtotime($currentDate . ' - 4 months'));
-        $candidates = Candidate::with(['company', 'status', 'position', 'user'])
+        $candidates = Candidate::select('id', 'fullName','date','contractPeriodDate', 'company_id', 'status_id', 'position_id')
+        ->with([
+            'company' => function ($query) {
+                $query->select('id', 'nameOfCompany', 'EIK');
+            },
+            'status' => function ($query) {
+                $query->select('id', 'nameOfStatus');
+            },
+            'position' => function ($query) {
+                $query->select('id', 'jobPosition');
+            }
+        ])
             ->where('contractPeriodDate', '<=', $fourMonthsBefore)
             ->paginate();
 
