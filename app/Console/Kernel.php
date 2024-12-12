@@ -16,7 +16,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('invoices:send-unpaid')->fridays()->at('16:00');
-        $schedule->command('candidate:change-status-to-arrival')->everyTwoHours();
+//        $schedule->command('candidate:change-status-to-arrival')->everyTwoHours();
+        $schedule->command('reminder:email-for-expired-contract')->dailyAt('08:00');
     }
 
     /**
