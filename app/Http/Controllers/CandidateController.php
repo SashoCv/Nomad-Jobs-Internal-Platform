@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\File;
+use App\Models\MedicalInsurance;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOwner;
@@ -439,7 +440,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         $roleId = $user->role_id;
 
-        $query = Candidate::with(['categories', 'company', 'position','medicalInsurance'])->where('id', $id);
+        $query = Candidate::with(['categories', 'company', 'position'])->where('id', $id);
 
         if ($roleId == 1 || $roleId == 2) {
             $person = $query->first();
@@ -462,6 +463,7 @@ class CandidateController extends Controller
             $person->arrival = Arrival::where('candidate_id', $id)->exists();
             $person->education = Education::where('candidate_id', $id)->get();
             $person->workExperience = Experience::where('candidate_id', $id)->get();
+            $person->medicalInsurance = MedicalInsurance::where('candidate_id', $id)->get() ?? [];
 
             return response()->json([
                 'success' => true,
