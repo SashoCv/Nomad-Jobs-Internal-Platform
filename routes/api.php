@@ -270,4 +270,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Medical Insurance
     Route::post('storeMedicalInsuranceForCandidate', [MedicalInsuranceController::class, 'store']);
     Route::get('getMedicalInsuranceForCandidates', [MedicalInsuranceController::class, 'show']);
+    Route::get('getMedicalInsurance/{id}', [MedicalInsuranceController::class, 'showForCandidate']);
+    Route::get('getMedicalInsuranceForCandidate/{id}', [MedicalInsuranceController::class, 'index']);
+    Route::post('updateMedicalInsurance/{id}', [MedicalInsuranceController::class, 'update']);
+    Route::delete('deleteMedicalInsurance/{id}', [MedicalInsuranceController::class, 'destroy']);
+
 });
