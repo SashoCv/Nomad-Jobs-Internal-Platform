@@ -11,7 +11,20 @@ class MedicalInsuranceController extends Controller
     public function index($id)
     {
         try {
-            $medicalInsurances = MedicalInsurance::where('candidate_id', $id)->get();
+            $medicalInsurances = MedicalInsurance::sellect('id', 'name', 'description', 'dateFrom', 'dateTo','candidate_id')
+                ->with([
+                    'candidate' => function ($query) {
+                        $query->select('id', 'fullName','company_id','position_id');
+                    },
+                    'candidate.company' => function ($query) {
+                        $query->select('id', 'nameOfCompany');
+                    },
+                    'candidate.position' => function ($query) {
+                        $query->select('id', 'jobPosition');
+                    }
+                    ])
+                ->where('candidate_id', $id)
+                ->get();
 
             return response()->json([
                 'success' => true,
@@ -30,7 +43,20 @@ class MedicalInsuranceController extends Controller
     public function showForCandidate($id)
     {
         try {
-            $medicalInsurance = MedicalInsurance::where('id', $id)->first();
+            $medicalInsurance = MedicalInsurance::sellect('id', 'name', 'description', 'dateFrom', 'dateTo','candidate_id')
+                ->with([
+                    'candidate' => function ($query) {
+                        $query->select('id', 'fullName','company_id','position_id');
+                    },
+                    'candidate.company' => function ($query) {
+                        $query->select('id', 'nameOfCompany');
+                    },
+                    'candidate.position' => function ($query) {
+                        $query->select('id', 'jobPosition');
+                    }
+                    ])
+                ->where('id', $id)
+                ->first();
 
             return response()->json([
                 'success' => true,
@@ -108,7 +134,18 @@ class MedicalInsuranceController extends Controller
             $currentDate = date('Y-m-d');
             $thirtyDaysAgo = date('Y-m-d', strtotime('+30 days', strtotime($currentDate)));
 
-            $medicalInsurances = MedicalInsurance::with('candidate')
+            $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo','candidate_id')
+                ->with([
+                    'candidate' => function ($query) {
+                        $query->select('id', 'fullName','company_id','position_id');
+                    },
+                    'candidate.company' => function ($query) {
+                        $query->select('id', 'nameOfCompany');
+                    },
+                    'candidate.position' => function ($query) {
+                        $query->select('id', 'jobPosition');
+                    }
+                    ])
                 ->where('dateTo', '<=', $thirtyDaysAgo)
                 ->paginate();
 
