@@ -32,18 +32,17 @@ class ReminderEmailForExpiredContractCommand extends Command
     public function handle()
     {
         // Get the date one month ago
-        $expiredContractsOneMonthAgo = Carbon::now()->subMonth()->format('Y-m-d');
+      $oneMonthFromNow = Carbon::now()->addMonth()->format('Y-m-d');
 
         // Fetch candidates with expired contracts
         $allCandidatesWithThisDate = Candidate::with('company')
-            ->where('contractPeriodDate', $expiredContractsOneMonthAgo)
+            ->where('contractPeriodDate', $oneMonthFromNow)
             ->get();
 
         // Log the number of candidates found
         $count = $allCandidatesWithThisDate->count();
-        Log::info("Found {$count} candidates with expired contracts as of {$expiredContractsOneMonthAgo}.");
+        Log::info("Found {$count} candidates with expired contracts as of {$oneMonthFromNow}.");
 
-        // Send email only if there are candidates
         if ($count > 0) {
             Mail::send('expiredContract', ['data' => $allCandidatesWithThisDate], function ($message) {
                 $message->to(['sasocvetanoski@gmail.com']);
