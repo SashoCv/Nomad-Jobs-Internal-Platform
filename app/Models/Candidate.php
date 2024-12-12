@@ -78,6 +78,8 @@ class Candidate extends Model
 
     public function medicalInsurance()
     {
-        return $this->hasMany(MedicalInsurance::class);
+        $insurance = $this->hasMany(MedicalInsurance::class)->get();
+
+        return $insurance->isEmpty() ? [] : $insurance;
     }
 }
