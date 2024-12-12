@@ -8,21 +8,26 @@ use Illuminate\Support\Facades\Log;
 
 class MedicalInsuranceController extends Controller
 {
+    private function withCandidateRelations()
+    {
+        return [
+            'candidate' => function ($query) {
+                $query->select('id', 'fullName', 'company_id', 'position_id');
+            },
+            'candidate.company' => function ($query) {
+                $query->select('id', 'nameOfCompany');
+            },
+            'candidate.position' => function ($query) {
+                $query->select('id', 'jobPosition');
+            }
+        ];
+    }
+
     public function index($id)
     {
         try {
-            $medicalInsurances = MedicalInsurance::sellect('id', 'name', 'description', 'dateFrom', 'dateTo','candidate_id')
-                ->with([
-                    'candidate' => function ($query) {
-                        $query->select('id', 'fullName','company_id','position_id');
-                    },
-                    'candidate.company' => function ($query) {
-                        $query->select('id', 'nameOfCompany');
-                    },
-                    'candidate.position' => function ($query) {
-                        $query->select('id', 'jobPosition');
-                    }
-                    ])
+            $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
+                ->with($this->withCandidateRelations())
                 ->where('candidate_id', $id)
                 ->get();
 
@@ -32,7 +37,8 @@ class MedicalInsuranceController extends Controller
                 'data' => $medicalInsurances
             ]);
         } catch (\Exception $e) {
-            Log::info('Medical Insurance fetch failed: ' . $e->getMessage());
+            Log::error('Medical Insurance fetch failed: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
@@ -40,21 +46,12 @@ class MedicalInsuranceController extends Controller
             ]);
         }
     }
+
     public function showForCandidate($id)
     {
         try {
-            $medicalInsurance = MedicalInsurance::sellect('id', 'name', 'description', 'dateFrom', 'dateTo','candidate_id')
-                ->with([
-                    'candidate' => function ($query) {
-                        $query->select('id', 'fullName','company_id','position_id');
-                    },
-                    'candidate.company' => function ($query) {
-                        $query->select('id', 'nameOfCompany');
-                    },
-                    'candidate.position' => function ($query) {
-                        $query->select('id', 'jobPosition');
-                    }
-                    ])
+            $medicalInsurance = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
+                ->with($this->withCandidateRelations())
                 ->where('id', $id)
                 ->first();
 
@@ -64,7 +61,8 @@ class MedicalInsuranceController extends Controller
                 'data' => $medicalInsurance
             ]);
         } catch (\Exception $e) {
-            Log::info('Medical Insurance fetch failed: ' . $e->getMessage());
+            Log::error('Medical Insurance fetch failed: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
@@ -73,47 +71,19 @@ class MedicalInsuranceController extends Controller
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function store(Request $request)
     {
         try {
-            $medicalInsurance = new MedicalInsurance();
-            $medicalInsurance->name = $request->name;
-            $medicalInsurance->description = $request->description;
-            $medicalInsurance->candidate_id = $request->candidate_id;
-            $medicalInsurance->dateFrom = $request->dateFrom;
-            $medicalInsurance->dateTo = $request->dateTo;
+            $medicalInsurance = MedicalInsurance::create($request->only('name', 'description', 'candidate_id', 'dateFrom', 'dateTo'));
 
-            if($medicalInsurance->save()) {
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'message' => 'Medical Insurance created successfully'
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'message' => 'Medical Insurance creation failed'
-                ]);
-            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Medical Insurance created successfully'
+            ]);
         } catch (\Exception $e) {
-            Log::info('Medical Insurance creation failed: ' . $e->getMessage());
+            Log::error('Medical Insurance creation failed: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
@@ -122,30 +92,14 @@ class MedicalInsuranceController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\MedicalInsurance  $medicalInsurance
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function show()
     {
         try {
-            $currentDate = date('Y-m-d');
-            $thirtyDaysAgo = date('Y-m-d', strtotime('+30 days', strtotime($currentDate)));
+            $currentDate = now();
+            $thirtyDaysAgo = $currentDate->copy()->addDays(30);
 
-            $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo','candidate_id')
-                ->with([
-                    'candidate' => function ($query) {
-                        $query->select('id', 'fullName','company_id','position_id');
-                    },
-                    'candidate.company' => function ($query) {
-                        $query->select('id', 'nameOfCompany');
-                    },
-                    'candidate.position' => function ($query) {
-                        $query->select('id', 'jobPosition');
-                    }
-                    ])
+            $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
+                ->with($this->withCandidateRelations())
                 ->where('dateTo', '<=', $thirtyDaysAgo)
                 ->paginate();
 
@@ -155,7 +109,8 @@ class MedicalInsuranceController extends Controller
                 'data' => $medicalInsurances
             ]);
         } catch (\Exception $e) {
-            Log::info('Medical Insurance fetch failed: ' . $e->getMessage());
+            Log::error('Medical Insurance fetch failed: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
@@ -164,49 +119,20 @@ class MedicalInsuranceController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\MedicalInsurance  $medicalInsurance
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(MedicalInsurance $medicalInsurance)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\MedicalInsurance  $medicalInsurance
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function update(Request $request, $id)
     {
         try {
-            $medicalInsurance = MedicalInsurance::where('id', $id)->first();
-            $medicalInsurance->name = $request->name;
-            $medicalInsurance->description = $request->description;
-            $medicalInsurance->candidate_id = $request->candidate_id;
-            $medicalInsurance->dateFrom = $request->dateFrom;
-            $medicalInsurance->dateTo = $request->dateTo;
+            $medicalInsurance = MedicalInsurance::findOrFail($id);
+            $medicalInsurance->update($request->only('name', 'description', 'candidate_id', 'dateFrom', 'dateTo'));
 
-            if($medicalInsurance->save()) {
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'message' => 'Medical Insurance updated successfully'
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'message' => 'Medical Insurance update failed'
-                ]);
-            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Medical Insurance updated successfully'
+            ]);
         } catch (\Exception $e) {
-            Log::info('Medical Insurance update failed: ' . $e->getMessage());
+            Log::error('Medical Insurance update failed: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
@@ -215,32 +141,20 @@ class MedicalInsuranceController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\MedicalInsurance  $medicalInsurance
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function destroy($id)
     {
         try {
-            $medicalInsurance = MedicalInsurance::where('id', $id)->first();
+            $medicalInsurance = MedicalInsurance::findOrFail($id);
+            $medicalInsurance->delete();
 
-            if($medicalInsurance->delete()) {
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'message' => 'Medical Insurance deleted successfully'
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'message' => 'Medical Insurance deletion failed'
-                ]);
-            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Medical Insurance deleted successfully'
+            ]);
         } catch (\Exception $e) {
-            Log::info('Medical Insurance deletion failed: ' . $e->getMessage());
+            Log::error('Medical Insurance deletion failed: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
