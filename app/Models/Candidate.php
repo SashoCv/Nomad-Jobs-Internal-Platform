@@ -75,4 +75,9 @@ class Candidate extends Model
     {
         return $this->hasMany(Experience::class);
     }
+
+    public function medicalInsurance()
+    {
+        return $this->hasMany(MedicalInsurance::class);
+    }
 }

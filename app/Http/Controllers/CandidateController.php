@@ -436,70 +436,46 @@ class CandidateController extends Controller
      */
     public function show($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->first();
-            $agent = AgentCandidate::where('candidate_id', '=', $id)->first();
-            if (isset($agent)) {
-                $user = User::where('id', '=', $agent->user_id)->first();
-                $agentFullName = $user->firstName . ' ' . $user->lastName;
-                $person->agentFullName = $agentFullName;
-            } else {
-                $person->agentFullName = null;
-            }
-        } else if (Auth::user()->role_id == 3) {
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
-        } else if (Auth::user()->role_id == 5) {
-            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = $userOwners->pluck('company_id')->toArray();
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
-        } else if (Auth::user()->role_id == 4) {
-            $candidatesInsertByAgent = AgentCandidate::where('user_id', '=', Auth::user()->id)->get();
-            $candidatesInsertByAgentArray = [];
+        $user = Auth::user();
+        $roleId = $user->role_id;
 
-            foreach ($candidatesInsertByAgent as $candidateInsertByAgent) {
-                array_push($candidatesInsertByAgentArray, $candidateInsertByAgent->candidate_id);
-            }
+        $query = Candidate::with(['categories', 'company', 'position','medicalInsurance'])->where('id', $id);
 
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('id', $candidatesInsertByAgentArray)->first();
-        }
+        if ($roleId == 1 || $roleId == 2) {
+            $person = $query->first();
 
-        $arrivalThisCandidate = Arrival::where('candidate_id', '=', $id)->first();
-
-        if($arrivalThisCandidate){
-            $person->arrival = true;
+            $agent = AgentCandidate::where('candidate_id', $id)->first();
+            $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
+        } elseif ($roleId == 3) {
+            $person = $query->where('company_id', $user->company_id)->first();
+        } elseif ($roleId == 5) {
+            $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
+            $person = $query->whereIn('company_id', $companyIds)->first();
+        } elseif ($roleId == 4) {
+            $candidateIds = AgentCandidate::where('user_id', $user->id)->pluck('candidate_id');
+            $person = $query->whereIn('id', $candidateIds)->first();
         } else {
-            $person->arrival = false;
+            $person = null;
         }
 
-        $education = Education::where('candidate_id', '=', $id)->get();
-        if(isset($education)){
-            $person->education = $education;
-        } else {
-            $person->education = [];
-        }
+        if ($person) {
+            $person->arrival = Arrival::where('candidate_id', $id)->exists();
+            $person->education = Education::where('candidate_id', $id)->get();
+            $person->workExperience = Experience::where('candidate_id', $id)->get();
 
-        $workExperience = Experience::where('candidate_id', '=', $id)->get();
-        if(isset($workExperience)){
-            $person->workExperience = $workExperience;
-        } else {
-            $person->workExperience = [];
-        }
-
-        if (isset($person)) {
             return response()->json([
                 'success' => true,
                 'status' => 200,
                 'data' => $person,
             ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => [],
-            ], 500);
         }
-    }
 
+        return response()->json([
+            'success' => false,
+            'status' => 404,
+            'data' => [],
+        ], 404);
+    }
     public function showPerson($id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
