@@ -74,7 +74,7 @@
             <tr>
                 <td>{{ $candidate->fullName }}</td>
                 <td>{{ $candidate->company->nameOfCompany ?? 'N/A' }}</td>
-                <td>{{ $candidate->contractPeriodDate }}</td>
+                <td>{{ $candidate->contractPeriodDate->format('d-m-Y') }}</td>
             </tr>
         @endforeach
         </tbody>
