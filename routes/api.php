@@ -28,6 +28,7 @@ use App\Http\Controllers\ItemInvoiceController;
 use App\Http\Controllers\InvoiceCompanyCandidateController;
 use App\Http\Controllers\ArrivalCandidateController;
 use App\Http\Controllers\StatusArrivalController;
+use App\Http\Controllers\MigrationDocumentPreparationController;
 use App\Http\Controllers\StatusForCandidateFromAgentController;
 use App\Http\Controllers\MedicalInsuranceController;
 use Illuminate\Http\Request;
@@ -274,5 +275,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getMedicalInsuranceForCandidate/{id}', [MedicalInsuranceController::class, 'index']);
     Route::post('updateMedicalInsurance/{id}', [MedicalInsuranceController::class, 'update']);
     Route::delete('deleteMedicalInsurance/{id}', [MedicalInsuranceController::class, 'destroy']);
+
+
+    // MigrationDocumentPreparation
+    Route::post('storeMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'store']);
+    Route::get('getMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'index']);
+    Route::get('getMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'show']);
+    Route::post('updateMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'update']);
+    Route::delete('deleteMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'destroy']);
 
 });
