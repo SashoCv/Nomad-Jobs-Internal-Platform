@@ -33,7 +33,10 @@ class MigrationDocumentPreparationController extends Controller
                 'residenceDeclaration',
                 'justificationAuthorization',
                 'declarationOfForeigners',
-                'notarialDeed'
+                'notarialDeed',
+                'conditionsMetDeclaration',
+                'jobDescription',
+                'employmentContract'
             )
                 ->when($searchByUser, function ($query, $searchByUser) {
                     $query->where('user_id', $searchByUser);
@@ -94,6 +97,9 @@ class MigrationDocumentPreparationController extends Controller
             $migrationDocumentPreparation->justificationAuthorization = $request->justificationAuthorization;
             $migrationDocumentPreparation->declarationOfForeigners = $request->declarationOfForeigners;
             $migrationDocumentPreparation->notarialDeed = $request->notarialDeed;
+            $migrationDocumentPreparation->conditionsMetDeclaration = $request->conditionsMetDeclaration;
+            $migrationDocumentPreparation->jobDescription = $request->jobDescription;
+            $migrationDocumentPreparation->employmentContract = $request->employmentContract;
 
             if($migrationDocumentPreparation->save()) {
                 return response()->json(['message' => 'Document Preparation created successfully'], 201);
@@ -126,7 +132,10 @@ class MigrationDocumentPreparationController extends Controller
                 'residenceDeclaration',
                 'justificationAuthorization',
                 'declarationOfForeigners',
-                'notarialDeed'
+                'notarialDeed',
+                'conditionsMetDeclaration',
+                'jobDescription',
+                'employmentContract'
             )
                 ->with([
                     'candidate:id,fullName,dossierNumber,company_id',
@@ -174,6 +183,9 @@ class MigrationDocumentPreparationController extends Controller
             $migrationDocumentPreparation->justificationAuthorization = $request->justificationAuthorization;
             $migrationDocumentPreparation->declarationOfForeigners = $request->declarationOfForeigners;
             $migrationDocumentPreparation->notarialDeed = $request->notarialDeed;
+            $migrationDocumentPreparation->conditionsMetDeclaration = $request->conditionsMetDeclaration;
+            $migrationDocumentPreparation->jobDescription = $request->jobDescription;
+            $migrationDocumentPreparation->employmentContract = $request->employmentContract;
 
             if($migrationDocumentPreparation->save()) {
                 return response()->json(['message' => 'Document Preparation updated successfully'], 201);
