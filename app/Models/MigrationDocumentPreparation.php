@@ -20,7 +20,21 @@ class MigrationDocumentPreparation extends Model
         'residenceDeclaration',
         'justificationAuthorization',
         'declarationOfForeigners',
-        'notarialDeed'
+        'notarialDeed',
+        'conditionsMetDeclaration',
+        'jobDescription',
+        'employmentContract'
+    ];
+
+    protected $casts = [
+        'authorization' => 'boolean',
+        'residenceDeclaration' => 'boolean',
+        'justificationAuthorization' => 'boolean',
+        'declarationOfForeigners' => 'boolean',
+        'notarialDeed' => 'boolean',
+        'conditionsMetDeclaration' => 'boolean',
+        'jobDescription' => 'boolean',
+        'employmentContract' => 'boolean'
     ];
 
     public function candidate()

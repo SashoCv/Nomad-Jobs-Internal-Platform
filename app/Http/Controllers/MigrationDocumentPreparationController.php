@@ -104,10 +104,11 @@ class MigrationDocumentPreparationController extends Controller
             if($migrationDocumentPreparation->save()) {
                 return response()->json(['message' => 'Document Preparation created successfully'], 201);
             } else {
-                return response()->json(['message' => 'Document Preparation could not be created'], 409);
+                Log::info('Document Preparation could not be created');
+                return response()->json(['message' => 'Document Preparation'], 409);
             }
         } catch (\Exception $e) {
-            Log::info('Document Preparation could not be created', ['message' => $e->getMessage()]);
+            Log::info('Document Preparation could not be created in catch', ['message' => $e->getMessage()]);
             return response()->json(['message' => 'Document Preparation could not be created'], 409);
         }
     }
