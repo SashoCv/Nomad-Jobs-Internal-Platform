@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Candidate extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     public function user()
     {
@@ -73,5 +74,12 @@ class Candidate extends Model
     public function experience()
     {
         return $this->hasMany(Experience::class);
+    }
+
+    public function medicalInsurance()
+    {
+        $insurance = $this->hasMany(MedicalInsurance::class)->get();
+
+        return $insurance->isEmpty() ? [] : $insurance;
     }
 }

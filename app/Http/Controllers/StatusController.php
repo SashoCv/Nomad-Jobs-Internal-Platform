@@ -29,11 +29,11 @@ class StatusController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-          $statuses = Status::all();
+          $statuses = Status::orderBy('order', 'asc')->get();
 
         return response()->json([
             'success' => true,

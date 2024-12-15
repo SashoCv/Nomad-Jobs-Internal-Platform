@@ -28,7 +28,9 @@ use App\Http\Controllers\ItemInvoiceController;
 use App\Http\Controllers\InvoiceCompanyCandidateController;
 use App\Http\Controllers\ArrivalCandidateController;
 use App\Http\Controllers\StatusArrivalController;
+use App\Http\Controllers\MigrationDocumentPreparationController;
 use App\Http\Controllers\StatusForCandidateFromAgentController;
+use App\Http\Controllers\MedicalInsuranceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -260,4 +262,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getArrivalCandidatesWithStatuses', [ArrivalCandidateController::class, 'index']);
     Route::post('updateStatusForArrivalCandidate/{id}', [ArrivalCandidateController::class, 'update']);
     Route::delete('deleteArrivalCandidate/{id}', [ArrivalCandidateController::class, 'destroy']);
+
+
+    // Candidates whose contracts are expiring
+    Route::get('getCandidatesWhoseContractsAreExpiring', [CandidateController::class, 'getCandidatesWhoseContractsAreExpiring']);
+
+
+    // Medical Insurance
+    Route::post('storeMedicalInsuranceForCandidate', [MedicalInsuranceController::class, 'store']);
+    Route::get('getMedicalInsuranceForCandidates', [MedicalInsuranceController::class, 'show']);
+    Route::get('getMedicalInsurance/{id}', [MedicalInsuranceController::class, 'showForCandidate']);
+    Route::get('getMedicalInsuranceForCandidate/{id}', [MedicalInsuranceController::class, 'index']);
+    Route::post('updateMedicalInsurance/{id}', [MedicalInsuranceController::class, 'update']);
+    Route::delete('deleteMedicalInsurance/{id}', [MedicalInsuranceController::class, 'destroy']);
+
+
+    // MigrationDocumentPreparation
+    Route::post('storeMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'store']);
+    Route::get('getMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'index']);
+    Route::get('getMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'show']);
+    Route::post('updateMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'update']);
+    Route::delete('deleteMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'destroy']);
+
 });

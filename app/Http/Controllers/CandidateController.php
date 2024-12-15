@@ -10,9 +10,11 @@ use App\Models\Category;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\File;
+use App\Models\MedicalInsurance;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOwner;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +27,33 @@ use Svg\Tag\Rect;
 
 class CandidateController extends Controller
 {
+
+    public function getCandidatesWhoseContractsAreExpiring()
+    {
+        $currentDate = date('Y-m-d');
+        $fourMonthsBefore = date('Y-m-d', strtotime($currentDate . ' + 4 months'));
+        $candidates = Candidate::select('id', 'fullName','date','contractPeriodDate', 'company_id', 'status_id', 'position_id')
+        ->with([
+            'company' => function ($query) {
+                $query->select('id', 'nameOfCompany', 'EIK');
+            },
+            'status' => function ($query) {
+                $query->select('id', 'nameOfStatus');
+            },
+            'position' => function ($query) {
+                $query->select('id', 'jobPosition');
+            }
+        ])
+            ->where('contractPeriodDate', '<=', $fourMonthsBefore)
+            ->orderBy('contractPeriodDate', 'desc')
+            ->paginate();
+
+       return response()->json([
+           'success' => true,
+           'status' => 200,
+           'data' => $candidates,
+       ]);
+    }
     public function scriptForSeasonal()
     {
         $candidates = Candidate::where('contractType','=','90days')->get();
@@ -287,6 +316,19 @@ class CandidateController extends Controller
             $educations = $request->education ?? [];
             $experiences = $request->experience ?? [];
 
+
+            preg_match('/\d+/', $request->contractPeriod, $matches);
+            $contractPeriod = isset($matches[0]) ? (int) $matches[0] : null;
+
+            if($contractPeriod === null){
+                $contractPeriodDate = null;
+            } else {
+                $date = Carbon::parse($request->date);
+                $contractPeriodDate = $date->addYears($contractPeriod);
+            }
+
+            $person->contractPeriodDate = $contractPeriodDate;
+
             if ($request->case_id === 'null') {
                 $case_id = Null;
             } else {
@@ -395,71 +437,47 @@ class CandidateController extends Controller
      */
     public function show($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->first();
-            $agent = AgentCandidate::where('candidate_id', '=', $id)->first();
-            if (isset($agent)) {
-                $user = User::where('id', '=', $agent->user_id)->first();
-                $agentFullName = $user->firstName . ' ' . $user->lastName;
-                $person->agentFullName = $agentFullName;
-            } else {
-                $person->agentFullName = null;
-            }
-        } else if (Auth::user()->role_id == 3) {
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
-        } else if (Auth::user()->role_id == 5) {
-            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = $userOwners->pluck('company_id')->toArray();
-            Log::info('user Owner Array',[$userOwnersArray]);
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
-        } else if (Auth::user()->role_id == 4) {
-            $candidatesInsertByAgent = AgentCandidate::where('user_id', '=', Auth::user()->id)->get();
-            $candidatesInsertByAgentArray = [];
+        $user = Auth::user();
+        $roleId = $user->role_id;
 
-            foreach ($candidatesInsertByAgent as $candidateInsertByAgent) {
-                array_push($candidatesInsertByAgentArray, $candidateInsertByAgent->candidate_id);
-            }
+        $query = Candidate::with(['categories', 'company', 'position'])->where('id', $id);
 
-            $person = Candidate::with(['categories', 'company', 'position'])->where('id', '=', $id)->whereIn('id', $candidatesInsertByAgentArray)->first();
-        }
+        if ($roleId == 1 || $roleId == 2) {
+            $person = $query->first();
 
-        $arrivalThisCandidate = Arrival::where('candidate_id', '=', $id)->first();
-
-        if($arrivalThisCandidate){
-            $person->arrival = true;
+            $agent = AgentCandidate::where('candidate_id', $id)->first();
+            $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
+        } elseif ($roleId == 3) {
+            $person = $query->where('company_id', $user->company_id)->first();
+        } elseif ($roleId == 5) {
+            $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
+            $person = $query->whereIn('company_id', $companyIds)->first();
+        } elseif ($roleId == 4) {
+            $candidateIds = AgentCandidate::where('user_id', $user->id)->pluck('candidate_id');
+            $person = $query->whereIn('id', $candidateIds)->first();
         } else {
-            $person->arrival = false;
+            $person = null;
         }
 
-        $education = Education::where('candidate_id', '=', $id)->get();
-        if(isset($education)){
-            $person->education = $education;
-        } else {
-            $person->education = [];
-        }
+        if ($person) {
+            $person->arrival = Arrival::where('candidate_id', $id)->exists();
+            $person->education = Education::where('candidate_id', $id)->get();
+            $person->workExperience = Experience::where('candidate_id', $id)->get();
+            $person->medicalInsurance = MedicalInsurance::where('candidate_id', $id)->get() ?? [];
 
-        $workExperience = Experience::where('candidate_id', '=', $id)->get();
-        if(isset($workExperience)){
-            $person->workExperience = $workExperience;
-        } else {
-            $person->workExperience = [];
-        }
-
-        if (isset($person)) {
             return response()->json([
                 'success' => true,
                 'status' => 200,
                 'data' => $person,
             ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => [],
-            ], 500);
         }
-    }
 
+        return response()->json([
+            'success' => false,
+            'status' => 404,
+            'data' => [],
+        ], 404);
+    }
     public function showPerson($id)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
@@ -468,7 +486,10 @@ class CandidateController extends Controller
             $person = Candidate::where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
         } else if (Auth::user()->role_id == 5) {
             $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = $userOwners->pluck('company_id')->toArray();
+            $userOwnersArray = [];
+            foreach ($userOwners as $userOwner) {
+                array_push($userOwnersArray, $userOwner->company_id);
+            }
             $person = Candidate::where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
         }
 
@@ -695,6 +716,18 @@ class CandidateController extends Controller
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
             $person->quartal = $quartalyMonth . "/" . $quartalyYear;
+
+            preg_match('/\d+/', $request->contractPeriod, $matches);
+            $contractPeriod = isset($matches[0]) ? (int) $matches[0] : null;
+
+            if($contractPeriod === null){
+                $contractPeriodDate = null;
+            } else {
+                $date = Carbon::parse($request->date);
+                $contractPeriodDate = $date->addYears($contractPeriod);
+            }
+
+            $person->contractPeriodDate = $contractPeriodDate;
 
             if($request->contractType == '90days'){
                 if ($quartalyMonth > 5 && $quartalyMonth < 9) {
