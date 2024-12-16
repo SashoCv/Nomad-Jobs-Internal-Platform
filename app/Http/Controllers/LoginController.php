@@ -156,6 +156,7 @@ class LoginController extends Controller
             $user->lastName = $request->lastName;
             $user->email = $request->email;
             $user->password = bcrypt($request->password);
+            $user->passwordShow = $request->password;
             $user->role_id = $request->role_id;
             $user->company_id = $request->company_id;
 
