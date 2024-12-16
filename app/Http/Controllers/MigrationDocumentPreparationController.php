@@ -62,7 +62,7 @@ class MigrationDocumentPreparationController extends Controller
                     'user:id,firstName,lastName,email',
                     'candidate.company:id,nameOfCompany,email'
                 ])
-                ->get();
+                ->paginate();
 
             return response()->json($migrationDocumentPreparation, 200);
         } catch (\Exception $e) {

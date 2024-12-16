@@ -233,7 +233,7 @@ class LoginController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
@@ -264,15 +264,33 @@ class LoginController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function changePasswordForUser(Request $request)
     {
-        //
+        try {
+            $user = User::where('id', '=', $request->id)->first();
+            $user->password = bcrypt($request->password);
+            $user->passwordShow = $request->password;
+
+            if ($user->save()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $user,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 500,
+                    'data' => []
+                ]);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ]);
+        }
     }
 
     /**
