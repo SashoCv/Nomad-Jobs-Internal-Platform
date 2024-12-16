@@ -283,5 +283,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'show']);
     Route::post('updateMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'update']);
     Route::delete('deleteMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'destroy']);
+    Route::get('exportMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'export']);
 
 });
