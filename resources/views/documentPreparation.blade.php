@@ -32,7 +32,7 @@
     <tbody>
     @foreach($documentPreparation as $preparation)
         <tr>
-            <td>{{ $preparation['candidate']['company']['nameOfCompany'] }}</td>
+            <td>{{ $preparation['candidate']['company']['nameOfCompany'] ?? ""}}</td>
             <td>{{ $preparation['candidate']['fullName'] }}</td>
             <td>{{ $preparation['user']['firstName'] }} {{ $preparation['user']['lastName'] }}</td>
             <td>{{ $preparation['medicalCertificate'] }}</td>
@@ -45,7 +45,7 @@
             <td>{{ $preparation['jobDescription'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['notarialDeed'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['candidate']['dossierNumber'] }}</td>
-            <td>{{ $preparation['candidate']['company']['email'] }}</td>
+            <td>{{ $preparation['candidate']['company']['email'] ?? ""}}</td>
             <td>{{ $preparation['dateOfPreparationOnDocument'] }}</td>
             <td>{{ $preparation['submissionDate'] }}</td>
         </tr>
