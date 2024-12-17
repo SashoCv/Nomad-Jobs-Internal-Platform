@@ -113,6 +113,7 @@ class AgentCandidateController extends Controller
         $person->addedBy = Auth::user()->id;
         $educations = $request->educations ?? [];
         $experiences = $request->experiences ?? [];
+        $person->agent_id = Auth::user()->id;
 
         if ($request->hasFile('personPassport')) {
             Storage::disk('public')->put('personPassports', $request->file('personPassport'));

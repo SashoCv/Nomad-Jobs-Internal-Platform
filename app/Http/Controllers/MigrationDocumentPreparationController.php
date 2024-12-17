@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\InvoicesExport;
+use App\Exports\MigrationDocumentPreparationExport;
 use App\Models\MigrationDocumentPreparation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MigrationDocumentPreparationController extends Controller
 {
@@ -57,7 +62,7 @@ class MigrationDocumentPreparationController extends Controller
                     'user:id,firstName,lastName,email',
                     'candidate.company:id,nameOfCompany,email'
                 ])
-                ->get();
+                ->paginate();
 
             return response()->json($migrationDocumentPreparation, 200);
         } catch (\Exception $e) {
@@ -67,14 +72,63 @@ class MigrationDocumentPreparationController extends Controller
     }
 
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function export(Request $request)
     {
-        //
+        try {
+            $searchByUser = $request->user_id;
+            $searchByCompany = $request->company_id;
+            $searchByDateOfPreparationOnDocument = $request->dateOfPreparationOnDocument;
+            $searchBySubmissionDate = $request->submissionDate;
+
+            $migrationDocumentPreparation = MigrationDocumentPreparation::select(
+                'id',
+                'candidate_id',
+                'user_id',
+                'medicalCertificate',
+                'dateOfPreparationOnDocument',
+                'submissionDate',
+                'authorization',
+                'residenceDeclaration',
+                'justificationAuthorization',
+                'declarationOfForeigners',
+                'notarialDeed',
+                'conditionsMetDeclaration',
+                'jobDescription',
+                'employmentContract'
+            )
+                ->when($searchByUser, function ($query, $searchByUser) {
+                    $query->where('user_id', $searchByUser);
+                })
+                ->when($searchByCompany, function ($query, $searchByCompany) {
+                    $query->whereHas('candidate.company', function ($subQuery) use ($searchByCompany) {
+                        $subQuery->where('id', $searchByCompany);
+                    });
+                })
+                ->when($searchByDateOfPreparationOnDocument, function ($query, $searchByDateOfPreparationOnDocument) {
+                    $query->whereDate('dateOfPreparationOnDocument', $searchByDateOfPreparationOnDocument);
+                })
+                ->when($searchBySubmissionDate, function ($query, $searchBySubmissionDate) {
+                    $query->whereDate('submissionDate', $searchBySubmissionDate);
+                })
+                ->with([
+                    'candidate:id,fullName,dossierNumber,company_id',
+                    'user:id,firstName,lastName,email',
+                    'candidate.company:id,nameOfCompany,email'
+                ])
+                ->get();
+
+            $fileName = 'document_preparation_' . Carbon::now()->format('Y-m-d') . '.xlsx';
+
+            Excel::store(new MigrationDocumentPreparationExport($migrationDocumentPreparation), $fileName, 'local');
+
+            $filePath = Storage::disk('local')->path($fileName);
+
+            return response()->download($filePath)->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+            Log::info('Document Preparation could not be retrieved', ['message' => $e->getMessage()]);
+            return response()->json(['message' => 'Document Preparation could not be retrieved'], 409);
+        }
     }
 
     /**

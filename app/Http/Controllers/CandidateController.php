@@ -315,6 +315,7 @@ class CandidateController extends Controller
             $person->addedBy = Auth::user()->id;
             $educations = $request->education ?? [];
             $experiences = $request->experience ?? [];
+            $person->agent_id = $request->agent_id ?? null;
 
 
             preg_match('/\d+/', $request->contractPeriod, $matches);
@@ -712,6 +713,8 @@ class CandidateController extends Controller
             $person->notes = $notes;
             $person->user_id = $userId;
             $person->case_id = $case_id;
+            $person->agent_id = $request->agent_id ?? null;
+
 
             $quartalyYear = date('Y', strtotime($request->date));
             $quartalyMonth = date('m', strtotime($request->date));
