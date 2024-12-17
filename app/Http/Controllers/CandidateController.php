@@ -672,6 +672,12 @@ class CandidateController extends Controller
                 $userId = $request->user_id;
             }
 
+            if($request->agent_id === 'null'){
+                $agentId = Null;
+            } else {
+                $agentId = $request->agent_id;
+            }
+
             $person = Candidate::where('id', '=', $id)->first();
 
             $person->status_id = $request->status_id;
@@ -713,7 +719,7 @@ class CandidateController extends Controller
             $person->notes = $notes;
             $person->user_id = $userId;
             $person->case_id = $case_id;
-            $person->agent_id = $request->agent_id ?? null;
+            $person->agent_id = $agentId;
 
 
             $quartalyYear = date('Y', strtotime($request->date));
