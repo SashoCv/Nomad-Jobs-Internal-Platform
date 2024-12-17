@@ -11,39 +11,53 @@
 <table border="1" cellspacing="0" cellpadding="5">
     <thead>
     <tr>
-        <th>ID</th>
-        <th>Candidate ID</th>
-        <th>User ID</th>
-        <th>Medical Certificate</th>
-        <th>Date of Preparation</th>
-        <th>Submission Date</th>
-        <th>Authorization</th>
-        <th>Residence Declaration</th>
-        <th>Justification Authorization</th>
-        <th>Declaration of Foreigners</th>
-        <th>Notarial Deed</th>
-        <th>Conditions Met Declaration</th>
-        <th>Job Description</th>
-        <th>Employment Contract</th>
+        <th>Име на комания</th>
+        <th>Име на кандидат</th>
+        <th>Документи, подготвяни от:</th>
+        <th>CR/ Diploma/ Medical Certificate</th>
+        <th>Пълномощно</th>
+        <th>Декл. за жилище</th>
+        <th>Обосновка+обява</th>
+        <th>Декларация чужденци и средночисленост</th>
+        <th>Декларация спазени условия</th>
+        <th>Трудов договор</th>
+        <th>Длъжностна характеристика</th>
+        <th>Нотариален акт/Договор за наем на обект на работа/Категоризация</th>
+        <th>Входящ номер в Миграция</th>
+        <th>Контакти на фирмата</th>
+        <th>Дата на изготвяне на документите</th>
+        <th>Дата на подаване на документите</th>
     </tr>
     </thead>
     <tbody>
     @foreach($documentPreparation as $preparation)
+        <?php
+          $candidate = \App\Models\Candidate::find($preparation['candidate_id']);
+          $candidateFullName = $candidate->fullName;
+          $candidateDossierNumber = $candidate->dossierNumber;
+          $user = \App\Models\User::find($preparation['user_id']);
+          $userFullName = $user->firstName . ' ' . $user->lastName;
+          $company = \App\Models\Company::find($candidate->company_id);
+          $companyName = $company->nameOfCompany;
+          $companyEmail = $company->email;
+        ?>
         <tr>
-            <td>{{ $preparation['id'] }}</td>
-            <td>{{ $preparation['candidate_id'] }}</td>
-            <td>{{ $preparation['user_id'] }}</td>
+            <td>{{ $companyName }}</td>
+            <td>{{ $candidateFullName }}</td>
+            <td>{{ $userFullName }}</td>
             <td>{{ $preparation['medicalCertificate'] }}</td>
-            <td>{{ $preparation['dateOfPreparationOnDocument'] }}</td>
-            <td>{{ $preparation['submissionDate'] }}</td>
             <td>{{ $preparation['authorization'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['residenceDeclaration'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['justificationAuthorization'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['declarationOfForeigners'] ? 'da' : 'ne' }}</td>
-            <td>{{ $preparation['notarialDeed'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['conditionsMetDeclaration'] ? 'da' : 'ne' }}</td>
-            <td>{{ $preparation['jobDescription'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['employmentContract'] ? 'da' : 'ne' }}</td>
+            <td>{{ $preparation['jobDescription'] ? 'da' : 'ne' }}</td>
+            <td>{{ $preparation['notarialDeed'] ? 'da' : 'ne' }}</td>
+            <td>{{ $candidateDossierNumber }}</td>
+            <td>{{ $companyEmail }}</td>
+            <td>{{ $preparation['dateOfPreparationOnDocument'] }}</td>
+            <td>{{ $preparation['submissionDate'] }}</td>
         </tr>
     @endforeach
     </tbody>
