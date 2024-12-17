@@ -31,20 +31,10 @@
     </thead>
     <tbody>
     @foreach($documentPreparation as $preparation)
-        <?php
-          $candidate = \App\Models\Candidate::find($preparation['candidate_id']);
-          $candidateFullName = $candidate->fullName;
-          $candidateDossierNumber = $candidate->dossierNumber;
-          $user = \App\Models\User::find($preparation['user_id']);
-          $userFullName = $user->firstName . ' ' . $user->lastName;
-          $company = \App\Models\Company::find($candidate->company_id);
-          $companyName = $company->nameOfCompany;
-          $companyEmail = $company->email;
-        ?>
         <tr>
-            <td>{{ $companyName }}</td>
-            <td>{{ $candidateFullName }}</td>
-            <td>{{ $userFullName }}</td>
+            <td>{{ $preparation['candidate']['company']['nameOfCompany'] }}</td>
+            <td>{{ $preparation['candidate']['fullName'] }}</td>
+            <td>{{ $preparation['user']['firstName'] }} {{ $preparation['user']['lastName'] }}</td>
             <td>{{ $preparation['medicalCertificate'] }}</td>
             <td>{{ $preparation['authorization'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['residenceDeclaration'] ? 'da' : 'ne' }}</td>
@@ -54,8 +44,8 @@
             <td>{{ $preparation['employmentContract'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['jobDescription'] ? 'da' : 'ne' }}</td>
             <td>{{ $preparation['notarialDeed'] ? 'da' : 'ne' }}</td>
-            <td>{{ $candidateDossierNumber }}</td>
-            <td>{{ $companyEmail }}</td>
+            <td>{{ $preparation['candidate']['dossierNumber'] }}</td>
+            <td>{{ $preparation['candidate']['company']['email'] }}</td>
             <td>{{ $preparation['dateOfPreparationOnDocument'] }}</td>
             <td>{{ $preparation['submissionDate'] }}</td>
         </tr>
