@@ -108,7 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('candidateToWorker/{id}', [CandidateController::class, 'worker']);
     Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
     Route::get('getCandidatesForCompany/{id}', [CandidateController::class, 'getCandidatesForCompany']);
-
+    Route::post('extendContractForCandidate/{id}', [CandidateController::class, 'extendContractForCandidate']);
 
 
 
