@@ -79,9 +79,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-    // Candidates, Worker
+    // Candidates
     Route::get('candidates', [CandidateController::class, 'index']);
-    Route::get('candidate/{id}', [CandidateController::class, 'showPerson']);
     Route::get('employees', [CandidateController::class, 'employees']);
     Route::post('personSave', [CandidateController::class, 'store']);
     Route::get('person/{id}', [CandidateController::class, 'show']);
@@ -89,11 +88,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('personDelete/{id}', [CandidateController::class, 'destroy']);
     Route::post('favoriteCandidate', [FavoriteController::class, 'store']);
     Route::get('favoriteCandidates/{id}', [FavoriteController::class, 'index']);
-    Route::post('candidateToWorker/{id}', [CandidateController::class, 'worker']);
-    Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
-
-
-
 
     // Files
     Route::post('file', [FileController::class, 'store']);
@@ -111,7 +105,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('companyFileDelete/{id}', [CompanyFileController::class, 'destroy']);
 
 
-    //Company Category 
+    //Company Category
 
     Route::post('companyCategoryStore', [CompanyCategoryController::class, 'store']);
     Route::post('deleteCompanyCategory', [CompanyCategoryController::class, 'destroy']);
@@ -157,7 +151,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deletePosition/{id}', [PositionController::class, 'destroy']);
     Route::delete('deleteDocumentForPosition/{id}', [PositionController::class, 'destroyDocumentForPosition']);
 
-    
+
 
 
     // Industries
