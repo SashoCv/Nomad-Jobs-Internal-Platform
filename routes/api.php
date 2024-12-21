@@ -28,6 +28,7 @@ use App\Http\Controllers\ItemInvoiceController;
 use App\Http\Controllers\InvoiceCompanyCandidateController;
 use App\Http\Controllers\ArrivalCandidateController;
 use App\Http\Controllers\StatusArrivalController;
+use App\Http\Controllers\CashPaymentForCandidatesController;
 use App\Http\Controllers\MigrationDocumentPreparationController;
 use App\Http\Controllers\StatusForCandidateFromAgentController;
 use App\Http\Controllers\MedicalInsuranceController;
@@ -241,6 +242,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('invoiceCompanyCandidates/{id}', [InvoiceCompanyCandidateController::class, 'show']);
     Route::get('filterAutoCompleteCandidateThatHaveInvoice', [InvoiceCompanyCandidateController::class, 'filterAutoCompleteCandidateThatHaveInvoice']);
 
+    // Cash Payment For Candidates
+    Route::post('storeCashPaymentForCandidates', [CashPaymentForCandidatesController::class, 'store']);
+    Route::get('getCashPaymentForCandidates', [CashPaymentForCandidatesController::class, 'index']);
+    Route::get('getCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'show']);
+    Route::post('updateCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'update']);
+    Route::delete('deleteCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'destroy']);
 
     //Items For Invoice
     Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
