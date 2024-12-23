@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AgentCandidateResource;
+use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Company;
 use App\Models\CompanyFile;
+use App\Models\UserOwner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -655,7 +658,14 @@ class SearchController extends Controller
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
 
-        $companiesQuery = Company::with(['industry', 'candidates']);
+        $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
+
+        if (Auth::user()->role_id === 5) {
+            $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
+            $companyIds = $companyOwner->pluck('company_id');
+
+            $companiesQuery->whereIn('id', $companyIds);
+        }
 
         if ($EIK) {
             $companiesQuery->where('EIK', $EIK);
@@ -721,12 +731,33 @@ class SearchController extends Controller
     public function searchCandidateNew(Request $request)
     {
         $searchEverything = $request->searchEverything;
-        $query = Candidate::with(['company', 'status', 'position']);
+        $query = Candidate::with(['company', 'status', 'position', 'user']);
 
         $userRoleId = Auth::user()->role_id;
 
+        if ($userRoleId === 1 || $userRoleId === 2) {
+            $query->where('type_id', '!=', 3);
+        }
+
         if ($userRoleId === 3) {
             $query->where('company_id', Auth::user()->company_id);
+        }
+
+        if ($userRoleId === 4) {
+            $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
+                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
+                ->where('agent_candidates.user_id', Auth::user()->id)
+                ->paginate(20);
+
+
+            return AgentCandidateResource::collection($candidatesQuery);
+        }
+
+        if ($userRoleId === 5) {
+            $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
+            $companyIds = $companyOwner->pluck('company_id');
+
+            $query->whereIn('company_id', $companyIds);
         }
 
         if (!$searchEverything) {
@@ -734,6 +765,12 @@ class SearchController extends Controller
                 $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')
                     ->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%');
             })
+                ->when($request->searchQuartal, function ($q) use ($request) {
+                    $q->where('quartal', '=', $request->searchQuartal);
+                })
+                ->when($request->searchSeasonal, function ($q) use ($request) {
+                    $q->where('seasonal', '=', $request->searchSeasonal);
+                })
                 ->when($request->searchCompany, function ($q) use ($request) {
                     $q->where('company_id', '=', $request->searchCompany);
                 })
@@ -748,6 +785,19 @@ class SearchController extends Controller
                 })
                 ->when($request->contractType, function ($q) use ($request) {
                     $q->where('contractType', '=', $request->contractType);
+                })
+                ->when($request->searchAddedBy, function ($q) use ($request) {
+                    if ($request->searchAddedBy === 'notDefined') {
+                        $q->whereNull('addedBy');
+                    } else {
+                        $q->where('addedBy', '=', $request->searchAddedBy);
+                    }
+                })
+                ->when($request->searchCaseId, function ($q) use ($request) {
+                    $q->where('case_id', '=', $request->searchCaseId);
+                })
+                ->when($request->nationality, function ($q) use ($request) {
+                    $q->where('nationality', 'LIKE', '%' . $request->nationality . '%');
                 })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
@@ -775,15 +825,31 @@ class SearchController extends Controller
             $result = $query->get();
         }
 
+        $candidates = Candidate::all();
+        $currentYear = date('Y');
 
+        $firstQuartal = "1" . "/" . $currentYear;
 
+        foreach ($candidates as $candidate) {
+            if($candidate->quartal){
+                $candidateParts = explode('/', $candidate->quartal);
+                $candidateQuartal = intval($candidateParts[0]); // Extract quartal
+                $candidateYear = intval($candidateParts[1]); // Extract year
 
+                // Check if candidate's year is earlier or if it's the same year but with a smaller quartal
+                if ($candidateYear < $currentYear || ($candidateYear == $currentYear && $candidateQuartal < 1)) {
+                    $firstQuartal = $candidate->quartal;
+                    $currentYear = $candidateYear; // Update current year for future comparisons
+                }
+            }
+        }
 
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $result,
+                'firstQuartal' => $firstQuartal
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $result
-        ]);
     }
 }

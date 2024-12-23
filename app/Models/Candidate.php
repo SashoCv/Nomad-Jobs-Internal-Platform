@@ -4,10 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Candidate extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function type()
     {
@@ -43,5 +49,37 @@ class Candidate extends Model
     public function position()
     {
         return $this->belongsTo(Position::class, 'position_id');
+    }
+
+    public function agentCandidates()
+    {
+        return $this->hasMany(AgentCandidate::class);
+    }
+
+    public function cases()
+    {
+        return $this->belongsTo(Cases::class, 'case_id');
+    }
+
+    public function asignCandidateToNomadOffice()
+    {
+        return $this->hasMany(AsignCandidateToNomadOffice::class);
+    }
+
+    public function education()
+    {
+        return $this->hasMany(Education::class);
+    }
+
+    public function experience()
+    {
+        return $this->hasMany(Experience::class);
+    }
+
+    public function medicalInsurance()
+    {
+        $insurance = $this->hasMany(MedicalInsurance::class)->get();
+
+        return $insurance->isEmpty() ? [] : $insurance;
     }
 }

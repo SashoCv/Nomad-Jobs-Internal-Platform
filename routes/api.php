@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AgentCandidateController;
+use App\Http\Controllers\AssignedJobController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyCategoryController;
@@ -11,14 +13,25 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MonthCompanyController;
+use App\Http\Controllers\ItemsForInvoicesController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
-use App\Http\Controllers\WorkerController;
-use App\Models\Position;
-use Illuminate\Auth\Events\Login;
+use App\Http\Controllers\UserOwnerController;
+use App\Http\Controllers\AsignCandidateToNomadOfficeController;
+use App\Http\Controllers\InvoiceCompanyController;
+use App\Http\Controllers\CasesController;
+use App\Http\Controllers\ArrivalController;
+use App\Http\Controllers\ItemInvoiceController;
+use App\Http\Controllers\InvoiceCompanyCandidateController;
+use App\Http\Controllers\ArrivalCandidateController;
+use App\Http\Controllers\StatusArrivalController;
+use App\Http\Controllers\CashPaymentForCandidatesController;
+use App\Http\Controllers\MigrationDocumentPreparationController;
+use App\Http\Controllers\StatusForCandidateFromAgentController;
+use App\Http\Controllers\MedicalInsuranceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +55,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('login', [LoginController::class, 'login']);
 Route::get('test', [CompanyController::class, 'test']);
+Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
+Route::get('downloadDocumentsForArrivalCandidate/{candidateId}', [ArrivalCandidateController::class, 'downloadDocumentsForArrivalCandidates']);
+Route::get('downloadDocumentsForCandidatesFromAgent/{candidateId}', [AgentCandidateController::class, 'downloadDocumentsForCandidatesFromAgent']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -49,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('user', [LoginController::class, 'user'])->name('user');
     Route::get('admins', [LoginController::class, 'admins']);
+    Route::post('changePasswordForUser', [LoginController::class, 'changePasswordForUser']);
 
 
 
@@ -79,8 +96,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-    // Candidates
+    // Candidates, Worker
     Route::get('candidates', [CandidateController::class, 'index']);
+    Route::get('candidate/{id}', [CandidateController::class, 'showPerson']);
     Route::get('employees', [CandidateController::class, 'employees']);
     Route::post('personSave', [CandidateController::class, 'store']);
     Route::get('person/{id}', [CandidateController::class, 'show']);
@@ -88,11 +106,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('personDelete/{id}', [CandidateController::class, 'destroy']);
     Route::post('favoriteCandidate', [FavoriteController::class, 'store']);
     Route::get('favoriteCandidates/{id}', [FavoriteController::class, 'index']);
+    Route::post('candidateToWorker/{id}', [CandidateController::class, 'worker']);
+    Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
+    Route::get('getCandidatesForCompany/{id}', [CandidateController::class, 'getCandidatesForCompany']);
+    Route::post('extendContractForCandidate/{id}', [CandidateController::class, 'extendContractForCandidate']);
+
+
 
     // Files
     Route::post('file', [FileController::class, 'store']);
     Route::get('downloadFile/{file}', [FileController::class, 'download']);
-    Route::post('downloadAllFile', [FileController::class, 'downloadAllFile']);
     Route::get('filesForPerson/{id}', [FileController::class, 'show']);
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
 
@@ -176,4 +199,98 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('notifications', [UserNotificationController::class, 'show']); // notification for user
     Route::post('seenNotifications', [UserNotificationController::class, 'update']); // update notification is_read for user need Function To change
     Route::post('readNotification/{id}', [UserNotificationController::class, 'readNotification']); // update notification is_seen for user
+
+
+    // Assigned Jobs
+    Route::post('assignJobToAgent', [AssignedJobController::class, 'store']);
+    Route::get('getAgents', [AssignedJobController::class, 'getAgents']);
+    Route::get('getAssignedJobs', [AssignedJobController::class, 'getAssignedJobs']);
+    Route::delete('deleteAssignedJob/{id}', [AssignedJobController::class, 'deleteAssignedJob']);
+    Route::get('getAssignedJobsForAgent', [AssignedJobController::class, 'getAssignedJobsForAgent']);
+
+    // Company Owner
+    Route::post('updateCompanyOwner/{id}', [UserOwnerController::class, 'update']);
+
+    // Agents
+    Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);
+    Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']);
+    Route::get('getAllCandidatesFromAgents', [AgentCandidateController::class, 'getAllCandidatesFromAgents']);
+    Route::get('statusForCandidateFromAgent', [StatusForCandidateFromAgentController::class, 'index']);
+    Route::post('updateStatusForCandidateFromAgent/{id}', [StatusForCandidateFromAgentController::class, 'update']);
+    Route::delete('deleteCandidateFromAgent/{id}', [AgentCandidateController::class, 'destroy']);
+
+    // Assign Candidates From agents to Nomad Offices for preparing documents
+    Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
+    Route::get('getCandidateFromAgent', [AsignCandidateToNomadOfficeController::class, 'index']);
+
+    // Cases
+    Route::get('getCases', [CasesController::class, 'index']);
+
+    //CV For Candidates
+    Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
+
+
+    //Company Invoice
+    Route::post('storeCompanyInvoice', [InvoiceCompanyController::class, 'store']);
+//    Route::get('getCompanyInvoices', [InvoiceCompanyController::class, 'index']);
+    Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyCandidateController::class, 'destroy']);
+    Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
+    Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
+//    Route::get('getCompanyInvoices/{id}', [InvoiceCompanyController::class, 'show']);
+    Route::post('updateInvoice/{id}', [InvoiceCompanyController::class, 'update']);
+    Route::get('invoiceCompanyCandidates', [InvoiceCompanyCandidateController::class, 'index']);
+    Route::get('invoiceCompanyCandidates/{id}', [InvoiceCompanyCandidateController::class, 'show']);
+    Route::get('filterAutoCompleteCandidateThatHaveInvoice', [InvoiceCompanyCandidateController::class, 'filterAutoCompleteCandidateThatHaveInvoice']);
+
+    // Cash Payment For Candidates
+    Route::post('storeCashPaymentForCandidates', [CashPaymentForCandidatesController::class, 'store']);
+    Route::get('getCashPaymentForCandidates', [CashPaymentForCandidatesController::class, 'index']);
+    Route::get('getCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'show']);
+    Route::post('updateCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'update']);
+    Route::delete('deleteCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'destroy']);
+
+    //Items For Invoice
+    Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
+    Route::post('updateItemForInvoice/{id}', [ItemInvoiceController::class, 'update']);
+    Route::get('itemForCompanyInvoices', [ItemsForInvoicesController::class, 'index']);
+
+
+    // Arrivals
+    Route::post('storeArrival', [ArrivalController::class, 'store']);
+    Route::post('updateArrival/{id}', [ArrivalController::class, 'update']);
+    Route::get('getAllArrivals', [ArrivalController::class, 'index']);
+    Route::delete('deleteArrival/{id}', [ArrivalController::class, 'destroy']);
+
+
+    // Status Arrivals
+    Route::get('getStatusArrivals', [StatusArrivalController::class, 'index']);
+
+    // Candidates for Arrivals
+    Route::post('storeStatusForArrivalCandidate', [ArrivalCandidateController::class, 'store']);
+    Route::get('getArrivalCandidatesWithStatuses', [ArrivalCandidateController::class, 'index']);
+    Route::post('updateStatusForArrivalCandidate/{id}', [ArrivalCandidateController::class, 'update']);
+    Route::delete('deleteArrivalCandidate/{id}', [ArrivalCandidateController::class, 'destroy']);
+
+
+    // Candidates whose contracts are expiring
+    Route::get('getCandidatesWhoseContractsAreExpiring', [CandidateController::class, 'getCandidatesWhoseContractsAreExpiring']);
+
+
+    // Medical Insurance
+    Route::post('storeMedicalInsuranceForCandidate', [MedicalInsuranceController::class, 'store']);
+    Route::get('getMedicalInsuranceForCandidates', [MedicalInsuranceController::class, 'show']);
+    Route::get('getMedicalInsurance/{id}', [MedicalInsuranceController::class, 'showForCandidate']);
+    Route::get('getMedicalInsuranceForCandidate/{id}', [MedicalInsuranceController::class, 'index']);
+    Route::post('updateMedicalInsurance/{id}', [MedicalInsuranceController::class, 'update']);
+    Route::delete('deleteMedicalInsurance/{id}', [MedicalInsuranceController::class, 'destroy']);
+
+
+    // MigrationDocumentPreparation
+    Route::post('storeMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'store']);
+    Route::get('getMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'index']);
+    Route::get('getMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'show']);
+    Route::post('updateMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'update']);
+    Route::delete('deleteMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'destroy']);
+    Route::get('exportMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'export']);
+
 });

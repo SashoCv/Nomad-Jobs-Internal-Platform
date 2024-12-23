@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\User;
+use App\Models\UserOwner;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -19,8 +21,8 @@ class LoginController extends Controller
     public function user(Request $request)
     {
         try {
-            $user_id = $request->user()->id;
-            $user = User::with('role')->where('id', '=', $user_id)->first();
+            $user_id = Auth::user()->id;
+            $user = User::with('role')->where('id', $user_id)->first();
 
             return response()->json([
                 'success' => true,
@@ -35,11 +37,11 @@ class LoginController extends Controller
             ]);
         }
     }
-    
-    
+
+
     public function admins()
     {
-       
+
 
             $admins = User::where('role_id', 1)->where('email', '!=', "phoenix.dev.mk@gmail.com")->get();
 
@@ -48,19 +50,27 @@ class LoginController extends Controller
                 "status" => 200,
                 "data" => $admins
             ]);
-  
+
             return response()->json([
                 "status" => 500,
                 "message" => "you dont have permission to see admins"
             ]);
-        
+
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with(['company', 'role'])->where('id','!=','22')->get();
+        $role_id = $request->role_id;
 
+        if($role_id){
+            $users = User::with(['company', 'role'])
+                ->where('id','!=','22')
+                ->where('role_id', $role_id)->get();
+        } else {
+            $users = User::with(['company', 'role'])
+                ->where('id','!=','22')->get();
+        }
 
         if (Auth::user()->role_id == 1) {
             return response()->json([
@@ -96,14 +106,8 @@ class LoginController extends Controller
 
             $token = $user->createToken('token')->plainTextToken;
             $user->token = $token;
-            $expires_at =  Carbon::now()->addHours(7);
-            $expires_at = date($expires_at);
+            $expires_at = Carbon::now()->addHours(48)->toDateTimeString();
 
-            if ($user->role->roleName == 'admin' || $user->role->roleName == 'nomadOffice') {
-                $companies = Company::all();
-            } else {
-                $companies = Company::where('id', '=', $user->company_id)->get();
-            }
 
             return response()->json([
                 'success' => true,
@@ -160,6 +164,7 @@ class LoginController extends Controller
             $user->lastName = $request->lastName;
             $user->email = $request->email;
             $user->password = bcrypt($request->password);
+            $user->passwordShow = $request->password;
             $user->role_id = $request->role_id;
             $user->company_id = $request->company_id;
 
@@ -178,15 +183,31 @@ class LoginController extends Controller
             }
 
             if ($user->save()) {
+                if($user->role_id === "5"){
+                    $companiesIds = $request->companies;
+                    $companiesArray = array_map('intval', explode(',', $companiesIds));
+
+                    foreach ($companiesArray as $companyId) {
+                        $company = Company::find($companyId);
+                        $company->has_owner = true;
+                        $company->save();
+
+                        $userOwner = new UserOwner();
+                        $userOwner->user_id = $user->id;
+                        $userOwner->company_id = $companyId;
+                        $userOwner->save();
+                    }
+                }
 
                 $user = User::where('email', $request->email)->first();
-
                 if ($user) {
 
-                    $domain = URL::to('https://nomad-cloud.netlify.app/');
+                    $domain = URL::to('https://www.nomadjobs.cloud/');
                     $url = $domain;
 
                     $data['url'] = $url;
+                    $data['firstName'] = $request->firstName;
+                    $data['lastName'] = $request->lastName;
                     $data['email'] = $request->email;
                     $data['password'] = $request->password;
                     $data['title'] = 'Login credentials for Nomad Cloud';
@@ -221,17 +242,27 @@ class LoginController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
         if (Auth::user()->role_id == 1) {
             $user = User::where('id', '=', $id)->first();
+            $userOwners = UserOwner::where('user_id', $id)->get();
+            $companies = [];
 
+            foreach ($userOwners as $userOwner) {
+                $company = Company::find($userOwner->company_id);
+                if ($company) {
+                    $companyData = ['id' => $company->id, 'name' => $company->nameOfCompany];
+                    $companies[] = $companyData;
+                }
+            }
             return response()->json([
                 'success' => false,
                 'status' => 200,
-                'data' => $user
+                'data' => $user,
+                'companies' => $companies ?? []
             ]);
         } else {
             return response()->json([
@@ -242,15 +273,33 @@ class LoginController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function changePasswordForUser(Request $request)
     {
-        //
+        try {
+            $user = User::where('id', '=', $request->id)->first();
+            $user->password = bcrypt($request->password);
+            $user->passwordShow = $request->password;
+
+            if ($user->save()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $user,
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 500,
+                    'data' => []
+                ]);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ]);
+        }
     }
 
     /**
@@ -283,7 +332,7 @@ class LoginController extends Controller
                 $user->userPicturePath = $name;
                 $user->userPictureName = $request->file('userPicture')->getClientOriginalName();
             }
-            
+
             if ($request->hasFile('signature')) {
                 Storage::disk('public')->put('adminSignatures', $request->file('signature'));
                 $name = Storage::disk('public')->put('adminSignatures', $request->file('signature'));
@@ -293,6 +342,33 @@ class LoginController extends Controller
 
 
             if ($user->save()) {
+                    $companiesIds = $request->companies;
+
+                    if($companiesIds){
+                        $findAllUserOwners = UserOwner::where('user_id', $id)->get();
+                            if($findAllUserOwners){
+                                foreach($findAllUserOwners as $userOwner){
+                                    $company = Company::find($userOwner->company_id);
+                                    $company->has_owner = false;
+                                    $company->save();
+                                    $userOwner->delete();
+                                }
+                            }
+
+                        $companiesArray = array_map('intval', explode(',', $companiesIds));
+
+                        foreach ($companiesArray as $companyId) {
+
+                            $company = Company::find($companyId);
+                            $company->has_owner = true;
+                            $company->save();
+
+                            $userOwner = new UserOwner();
+                            $userOwner->user_id = $id;
+                            $userOwner->company_id = $companyId;
+                            $userOwner->save();
+                        }
+                    }
                 return response()->json([
                     'success' => true,
                     'status' => 200,
@@ -319,8 +395,17 @@ class LoginController extends Controller
         $userDelete = User::findOrFail($id);
 
         if (Auth::user()->role_id == 1) {
-
             if ($userDelete->delete()) {
+                $userOwnerExists = UserOwner::where('user_id', $id)->get();
+
+                if($userOwnerExists){
+                    foreach($userOwnerExists as $userOwner){
+                        $company = Company::find($userOwner->company_id);
+                        $company->has_owner = false;
+                        $company->save();
+                    }
+                }
+
                 return response()->json([
                     'success' => true,
                     'status' => 200,

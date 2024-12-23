@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Company;
+use App\Models\CompanyAdress;
 use App\Models\File;
 use App\Models\User;
+use App\Models\UserOwner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 
@@ -20,7 +23,7 @@ class CompanyController extends Controller
     public function index()
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $companies = Company::get(['id', 'nameOfCompany','addressOne','addressTwo','addressThree']);
+            $companies = Company::with('company_addresses')->get();
 
             return response()->json([
                 'status' => 200,
@@ -33,24 +36,44 @@ class CompanyController extends Controller
                 'status' => 200,
                 'data' => $companies
             ]);
-        } else {
+        } else if (Auth::user()->role_id == 5) {
+            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
+            $userOwnersArray = [];
+            foreach ($userOwners as $userOwner) {
+                array_push($userOwnersArray, $userOwner->company_id);
+            }
+            $companies = Company::with('company_addresses')->whereIn('id', $userOwnersArray)->get();
+
+
             return response()->json([
-                'status' => 500,
-                'data' => []
+                'status' => 200,
+                'data' => $companies
             ]);
         }
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    public function validateCompanyByEik($eik)
+    {
+        $allCompanies = Company::all();
+        $company = $allCompanies->where('EIK', '=', $eik)->first();
+
+        if($company){
+            return true;
+        } else {
+            return false;
+        }
+    }
     public function store(Request $request)
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+
+            $eik = $request->EIK;
+
+            if($this->validateCompanyByEik($eik)){
+                throw new \Exception('Company with this EIK already exists!');
+            }
+
 
             $company = new Company();
 
@@ -75,15 +98,20 @@ class CompanyController extends Controller
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
             $company->contactPerson = $request->contactPerson;
-            $company->companyCity = $request->companyCity;
             $company->EGN = $request->EGN;
             $company->dateBornDirector = $request->dateBornDirector;
-            $company->addressOne = $request->addressOne;
-            $company->addressTwo = $request->addressTwo;
-            $company->addressThree = $request->addressThree;
+//            $company->addressOne = $request->addressOne;
+//            $company->addressTwo = $request->addressTwo;
+//            $company->addressThree = $request->addressThree;
+            $company->companyCity = $request->companyCity;
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->description = $request->description;
+            $company->nameOfContactPerson = $request->nameOfContactPerson;
+            $company->phoneOfContactPerson = $request->phoneOfContactPerson;
+            $company->director_idCard = $request->director_idCard;
+            $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
+
 
 
             if ($request->employedByMonths) {
@@ -92,9 +120,23 @@ class CompanyController extends Controller
 
             $company->employedByMonths = $employedByMonths ?? Null;
 
-
+            $company_addresses = json_decode($request->company_addresses, true);
+            Log::info('company_addresses:', [$company_addresses]);
+            Log::info('request_company_addresses:', [$request->company_addresses]);
 
             if ($company->save()) {
+
+                if ($company_addresses) {
+                    foreach ($company_addresses as $address) {
+                        $companyAddress = new CompanyAdress();
+                        $companyAddress->company_id = $company->id;
+                        $companyAddress->address = $address['address'];
+                        $companyAddress->city = $address['city'];
+                        $companyAddress->state = $address['state'];
+                        $companyAddress->zip_code = $address['zip_code'];
+                        $companyAddress->save();
+                    }
+                }
                 return response()->json([
                     'success' => true,
                     'status' => 200,
@@ -121,26 +163,36 @@ class CompanyController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
-        // $candidates = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
-        //     ->where('type_id', '=', 1)
-        //     ->get();
+        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            $company = Company::with(['industry','company_addresses'])->where('id', '=', $id)->first();
+        } else if(Auth::user()->role_id == 3) {
+            $company = Company::with(['industry','company_addresses'])->where('id', '=', Auth::user()->company_id)->first();
+        } else if(Auth::user()->role_id == 5) {
+            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
+            $userOwnersArray = [];
+            foreach($userOwners as $userOwner) {
+                array_push($userOwnersArray, $userOwner->company_id);
+            }
+            $company = Company::with(['industry','company_addresses'])->whereIn('id', $userOwnersArray)->where('id', '=', $id)->first();
+        }
 
-        // $workers = Candidate::with(['status', 'type'])->where('company_id', '=', $id)
-        //     ->where('type_id', '=', 2)
-        //     ->get();
-
-        $company = Company::with('industry')->where('id', '=', $id)->first();
-
-
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $company
-        ]);
+        if($company){
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $company
+            ],200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ],500);
+        }
     }
 
     /**
@@ -159,7 +211,7 @@ class CompanyController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, $id)
     {
@@ -229,9 +281,28 @@ class CompanyController extends Controller
             $company->foreignersLC12 = $request->foreignersLC12;
             $company->employedByMonths = $employedByMonths;
             $company->description = $description;
+            $company->director_idCard = $request->director_idCard;
+            $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
+
+            $company_addresses = json_decode($request->company_addresses, true);
 
 
             if ($company->save()) {
+                if ($company_addresses) {
+                    $companyAddresses = CompanyAdress::where('company_id', '=', $company->id)->get();
+                    foreach ($companyAddresses as $companyAddress) {
+                        $companyAddress->delete();
+                    }
+                    foreach ($company_addresses as $address) {
+                        $companyAddress = new CompanyAdress();
+                        $companyAddress->company_id = $company->id;
+                        $companyAddress->address = $address['address'];
+                        $companyAddress->city = $address['city'];
+                        $companyAddress->state = $address['state'];
+                        $companyAddress->zip_code = $address['zip_code'];
+                        $companyAddress->save();
+                    }
+                }
                 return response()->json([
                     'success' => true,
                     'status' => 200,
