@@ -586,97 +586,6 @@ class CandidateController extends Controller
                 $file->delete();
             }
 
-            if ($request->education === 'null') {
-                $education = Null;
-            } else {
-                $education = $request->education;
-            }
-
-            if ($request->specialty === 'null') {
-                $specialty = Null;
-            } else {
-                $specialty = $request->specialty;
-            }
-
-            if ($request->qualification === 'null') {
-                $qualification = Null;
-            } else {
-                $qualification = $request->qualification;
-            }
-
-            if ($request->address === 'null') {
-                $address = Null;
-            } else {
-                $address = $request->address;
-            }
-
-            if ($request->area === 'null') {
-                $area = Null;
-            } else {
-                $area = $request->area;
-            }
-
-            if ($request->areaOfResidence === 'null') {
-                $areaOfResidence = Null;
-            } else {
-                $areaOfResidence = $request->areaOfResidence;
-            }
-
-            if ($request->dossierNumber === 'null') {
-                $dossierNumber = Null;
-            } else {
-                $dossierNumber = $request->dossierNumber;
-            }
-
-            if ($request->notes === 'null') {
-                $notes = Null;
-            } else {
-                $notes = $request->notes;
-            }
-
-            if ($request->case_id === 'null') {
-                $case_id = Null;
-            } else {
-                $case_id = $request->case_id;
-            }
-
-            if ($request->periodOfResidence === 'null') {
-                $periodOfResidence = Null;
-            } else {
-                $periodOfResidence = $request->periodOfResidence;
-            }
-
-
-
-            if ($request->contractExtensionPeriod === 'null') {
-                $contractExtensionPeriod = Null;
-            } else {
-                $contractExtensionPeriod = $request->contractExtensionPeriod;
-            }
-
-            if ($request->phoneNumber === 'null') {
-                $phoneNumber = Null;
-            } else {
-                $phoneNumber = $request->phoneNumber;
-            }
-
-            if ($request->email === 'null') {
-                $email = Null;
-            } else {
-                $email = $request->email;
-            }
-
-            if ($request->user_id === 'null') {
-                $userId = Null;
-            } else {
-                $userId = $request->user_id;
-            }
-
-            if($request->agent_id === 'null'){
-                $agentId = Null;
-            } else {
-                $agentId = $request->agent_id;
-            }
 
             $person = Candidate::where('id', '=', $id)->first();
 
@@ -684,30 +593,30 @@ class CandidateController extends Controller
             $person->type_id = 1;
             $person->company_id = $request->company_id;
             $person->gender = $request->gender;
-            $person->email = $email;
+            $person->email = $request->email;
             $person->nationality = $request->nationality;
             $person->date = $request->date;
-            $person->phoneNumber = $phoneNumber;
-            $person->address = $address;
+            $person->phoneNumber = $request->phoneNumber;
+            $person->address = $request->address;
             $person->passport = $request->passport;
             $person->fullName = $request->fullName;
             $person->fullNameCyrillic = $request->fullNameCyrillic;
             $person->birthday = $request->birthday;
             $person->placeOfBirth = $request->placeOfBirth;
             $person->country = $request->country;
-            $person->area = $area;
-            $person->areaOfResidence = $areaOfResidence;
+            $person->area = $request->area;
+            $person->areaOfResidence = $request->areaOfResidence;
             $person->addressOfResidence = $request->addressOfResidence;
-            $person->periodOfResidence = $periodOfResidence;
+            $person->periodOfResidence = $request->periodOfResidence;
             $person->passportValidUntil = $request->passportValidUntil;
             $person->passportIssuedBy = $request->passportIssuedBy;
             $person->passportIssuedOn = $request->passportIssuedOn;
             $person->addressOfWork = $request->addressOfWork;
             $person->nameOfFacility = $request->nameOfFacility;
-            $person->education = $education;
-            $person->specialty = $specialty;
-            $person->qualification = $qualification;
-            $person->contractExtensionPeriod = $contractExtensionPeriod;
+            $person->education = $request->education;
+            $person->specialty = $request->specialty;
+            $person->qualification = $request->qualification;
+            $person->contractExtensionPeriod = $request->contractExtensionPeriod;
             $person->salary = $request->salary;
             $person->workingTime = $request->workingTime;
             $person->workingDays = $request->workingDays;
@@ -715,11 +624,11 @@ class CandidateController extends Controller
             $person->contractPeriod = $request->contractPeriod;
             $person->contractType = $request->contractType;
             $person->position_id = $request->position_id;
-            $person->dossierNumber = $dossierNumber;
-            $person->notes = $notes;
-            $person->user_id = $userId;
-            $person->case_id = $case_id;
-            $person->agent_id = $agentId;
+            $person->dossierNumber = $request->dossierNumber;
+            $person->notes = $request->notes;
+            $person->user_id = $request->user_id;
+            $person->case_id = $request->case_id;
+            $person->agent_id = $request->agent_id ?? null;
 
 
             $quartalyYear = date('Y', strtotime($request->date));
@@ -799,98 +708,6 @@ class CandidateController extends Controller
             $contractPeriodNumber = $oldPerson->contractPeriodNumber;
             $newContractPeriodNumber = $contractPeriodNumber + 1;
 
-            if ($request->education === 'null') {
-                $education = Null;
-            } else {
-                $education = $request->education;
-            }
-
-            if ($request->specialty === 'null') {
-                $specialty = Null;
-            } else {
-                $specialty = $request->specialty;
-            }
-
-            if ($request->qualification === 'null') {
-                $qualification = Null;
-            } else {
-                $qualification = $request->qualification;
-            }
-
-            if ($request->address === 'null') {
-                $address = Null;
-            } else {
-                $address = $request->address;
-            }
-
-            if ($request->area === 'null') {
-                $area = Null;
-            } else {
-                $area = $request->area;
-            }
-
-            if ($request->areaOfResidence === 'null') {
-                $areaOfResidence = Null;
-            } else {
-                $areaOfResidence = $request->areaOfResidence;
-            }
-
-            if ($request->dossierNumber === 'null') {
-                $dossierNumber = Null;
-            } else {
-                $dossierNumber = $request->dossierNumber;
-            }
-
-            if ($request->notes === 'null') {
-                $notes = Null;
-            } else {
-                $notes = $request->notes;
-            }
-
-            if ($request->case_id === 'null') {
-                $case_id = Null;
-            } else {
-                $case_id = $request->case_id;
-            }
-
-            if ($request->periodOfResidence === 'null') {
-                $periodOfResidence = Null;
-            } else {
-                $periodOfResidence = $request->periodOfResidence;
-            }
-
-
-
-            if ($request->contractExtensionPeriod === 'null') {
-                $contractExtensionPeriod = Null;
-            } else {
-                $contractExtensionPeriod = $request->contractExtensionPeriod;
-            }
-
-            if ($request->phoneNumber === 'null') {
-                $phoneNumber = Null;
-            } else {
-                $phoneNumber = $request->phoneNumber;
-            }
-
-            if ($request->email === 'null') {
-                $email = Null;
-            } else {
-                $email = $request->email;
-            }
-
-            if ($request->user_id === 'null') {
-                $userId = Null;
-            } else {
-                $userId = $request->user_id;
-            }
-
-            if($request->agent_id === 'null'){
-                $agentId = Null;
-            } else {
-                $agentId = $request->agent_id;
-            }
-
             $person = new Candidate();
 
             $person->contractPeriodNumber = $newContractPeriodNumber;
@@ -898,30 +715,30 @@ class CandidateController extends Controller
             $person->type_id = 1;
             $person->company_id = $request->company_id;
             $person->gender = $request->gender;
-            $person->email = $email;
+            $person->email = $request->email;
             $person->nationality = $request->nationality;
             $person->date = $request->date;
-            $person->phoneNumber = $phoneNumber;
-            $person->address = $address;
+            $person->phoneNumber = $request->phoneNumber;
+            $person->address = $request->address;
             $person->passport = $request->passport;
             $person->fullName = $request->fullName;
             $person->fullNameCyrillic = $request->fullNameCyrillic;
             $person->birthday = $request->birthday;
             $person->placeOfBirth = $request->placeOfBirth;
             $person->country = $request->country;
-            $person->area = $area;
-            $person->areaOfResidence = $areaOfResidence;
+            $person->area = $request->area;
+            $person->areaOfResidence = $request->areaOfResidence;
             $person->addressOfResidence = $request->addressOfResidence;
-            $person->periodOfResidence = $periodOfResidence;
+            $person->periodOfResidence = $request->periodOfResidence;
             $person->passportValidUntil = $request->passportValidUntil;
             $person->passportIssuedBy = $request->passportIssuedBy;
             $person->passportIssuedOn = $request->passportIssuedOn;
             $person->addressOfWork = $request->addressOfWork;
             $person->nameOfFacility = $request->nameOfFacility;
-            $person->education = $education;
-            $person->specialty = $specialty;
-            $person->qualification = $qualification;
-            $person->contractExtensionPeriod = $contractExtensionPeriod;
+            $person->education = $request->education;
+            $person->specialty = $request->specialty;
+            $person->qualification = $request->qualification;
+            $person->contractExtensionPeriod = $request->contractExtensionPeriod;
             $person->salary = $request->salary;
             $person->workingTime = $request->workingTime;
             $person->workingDays = $request->workingDays;
@@ -929,11 +746,11 @@ class CandidateController extends Controller
             $person->contractPeriod = $request->contractPeriod;
             $person->contractType = $request->contractType;
             $person->position_id = $request->position_id;
-            $person->dossierNumber = $dossierNumber;
-            $person->notes = $notes;
-            $person->user_id = $userId;
-            $person->case_id = $case_id;
-            $person->agent_id = $agentId;
+            $person->dossierNumber = $request->dossierNumber;
+            $person->notes = $request->notes;
+            $person->user_id = $request->user_id ?? null;
+            $person->case_id = $request->case_id ?? null;
+            $person->agent_id = $request->agent_id ?? null;
 
 
             $quartalyYear = date('Y', strtotime($request->date));
