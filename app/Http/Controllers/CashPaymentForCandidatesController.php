@@ -36,7 +36,7 @@ class CashPaymentForCandidatesController extends Controller
             $cashPaymentForCandidates = $cashPaymentForCandidates->where('paymentDate', $paymentDate);
         }
 
-        $cashPaymentForCandidates = $cashPaymentForCandidates->get();
+        $cashPaymentForCandidates = $cashPaymentForCandidates->paginate();
 
         return response()->json([
             'status' => 200,
