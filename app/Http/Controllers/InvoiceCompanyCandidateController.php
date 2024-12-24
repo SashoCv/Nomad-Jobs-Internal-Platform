@@ -40,6 +40,11 @@ class InvoiceCompanyCandidateController extends Controller
                             'itemInvoice' => function ($query) {
                                 $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total');
                             }
+                        ])
+                        ->with([
+                            'company' => function ($query) {
+                                $query->select('id', 'nameOfCompany', 'commissionRate');
+                            }
                         ]);
                 },
                 'candidate' => function ($query) {

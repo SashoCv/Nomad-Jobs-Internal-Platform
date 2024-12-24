@@ -18,16 +18,6 @@ class ItemsForInvoicesController extends Controller
         try {
             $itemsForInvoices = ItemsForInvoices::select('id', 'name')->get();
 
-            if($request->company_id){
-                $company_id = $request->company_id;
-                $companyCommissionRate = Company::where('id', $company_id)->first()->commissionRate;
-
-                $itemsForInvoices = $itemsForInvoices->map(function ($item) use ($companyCommissionRate) {
-                    $item->commissionRate = $companyCommissionRate;
-                    return $item;
-                });
-            }
-
             return response()->json($itemsForInvoices);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error fetching items for invoices']);
