@@ -54,7 +54,7 @@ class InvoiceCompanyCandidateController extends Controller
                 ->select('id', 'candidate_id', 'invoice_company_id') // Select only required columns from the main model
                 ->when(isset($filters['is_paid']), function ($query) use ($request) {
                     return $query->whereHas('invoiceCompany', function ($subQuery) use ($request) {
-                        $subQuery->where('is_paid', $request->is_paid === "true" ? 1 : 0);
+                        $subQuery->where('is_paid', $request->is_paid == "true" ? 1 : 0);
                     });
                 })
                 ->when(isset($filters['company_id']), function ($query) use ($filters) {
