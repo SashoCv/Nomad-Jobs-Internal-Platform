@@ -657,6 +657,7 @@ class SearchController extends Controller
         $nameOfCompany = $request->input('nameOfCompany');
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
+        $companyId = $request->input('company_id');
 
         $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
 
@@ -669,6 +670,10 @@ class SearchController extends Controller
 
         if ($EIK) {
             $companiesQuery->where('EIK', $EIK);
+        }
+
+        if ($companyId) {
+            $companiesQuery->where('id', $companyId);
         }
 
         if ($nameOfCompany) {
