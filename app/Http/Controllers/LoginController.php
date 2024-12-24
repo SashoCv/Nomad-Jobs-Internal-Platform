@@ -59,10 +59,18 @@ class LoginController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with(['company', 'role'])->where('id','!=','22')->get();
+        $role_id = $request->role_id;
 
+        if($role_id){
+            $users = User::with(['company', 'role'])
+                ->where('id','!=','22')
+                ->where('role_id', $role_id)->get();
+        } else {
+            $users = User::with(['company', 'role'])
+                ->where('id','!=','22')->get();
+        }
 
         if (Auth::user()->role_id == 1) {
             return response()->json([

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\ItemsForInvoices;
 use Illuminate\Http\Request;
 
@@ -12,10 +13,11 @@ class ItemsForInvoicesController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
             $itemsForInvoices = ItemsForInvoices::select('id', 'name')->get();
+
             return response()->json($itemsForInvoices);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error fetching items for invoices']);

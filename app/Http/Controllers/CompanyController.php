@@ -100,9 +100,6 @@ class CompanyController extends Controller
             $company->contactPerson = $request->contactPerson;
             $company->EGN = $request->EGN;
             $company->dateBornDirector = $request->dateBornDirector;
-//            $company->addressOne = $request->addressOne;
-//            $company->addressTwo = $request->addressTwo;
-//            $company->addressThree = $request->addressThree;
             $company->companyCity = $request->companyCity;
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
@@ -111,6 +108,7 @@ class CompanyController extends Controller
             $company->phoneOfContactPerson = $request->phoneOfContactPerson;
             $company->director_idCard = $request->director_idCard;
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
+            $company->commissionRate = $request->commissionRate;
 
 
 
@@ -283,6 +281,7 @@ class CompanyController extends Controller
             $company->description = $description;
             $company->director_idCard = $request->director_idCard;
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
+            $company->commissionRate = $request->commissionRate;
 
             $company_addresses = json_decode($request->company_addresses, true);
 
@@ -322,7 +321,7 @@ class CompanyController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {

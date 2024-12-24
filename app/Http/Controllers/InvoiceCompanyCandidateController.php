@@ -40,6 +40,11 @@ class InvoiceCompanyCandidateController extends Controller
                             'itemInvoice' => function ($query) {
                                 $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total');
                             }
+                        ])
+                        ->with([
+                            'company' => function ($query) {
+                                $query->select('id', 'nameOfCompany', 'commissionRate');
+                            }
                         ]);
                 },
                 'candidate' => function ($query) {
@@ -66,8 +71,20 @@ class InvoiceCompanyCandidateController extends Controller
                     });
                 })
                 ->whereHas('invoiceCompany')
-                ->orderBy('id', 'desc')
-                ->paginate(15);
+                ->orderBy('id', 'desc');
+
+            $invoiceCompanyCandidatesForStatistics = $invoiceCompanyCandidates->get();
+
+            $totalAmount = 0;
+            $totalPaidAmount = 0;
+            foreach ($invoiceCompanyCandidatesForStatistics as $invoice){
+                $invoiceAmount = $invoice->invoiceCompany->invoice_amount;
+                $paymentAmount = $invoice->invoiceCompany->payment_amount;
+                $totalAmount += $invoiceAmount;
+                $totalPaidAmount += $paymentAmount;
+            }
+
+            $invoiceCompanyCandidates = $invoiceCompanyCandidates->paginate(15);
 
             $invoiceCompanyCandidates->getCollection()->transform(function ($invoice) {
                 if ($invoice->invoiceCompany) {
@@ -82,7 +99,12 @@ class InvoiceCompanyCandidateController extends Controller
                 return $invoice;
             });
 
-            return response()->json($invoiceCompanyCandidates);
+            return response()->json([
+                'status' => 200,
+                'data' => $invoiceCompanyCandidates,
+                'totalAmount' => $totalAmount,
+                'totalPaidAmount' => $totalPaidAmount
+            ]);
 
         } catch (\Exception $e) {
             Log::error($e->getMessage(), ['stack' => $e->getTraceAsString()]);
