@@ -19,8 +19,9 @@ class ItemsForInvoicesController extends Controller
             $itemsForInvoices = ItemsForInvoices::select('id', 'name')->get();
             $company_id = $request->company_id;
             $companyCommissionRate = Company::where('id', $company_id)->first()->commissionRate;
+            $itemsForInvoices->companyCommissionRate = $companyCommissionRate;
 
-            return response()->json($itemsForInvoices, $companyCommissionRate);
+            return response()->json($itemsForInvoices);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error fetching items for invoices']);
         }
