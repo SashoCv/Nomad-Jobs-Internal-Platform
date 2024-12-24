@@ -17,13 +17,16 @@ class ItemsForInvoicesController extends Controller
     {
         try {
             $itemsForInvoices = ItemsForInvoices::select('id', 'name')->get();
-            $company_id = $request->company_id;
-            $companyCommissionRate = Company::where('id', $company_id)->first()->commissionRate;
 
-            $itemsForInvoices = $itemsForInvoices->map(function ($item) use ($companyCommissionRate) {
-                $item->commissionRate = $companyCommissionRate;
-                return $item;
-            });
+            if($request->company_id){
+                $company_id = $request->company_id;
+                $companyCommissionRate = Company::where('id', $company_id)->first()->commissionRate;
+
+                $itemsForInvoices = $itemsForInvoices->map(function ($item) use ($companyCommissionRate) {
+                    $item->commissionRate = $companyCommissionRate;
+                    return $item;
+                });
+            }
 
             return response()->json($itemsForInvoices);
         } catch (\Exception $e) {
