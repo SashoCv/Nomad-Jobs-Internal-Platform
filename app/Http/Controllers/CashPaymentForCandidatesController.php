@@ -36,11 +36,25 @@ class CashPaymentForCandidatesController extends Controller
             $cashPaymentForCandidates = $cashPaymentForCandidates->where('paymentDate', $paymentDate);
         }
 
+        $allPayInvoices = $cashPaymentForCandidates->get();
+        $totalPaidAmount = 0;
+        $totalAmount = 0;
+        foreach ($allPayInvoices as $payInvoice) {
+            if($payInvoice->isPaid){
+                $totalPaidAmount += $payInvoice->amount;
+            } else {
+                $totalAmount += $payInvoice->amount;
+            }
+        }
+
+
         $cashPaymentForCandidates = $cashPaymentForCandidates->paginate();
 
         return response()->json([
             'status' => 200,
-            'data' => $cashPaymentForCandidates
+            'data' => $cashPaymentForCandidates,
+            'totalPaidAmount' => $totalPaidAmount,
+            'totalAmount' => $totalAmount
         ]);
     }
 
