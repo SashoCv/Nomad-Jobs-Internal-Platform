@@ -19,7 +19,7 @@ class ItemsForInvoicesController extends Controller
             $itemsForInvoices = ItemsForInvoices::select('id', 'name')->get();
             $company_id = $request->company_id;
             $companyCommissionRate = Company::where('id', $company_id)->first()->commissionRate;
-            $itemsForInvoices->companyCommissionRate = $companyCommissionRate;
+            $itemsForInvoices->companyCommissionRate = $companyCommissionRate ?? 0;
 
             return response()->json($itemsForInvoices);
         } catch (\Exception $e) {
