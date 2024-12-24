@@ -21,6 +21,7 @@ class InvoiceCompanyCandidateController extends Controller
         try {
             $filters = $request->all();
 
+            Log::info('Fetching invoice company candidates with filters', [$filters]);
             if (!empty($filters['dateFrom']) && !empty($filters['dateTo'])) {
                 // Ensure the date format is correct before parsing
                 try {
