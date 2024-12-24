@@ -47,7 +47,7 @@ class CashPaymentForCandidatesController extends Controller
             }
         }
 
-
+        $totalAmount = $totalAmount + $totalPaidAmount;
         $cashPaymentForCandidates = $cashPaymentForCandidates->paginate();
 
         return response()->json([
