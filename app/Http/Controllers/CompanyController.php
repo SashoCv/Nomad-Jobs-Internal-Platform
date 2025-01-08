@@ -262,6 +262,12 @@ class CompanyController extends Controller
                 $company->stampName = $request->file('companyStamp')->getClientOriginalName();
             }
 
+            if($request->commissionRate == 'null'){
+                $commissionRate = null;
+            } else {
+                $commissionRate = $request->commissionRate;
+            }
+
             $company->nameOfCompany = $request->nameOfCompany;
             $company->address = $request->address;
             $company->email = $request->email;
@@ -269,19 +275,17 @@ class CompanyController extends Controller
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
             $company->contactPerson = $request->contactPerson;
-            $company->companyCity = $request->companyCity;
             $company->EGN = $request->EGN;
             $company->dateBornDirector = $request->dateBornDirector;
-            $company->addressOne = $addressOne;
-            $company->addressTwo = $addressTwo;
-            $company->addressThree = $addressThree;
+            $company->companyCity = $request->companyCity;
             $company->industry_id = $request->industry_id;
             $company->foreignersLC12 = $request->foreignersLC12;
-            $company->employedByMonths = $employedByMonths;
-            $company->description = $description;
+            $company->description = $request->description;
+            $company->nameOfContactPerson = $request->nameOfContactPerson;
+            $company->phoneOfContactPerson = $request->phoneOfContactPerson;
             $company->director_idCard = $request->director_idCard;
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
-            $company->commissionRate = $request->commissionRate;
+            $company->commissionRate = $commissionRate;
 
             $company_addresses = json_decode($request->company_addresses, true);
 

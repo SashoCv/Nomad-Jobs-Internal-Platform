@@ -233,7 +233,7 @@ class AgentCandidateController extends Controller
                 ->orderBy('company_jobs.company_id', 'desc');
 
             if ($request->company_job_id != null) {
-                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
                     $query->where('company_job_id', $request->company_job_id);
                 } else if (Auth::user()->role_id == 4) {
                     $query->where('agent_candidates.user_id', $user_id)
