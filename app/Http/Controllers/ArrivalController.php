@@ -79,10 +79,12 @@ class ArrivalController extends Controller
 //                ]);
 
                 $arrivalCandidate = ArrivalCandidate::where('arrival_id', $arrival->id)->first();
+                Log::info('Arrival Candidate', [$arrivalCandidate]);
                 $arrivalCandidate->status_arrival_id = 8;
                 $arrivalCandidate->status_description = 'Очаква се';
                 $arrivalCandidate->status_date = Carbon::parse($arrival->arrival_date)->format('d-m-Y');
-
+                $arrivalCandidate->save();
+                Log::info('After save Arrival Candidate', [$arrivalCandidate]);
                 if(!$arrivalCandidate->save()) {
                     throw new \Exception('Failed to save arrival candidate details.');
                 }
