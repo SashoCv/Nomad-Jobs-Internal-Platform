@@ -30,6 +30,7 @@ class LoginController extends Controller
                 'data' => $user
             ]);
         } catch (Exception $e) {
+            Log::info($e->getMessage());
             return response()->json([
                 'success' => false,
                 'status' => 500,

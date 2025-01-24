@@ -161,9 +161,11 @@ class ArrivalCandidateController extends Controller
                 $statusMapping = [
                     1 => 5,  // Pristignal
                     3 => 6,  // Procedura za ERPR
-                    4 => 22, // Procedura za pismo
+                    4 => 17, // Procedura za pismo
                     5 => 7,  // Snimka za ERPR
                     6 => 8,  // Poluchava ERPR
+                    7 => 4,  // Polucil Viza
+                    8 => 18, // Ocakva se Kandidat
                     9 => 9,  // Naznachen za rabota
                 ];
 
