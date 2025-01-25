@@ -57,7 +57,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 // Преземи ги мејловите од .env и раздели ги со explode
                 $emails = explode(',', env('ARRIVAL_NOTIFICATION_WITH_STATUS_EMAILS'));
 
-                Log::info("Emails: " . $emails);
+                Log::info("Emails: ", [$emails]);
                 $message->to($emails)
                     ->subject('Arrival Notification for ' . $data['candidateName']);
             });
