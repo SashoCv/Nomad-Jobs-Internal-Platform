@@ -51,9 +51,7 @@ class SendEmailForArrivalCandidates implements ShouldQueue
         try {
             Mail::send('arrival', ['data' => $data], function ($message) use ($data) {
                 $emails = explode(',', env('ARRIVAL_NOTIFICATION_EMAILS'));
-
-                Log::info("Emails: ", [$emails]);
-
+                
                 $message->to($emails)
                     ->subject('Arrival Notification for ' . $data['candidateName']);
             });
