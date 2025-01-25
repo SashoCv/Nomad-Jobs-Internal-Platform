@@ -50,7 +50,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
             'phone_number' => $arrival->phone_number,
         ];
 
-
+        Log::info('Sending email to ', [env('ARRIVAL_NOTIFICATION_WITH_STATUS_EMAILS')]);
 
         try {
             Mail::send('arrivalCandidateWithStatus', ['data' => $data], function ($message) use ($data) {
