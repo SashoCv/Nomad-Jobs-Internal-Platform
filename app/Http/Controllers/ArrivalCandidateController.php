@@ -151,7 +151,7 @@ class ArrivalCandidateController extends Controller
             $arrivalCandidate = ArrivalCandidate::find($request->id);
             $arrivalCandidate->status_arrival_id = $request->status_arrival_id;
             $arrivalCandidate->status_description = $request->status_description;
-            $arrivalCandidate->status_date = $request->status_date;
+            $arrivalCandidate->status_date = Carbon::parse($request->status_date)->format('d-m-Y');
 
             $candidateId = Arrival::where('id', $arrivalCandidate->arrival_id)->first()->candidate_id;
             $candidate = Candidate::where('id', $candidateId)->first();

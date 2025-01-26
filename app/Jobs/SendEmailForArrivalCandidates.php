@@ -48,16 +48,11 @@ class SendEmailForArrivalCandidates implements ShouldQueue
             'phone_number' => $this->arrival->phone_number,
         ];
 
-        Log::info('Sending email to ', [env('ARRIVAL_NOTIFICATION_WITH_STATUS_EMAILS')]);
-
         try {
-            Mail::send('arrival', ['data' => $data], function ($message) use ($data) {
-                $emails = explode(',', env('ARRIVAL_NOTIFICATION_EMAILS'));
-
-                $message->to($emails)
-                    ->subject('Arrival Notification for ' . $data['candidateName']);
-            });
-
+//            Mail::send('arrival', ['data' => $data], function ($message) use ($data) {
+//                $message->to(['katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
+//                    ->subject('Arrival Notification for ' . $data['candidateName']);
+//            });
 
             // Log success
             Log::info("Email sent successfully to " . $data['candidateName']);
