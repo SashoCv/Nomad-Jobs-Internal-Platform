@@ -82,7 +82,7 @@ class StatusForCandidateFromAgentController extends Controller
            $candidateFromAgent = AgentCandidate::where('candidate_id', $id)->first();
               if ($candidateFromAgent) {
                 $candidateFromAgent->status_for_candidate_from_agent_id = $request->status_for_candidate_from_agent_id;
-                if($request->status_for_candidate_from_agent_id == 3){
+                if($request->status_for_candidate_from_agent_id == 3 || $request->status_for_candidate_from_agent_id == 4 || $request->status_for_candidate_from_agent_id == 5) {
                     $updateTypeOfCandidate = Candidate::where('id', $id)->first();
                     $updateTypeOfCandidate->type_id = 1;
                     $education = Education::where('candidate_id', $id)->first();

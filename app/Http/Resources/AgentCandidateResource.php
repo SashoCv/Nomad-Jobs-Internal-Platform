@@ -2,12 +2,15 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AgentCandidateResource extends JsonResource
 {
     public function toArray($request)
     {
+        $addedById = $this->candidate->addedBy;
+        $agent = User::where('id', $addedById)->first();
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
@@ -34,10 +37,10 @@ class AgentCandidateResource extends JsonResource
                 'name' => $this->statusForCandidateFromAgent->name,
             ],
             'Agent' => [
-                'id' => $this->user->id,
-                'firstName' => $this->user->firstName,
-                'lastName' => $this->user->lastName,
-                'email' => $this->user->email,
+                'id' => $agent->id,
+                'firstName' => $agent->firstName,
+                'lastName' => $agent->lastName,
+                'email' => $agent->email,
             ],
         ];
     }
