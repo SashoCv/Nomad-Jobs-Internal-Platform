@@ -334,7 +334,7 @@ class InvoiceCompanyController extends Controller
     public function downloadExcelForInvoices(Request $request)
     {
         try {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+//            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
                 $currentYear = Carbon::now()->year;
 
                 $dateFrom = $request->input('date_from') ? Carbon::parse($request->input('date_from')) : Carbon::create($currentYear, 1, 1);
@@ -375,9 +375,9 @@ class InvoiceCompanyController extends Controller
                 $fileName = 'invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
 
                 return $this->excel->download(new InvoicesExport($data), $fileName);
-            } else {
-                return response()->json('You are not authorized to perform this action');
-            }
+//            } else {
+//                return response()->json('You are not authorized to perform this action');
+//            }
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
         }
