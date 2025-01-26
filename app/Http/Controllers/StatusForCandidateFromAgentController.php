@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
+use App\Models\Education;
 use App\Models\StatusForCandidateFromAgent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -84,6 +85,8 @@ class StatusForCandidateFromAgentController extends Controller
                 if($request->status_for_candidate_from_agent_id == 3){
                     $updateTypeOfCandidate = Candidate::where('id', $id)->first();
                     $updateTypeOfCandidate->type_id = 1;
+                    $education = Education::where('candidate_id', $id)->first();
+                    $updateTypeOfCandidate->education = $education->school_name . "-" . $education->degree . "-" . $education->field_of_study . "-" . $education->start_date . "-" . $education->end_date;
                     $updateTypeOfCandidate->save();
                 }
                 $candidateFromAgent->save();

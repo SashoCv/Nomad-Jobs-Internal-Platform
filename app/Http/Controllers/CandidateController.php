@@ -464,8 +464,6 @@ class CandidateController extends Controller
 
         if ($person) {
             $person->arrival = Arrival::where('candidate_id', $id)->exists();
-            $person->education = Education::where('candidate_id', $id)->get();
-            $person->workExperience = Experience::where('candidate_id', $id)->get();
             $person->medicalInsurance = MedicalInsurance::where('candidate_id', $id)->get() ?? [];
 
             return response()->json([
