@@ -74,6 +74,11 @@ class CompanyController extends Controller
                 throw new \Exception('Company with this EIK already exists!');
             }
 
+            if($request->commissionRate == "null"){
+                $commissionRate = null;
+            } else {
+                $commissionRate = $request->commissionRate;
+            }
 
             $company = new Company();
 
@@ -108,7 +113,7 @@ class CompanyController extends Controller
             $company->phoneOfContactPerson = $request->phoneOfContactPerson;
             $company->director_idCard = $request->director_idCard;
             $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
-            $company->commissionRate = $request->commissionRate;
+            $company->commissionRate = $commissionRate;
 
 
 

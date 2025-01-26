@@ -54,8 +54,8 @@ class ArrivalController extends Controller
                 DB::beginTransaction();
 
                 $candidateId = $request->candidate_id;
-                $arrival = Arrival::firstOrNew(['candidate_id' => $candidateId]);
-
+                $arrival = Arrival::where('candidate_id', $candidateId)->first();
+                
                 $arrival->fill([
                     'company_id' => $request->company_id,
                     'arrival_date' => Carbon::createFromFormat('m-d-Y', $request->arrival_date)->format('Y-m-d'),
@@ -66,18 +66,24 @@ class ArrivalController extends Controller
                     'phone_number' => $request->phone_number,
                 ]);
 
-                if (!$arrival->save()) {
-                    throw new \Exception('Failed to save arrival details.');
-                }
+                $arrival->save();
 
-                $arrivalCandidate = ArrivalCandidate::firstOrNew(['arrival_id' => $arrival->id]);
-                $arrivalCandidate->fill([
-                    'arrival_id' => $arrival->id,
-                    'status_arrival_id' => 8,
-                    'status_description' => 'Arrival Expected',
-                    'status_date' => Carbon::parse($arrival->arrival_date)->format('d-m-Y'),
-                ]);
+//                $arrivalCandidate = ArrivalCandidate::firstOrNew(['arrival_id' => $arrival->id]);
+//                $arrivalCandidate->fill([
+//                    'arrival_id' => $arrival->id,
+//                    'status_arrival_id' => 8,
+//                    'status_description' => 'Arrival Expected',
+//                    'status_date' => Carbon::parse($arrival->arrival_date)->format('d-m-Y'),
+//                ]);
 
+                Log::info('Before Arrival Candidate', [$arrival]);
+                $arrivalCandidate = ArrivalCandidate::where('arrival_id', $arrival->id)->first();
+                Log::info('Arrival Candidate', [$arrivalCandidate]);
+                $arrivalCandidate->status_arrival_id = 8;
+                $arrivalCandidate->status_description = 'Очаква се';
+                $arrivalCandidate->status_date = Carbon::parse($arrival->arrival_date)->format('d-m-Y');
+                $arrivalCandidate->save();
+                Log::info('After save Arrival Candidate', [$arrivalCandidate]);
                 if(!$arrivalCandidate->save()) {
                     throw new \Exception('Failed to save arrival candidate details.');
                 }

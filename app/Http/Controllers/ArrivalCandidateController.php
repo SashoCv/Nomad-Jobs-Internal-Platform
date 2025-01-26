@@ -41,7 +41,7 @@ class ArrivalCandidateController extends Controller
                 $query->whereBetween('status_date', [$fromDate, $toDate]);
             }
 
-            $query->orderByRaw('STR_TO_DATE(status_date, "%m-%d-%Y") ASC');
+            $query->orderByRaw("STR_TO_DATE(status_date, '%d-%m-%Y') ASC");
 
             $arrivalCandidates = $query->paginate();
 
@@ -151,7 +151,7 @@ class ArrivalCandidateController extends Controller
             $arrivalCandidate = ArrivalCandidate::find($request->id);
             $arrivalCandidate->status_arrival_id = $request->status_arrival_id;
             $arrivalCandidate->status_description = $request->status_description;
-            $arrivalCandidate->status_date = $request->status_date;
+            $arrivalCandidate->status_date = Carbon::parse($request->status_date)->format('d-m-Y');
 
             $candidateId = Arrival::where('id', $arrivalCandidate->arrival_id)->first()->candidate_id;
             $candidate = Candidate::where('id', $candidateId)->first();
@@ -161,9 +161,11 @@ class ArrivalCandidateController extends Controller
                 $statusMapping = [
                     1 => 5,  // Pristignal
                     3 => 6,  // Procedura za ERPR
-                    4 => 22, // Procedura za pismo
+                    4 => 17, // Procedura za pismo
                     5 => 7,  // Snimka za ERPR
                     6 => 8,  // Poluchava ERPR
+                    7 => 4,  // Polucil Viza
+                    8 => 18, // Ocakva se Kandidat
                     9 => 9,  // Naznachen za rabota
                 ];
 

@@ -36,7 +36,6 @@ class SendEmailToCompany implements ShouldQueue
         $candidate = Candidate::find($arrival->candidate_id);
         $company = Company::find($arrival->company_id);
         $email = $company->email;
-        $email = "sasocvetanoski@gmail.com";
 
         $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
         $status = $statusArrival->statusName;
@@ -46,9 +45,12 @@ class SendEmailToCompany implements ShouldQueue
             'candidateName' => $candidate->fullName,
             'companyName' => $company->nameOfCompany,
             'status' => $status,
+            'contractType' => $candidate->contractType,
             'changedStatusDate' => $arrivalCandidate->status_date,
             'description' => $arrivalCandidate->status_description,
             'phone_number' => $arrival->phone_number,
+            'arrivalTime' => $arrival->arrival_time,
+            'arrivalDate' => $arrival->arrival_date,
         ];
 
 
@@ -56,7 +58,7 @@ class SendEmailToCompany implements ShouldQueue
         try {
             Mail::send('arrivalCandidateForCompany', ['data' => $data], function ($message) use ($data, $email) {
                 $message->to($email)
-                    ->subject('Arrival Notification for ' . $data['candidateName']);
+                    ->subject('Уведомление за пристигане на ' . $data['candidateName']);
             });
 
             Log::info("Email sent successfully to " . $data['candidateName']);

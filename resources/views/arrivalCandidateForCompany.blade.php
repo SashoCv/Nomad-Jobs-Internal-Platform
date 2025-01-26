@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="bg">
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
-    <title>Arrival Notification for {{ $data['candidateName'] }}</title>
+    <title>Уведомление за пристигане на {{ $data['candidateName'] }}</title>
     <style type="text/css">
         body {
             margin: 0;
@@ -47,23 +47,27 @@
 
 <body>
 <div class="container">
-    <h2>Arrival Notification for {{ $data['candidateName'] }}</h2>
-    <p>Hello,</p>
-    <p>The following candidate is scheduled to arrive soon:</p>
+    <h2>Уведомление за пристигане на {{ $data['candidateName'] }}</h2>
+    <p>Здравейте,</p>
+    <p>Следният кандидат ще пристигне скоро:</p>
 
     <div class="info">
-        <p><strong>Candidate Name:</strong> {{ $data['candidateName'] }}</p>
-        <p><strong>Status:</strong> {{ $data['status'] }}</p>
-        <p><strong>Contact Phone:</strong> {{ $data['phone_number'] }}</p>
+        <p><strong>Име на кандидат:</strong> {{ $data['candidateName'] }}</p>
+        <p><strong>Статус:</strong> {{ $data['status'] }}</p>
+        <p><strong>Телефон за контакт:</strong> {{ $data['phone_number'] }}</p>
     </div>
 
-    <p>If you have any questions or require further details, feel free to contact us. We look forward to ensuring a smooth process for the candidate's arrival.</p>
+    <p>
+        Уведомяваме ви, че кандидатът {{ $data['candidateName'] }}, на длъжност, процедура {{ $data['contractType'] }},
+        за вашия ресторант/магазин/и прочие ще пристигне на дата {{ $data['arrivalDate'] }} в час {{ $data['arrivalTime'] }}.
+        Наш сътрудник ще го/я посрещне и служителят ще бъде доведен до работното си място.
+    </p>
 
     <div class="footer">
-        <p>Best regards,</p>
+        <p>С уважение,</p>
         <p><strong>Nomad Partners</strong></p>
         <p>
-            <a href="https://www.nomadpartners.bg" target="_blank">Visit Our Website</a>
+            <a href="https://www.nomadpartners.bg" target="_blank">Посетете нашия уебсайт</a>
         </p>
     </div>
 </div>
