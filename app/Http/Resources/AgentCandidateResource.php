@@ -11,6 +11,7 @@ class AgentCandidateResource extends JsonResource
     {
         $addedById = $this->candidate->addedBy;
         $agent = User::where('id', $addedById)->first();
+        
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
