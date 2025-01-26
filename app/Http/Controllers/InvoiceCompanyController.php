@@ -364,7 +364,7 @@ class InvoiceCompanyController extends Controller
                         'Company Name' => $invoice->invoiceCompany->company->nameOfCompany,
                         'candidate' => $invoice->candidate->fullNameCyrillic,
                         'Invoice Number' => $invoice->invoiceCompany->invoice_number,
-                        'Invoice Date' => $invoice->invoiceCompany->invoice_date,
+                        'Invoice Date' => Carbon::parse($invoice->invoiceCompany->invoice_date)->format('d-m-Y'),
                         'Status' => $invoice->invoiceCompany->status,
                         'Invoice Amount' => $invoice->invoiceCompany->invoice_amount,
                         'Payment Amount' => $invoice->invoiceCompany->payment_amount,
