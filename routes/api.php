@@ -235,6 +235,7 @@ Route::middleware('auth:sanctum')->group(function () {
 //    Route::get('getCompanyInvoices', [InvoiceCompanyController::class, 'index']);
     Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyCandidateController::class, 'destroy']);
     Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
+    Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
 //    Route::get('getCompanyInvoices/{id}', [InvoiceCompanyController::class, 'show']);
     Route::post('updateInvoice/{id}', [InvoiceCompanyController::class, 'update']);
     Route::get('invoiceCompanyCandidates', [InvoiceCompanyCandidateController::class, 'index']);
@@ -293,5 +294,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('exportMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'export']);
 
 });
-
-Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
