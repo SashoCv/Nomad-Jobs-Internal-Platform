@@ -39,6 +39,12 @@ class ArrivalCandidateController extends Controller
                 $fromDate = Carbon::createFromFormat('m-d-Y', $fromDate)->format('d-m-Y');
                 $toDate = Carbon::createFromFormat('m-d-Y', $toDate)->format('d-m-Y');
                 $query->whereBetween('status_date', [$fromDate, $toDate]);
+            } elseif ($fromDate) {
+                $fromDate = Carbon::createFromFormat('m-d-Y', $fromDate)->format('d-m-Y');
+                $query->where('status_date', '>=', $fromDate);
+            } elseif ($toDate) {
+                $toDate = Carbon::createFromFormat('m-d-Y', $toDate)->format('d-m-Y');
+                $query->where('status_date', '<=', $toDate);
             }
 
             $query->orderByRaw("STR_TO_DATE(status_date, '%d-%m-%Y') ASC");
