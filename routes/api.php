@@ -248,7 +248,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'show']);
     Route::post('updateCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'update']);
     Route::delete('deleteCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'destroy']);
-
+//    Route::get('checkIfCandidateHasCashPayment/{id}', [CashPaymentForCandidatesController::class, 'checkIfCandidateHasCashPayment']); // need Functionality
     //Items For Invoice
     Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
     Route::post('updateItemForInvoice/{id}', [ItemInvoiceController::class, 'update']);
