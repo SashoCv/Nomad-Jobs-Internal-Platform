@@ -629,8 +629,8 @@ class CandidateController extends Controller
             $person->user_id = $request->user_id;
             $person->case_id = $request->case_id;
             $person->agent_id = $request->agent_id ?? null;
-            $person->startContractDate = $request->startContractDate;
-            $person->endContractDate = $request->endContractDate;
+            $person->startContractDate = $request->startContractDate ?? null;
+            $person->endContractDate = $request->endContractDate ?? null;
 
 
             $quartalyYear = date('Y', strtotime($request->date));
