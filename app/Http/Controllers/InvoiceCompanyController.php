@@ -335,18 +335,10 @@ class InvoiceCompanyController extends Controller
     {
         try {
             if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $currentYear = Carbon::now()->year;
-
-                $dateFrom = $request->input('date_from') ? Carbon::parse($request->input('date_from')) : Carbon::create($currentYear, 1, 1);
-                $dateTo = $request->input('date_to') ? Carbon::parse($request->input('date_to')) : Carbon::create($currentYear, 12, 31);
 
                 $invoices = InvoiceCompanyCandidate::with('candidate', 'invoiceCompany', 'invoiceCompany.company', 'invoiceCompany.itemInvoice')
-                    ->whereHas('invoiceCompany', function ($query) use ($dateFrom, $dateTo) {
-                        $query->whereBetween('invoice_date', [$dateFrom, $dateTo]);
-                    })
                     ->get();
-
-
+                
                 $data = [];
                 foreach ($invoices as $invoice) {
                     $invoiceItems = [];
@@ -371,6 +363,7 @@ class InvoiceCompanyController extends Controller
                         'Items' => $invoiceItems,
                     ];
                 }
+
 
                 $fileName = 'invoices_' . Carbon::now()->format('Y-m-d') . '.xlsx';
 
