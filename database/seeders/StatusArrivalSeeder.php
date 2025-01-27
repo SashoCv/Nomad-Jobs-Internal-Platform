@@ -15,9 +15,10 @@ class StatusArrivalSeeder extends Seeder
     public function run()
     {
         $statuses = [
-            ['statusName' => 'Получил за виза'],
-            ['statusName' => 'Очаква се'],
-            ['statusName' => 'Назначен на работа']
+            [
+                'statusName' => 'Писмо за ЕРПР',
+                'order_statuses' => 9,
+            ],
         ];
 
         StatusArrival::insert($statuses);
