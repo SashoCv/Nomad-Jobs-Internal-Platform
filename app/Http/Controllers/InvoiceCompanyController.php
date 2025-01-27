@@ -338,7 +338,7 @@ class InvoiceCompanyController extends Controller
 
                 $invoices = InvoiceCompanyCandidate::with('candidate', 'invoiceCompany', 'invoiceCompany.company', 'invoiceCompany.itemInvoice')
                     ->get();
-                
+
                 $data = [];
                 foreach ($invoices as $invoice) {
                     $invoiceItems = [];
