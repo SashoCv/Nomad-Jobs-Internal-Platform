@@ -178,7 +178,6 @@ class ArrivalCandidateController extends Controller
                     7 => 4,  // Polucil Viza
                     8 => 18, // Ocakva se Kandidat
                     9 => 9,  // Naznachen za rabota
-                    10 => 17 // Pismo za Erpr
                 ];
 
                 if (isset($statusMapping[$arrivalCandidate->status_arrival_id])) {
