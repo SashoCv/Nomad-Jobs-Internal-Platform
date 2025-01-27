@@ -44,8 +44,8 @@ class CandidateController extends Controller
                 $query->select('id', 'jobPosition');
             }
         ])
-            ->where('contractPeriodDate', '<=', $fourMonthsBefore)
-            ->orderBy('contractPeriodDate', 'desc')
+            ->whereRaw("STR_TO_DATE(endContractDate, '%d-%m-%Y') <= ?", [$fourMonthsBefore])
+            ->orderByRaw("STR_TO_DATE(endContractDate, '%d-%m-%Y') DESC")
             ->paginate();
 
        return response()->json([
