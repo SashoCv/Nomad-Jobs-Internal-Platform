@@ -15,12 +15,9 @@
                 <th>Company Name</th>
                 <th>Candidate Name</th>
                 <th>Invoice Date</th>
-                @foreach($companyInvoices as $companyInvoice)
-                    {{ dd($companyInvoice) }}
                     @foreach(\App\Models\ItemsForInvoices::all() as $invoiceItem)
                         <th>{{ $invoiceItem->name }}</th>
                     @endforeach
-                @endforeach
                 <th>Amount For Invoice</th>
                 <th>Status</th>
             </tr>
