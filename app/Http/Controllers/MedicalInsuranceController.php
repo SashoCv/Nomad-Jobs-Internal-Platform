@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\MedicalInsurance;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -29,7 +30,12 @@ class MedicalInsuranceController extends Controller
             $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
                 ->with($this->withCandidateRelations())
                 ->where('candidate_id', $id)
-                ->get();
+                ->get()
+                ->map(function ($insurance) {
+                    $insurance->dateFrom = Carbon::parse($insurance->dateFrom)->format('d-m-Y');
+                    $insurance->dateTo = Carbon::parse($insurance->dateTo)->format('d-m-Y');
+                    return $insurance;
+                });
 
             return response()->json([
                 'success' => true,
@@ -54,6 +60,12 @@ class MedicalInsuranceController extends Controller
                 ->with($this->withCandidateRelations())
                 ->where('id', $id)
                 ->first();
+
+            if ($medicalInsurance) {
+                $medicalInsurance->dateFrom = Carbon::parse($medicalInsurance->dateFrom)->format('d-m-Y');
+                $medicalInsurance->dateTo = Carbon::parse($medicalInsurance->dateTo)->format('d-m-Y');
+            }
+
 
             return response()->json([
                 'success' => true,
