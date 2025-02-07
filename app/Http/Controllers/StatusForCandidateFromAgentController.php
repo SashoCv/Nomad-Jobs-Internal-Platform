@@ -86,7 +86,15 @@ class StatusForCandidateFromAgentController extends Controller
                     $updateTypeOfCandidate = Candidate::where('id', $id)->first();
                     $updateTypeOfCandidate->type_id = 1;
                     $education = Education::where('candidate_id', $id)->first();
-                    $updateTypeOfCandidate->education = $education->school_name . "-" . $education->degree . "-" . $education->field_of_study . "-" . $education->start_date . "-" . $education->end_date;
+                    $educationFields = array_filter([
+                        $education->school_name,
+                        $education->degree,
+                        $education->field_of_study,
+                        $education->start_date,
+                        $education->end_date
+                    ], fn($value) => !is_null($value) && $value !== "");
+
+                    $updateTypeOfCandidate->education = !empty($educationFields) ? implode("-", $educationFields) : null;
                     $updateTypeOfCandidate->save();
                 }
                 $candidateFromAgent->save();
