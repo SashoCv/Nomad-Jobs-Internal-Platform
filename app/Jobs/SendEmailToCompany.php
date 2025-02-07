@@ -36,7 +36,6 @@ class SendEmailToCompany implements ShouldQueue
         $candidate = Candidate::find($arrival->candidate_id);
         $company = Company::find($arrival->company_id);
         $email = $company->email;
-
         $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
         $status = $statusArrival->statusName;
 
