@@ -452,9 +452,11 @@ class CandidateController extends Controller
             $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
         } elseif ($roleId == 3) {
             $person = $query->where('company_id', $user->company_id)->first();
+            $person->phoneNumber = null;
         } elseif ($roleId == 5) {
             $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
             $person = $query->whereIn('company_id', $companyIds)->first();
+            $person->phoneNumber = null;
         } elseif ($roleId == 4) {
             $candidateIds = AgentCandidate::where('user_id', $user->id)->pluck('candidate_id');
             $person = $query->whereIn('id', $candidateIds)->first();
@@ -463,6 +465,21 @@ class CandidateController extends Controller
         }
 
         if ($person) {
+
+            $education = Education::where('candidate_id', '=', $id)->get();
+            if($education){
+                $person->education = $education;
+            } else {
+                $person->education = [];
+            }
+
+            $workExperience = Experience::where('candidate_id', '=', $id)->get();
+            if(isset($workExperience)){
+                $person->workExperience = $workExperience;
+            } else {
+                $person->workExperience = [];
+            }
+
             $person->arrival = Arrival::where('candidate_id', $id)->exists();
             $person->medicalInsurance = MedicalInsurance::where('candidate_id', $id)->get() ?? [];
 
@@ -492,20 +509,6 @@ class CandidateController extends Controller
                 array_push($userOwnersArray, $userOwner->company_id);
             }
             $person = Candidate::where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
-        }
-
-        $education = Education::where('candidate_id', '=', $id)->get();
-        if(isset($education)){
-            $person->education = $education;
-        } else {
-            $person->education = [];
-        }
-
-        $workExperience = Experience::where('candidate_id', '=', $id)->get();
-        if(isset($workExperience)){
-            $person->workExperience = $workExperience;
-        } else {
-            $person->workExperience = [];
         }
 
         if (isset($person)) {

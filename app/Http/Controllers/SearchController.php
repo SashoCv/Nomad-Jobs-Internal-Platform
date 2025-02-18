@@ -765,6 +765,7 @@ class SearchController extends Controller
             $query->whereIn('company_id', $companyIds);
         }
 
+
         if (!$searchEverything) {
             $query->when($request->searchName, function ($q) use ($request) {
                 $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')
@@ -828,6 +829,20 @@ class SearchController extends Controller
             });
 
             $result = $query->get();
+        }
+
+        if ($userRoleId === 3 || $userRoleId === 5) {
+            if ($result instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+                $result->getCollection()->transform(function ($candidate) {
+                    $candidate->phoneNumber = null;
+                    return $candidate;
+                });
+            } else if ($result instanceof \Illuminate\Support\Collection) {
+                $result->transform(function ($candidate) {
+                    $candidate->phoneNumber = null;
+                    return $candidate;
+                });
+            }
         }
 
         $candidates = Candidate::all();
