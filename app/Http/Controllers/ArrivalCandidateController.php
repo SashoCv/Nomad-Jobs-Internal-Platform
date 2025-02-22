@@ -259,4 +259,36 @@ class ArrivalCandidateController extends Controller
             return response()->json(['message' => 'Failed to create the zip file'], 500);
         }
     }
+
+
+    public function getArrivalCandidates(Request $request)
+    {
+        try {
+            $dateFrom = $request->dateFrom;
+            $dateTo = $request->dateTo;
+
+            $arrivalCandidates = Arrival::with(['candidate', 'company'])
+                ->orderBy('arrival_date', 'asc');
+
+            if ($dateFrom) {
+                $arrivalCandidates->where('arrival_date', '>=', $dateFrom);
+            }
+
+            if ($dateTo) {
+                $arrivalCandidates->where('arrival_date', '<=', $dateTo);
+            }
+
+            $arrivalCandidates = $arrivalCandidates->paginate();
+
+            return response()->json([
+                'message' => 'Arrival Candidates retrieved successfully',
+                'arrivalCandidates' => $arrivalCandidates
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while retrieving arrival candidates.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
