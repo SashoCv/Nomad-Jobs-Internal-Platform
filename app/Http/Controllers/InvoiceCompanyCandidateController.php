@@ -23,7 +23,6 @@ class InvoiceCompanyCandidateController extends Controller
 
             Log::info('Fetching invoice company candidates with filters', [$filters]);
             if (!empty($filters['dateFrom']) && !empty($filters['dateTo'])) {
-                // Ensure the date format is correct before parsing
                 try {
                     $filters['dateFrom'] = Carbon::createFromFormat('m-d-Y', $filters['dateFrom'])->format('Y-m-d');
                     $filters['dateTo'] = Carbon::createFromFormat('m-d-Y', $filters['dateTo'])->format('Y-m-d');
@@ -36,7 +35,7 @@ class InvoiceCompanyCandidateController extends Controller
 
             $invoiceCompanyCandidates = InvoiceCompanyCandidate::with([
                 'invoiceCompany' => function ($query) {
-                    $query->select('id', 'company_id', 'invoice_number', 'invoice_date', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid')
+                    $query->select('id', 'company_id', 'invoice_number', 'invoice_date','type','notes', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid')
                         ->with([
                             'itemInvoice' => function ($query) {
                                 $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total');

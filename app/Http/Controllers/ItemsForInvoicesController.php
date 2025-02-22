@@ -16,7 +16,13 @@ class ItemsForInvoicesController extends Controller
     public function index(Request $request)
     {
         try {
-            $itemsForInvoices = ItemsForInvoices::select('id', 'name')->get();
+            $typePayment = $request->type;
+
+            if($typePayment == 'agentPayment') {
+                $itemsForInvoices = ItemsForInvoices::select('id', 'name')->where('id', 1)->orWhere('id', 2)->get();
+            } else {
+                $itemsForInvoices = ItemsForInvoices::select('id', 'name')->get();
+            }
 
             return response()->json($itemsForInvoices);
         } catch (\Exception $e) {
