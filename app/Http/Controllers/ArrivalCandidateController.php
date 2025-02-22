@@ -13,6 +13,7 @@ use App\Models\File;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
@@ -267,7 +268,10 @@ class ArrivalCandidateController extends Controller
             $dateFrom = $request->dateFrom;
             $dateTo = $request->dateTo;
 
-            $arrivalCandidates = Arrival::with(['candidate', 'company'])
+            $arrivalCandidates = DB::table('arrivals')
+                ->join('candidates', 'arrivals.candidate_id', '=', 'candidates.id')
+                ->join('companies', 'arrivals.company_id', '=', 'companies.id')
+                ->select('arrivals.*', 'candidates.fullName', 'companies.nameOfCompany')
                 ->orderBy('arrival_date', 'asc');
 
             if ($dateFrom) {
