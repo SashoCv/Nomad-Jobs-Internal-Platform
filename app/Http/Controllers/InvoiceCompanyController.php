@@ -128,16 +128,14 @@ class InvoiceCompanyController extends Controller
                 }
 
                 if ($invoiceCompany->save()) {
-
-                    foreach ($items as $item) {
+                    for($i = 0; $i < 5; $i++){
                         $itemInvoice = new ItemInvoice();
                         $itemInvoice->invoice_companies_id = $invoiceCompany->id;
-                        $itemInvoice->price = $item['price'];
-                        $itemInvoice->total = $item['total'];
-                        $itemInvoice->percentage = $item['percentage'];
-                        $itemInvoice->amount = $item['amount'];
-                        $itemInvoice->items_for_invoices_id = $item['items_for_invoices_id'];
-
+                        $itemInvoice->price = $items[$i]['price'] ?? null;
+                        $itemInvoice->total = $items[$i]['total'] ?? null;
+                        $itemInvoice->percentage = $items[$i]['percentage'] ?? null;
+                        $itemInvoice->amount = $items[$i]['amount'] ?? null;
+                        $itemInvoice->items_for_invoices_id = $items[$i]['items_for_invoices_id'] ?? null;
 
                         $itemInvoice->save();
                     }
