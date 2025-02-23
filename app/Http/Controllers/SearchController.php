@@ -763,18 +763,21 @@ class SearchController extends Controller
                     $subquery->where('fullName', 'LIKE', '%' . $searchName . '%')
                         ->orWhere('fullNameCyrillic', 'LIKE', '%' . $searchName . '%');
                 });
-            })
-                ->when($searchCompanyJob, function ($q) use ($searchCompanyJob) {
-                    $q->where('company_job_id', '=', $searchCompanyJob);
-                })
-                ->when($searchAgentStatus, function ($q) use ($searchAgentStatus) {
-                    $q->where('status_for_candidate_from_agent_id', '=', $searchAgentStatus);
-                })
-                ->when($searchNationality, function ($q) use ($searchNationality) {
-                    $q->whereHas('candidate', function ($subquery) use ($searchNationality) {
-                        $subquery->where('nationality', 'LIKE', '%' . $searchNationality . '%');
-                    });
+            });
+
+            if($searchCompanyJob){
+                $candidatesQuery->where('company_jobs.id', '=', $searchCompanyJob);
+            }
+
+            if($searchAgentStatus){
+                $candidatesQuery->where('status_for_candidate_from_agent_id', '=', $searchAgentStatus);
+            }
+
+            if($searchNationality){
+                $candidatesQuery->whereHas('candidate', function ($subquery) use ($searchNationality) {
+                    $subquery->where('nationality', 'LIKE', '%' . $searchNationality . '%');
                 });
+            }
 
             $candidates = $candidatesQuery->paginate(20);
             return AgentCandidateResource::collection($candidates);
