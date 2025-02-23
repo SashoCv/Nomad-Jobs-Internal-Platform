@@ -112,8 +112,7 @@ class AssignedJobController extends Controller
             $statusId = 1;
             $user_id = Auth::user()->id;
 
-            $agentCandidate = AgentCandidate::where('company_job_id', $companyJobId)
-                ->where('candidate_id', $candidateId)
+            $agentCandidate = AgentCandidate::where('candidate_id', $candidateId)
                 ->first();
 
             $agentCandidate->delete();
