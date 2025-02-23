@@ -219,6 +219,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('updateStatusForCandidateFromAgent/{id}', [StatusForCandidateFromAgentController::class, 'update']);
     Route::delete('deleteCandidateFromAgent/{id}', [AgentCandidateController::class, 'destroy']);
 
+    Route::post('assignToAnotherJobPosting', [AssignedJobController::class, 'assignToAnotherJobPosting']); // New Route
+
+
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
     Route::get('getCandidateFromAgent', [AsignCandidateToNomadOfficeController::class, 'index']);
