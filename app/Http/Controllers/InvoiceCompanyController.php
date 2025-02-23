@@ -110,6 +110,12 @@ class InvoiceCompanyController extends Controller
                 $items = $request->items;
                 $candidate_id = $request->candidate_id;
 
+                if($request->type == "AgentInvoice"){
+                    $invoiceCompany->agent_id = $request->agent_id;
+                } else {
+                    $invoiceCompany->agent_id = null;
+                }
+
                 if($request->is_paid == 1){
                     $isPaid = true;
                 } else {
@@ -128,7 +134,7 @@ class InvoiceCompanyController extends Controller
                 }
 
                 if ($invoiceCompany->save()) {
-                    
+
                     foreach ($items as $item) {
                         $itemInvoice = new ItemInvoice();
                         $itemInvoice->invoice_companies_id = $invoiceCompany->id;
@@ -188,6 +194,12 @@ class InvoiceCompanyController extends Controller
             $invoiceCompany->notes = $request->notes;
             $invoiceCompany->type = $request->type; // TYPE: companyInvoice, 2 CashInvoice, 3 AgentInvoice
             $items = $request->items;
+
+            if($request->type == "AgentInvoice"){
+                $invoiceCompany->agent_id = $request->agent_id;
+            } else {
+                $invoiceCompany->agent_id = null;
+            }
 
             if (!$items) {
                 return response()->json('Items are required');
