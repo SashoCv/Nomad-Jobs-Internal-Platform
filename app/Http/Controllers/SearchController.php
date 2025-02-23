@@ -749,13 +749,38 @@ class SearchController extends Controller
         }
 
         if ($userRoleId === 4) {
+            $searchName = $request->searchName;
+            $searchCompanyJob = $request->searchCompanyJob;
+            $searchAgentStatus = $request->searchAgentStatus;
+            $searchNationality = $request->searchNationality;
+
             $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
-                ->where('agent_candidates.user_id', Auth::user()->id)
-                ->paginate(20);
+                ->where('agent_candidates.user_id', Auth::user()->id);
 
+            $candidatesQuery->when($searchName, function ($q) use ($searchName) {
+                $q->whereHas('candidate', function ($subquery) use ($searchName) {
+                    $subquery->where('fullName', 'LIKE', '%' . $searchName . '%')
+                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $searchName . '%');
+                });
+            });
 
-            return AgentCandidateResource::collection($candidatesQuery);
+            if($searchCompanyJob){
+                $candidatesQuery->where('company_jobs.id', '=', $searchCompanyJob);
+            }
+
+            if($searchAgentStatus){
+                $candidatesQuery->where('status_for_candidate_from_agent_id', '=', $searchAgentStatus);
+            }
+
+            if($searchNationality){
+                $candidatesQuery->whereHas('candidate', function ($subquery) use ($searchNationality) {
+                    $subquery->where('nationality', 'LIKE', '%' . $searchNationality . '%');
+                });
+            }
+
+            $candidates = $candidatesQuery->paginate(20);
+            return AgentCandidateResource::collection($candidates);
         }
 
         if ($userRoleId === 5) {
