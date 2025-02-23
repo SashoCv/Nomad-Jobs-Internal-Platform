@@ -219,6 +219,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('updateStatusForCandidateFromAgent/{id}', [StatusForCandidateFromAgentController::class, 'update']);
     Route::delete('deleteCandidateFromAgent/{id}', [AgentCandidateController::class, 'destroy']);
 
+    Route::post('assignToAnotherJobPosting', [AssignedJobController::class, 'assignToAnotherJobPosting']); // New Route
+
+
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
     Route::get('getCandidateFromAgent', [AsignCandidateToNomadOfficeController::class, 'index']);
@@ -260,6 +263,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('updateArrival/{id}', [ArrivalController::class, 'update']);
     Route::get('getAllArrivals', [ArrivalController::class, 'index']);
     Route::delete('deleteArrival/{id}', [ArrivalController::class, 'destroy']);
+    Route::get('getArrivalCandidates', [ArrivalCandidateController::class, 'getArrivalCandidates']); // NEW ROUTE
+
 
 
     // Status Arrivals
@@ -294,3 +299,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('exportMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'export']);
 
 });
+

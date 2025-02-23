@@ -13,6 +13,7 @@ use App\Models\File;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
@@ -257,6 +258,41 @@ class ArrivalCandidateController extends Controller
             return response()->download($zipFilePath, $zipFileName);
         } else {
             return response()->json(['message' => 'Failed to create the zip file'], 500);
+        }
+    }
+
+
+    public function getArrivalCandidates(Request $request)
+    {
+        try {
+            $dateFrom = $request->dateFrom;
+            $dateTo = $request->dateTo;
+
+            $arrivalCandidates = DB::table('arrivals')
+                ->join('candidates', 'arrivals.candidate_id', '=', 'candidates.id')
+                ->join('companies', 'arrivals.company_id', '=', 'companies.id')
+                ->select('arrivals.*', 'candidates.fullName', 'companies.nameOfCompany')
+                ->orderBy('arrival_date', 'asc');
+
+            if ($dateFrom) {
+                $arrivalCandidates->where('arrival_date', '>=', $dateFrom);
+            }
+
+            if ($dateTo) {
+                $arrivalCandidates->where('arrival_date', '<=', $dateTo);
+            }
+
+            $arrivalCandidates = $arrivalCandidates->paginate();
+
+            return response()->json([
+                'message' => 'Arrival Candidates retrieved successfully',
+                'arrivalCandidates' => $arrivalCandidates
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while retrieving arrival candidates.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

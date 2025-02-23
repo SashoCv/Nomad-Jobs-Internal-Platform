@@ -30,6 +30,7 @@ class AgentCandidateResource extends JsonResource
                 'id' => $this->candidate->id,
                 'fullName' => $this->candidate->fullName,
                 'fullNameCyrillic' => $this->candidate->fullNameCyrillic,
+                'personPicturePath' => $this->candidate->personPicturePath,
                 'phoneNumber' => $this->candidate->phoneNumber,
                 'nationality' => $this->candidate->nationality,
                 'birthday' => $this->candidate->birthday,

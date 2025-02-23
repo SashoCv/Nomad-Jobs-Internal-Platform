@@ -105,8 +105,16 @@ class InvoiceCompanyController extends Controller
                 $invoiceCompany->payment_date = Carbon::createFromFormat('m-d-Y',$request->payment_date)->format('Y-m-d');
                 $invoiceCompany->payment_amount = $request->payment_amount;
                 $invoiceCompany->is_paid = $request->is_paid;
+                $invoiceCompany->notes = $request->notes;
+                $invoiceCompany->type = $request->type; // TYPE: companyInvoice, 2 CashInvoice, 3 AgentInvoice
                 $items = $request->items;
                 $candidate_id = $request->candidate_id;
+
+                if($request->type == "AgentInvoice"){
+                    $invoiceCompany->agent_id = $request->agent_id;
+                } else {
+                    $invoiceCompany->agent_id = null;
+                }
 
                 if($request->is_paid == 1){
                     $isPaid = true;
@@ -183,7 +191,15 @@ class InvoiceCompanyController extends Controller
             $invoiceCompany->payment_date = Carbon::createFromFormat('m-d-Y',$request->payment_date)->format('Y-m-d');
             $invoiceCompany->payment_amount = $request->payment_amount;
             $invoiceCompany->is_paid = $request->is_paid;
+            $invoiceCompany->notes = $request->notes;
+            $invoiceCompany->type = $request->type; // TYPE: companyInvoice, 2 CashInvoice, 3 AgentInvoice
             $items = $request->items;
+
+            if($request->type == "AgentInvoice"){
+                $invoiceCompany->agent_id = $request->agent_id;
+            } else {
+                $invoiceCompany->agent_id = null;
+            }
 
             if (!$items) {
                 return response()->json('Items are required');
