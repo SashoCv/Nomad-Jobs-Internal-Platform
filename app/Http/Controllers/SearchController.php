@@ -766,11 +766,8 @@ class SearchController extends Controller
                 });
             });
 
-            if ($searchCreatedAt) {
-                $startDate = \Carbon\Carbon::parse($searchCreatedAt)->startOfDay();
-                $endDate = \Carbon\Carbon::parse($searchCreatedAt)->endOfDay();
-
-                $candidatesQuery->whereRaw("DATE(agent_candidates.created_at) = ?", [$startDate->toDateString()]);
+            if($searchCreatedAt){
+                $candidatesQuery->whereDate('agent_candidates.created_at', '=', $searchCreatedAt->ToDateString());
             }
 
             if($searchCompanyJob){
