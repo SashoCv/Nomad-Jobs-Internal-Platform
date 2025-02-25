@@ -766,8 +766,9 @@ class SearchController extends Controller
                 });
             });
 
-            if($searchCreatedAt){
-                $candidatesQuery->whereDate('agent_candidates.created_at', '=', $searchCreatedAt);
+            if ($searchCreatedAt) {
+                $formattedDate = \Carbon\Carbon::parse($searchCreatedAt)->format('Y-m-d');
+                $candidatesQuery->whereDate('agent_candidates.created_at', '=', $formattedDate);
             }
 
             if($searchCompanyJob){
