@@ -770,7 +770,7 @@ class SearchController extends Controller
                 $startDate = \Carbon\Carbon::parse($searchCreatedAt)->startOfDay();
                 $endDate = \Carbon\Carbon::parse($searchCreatedAt)->endOfDay();
 
-                $candidatesQuery->whereBetween('agent_candidates.created_at', [$startDate, $endDate]);
+                $candidatesQuery->whereRaw("DATE(agent_candidates.created_at) = ?", [$startDate->toDateString()]);
             }
 
             if($searchCompanyJob){
