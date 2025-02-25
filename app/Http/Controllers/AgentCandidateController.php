@@ -226,6 +226,13 @@ class AgentCandidateController extends Controller
     public function getAllCandidatesFromAgents(Request $request)
     {
         try {
+            $companyId = $request->company_id;
+            $name = $request->name;
+            $status = $request->status;
+            $companyJobId = $request->company_job_id;
+            $agentId = $request->agent_id;
+
+
             $user_id = Auth::user()->id;
             $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
@@ -251,6 +258,29 @@ class AgentCandidateController extends Controller
                 } else if (Auth::user()->role_id == 4) {
                     $query->where('agent_candidates.user_id', $user_id);
                 }
+            }
+
+            if($companyId){
+                $query->where('company_jobs.company_id', $companyId);
+            }
+
+            if($name){
+                $query->whereHas('candidate', function ($subquery) use ($name) {
+                    $subquery->where('fullName', 'LIKE', '%' . $name . '%')
+                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $name . '%');
+                });
+            }
+
+            if($status){
+                $query->where('status_for_candidate_from_agent_id', $status);
+            }
+
+            if($companyJobId){
+                $query->where('company_job_id', $companyJobId);
+            }
+
+            if($agentId){
+                $query->where('agent_candidates.user_id', $agentId);
             }
 
             $candidates = $query->paginate(20);

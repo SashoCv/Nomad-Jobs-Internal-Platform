@@ -16,6 +16,7 @@ class AgentCandidateResource extends JsonResource
             'id' => $this->id,
             'user_id' => $this->user_id,
             'status_for_candidate_from_agent_id' => $this->status_for_candidate_from_agent_id,
+            'created_at' => $this->created_at,
             'company' => $this->companyJob && $this->companyJob->company ? [
                 'id' => $this->companyJob->company->id,
                 'name' => $this->companyJob->company->nameOfCompany,

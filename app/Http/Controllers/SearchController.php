@@ -753,6 +753,7 @@ class SearchController extends Controller
             $searchCompanyJob = $request->searchCompanyJob;
             $searchAgentStatus = $request->searchAgentStatus;
             $searchNationality = $request->searchNationality;
+            $searchCreatedAt = $request->searchCreatedAt;
 
             $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
@@ -764,6 +765,10 @@ class SearchController extends Controller
                         ->orWhere('fullNameCyrillic', 'LIKE', '%' . $searchName . '%');
                 });
             });
+
+            if($searchCreatedAt){
+                $candidatesQuery->whereDate('agent_candidates.created_at', '=', $searchCreatedAt);
+            }
 
             if($searchCompanyJob){
                 $candidatesQuery->where('company_jobs.id', '=', $searchCompanyJob);

@@ -106,11 +106,11 @@ class InvoiceCompanyController extends Controller
                 $invoiceCompany->payment_amount = $request->payment_amount;
                 $invoiceCompany->is_paid = $request->is_paid;
                 $invoiceCompany->notes = $request->notes;
-                $invoiceCompany->type = $request->type; // TYPE: companyInvoice, 2 CashInvoice, 3 AgentInvoice
+                $invoiceCompany->type = $request->type; // TYPE: companyInvoice, 2 cashInvoice, 3 agentInvoice
                 $items = $request->items;
                 $candidate_id = $request->candidate_id;
 
-                if($request->type == "AgentInvoice"){
+                if($request->type == "agentInvoice"){
                     $invoiceCompany->agent_id = $request->agent_id;
                 } else {
                     $invoiceCompany->agent_id = null;
