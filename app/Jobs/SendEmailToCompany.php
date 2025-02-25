@@ -55,10 +55,10 @@ class SendEmailToCompany implements ShouldQueue
 
 
         try {
-//            Mail::send('arrivalCandidateForCompany', ['data' => $data], function ($message) use ($data, $email) {
-//                $message->to($email)
-//                    ->subject('Уведомление за пристигане на ' . $data['candidateName']);
-//            });
+            Mail::send('arrivalCandidateForCompany', ['data' => $data], function ($message) use ($data, $email) {
+                $message->to($email)
+                    ->subject('Уведомление за пристигане на ' . $data['candidateName']);
+            });
 
             Log::info("Email sent successfully to " . $data['candidateName']);
         } catch (\Exception $e) {
