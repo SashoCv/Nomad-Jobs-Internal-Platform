@@ -766,8 +766,8 @@ class SearchController extends Controller
                 });
             });
 
-            if($searchCreatedAt){
-                $candidatesQuery->whereDate('agent_candidates.created_at', '=', $searchCreatedAt->ToDateString());
+            if ($searchCreatedAt) {
+                $candidatesQuery->whereRaw("DATE(agent_candidates.created_at) = ?", [$searchCreatedAt]);
             }
 
             if($searchCompanyJob){

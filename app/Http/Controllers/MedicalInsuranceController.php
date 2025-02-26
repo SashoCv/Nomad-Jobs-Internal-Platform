@@ -115,6 +115,12 @@ class MedicalInsuranceController extends Controller
                 ->where('dateTo', '<=', $thirtyDaysAgo)
                 ->paginate();
 
+            $medicalInsurances->getCollection()->transform(function ($insurance) {
+                $insurance->dateFrom = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateFrom)->format('d-m-Y');
+                $insurance->dateTo = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateTo)->format('d-m-Y');
+                return $insurance;
+            });
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
