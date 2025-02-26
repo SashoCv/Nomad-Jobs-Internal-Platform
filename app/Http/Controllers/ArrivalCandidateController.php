@@ -271,6 +271,7 @@ class ArrivalCandidateController extends Controller
             $arrivalCandidates = DB::table('arrivals')
                 ->join('candidates', 'arrivals.candidate_id', '=', 'candidates.id')
                 ->join('companies', 'arrivals.company_id', '=', 'companies.id')
+                ->where('arrival_date', '!=', null)
                 ->select('arrivals.*', 'candidates.fullName', 'companies.nameOfCompany')
                 ->orderBy('arrival_date', 'asc');
 
