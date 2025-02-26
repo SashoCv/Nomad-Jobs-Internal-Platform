@@ -233,10 +233,10 @@ class AgentCandidateController extends Controller
             $agentId = $request->agent_id;
 
 
+
             $user_id = Auth::user()->id;
             $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
-                ->where('status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id)
                 ->orderBy('company_jobs.company_id', 'desc');
 
             if ($request->company_job_id != null) {
@@ -248,13 +248,11 @@ class AgentCandidateController extends Controller
                 }
             } else {
                 if (Auth::user()->role_id == 1) {
-                    $query->where('status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id);
                     if($request->status_for_candidate_from_agent_id == 3){
                         $query->where('nomad_office_id', null);
                     }
                 } else if (Auth::user()->role_id == 2){
-                    $query->where('agent_candidates.nomad_office_id', $user_id)
-                        ->where('agent_candidates.status_for_candidate_from_agent_id', $request->status_for_candidate_from_agent_id);
+                    $query->where('agent_candidates.nomad_office_id', $user_id);
                 } else if (Auth::user()->role_id == 4) {
                     $query->where('agent_candidates.user_id', $user_id);
                 }
