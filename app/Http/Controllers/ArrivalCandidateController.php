@@ -273,7 +273,7 @@ class ArrivalCandidateController extends Controller
                 ->join('companies', 'arrivals.company_id', '=', 'companies.id')
                 ->where('arrival_date', '!=', null)
                 ->select('arrivals.*', 'candidates.fullName', 'companies.nameOfCompany')
-                ->orderBy('arrival_date', 'asc');
+                ->orderBy('arrival_date', 'desc');
 
             if ($dateFrom) {
                 $arrivalCandidates->where('arrival_date', '>=', $dateFrom);
