@@ -32,6 +32,8 @@ class InvoiceCompanyCandidateController extends Controller
                 }
             }
 
+            $type = $filters['type'] ?? null;
+
 
             $invoiceCompanyCandidates = InvoiceCompanyCandidate::with([
                 'invoiceCompany' => function ($query) {
@@ -73,14 +75,13 @@ class InvoiceCompanyCandidateController extends Controller
                 })
                 ->whereHas('invoiceCompany');
 
-            if($filters['type'] == "agentPayment"){
+            if($type == "agentPayment"){
                 $invoiceCompanyCandidates = $invoiceCompanyCandidates->whereHas('invoiceCompany', function ($query) {
                     $query->where('type', 'agentPayment');
                 });
             }
 
             $invoiceCompanyCandidatesForStatistics = $invoiceCompanyCandidates->orderBy('id', 'desc')->get();
-
 
             $totalAmount = 0;
             $totalPaidAmount = 0;
