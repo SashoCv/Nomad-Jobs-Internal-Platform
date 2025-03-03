@@ -65,18 +65,22 @@ class InvoiceCompanyCandidateController extends Controller
                 ->when(isset($filters['candidate_id']), function ($query) use ($filters) {
                     return $query->where('candidate_id', $filters['candidate_id']);
                 })
-                ->when(isset($filters['type']), function ($query) use ($filters) {
-                    return $query->where('type', $filters['type']);
-                })
+
                 ->when(isset($filters['dateFrom']) && isset($filters['dateTo']), function ($query) use ($filters) {
                     return $query->whereHas('invoiceCompany', function ($subQuery) use ($filters) {
                         $subQuery->whereBetween('invoice_date', [$filters['dateFrom'], $filters['dateTo']]);
                     });
                 })
-                ->whereHas('invoiceCompany')
-                ->orderBy('id', 'desc');
+                ->whereHas('invoiceCompany');
 
-            $invoiceCompanyCandidatesForStatistics = $invoiceCompanyCandidates->get();
+            if($filters['type'] == "agentPayment"){
+                $invoiceCompanyCandidates = $invoiceCompanyCandidates->whereHas('invoiceCompany', function ($query) {
+                    $query->where('type', 'agentPayment');
+                });
+            }
+
+            $invoiceCompanyCandidatesForStatistics = $invoiceCompanyCandidates->orderBy('id', 'desc')->get();
+
 
             $totalAmount = 0;
             $totalPaidAmount = 0;
