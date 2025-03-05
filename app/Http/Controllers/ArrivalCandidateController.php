@@ -191,9 +191,7 @@ class ArrivalCandidateController extends Controller
                     }
                 }
 
-                if($arrivalCandidate->status_arrival_id == 8) {
-                   dispatch(new SendEmailToCompany($arrivalCandidate->id));
-                }
+
 
                 dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
             }
