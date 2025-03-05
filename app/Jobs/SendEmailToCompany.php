@@ -47,7 +47,7 @@ class SendEmailToCompany implements ShouldQueue
 
 
         $data = [
-            'candidateName' => $candidate->fullName,
+            'candidateName' => $candidate->fullNameCyrillic,
             'companyName' => $company->nameOfCompany,
             'status' => $status,
             'jobPosition' => $position->jobPosition,
