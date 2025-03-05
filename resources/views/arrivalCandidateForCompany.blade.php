@@ -51,7 +51,6 @@
     <p>Здравейте,</p>
     <p>Следният кандидат ще пристигне скоро:</p>
     @if($data['personPicture'])
-        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(storage_path('app/public/' . $data['personPicture']))) }}" alt="1">
         <img src="https://www.nomad-cloud.in/storage/{{ $data['personPicture'] }}?cache-bust={{ time() }}" alt="2">
         <img src="https://www.nomad-cloud.in/storage/{{ urlencode($data['personPicture']) }}" alt="3">
 
