@@ -51,9 +51,7 @@
     <p>Здравейте,</p>
     <p>Следният кандидат ще пристигне скоро:</p>
     @if($data['personPicture'])
-        <img src="https://www.nomad-cloud.in/storage/{{ $data['personPicture'] }}?cache-bust={{ time() }}" alt="2">
-        <img src="https://www.nomad-cloud.in/storage/{{ urlencode($data['personPicture']) }}" alt="3">
-
+        <img src="https://www.nomad-cloud.in/storage/{{ urlencode($data['personPicture']) }}" alt=" ">
     @endif
     <div class="info">
         <p><strong>Име на кандидат:</strong> {{ $data['candidateName'] }}</p>
