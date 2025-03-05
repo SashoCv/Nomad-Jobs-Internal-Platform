@@ -59,9 +59,8 @@ class SendEmailToCompany implements ShouldQueue
             'arrivalTime' => $arrival->arrival_time,
             'arrivalDate' => Carbon::parse($arrival->arrival_date)->format('d.m.Y'),
             'companyAddress' => $companyAddress,
+            'personPicture' => $candidate->personPicturePath,
         ];
-
-
 
         try {
             Mail::send('arrivalCandidateForCompany', ['data' => $data], function ($message) use ($data, $email) {
