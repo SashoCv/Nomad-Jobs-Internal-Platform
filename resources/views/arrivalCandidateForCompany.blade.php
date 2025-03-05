@@ -58,9 +58,9 @@
     </div>
 
     <p>
-        Уведомяваме ви, че кандидатът {{ $data['candidateName'] }}, на длъжност, процедура {{ $data['contractType'] }},
+        Уведомяваме ви, че кандидатът {{ $data['candidateName'] }}, на длъжност {{ $data['jobPosition'] }}, процедура {{ $data['contractType'] }},
         за "{{ $data['companyName'] }}", {{ $data['companyAddress'] ?? "" }} ще пристигне на дата {{ $data['arrivalDate'] }} в {{ $data['arrivalTime'] }}.
-        Наш сътрудник ще я посрещне и служителят ще бъде доведен до работното си място.
+        Наш сътрудник да го/я посрещне и служителят ще бъде доведен до работното си място.
     </p>
 
     <div class="footer">

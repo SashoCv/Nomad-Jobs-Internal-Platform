@@ -8,6 +8,7 @@ use App\Models\Candidate;
 use App\Models\Company;
 use App\Models\Position;
 use App\Models\StatusArrival;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -56,7 +57,7 @@ class SendEmailToCompany implements ShouldQueue
             'description' => $arrivalCandidate->status_description,
             'phone_number' => $arrival->phone_number,
             'arrivalTime' => $arrival->arrival_time,
-            'arrivalDate' => $arrival->arrival_date,
+            'arrivalDate' => Carbon::parse($arrival->arrival_date)->format('d.m.Y'),
             'companyAddress' => $companyAddress,
         ];
 
