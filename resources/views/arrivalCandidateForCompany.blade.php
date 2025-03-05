@@ -59,7 +59,7 @@
 
     <p>
         Уведомяваме ви, че кандидатът {{ $data['candidateName'] }}, на длъжност, процедура {{ $data['contractType'] }},
-        за "{{ $data['companyName'] }}", {{ $data['companyAddress'] }} ще пристигне на дата {{ $data['arrivalDate'] }} в {{ $data['arrivalTime'] }}.
+        за "{{ $data['companyName'] }}", {{ $data['companyAddress'] ?? "" }} ще пристигне на дата {{ $data['arrivalDate'] }} в {{ $data['arrivalTime'] }}.
         Наш сътрудник ще я посрещне и служителят ще бъде доведен до работното си място.
     </p>
 

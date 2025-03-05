@@ -68,7 +68,7 @@ class SendEmailToCompany implements ShouldQueue
                     ->subject('Уведомление за пристигане на ' . $data['candidateName']);
             });
 
-            Log::info("Email sent successfully to " . $data['candidateName']);
+            Log::info("Email sent successfully to " . $email);
         } catch (\Exception $e) {
             Log::error("Error sending email: " . $e->getMessage());
         }
