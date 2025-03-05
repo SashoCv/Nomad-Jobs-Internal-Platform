@@ -6,6 +6,7 @@ use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Company;
+use App\Models\Position;
 use App\Models\StatusArrival;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -35,34 +36,54 @@ class SendEmailToCompany implements ShouldQueue
         $arrival = Arrival::find($arrivalCandidate->arrival_id);
         $candidate = Candidate::find($arrival->candidate_id);
         $company = Company::find($arrival->company_id);
+        $positionId = $candidate->position_id;
+        $position = Position::find($positionId);
+        $typeOfContract = $this->getTypeOfContract($candidate->contractType);
+        $companyAddress = $company->address;
         $email = $company->email;
         $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
         $status = $statusArrival->statusName;
+        $email = "sasocvetanoski@gmail.com";
 
 
         $data = [
             'candidateName' => $candidate->fullName,
             'companyName' => $company->nameOfCompany,
             'status' => $status,
-            'contractType' => $candidate->contractType,
+            'jobPosition' => $position->jobPosition,
+            'contractType' => $typeOfContract,
             'changedStatusDate' => $arrivalCandidate->status_date,
             'description' => $arrivalCandidate->status_description,
             'phone_number' => $arrival->phone_number,
             'arrivalTime' => $arrival->arrival_time,
             'arrivalDate' => $arrival->arrival_date,
+            'companyAddress' => $companyAddress,
         ];
 
 
 
         try {
-//            Mail::send('arrivalCandidateForCompany', ['data' => $data], function ($message) use ($data, $email) {
-//                $message->to($email)
-//                    ->subject('Уведомление за пристигане на ' . $data['candidateName']);
-//            });
+            Mail::send('arrivalCandidateForCompany', ['data' => $data], function ($message) use ($data, $email) {
+                $message->to($email)
+                    ->subject('Уведомление за пристигане на ' . $data['candidateName']);
+            });
 
             Log::info("Email sent successfully to " . $data['candidateName']);
         } catch (\Exception $e) {
             Log::error("Error sending email: " . $e->getMessage());
+        }
+    }
+
+    public function getTypeOfContract($contractType)
+    {
+        if($contractType == "indefinite") {
+            return "ЕРПР";
+        } elseif($contractType == "90days") {
+            return "90 дена";
+        } elseif($contractType == "9months") {
+            return "9 месеци";
+        } else {
+            return "Непознат тип на договор";
         }
     }
 }
