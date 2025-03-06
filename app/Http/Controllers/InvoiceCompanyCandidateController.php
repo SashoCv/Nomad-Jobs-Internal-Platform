@@ -37,7 +37,7 @@ class InvoiceCompanyCandidateController extends Controller
 
             $invoiceCompanyCandidates = InvoiceCompanyCandidate::with([
                 'invoiceCompany' => function ($query) {
-                    $query->select('id', 'company_id', 'invoice_number', 'invoice_date','type','notes', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid')
+                    $query->select('id', 'company_id', 'invoice_number', 'invoice_date','type','notes', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid','agent_id')
                         ->with([
                             'itemInvoice' => function ($query) {
                                 $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total');
