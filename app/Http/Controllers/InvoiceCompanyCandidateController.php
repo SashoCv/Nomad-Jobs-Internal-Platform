@@ -79,6 +79,14 @@ class InvoiceCompanyCandidateController extends Controller
                 $invoiceCompanyCandidates = $invoiceCompanyCandidates->whereHas('invoiceCompany', function ($query) {
                     $query->where('type', 'agentPayment');
                 });
+            } elseif($type == "companyInvoice"){
+                $invoiceCompanyCandidates = $invoiceCompanyCandidates->whereHas('invoiceCompany', function ($query) {
+                    $query->where('type', 'companyInvoice');
+                });
+            } elseif($type == "cashInvoice"){
+                $invoiceCompanyCandidates = $invoiceCompanyCandidates->whereHas('invoiceCompany', function ($query) {
+                    $query->where('type', 'cashInvoice');
+                });
             }
 
             $invoiceCompanyCandidatesForStatistics = $invoiceCompanyCandidates->orderBy('id', 'desc')->get();
