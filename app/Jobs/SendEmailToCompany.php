@@ -44,7 +44,6 @@ class SendEmailToCompany implements ShouldQueue
         $email = $company->email;
         $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
         $status = $statusArrival->statusName;
-        $email = "sasocvetanoski@gmail.com";
 
 
         $data = [
