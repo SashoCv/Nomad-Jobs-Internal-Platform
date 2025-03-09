@@ -178,7 +178,7 @@ class CandidateController extends Controller
 
         try {
             if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $candidates = Candidate::where('company_id', '=', $id)->select('id', 'fullNameCyrillic')->get();
+                $candidates = Candidate::where('company_id', '=', $id)->select('id', 'fullNameCyrillic as fullName')->get();
 
                 return response()->json([
                     'success' => true,
