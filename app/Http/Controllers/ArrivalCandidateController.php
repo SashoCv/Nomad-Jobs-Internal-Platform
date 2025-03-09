@@ -191,9 +191,7 @@ class ArrivalCandidateController extends Controller
                     }
                 }
 
-                if($arrivalCandidate->status_arrival_id == 1) {
-                   dispatch(new SendEmailToCompany($arrivalCandidate->id));
-                }
+
 
                 dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
             }
@@ -273,7 +271,7 @@ class ArrivalCandidateController extends Controller
                 ->join('companies', 'arrivals.company_id', '=', 'companies.id')
                 ->where('arrival_date', '!=', null)
                 ->select('arrivals.*', 'candidates.fullName', 'companies.nameOfCompany')
-                ->orderBy('arrival_date', 'asc');
+                ->orderBy('arrival_date', 'desc');
 
             if ($dateFrom) {
                 $arrivalCandidates->where('arrival_date', '>=', $dateFrom);

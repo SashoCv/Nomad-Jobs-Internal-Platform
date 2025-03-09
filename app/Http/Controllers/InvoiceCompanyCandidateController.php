@@ -32,10 +32,12 @@ class InvoiceCompanyCandidateController extends Controller
                 }
             }
 
+            $type = $filters['type'] ?? null;
+
 
             $invoiceCompanyCandidates = InvoiceCompanyCandidate::with([
                 'invoiceCompany' => function ($query) {
-                    $query->select('id', 'company_id', 'invoice_number', 'invoice_date','type','notes', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid')
+                    $query->select('id', 'company_id', 'invoice_number', 'invoice_date','type','notes', 'status', 'invoice_amount', 'payment_date', 'payment_amount', 'is_paid','agent_id')
                         ->with([
                             'itemInvoice' => function ($query) {
                                 $query->select('id', 'invoice_companies_id', 'items_for_invoices_id', 'price', 'percentage', 'amount', 'total');
@@ -65,18 +67,34 @@ class InvoiceCompanyCandidateController extends Controller
                 ->when(isset($filters['candidate_id']), function ($query) use ($filters) {
                     return $query->where('candidate_id', $filters['candidate_id']);
                 })
-                ->when(isset($filters['type']), function ($query) use ($filters) {
-                    return $query->where('type', $filters['type']);
+                ->when(isset($filters['agent_id']), function ($query) use ($filters) {
+                    return $query->whereHas('invoiceCompany', function ($subQuery) use ($filters) {
+                        $subQuery->where('agent_id', $filters['agent_id']);
+                    });
                 })
+
                 ->when(isset($filters['dateFrom']) && isset($filters['dateTo']), function ($query) use ($filters) {
                     return $query->whereHas('invoiceCompany', function ($subQuery) use ($filters) {
                         $subQuery->whereBetween('invoice_date', [$filters['dateFrom'], $filters['dateTo']]);
                     });
                 })
-                ->whereHas('invoiceCompany')
-                ->orderBy('id', 'desc');
+                ->whereHas('invoiceCompany');
 
-            $invoiceCompanyCandidatesForStatistics = $invoiceCompanyCandidates->get();
+            if($type == "agentPayment"){
+                $invoiceCompanyCandidates = $invoiceCompanyCandidates->whereHas('invoiceCompany', function ($query) {
+                    $query->where('type', 'agentPayment');
+                });
+            } elseif($type == "companyInvoice"){
+                $invoiceCompanyCandidates = $invoiceCompanyCandidates->whereHas('invoiceCompany', function ($query) {
+                    $query->where('type', 'companyInvoice');
+                });
+            } elseif($type == "cashInvoice"){
+                $invoiceCompanyCandidates = $invoiceCompanyCandidates->whereHas('invoiceCompany', function ($query) {
+                    $query->where('type', 'cashInvoice');
+                });
+            }
+
+            $invoiceCompanyCandidatesForStatistics = $invoiceCompanyCandidates->orderBy('id', 'desc')->get();
 
             $totalAmount = 0;
             $totalPaidAmount = 0;

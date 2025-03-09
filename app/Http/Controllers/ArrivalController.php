@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
+use App\Jobs\SendEmailToCompany;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
@@ -55,7 +56,7 @@ class ArrivalController extends Controller
 
                 $candidateId = $request->candidate_id;
                 $arrival = Arrival::where('candidate_id', $candidateId)->first();
-                
+
                 $arrival->fill([
                     'company_id' => $request->company_id,
                     'arrival_date' => Carbon::createFromFormat('m-d-Y', $request->arrival_date)->format('Y-m-d'),
@@ -104,6 +105,8 @@ class ArrivalController extends Controller
                 );
 
                 dispatch(new SendEmailForArrivalCandidates($arrival, $arrivalCandidate->status_arrival_id));
+                dispatch(new SendEmailToCompany($arrivalCandidate->id));
+
 
                 DB::commit();
 

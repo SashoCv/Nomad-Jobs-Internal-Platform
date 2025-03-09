@@ -131,7 +131,7 @@ class FileController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  \App\Models\File  $file
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
@@ -139,14 +139,14 @@ class FileController extends Controller
 
         $categoriesQuery = Category::where('candidate_id', $id);
 
-        if($userRoleId == 1 || $userRoleId == 2) {
-            $categoriesQuery = Category::where('candidate_id', null)->orWhere('candidate_id', $id);
+        if ($userRoleId == 1 || $userRoleId == 2) {
+            $categoriesQuery->whereNull('candidate_id')->orWhere('candidate_id', $id);
         } elseif ($userRoleId == 3) {
-            $categoriesQuery->where('role_id', 3);
+            $categoriesQuery->where('role_id', 3)->orWhere('role_id', 4);
         } elseif ($userRoleId == 4) {
             $categoriesQuery->where('role_id', 4);
         } elseif ($userRoleId == 5) {
-            $categoriesQuery->where('role_id', 5);
+            $categoriesQuery->whereIn('role_id', [3, 4, 5]);
         }
 
         $categories = $categoriesQuery->orderBy('id', 'asc')->get();

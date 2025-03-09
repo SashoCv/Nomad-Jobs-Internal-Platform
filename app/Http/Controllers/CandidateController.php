@@ -27,32 +27,25 @@ use Svg\Tag\Rect;
 
 class CandidateController extends Controller
 {
-
     public function getCandidatesWhoseContractsAreExpiring()
     {
-        $currentDate = date('Y-m-d');
-        $fourMonthsBefore = date('Y-m-d', strtotime($currentDate . ' + 4 months'));
-        $candidates = Candidate::select('id', 'fullName','date','contractPeriodDate', 'company_id', 'status_id', 'position_id')
-        ->with([
-            'company' => function ($query) {
-                $query->select('id', 'nameOfCompany', 'EIK');
-            },
-            'status' => function ($query) {
-                $query->select('id', 'nameOfStatus');
-            },
-            'position' => function ($query) {
-                $query->select('id', 'jobPosition');
-            }
-        ])
-            ->whereRaw("STR_TO_DATE(endContractDate, '%d-%m-%Y') <= ?", [$fourMonthsBefore])
-            ->orderByRaw("STR_TO_DATE(endContractDate, '%d-%m-%Y') DESC")
+        $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
+
+        $candidates = Candidate::select('id', 'fullName', 'date', 'endContractDate as contractPeriodDate', 'company_id', 'status_id', 'position_id')
+            ->with([
+                'company:id,nameOfCompany,EIK',
+                'status:id,nameOfStatus',
+                'position:id,jobPosition'
+            ])
+            ->whereDate('endContractDate', '<=', $fourMonthsBefore)
+            ->orderBy('endContractDate', 'desc')
             ->paginate();
 
-       return response()->json([
-           'success' => true,
-           'status' => 200,
-           'data' => $candidates,
-       ]);
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $candidates,
+        ]);
     }
     public function scriptForSeasonal()
     {
@@ -185,7 +178,7 @@ class CandidateController extends Controller
 
         try {
             if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $candidates = Candidate::where('company_id', '=', $id)->select('id', 'fullName')->get();
+                $candidates = Candidate::where('company_id', '=', $id)->select('id', 'fullNameCyrillic as fullName')->get();
 
                 return response()->json([
                     'success' => true,
@@ -213,7 +206,7 @@ class CandidateController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {

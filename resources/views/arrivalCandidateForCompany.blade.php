@@ -50,7 +50,9 @@
     <h2>Уведомление за пристигане на {{ $data['candidateName'] }}</h2>
     <p>Здравейте,</p>
     <p>Следният кандидат ще пристигне скоро:</p>
-
+    @if($data['personPicture'])
+        <img src="https://www.nomad-cloud.in/storage/{{ urlencode($data['personPicture']) }}" alt=" ">
+    @endif
     <div class="info">
         <p><strong>Име на кандидат:</strong> {{ $data['candidateName'] }}</p>
         <p><strong>Статус:</strong> {{ $data['status'] }}</p>
@@ -58,8 +60,8 @@
     </div>
 
     <p>
-        Уведомяваме ви, че кандидатът {{ $data['candidateName'] }}, на длъжност, процедура {{ $data['contractType'] }},
-        за вашия ресторант/магазин/и прочие ще пристигне на дата {{ $data['arrivalDate'] }} в час {{ $data['arrivalTime'] }}.
+        Уведомяваме ви, че кандидатът {{ $data['candidateName'] }}, на длъжност {{ $data['jobPosition'] }}, процедура {{ $data['contractType'] }},
+        за "{{ $data['companyName'] }}", {{ $data['companyAddress'] ?? "" }} ще пристигне на дата {{ $data['arrivalDate'] }} г. в {{ $data['arrivalTime'] }} ч.
         Наш сътрудник ще го/я посрещне и служителят ще бъде доведен до работното си място.
     </p>
 
