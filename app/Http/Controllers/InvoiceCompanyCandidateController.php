@@ -67,6 +67,11 @@ class InvoiceCompanyCandidateController extends Controller
                 ->when(isset($filters['candidate_id']), function ($query) use ($filters) {
                     return $query->where('candidate_id', $filters['candidate_id']);
                 })
+                ->when(isset($filters['agent_id']), function ($query) use ($filters) {
+                    return $query->whereHas('invoiceCompany', function ($subQuery) use ($filters) {
+                        $subQuery->where('agent_id', $filters['agent_id']);
+                    });
+                })
 
                 ->when(isset($filters['dateFrom']) && isset($filters['dateTo']), function ($query) use ($filters) {
                     return $query->whereHas('invoiceCompany', function ($subQuery) use ($filters) {
