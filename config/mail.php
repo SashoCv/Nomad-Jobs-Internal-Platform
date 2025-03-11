@@ -92,7 +92,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'password@nomad-jobs.xyz'),
+        'address' => env('MAIL_FROM_ADDRESS', 'contact@nomad-cloud.in'),
         'name' => env('MAIL_FROM_NAME', 'NomadJobs'),
     ],
 
