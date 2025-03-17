@@ -31,7 +31,7 @@ class CandidateController extends Controller
     {
         $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
 
-        $candidates = Candidate::select('id', 'fullName', 'date', 'endContractDate as contractPeriodDate', 'company_id', 'status_id', 'position_id')
+        $candidates = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'company_id', 'status_id', 'position_id')
             ->with([
                 'company:id,nameOfCompany,EIK',
                 'status:id,nameOfStatus',
