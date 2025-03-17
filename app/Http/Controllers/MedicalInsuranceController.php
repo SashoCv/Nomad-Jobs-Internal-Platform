@@ -13,7 +13,7 @@ class MedicalInsuranceController extends Controller
     {
         return [
             'candidate' => function ($query) {
-                $query->select('id', 'fullName', 'company_id', 'position_id');
+                $query->select('id', 'fullNameCyrillic as fullName', 'company_id', 'position_id');
             },
             'candidate.company' => function ($query) {
                 $query->select('id', 'nameOfCompany');
