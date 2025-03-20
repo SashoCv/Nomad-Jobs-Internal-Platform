@@ -259,7 +259,7 @@ class AgentCandidateController extends Controller
                 }
             } else {
                 if (Auth::user()->role_id == 1) {
-                    if($request->status_for_candidate_from_agent_id == 3){
+                    if($request->status == 3){
                         $query->where('nomad_office_id', null);
                     }
                 } else if (Auth::user()->role_id == 2){
