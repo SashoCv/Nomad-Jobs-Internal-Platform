@@ -259,9 +259,7 @@ class AgentCandidateController extends Controller
                 }
             } else {
                 if (Auth::user()->role_id == 1) {
-                    if($request->status == 3){
-                        $query->where('nomad_office_id', null);
-                    }
+                    $query->where('nomad_office_id', null);
                 } else if (Auth::user()->role_id == 2){
                     $query->where('agent_candidates.nomad_office_id', $user_id);
                 } else if (Auth::user()->role_id == 4) {
@@ -291,6 +289,7 @@ class AgentCandidateController extends Controller
             if($agentId){
                 $query->where('agent_candidates.user_id', $agentId);
             }
+
 
             $candidates = $query->paginate(20);
 
