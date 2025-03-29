@@ -64,6 +64,7 @@ class AsignCandidateToNomadOfficeController extends Controller
                     $query->where('company_id', $companyId);
                 })
                 ->where('status_for_candidate_from_agent_id', 3)
+                ->where('nomad_office_id', null)
                 ->get();
 
             $candidates = [];
