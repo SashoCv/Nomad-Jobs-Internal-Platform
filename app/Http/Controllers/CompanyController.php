@@ -339,27 +339,33 @@ class CompanyController extends Controller
             $companyDelete = Company::findOrFail($id);
             $candidates = Candidate::where('company_id', '=', $id)->get();
 
-            foreach ($candidates as $candidate) {
+            if($candidates){
+                foreach ($candidates as $candidate) {
 
-                $files = File::where('candidate_id', '=', $candidate->id)->get();
-                foreach ($files as $file) {
-                    $file->delete();
+                    $files = File::where('candidate_id', '=', $candidate->id)->get();
+                    foreach ($files as $file) {
+                        $file->delete();
+                    }
+
+                    $categories = Category::where('candidate_id', '=', $candidate->id)->get();
+
+                    foreach ($categories as $category) {
+                        $category->delete();
+                    }
+
+                    $candidate->delete();
                 }
-
-                $categories = Category::where('candidate_id', '=', $candidate->id)->get();
-
-                foreach ($categories as $category) {
-                    $category->delete();
-                }
-
-                $candidate->delete();
             }
+
 
             $users = User::where('company_id', '=', $id)->get();
 
-            foreach ($users as $user) {
-                $user->delete();
+            if($users){
+                foreach ($users as $user) {
+                    $user->delete();
+                }
             }
+
 
             if ($companyDelete->delete()) {
                 // unlink(storage_path() . '/app/public/' . $companyDelete->logoPath);
