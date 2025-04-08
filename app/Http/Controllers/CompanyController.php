@@ -336,44 +336,21 @@ class CompanyController extends Controller
     {
         if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
 
-            $companyDelete = Company::findOrFail($id);
-            $candidates = Candidate::where('company_id', '=', $id)->get();
-
-            if($candidates){
-                foreach ($candidates as $candidate) {
-
-                    $files = File::where('candidate_id', '=', $candidate->id)->get();
-                    foreach ($files as $file) {
-                        $file->delete();
-                    }
-
-                    $categories = Category::where('candidate_id', '=', $candidate->id)->get();
-
-                    foreach ($categories as $category) {
-                        $category->delete();
-                    }
-
-                    $candidate->delete();
-                }
-            }
-
-
-            $users = User::where('company_id', '=', $id)->get();
-
-            if($users){
-                foreach ($users as $user) {
-                    $user->delete();
-                }
-            }
-
-
-            if ($companyDelete->delete()) {
-                // unlink(storage_path() . '/app/public/' . $companyDelete->logoPath);
+            try {
+                $company = Company::findOrFail($id);
+                $company->delete();
 
                 return response()->json([
                     'success' => true,
                     'status' => 200,
-                    'message' => 'Proof! Your Company has been deleted!',
+                    'data' => []
+                ]);
+            } catch (\Exception $e) {
+                Log::info('Error deleting company:', [$e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'status' => 500,
+                    'data' => []
                 ]);
             }
         }
