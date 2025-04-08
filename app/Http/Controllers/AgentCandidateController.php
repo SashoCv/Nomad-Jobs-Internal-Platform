@@ -163,6 +163,9 @@ class AgentCandidateController extends Controller
                 'type' => 'Agent add Candidate for Assigned Job',
             ];
 
+            $notification = NotificationRepository::createNotification($notificationData);
+            UsersNotificationRepository::createNotificationForUsers($notification);
+
             $candidateData = [
                 'user_id' => Auth::user()->id,
                 'company_job_id' => (int) $request->company_job_id,
