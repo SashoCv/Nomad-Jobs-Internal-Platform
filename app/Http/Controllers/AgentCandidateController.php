@@ -159,8 +159,8 @@ class AgentCandidateController extends Controller
             }
 
             $notificationData = [
-                'message' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate for company job' . ' ' . $getCompanyJob->job_title,
-                'type' => 'Agent' . ' ' . Auth::user()->name . ' ' .  'added candidate for company job' . ' ' . $getCompanyJob->job_title,
+                'message' => 'Agent' . ' ' . Auth::user()->firstName . ' ' .  'added candidate for company job' . ' ' . $getCompanyJob->job_title,
+                'type' => 'Agent' . ' ' . Auth::user()->firstName . ' ' .  'added candidate for company job' . ' ' . $getCompanyJob->job_title,
             ];
 
             $notification = NotificationRepository::createNotification($notificationData);
