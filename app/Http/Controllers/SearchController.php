@@ -736,7 +736,14 @@ class SearchController extends Controller
     public function searchCandidateNew(Request $request)
     {
         $searchEverything = $request->searchEverything;
-        $query = Candidate::with(['company', 'status', 'position', 'user']);
+
+        $query = Candidate::with([
+            'company',
+            'position',
+            'user',
+            'latestStatusHistory',
+            'latestStatusHistory.status',
+        ]);
 
         $userRoleId = Auth::user()->role_id;
 
@@ -811,10 +818,14 @@ class SearchController extends Controller
                     $q->where('company_id', '=', $request->searchCompany);
                 })
                 ->when($request->searchStatus, function ($q) use ($request) {
-                    $q->where('status_id', '=', $request->searchStatus);
+                    $q->whereHas('latestStatusHistory', function ($query) use ($request) {
+                        $query->where('status_id', $request->searchStatus);
+                    });
                 })
                 ->when($request->searchDate, function ($q) use ($request) {
-                    $q->whereDate('date', '=', $request->searchDate);
+                    $q->whereHas('latestStatusHistory', function ($query) use ($request) {
+                        $query->where('statusDate', $request->searchDate);
+                    });
                 })
                 ->when($request->dossierNumber, function ($q) use ($request) {
                     $q->where('dossierNumber', '=', $request->dossierNumber);

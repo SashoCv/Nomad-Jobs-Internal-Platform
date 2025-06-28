@@ -10,6 +10,7 @@ use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\CompanyCategory;
 use App\Models\File;
+use App\Models\Statushistory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,10 +31,15 @@ class ArrivalCandidateController extends Controller
             $fromDate = $request->from_date;
             $toDate = $request->to_date;
 
-            $query = ArrivalCandidate::with(['arrival.candidate', 'statusArrival']);
+            $query = Candidate::with(['latestStatusHistory.status', 'company'])
+                ->whereHas('latestStatusHistory.status', function ($q) {
+                    $q->where('showOnHomePage', 1);
+                });
 
             if ($statusId) {
-                $query->where('status_arrival_id', $statusId);
+                $query->whereHas('latestStatusHistory', function ($q) use ($statusId) {
+                    $q->where('status_id', $statusId);
+                });
             }
 
             if ($fromDate) {
@@ -45,52 +51,67 @@ class ArrivalCandidateController extends Controller
             }
 
             if ($fromDate && $toDate) {
-                $query->whereRaw("STR_TO_DATE(status_date, '%d-%m-%Y') BETWEEN ? AND ?", [$fromDate, $toDate]);
+                $query->whereHas('latestStatusHistory', function ($q) use ($fromDate, $toDate) {
+                    $q->whereBetween('statusDate', [$fromDate, $toDate]);
+                });
             } elseif ($fromDate) {
-                $query->whereRaw("STR_TO_DATE(status_date, '%d-%m-%Y') >= ?", [$fromDate]);
+                $query->whereHas('latestStatusHistory', function ($q) use ($fromDate) {
+                    $q->where('statusDate', '>=', $fromDate);
+                });
             } elseif ($toDate) {
-                $query->whereRaw("STR_TO_DATE(status_date, '%d-%m-%Y') <= ?", [$toDate]);
+                $query->whereHas('latestStatusHistory', function ($q) use ($toDate) {
+                    $q->where('statusDate', '<=', $toDate);
+                });
             }
 
-            $query->orderByRaw("STR_TO_DATE(status_date, '%d-%m-%Y') ASC");
 
+
+            // Note: Cannot use orderBy inside whereHas - has no effect here
+            // You may sort statusHistories manually later if needed
 
             $arrivalCandidates = $query->paginate();
 
-            $arrivalCandidates->getCollection()->transform(function ($arrivalCandidate) {
-                $candidateId = $arrivalCandidate->arrival->candidate->id ?? null;
+            $arrivalCandidates->getCollection()->transform(function ($candidate) use ($statusId) {
+                $latestStatus = $candidate->latestStatusHistory;
 
-                if ($candidateId) {
-                    $candidateCategoryId = Category::where('candidate_id', $candidateId)
-                        ->where('nameOfCategory', 'Documents For Arrival Candidates')
-                        ->first()
-                        ->id ?? null;
-
-                    if ($candidateCategoryId) {
-                        $files = File::where('candidate_id', $candidateId)
-                            ->where('category_id', $candidateCategoryId)
-                            ->exists();
-
-                        $arrivalCandidate->has_files = $files ? true : false;
-                    } else {
-                        $arrivalCandidate->has_files = false;
-                    }
+                $arrivalInfo = null;
+                if ($latestStatus && $latestStatus->status_id == 18) {
+                    $arrivalInfo = \DB::table('arrivals')
+                        ->where('statushistories_id', $latestStatus->id)
+                        ->first();
                 }
 
-                return $arrivalCandidate;
+                return [
+                    'id' => $candidate->id,
+                    'fullName' => $candidate->fullName,
+                    'fullNameCyrillic' => $candidate->fullNameCyrillic,
+                    'contractType' => $candidate->contractType,
+                    'company_id' => $candidate->company_id,
+                    'companyName' => $candidate->company?->nameOfCompany,
+                    'phoneNumber' => $candidate->phoneNumber,
+                    'statusHistories' => $latestStatus ? [
+                        'id' => $latestStatus->id,
+                        'description' => $latestStatus->description,
+                        'status_id' => $latestStatus->status_id,
+                        'statusName' => $latestStatus->status?->nameOfStatus,
+                        'statusDate' => \Carbon\Carbon::parse($latestStatus->statusDate)->format('d-m-Y'),
+                        'arrivalInfo' => $arrivalInfo,
+                    ] : null,
+                ];
             });
 
             return response()->json([
-                'message' => 'Arrival Candidates retrieved successfully',
-                'arrivalCandidates' => $arrivalCandidates
+                'arrivalCandidates' => $arrivalCandidates, // paginator with meta
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An error occurred while retrieving arrival candidates.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -157,48 +178,23 @@ class ArrivalCandidateController extends Controller
      * @param  \App\Models\ArrivalCandidate  $arrivalCandidate
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
         try {
-            $arrivalCandidate = ArrivalCandidate::find($request->id);
-            $arrivalCandidate->status_arrival_id = $request->status_arrival_id;
-            $arrivalCandidate->status_description = $request->status_description;
-            $arrivalCandidate->status_date = Carbon::createFromFormat('m-d-Y', $request->status_date)->format('d-m-Y');
 
+            $statusHistory = new Statushistory();
+            $statusHistory->candidate_id = $id;
+            $statusHistory->status_id = $request->status_id;
+            $statusHistory->statusDate = Carbon::createFromFormat('m-d-Y', $request->statusDate)->format('Y-m-d');
+            $statusHistory->description = $request->description;
 
-            $candidateId = Arrival::where('id', $arrivalCandidate->arrival_id)->first()->candidate_id;
-            $candidate = Candidate::where('id', $candidateId)->first();
-
-            if ($arrivalCandidate->save()) {
-
-                $statusMapping = [
-                    1 => 5,  // Pristignal
-                    3 => 6,  // Procedura za ERPR
-                    4 => 17, // Procedura za pismo
-                    5 => 7,  // Snimka za ERPR
-                    6 => 8,  // Poluchava ERPR
-                    7 => 4,  // Polucil Viza
-                    8 => 18, // Ocakva se Kandidat
-                    9 => 9,  // Naznachen za rabota
-                ];
-
-                if (isset($statusMapping[$arrivalCandidate->status_arrival_id])) {
-                    $newStatusId = $statusMapping[$arrivalCandidate->status_arrival_id];
-
-                    if ($candidate->status_id !== $newStatusId) {
-                        $candidate->status_id = $newStatusId;
-                        $candidate->save();
-                    }
-                }
-
-
-
-                dispatch(new SendEmailForArrivalStatusCandidates($arrivalCandidate->id));
+            if ($statusHistory->save()) {
+                dispatch(new SendEmailForArrivalStatusCandidates($statusHistory->id));
             }
 
             return response()->json([
                 'message' => 'Arrival Candidate updated successfully',
-                'arrivalCandidate' => $arrivalCandidate,
+                'arrivalCandidate' => $statusHistory,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

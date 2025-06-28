@@ -32,6 +32,7 @@ use App\Http\Controllers\CashPaymentForCandidatesController;
 use App\Http\Controllers\MigrationDocumentPreparationController;
 use App\Http\Controllers\StatusForCandidateFromAgentController;
 use App\Http\Controllers\MedicalInsuranceController;
+use App\Http\Controllers\StatisticController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -110,7 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
     Route::get('getCandidatesForCompany/{id}', [CandidateController::class, 'getCandidatesForCompany']);
     Route::post('extendContractForCandidate/{id}', [CandidateController::class, 'extendContractForCandidate']);
-
+    Route::get('exportCandidates', [CandidateController::class, 'exportCandidates']);
 
 
     // Files
@@ -298,5 +299,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deleteMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'destroy']);
     Route::get('exportMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'export']);
 
+
+
+    // Statistics DASHBOARD
+    Route::get('statistics', [StatisticController::class, 'statistics']);
 });
 

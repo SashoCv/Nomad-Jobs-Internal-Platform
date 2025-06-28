@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Status;
 use App\Models\StatusArrival;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,7 @@ class StatusArrivalController extends Controller
     {
         try {
             if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $statusArrivals = StatusArrival::select('id', 'statusName')->orderBy('order_statuses')->get();
+                $statusArrivals = Status::select('id', 'nameOfStatus as statusName')->where('showOnHomePage', 1)->orderBy('order')->get();
             } else {
                 return response()->json([
                     'message' => 'You are not authorized to view this page'

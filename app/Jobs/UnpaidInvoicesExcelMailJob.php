@@ -38,11 +38,11 @@ class UnpaidInvoicesExcelMailJob implements ShouldQueue
         Log::info("Sending email with unpaid invoices report");
         Log::info("File name: " . $this->fileName);
         try {
-            Mail::send('excelWithUnpaidInvoices', [], function ($message)  {
-                $message->to('sasocvetanoski@gmail.com')
-                    ->attach(storage_path('app/' . $this->fileName))
-                    ->subject('Unpaid Invoices Report');
-            });
+//            Mail::send('excelWithUnpaidInvoices', [], function ($message)  {
+//                $message->to('sasocvetanoski@gmail.com')
+//                    ->attach(storage_path('app/' . $this->fileName))
+//                    ->subject('Unpaid Invoices Report');
+//            });
 
             Log::info("Email sent successfully");
         } catch (\Exception $e) {

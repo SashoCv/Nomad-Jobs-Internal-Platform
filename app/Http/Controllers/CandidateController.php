@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\CandidatesExport;
 use App\Models\AgentCandidate;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\PDF as DomPDFPDF;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 use PhpOffice\PhpWord\Writer\PDF\DomPDF;
 use Svg\Tag\Rect;
@@ -436,7 +438,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         $roleId = $user->role_id;
 
-        $query = Candidate::with(['categories', 'company', 'position'])->where('id', $id);
+        $query = Candidate::with(['categories', 'company', 'position','statusHistories','statusHistories.status'])->where('id', $id);
 
         if ($roleId == 1 || $roleId == 2) {
             $person = $query->first();
@@ -902,6 +904,57 @@ class CandidateController extends Controller
                 'success' => false,
                 'status' => 500,
                 'message' => 'Something went wrong!',
+            ]);
+        }
+    }
+
+
+    public function exportCandidates(Request $request)
+    {
+        try {
+            $filters = [
+                'status_id' => $request->status_id ?? null,
+                'company_id' => $request->company_id ?? null,
+            ];
+
+            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                $candidates = Candidate::with(['company', 'latestStatusHistory','latestStatusHistory.status', 'position']);
+                if ($filters['status_id']) {
+                    $candidates->whereHas('statusHistories', function ($query) use ($filters) {
+                        $query->where('status_id', $filters['status_id']);
+                    });
+                }
+
+                if($filters['company_id']) {
+                    $candidates->where('company_id', $filters['company_id']);
+                }
+            } else if (Auth::user()->role_id == 3) {
+                $candidates = Candidate::with(['company', 'statusHistories', 'position'])
+                    ->where('company_id', Auth::user()->company_id);
+
+                if ($filters['status_id']) {
+                    $candidates->whereHas('statusHistories', function ($query) use ($filters) {
+                        $query->where('status_id', $filters['status_id']);
+                    });
+                }
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 401,
+                    'data' => []
+                ]);
+            }
+
+            $candidates = $candidates->get();
+
+            $export = new CandidatesExport($candidates);
+            return Excel::download($export, 'candidates.xlsx');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Failed to export candidates',
             ]);
         }
     }

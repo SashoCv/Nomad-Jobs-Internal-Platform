@@ -32,31 +32,31 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         // Log to check if the handle method is being executed
         Log::info("SendEmailForArrivalCandidates Job Started.");
 
-        $arrivalCandidate = ArrivalCandidate::find($this->arrivalCandidateId);
-        $arrival = Arrival::find($arrivalCandidate->arrival_id);
-        $candidate = Candidate::find($arrival->candidate_id);
-        $company = Company::find($arrival->company_id);
+//        $arrivalCandidate = ArrivalCandidate::find($this->arrivalCandidateId);
+//        $arrival = Arrival::find($arrivalCandidate->arrival_id);
+//        $candidate = Candidate::find($arrival->candidate_id);
+//        $company = Company::find($arrival->company_id);
+//
+//        $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
+//        $status = $statusArrival->statusName;
 
-        $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
-        $status = $statusArrival->statusName;
 
-
-        $data = [
-            'candidateName' => $candidate->fullName,
-            'companyName' => $company->nameOfCompany,
-            'status' => $status,
-            'changedStatusDate' => $arrivalCandidate->status_date,
-            'description' => $arrivalCandidate->status_description,
-            'phone_number' => $arrival->phone_number,
-        ];
+//        $data = [
+//            'candidateName' => $candidate->fullName,
+//            'companyName' => $company->nameOfCompany,
+//            'status' => $status,
+//            'changedStatusDate' => $arrivalCandidate->status_date,
+//            'description' => $arrivalCandidate->status_description,
+//            'phone_number' => $arrival->phone_number,
+//        ];
 
 
 
         try {
-            Mail::send('arrivalCandidateWithStatus', ['data' => $data], function ($message) use ($data) {
-                $message->to(['katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
-                    ->subject('Notification for ' . $data['candidateName']);
-            });
+//            Mail::send('arrivalCandidateWithStatus', ['data' => $data], function ($message) use ($data) {
+//                $message->to(['katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
+//                    ->subject('Notification for ' . $data['candidateName']);
+//            });
 
             // Log success
             Log::info("Email sent successfully to " . $data['candidateName']);
