@@ -87,4 +87,9 @@ class Candidate extends Model
 
         return $insurance->isEmpty() ? [] : $insurance;
     }
+
+    public function arrival()
+    {
+        return $this->hasOne(Arrival::class);
+    }
 }

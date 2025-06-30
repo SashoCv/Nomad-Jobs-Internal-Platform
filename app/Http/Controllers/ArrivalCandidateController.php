@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CandidatesHistoryResource;
 use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Jobs\SendEmailToCompany;
 use App\Models\Arrival;
@@ -261,28 +262,32 @@ class ArrivalCandidateController extends Controller
         try {
             $dateFrom = $request->dateFrom;
             $dateTo = $request->dateTo;
+            $statusId = $request->statusId ?? 2;
 
-            $arrivalCandidates = DB::table('arrivals')
-                ->join('candidates', 'arrivals.candidate_id', '=', 'candidates.id')
-                ->join('companies', 'arrivals.company_id', '=', 'companies.id')
-                ->where('arrival_date', '!=', null)
-                ->select('arrivals.*', 'candidates.fullName', 'companies.nameOfCompany')
-                ->orderBy('arrival_date', 'desc');
+            $candidatesWithStatuses = Statushistory::with(['candidate', 'status', 'candidate.arrival','candidate.company'])
+                ->whereHas('status', function ($query) use ($statusId) {
+                    $query->where('id', $statusId);
+                });
 
             if ($dateFrom) {
-                $arrivalCandidates->where('arrival_date', '>=', $dateFrom);
+                $candidatesWithStatuses->whereHas('status', function ($query) use ($dateFrom) {
+                    $query->where('statusDate', '>=', $dateFrom);
+                });
             }
 
             if ($dateTo) {
-                $arrivalCandidates->where('arrival_date', '<=', $dateTo);
+                $candidatesWithStatuses->whereHas('status', function ($query) use ($dateTo) {
+                    $query->where('statusDate', '<=', $dateTo);
+                });
             }
 
-            $arrivalCandidates = $arrivalCandidates->paginate();
+            $candidatesWithStatuses->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
+                ->orderBy('statushistories.statusDate', 'desc');
 
-            return response()->json([
-                'message' => 'Arrival Candidates retrieved successfully',
-                'arrivalCandidates' => $arrivalCandidates
-            ]);
+            $arrivalCandidates = $candidatesWithStatuses->paginate();
+
+            return CandidatesHistoryResource::collection($arrivalCandidates);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An error occurred while retrieving arrival candidates.',
