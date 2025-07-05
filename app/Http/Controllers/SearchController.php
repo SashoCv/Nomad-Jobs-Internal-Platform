@@ -856,8 +856,12 @@ class SearchController extends Controller
 
             foreach ($result as $candidate) {
                $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1;
-               $status = $allStatuses->firstWhere('order', $nextStatusOrder)->id;
-               $availableStatuses = [$status, 11, 12,13,14];
+               $status = $allStatuses->firstWhere('order', $nextStatusOrder)->id ?? null;
+               if($status){
+                   $availableStatuses = [$status, 11, 12,13,14];
+               } else {
+                   $availableStatuses = [];
+               }
                $candidate->availableStatuses = $availableStatuses;
                if($status === 18){
                    $candidate->addArrival = true;
