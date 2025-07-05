@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\CandidatesExport;
+use App\Exports\CandidatesFromStatusHistoriesExport;
 use App\Models\AgentCandidate;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
@@ -13,6 +14,8 @@ use App\Models\Experience;
 use App\Models\File;
 use App\Models\MedicalInsurance;
 use App\Models\Position;
+use App\Models\Status;
+use App\Models\Statushistory;
 use App\Models\User;
 use App\Models\UserOwner;
 use Carbon\Carbon;
@@ -955,6 +958,51 @@ class CandidateController extends Controller
                 'success' => false,
                 'status' => 500,
                 'message' => 'Failed to export candidates',
+            ]);
+        }
+    }
+
+    public function exportCandidatesBasedOnStatus(Request $request)
+    {
+        try {
+            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+
+                $dateFrom = $request->dateFrom ?? null;
+                $dateTo = $request->dateTo ?? null;
+                $statusId = $request->statusId ?? 1;
+
+                $statusName = Status::where('id', $statusId)->value('nameOfStatus');
+
+                $candidates = Statushistory::with(['candidate', 'candidate.company', 'candidate.position', 'status'])
+                    ->where('status_id', $statusId);
+
+                if ($dateFrom && $dateTo) {
+                    $candidates->whereBetween('statusDate', [$dateFrom, $dateTo]);
+                } elseif ($dateFrom) {
+                    $candidates->where('statusDate', '>=', $dateFrom);
+                } elseif ($dateTo) {
+                    $candidates->where('statusDate', '<=', $dateTo);
+                }
+
+                $candidates = $candidates->get();
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'status' => 401,
+                    'data' => []
+                ]);
+            }
+
+            $currentDate = Carbon::now()->format('d-m-Y');
+            $export = new CandidatesFromStatusHistoriesExport($candidates);
+            $statusName = str_replace('/', '_', $statusName);
+            return Excel::download($export, 'candidates_status_' . $statusName . '_' . 'date' . '_' . $currentDate . '.xlsx');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => $e->getMessage(),
             ]);
         }
     }
