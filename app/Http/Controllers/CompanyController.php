@@ -99,6 +99,7 @@ class CompanyController extends Controller
             $company->nameOfCompany = $request->nameOfCompany;
             $company->address = $request->address;
             $company->email = $request->email;
+            $company->companyEmail = $request->companyEmail;
             $company->website = $request->website;
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
@@ -276,6 +277,7 @@ class CompanyController extends Controller
             $company->nameOfCompany = $request->nameOfCompany;
             $company->address = $request->address;
             $company->email = $request->email;
+            $company->companyEmail = $request->companyEmail;
             $company->website = $request->website;
             $company->phoneNumber = $request->phoneNumber;
             $company->EIK = $request->EIK;
