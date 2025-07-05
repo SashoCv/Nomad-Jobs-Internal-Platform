@@ -7,6 +7,7 @@ use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Company;
 use App\Models\CompanyFile;
+use App\Models\Status;
 use App\Models\UserOwner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -851,6 +852,19 @@ class SearchController extends Controller
                 });
 
             $result = $query->orderBy('id', 'DESC')->paginate(20);
+            $allStatuses = Status::all();
+
+            foreach ($result as $candidate) {
+               $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1;
+               $status = $allStatuses->firstWhere('order', $nextStatusOrder)->id;
+               $availableStatuses = [$status, 11, 12,13,14];
+               $candidate->availableStatuses = $availableStatuses;
+               if($status === 18){
+                   $candidate->addArrival = true;
+               } else {
+                     $candidate->addArrival = false;
+               }
+            }
         }
 
         if ($request->searchEverything) {
