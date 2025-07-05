@@ -190,7 +190,7 @@ class ArrivalCandidateController extends Controller
             $statusHistory->description = $request->description;
 
             if ($statusHistory->save()) {
-                dispatch(new SendEmailForArrivalStatusCandidates($statusHistory->id));
+                dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate));
             }
 
             return response()->json([
