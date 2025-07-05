@@ -855,14 +855,15 @@ class SearchController extends Controller
             $allStatuses = Status::all();
 
             foreach ($result as $candidate) {
-               $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1 ?? null;
-               $status = $allStatuses->firstWhere('order', $nextStatusOrder)->id ?? null;
-               if($status){
-                   $availableStatuses = [$status, 11, 12,13,14];
-               } else {
-                   $availableStatuses = [];
-               }
-               $candidate->availableStatuses = $availableStatuses;
+                if($candidate->latestStatusHistory){
+                    $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1;
+                    $status = $allStatuses->firstWhere('order', $nextStatusOrder)->id;
+                    $availableStatuses = [$status, 11, 12,13,14];
+                    $candidate->availableStatuses = $availableStatuses;
+                } else {
+                    $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
+                }
+
                if($status === 18){
                    $candidate->addArrival = true;
                } else {
