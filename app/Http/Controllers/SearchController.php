@@ -855,7 +855,7 @@ class SearchController extends Controller
             $allStatuses = Status::all();
 
             foreach ($result as $candidate) {
-               $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1;
+               $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1 ?? null;
                $status = $allStatuses->firstWhere('order', $nextStatusOrder)->id ?? null;
                if($status){
                    $availableStatuses = [$status, 11, 12,13,14];
