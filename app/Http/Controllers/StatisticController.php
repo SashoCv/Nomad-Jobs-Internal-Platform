@@ -50,25 +50,33 @@ class StatisticController extends Controller
 
         $candidates = $query->get();
 
-        // --- Aggregations ---
-
+        // Transform counts into arrays of {label, value} objects
         $statusCounts = $candidates->groupBy(fn($c) => optional(optional($c->latestStatusHistory)->status)->nameOfStatus ?? 'Unknown')
-            ->map->count();
-
+            ->map(function ($group, $key) {
+                return ['label' => $key, 'value' => $group->count()];
+            })->values()->toArray();
 
         $companyCounts = $candidates->groupBy(fn($c) => optional($c->company)->nameOfCompany ?? 'Unknown')
-            ->map->count();
+            ->map(function ($group, $key) {
+                return ['label' => $key, 'value' => $group->count()];
+            })->values()->toArray();
 
         $countryCounts = $candidates->groupBy(fn($c) => $c->country ?? 'Unknown')
-            ->map->count();
+            ->map(function ($group, $key) {
+                return ['label' => $key, 'value' => $group->count()];
+            })->values()->toArray();
 
         $typeCounts = $candidates->groupBy(fn($c) => $c->contractType ?? 'Unknown')
-            ->map->count();
+            ->map(function ($group, $key) {
+                return ['label' => $key, 'value' => $group->count()];
+            })->values()->toArray();
 
         $agentCounts = $candidates
             ->filter(fn($c) => optional($c->agentCandidates->first())->user_id)
             ->groupBy(fn($c) => $c->agentCandidates->first()->user_id)
-            ->map->count();
+            ->map(function ($group, $key) {
+                return ['label' => $key, 'value' => $group->count()];
+            })->values()->toArray();
 
         // Return structured data
         return response()->json([
@@ -80,3 +88,4 @@ class StatisticController extends Controller
         ], 200, ['Content-Type' => 'application/json']);
     }
 }
+?>
