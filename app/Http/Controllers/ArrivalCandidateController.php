@@ -12,6 +12,8 @@ use App\Models\Category;
 use App\Models\CompanyCategory;
 use App\Models\File;
 use App\Models\Statushistory;
+use App\Repository\NotificationRepository;
+use App\Repository\UsersNotificationRepository;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -190,6 +192,13 @@ class ArrivalCandidateController extends Controller
             $statusHistory->description = $request->description;
 
             if ($statusHistory->save()) {
+                $notificationData = [
+                    'message' => 'Status updated for candidate: ' . $statusHistory->candidate->fullName,
+                    'type' => 'status_update',
+                ];
+
+                $notification = NotificationRepository::createNotification($notificationData);
+                UsersNotificationRepository::createNotificationForUsers($notification);
                 dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate));
             }
 
