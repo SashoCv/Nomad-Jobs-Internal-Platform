@@ -106,7 +106,7 @@ class StatusController extends Controller
             $statusHistory = new Statushistory();
             $statusHistory->candidate_id = $candidate_id;
             $statusHistory->status_id = $status_id;
-            $statusHistory->statusDate = Carbon::parse($statusDate)->format('Y-m-d');
+            $statusHistory->statusDate = Carbon::createFromFormat('m-d-Y', $request->statusDate)->format('Y-m-d');
             $statusHistory->description = $description;
 
             if (!$statusHistory->save()) {
