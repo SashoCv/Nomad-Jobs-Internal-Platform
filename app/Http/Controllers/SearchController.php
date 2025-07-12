@@ -857,16 +857,25 @@ class SearchController extends Controller
             foreach ($result as $candidate) {
                 if($candidate->latestStatusHistory){
                     $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1;
-                    $status = $allStatuses->firstWhere('order', $nextStatusOrder)->id;
-                    $availableStatuses = [$status, 11, 12,13,14];
-                    if($status === 18){
-                        $candidate->addArrival = true;
+                    $nextStatus = $allStatuses->firstWhere('order', $nextStatusOrder);
+                    
+                    if($nextStatus) {
+                        $status = $nextStatus->id;
+                        $availableStatuses = [$status, 11, 12,13,14];
+                        if($status === 18){
+                            $candidate->addArrival = true;
+                        } else {
+                            $candidate->addArrival = false;
+                        }
+                        $candidate->availableStatuses = $availableStatuses;
                     } else {
+                        // Ако нема следен статус, стави ги сите достапни
+                        $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
                         $candidate->addArrival = false;
                     }
-                    $candidate->availableStatuses = $availableStatuses;
                 } else {
                     $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
+                    $candidate->addArrival = false;
                 }
             }
         }
