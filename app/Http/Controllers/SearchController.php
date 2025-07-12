@@ -825,7 +825,7 @@ class SearchController extends Controller
                 })
                 ->when($request->searchDate, function ($q) use ($request) {
                     $q->whereHas('latestStatusHistory', function ($query) use ($request) {
-                        $query->where('statusDate', $request->searchDate);
+                        $query->whereDate('statusDate', $request->searchDate);
                     });
                 })
                 ->when($request->dossierNumber, function ($q) use ($request) {
