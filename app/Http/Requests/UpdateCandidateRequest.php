@@ -16,21 +16,20 @@ class UpdateCandidateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status_id' => ['required', 'integer', 'exists:statuses,id'],
             'type_id' => ['required', 'integer', Rule::in([Candidate::TYPE_CANDIDATE, Candidate::TYPE_EMPLOYEE])],
             'company_id' => ['required', 'integer', 'exists:companies,id'],
             'position_id' => ['required', 'integer', 'exists:positions,id'],
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
             'case_id' => ['nullable', 'integer', 'exists:cases,id'],
             'agent_id' => ['nullable', 'integer', 'exists:users,id'],
-            
+
             // Personal Information
             'gender' => ['required', 'string', 'max:10'],
             'email' => ['required', 'email', 'max:255'],
             'nationality' => ['required', 'string', 'max:100'],
             'date' => ['required', 'date'],
-            'phoneNumber' => ['required', 'string', 'max:20'],
-            'address' => ['required', 'string', 'max:500'],
+            'phoneNumber' => ['string', 'max:20'],
+            'address' => ['string', 'max:500'],
             'passport' => ['required', 'string', 'max:50'],
             'fullName' => ['required', 'string', 'max:255'],
             'fullNameCyrillic' => ['nullable', 'string', 'max:255'],
@@ -42,15 +41,15 @@ class UpdateCandidateRequest extends FormRequest
             'addressOfResidence' => ['nullable', 'string', 'max:500'],
             'periodOfResidence' => ['nullable', 'string', 'max:100'],
             'passportValidUntil' => ['required', 'date'],
-            'passportIssuedBy' => ['required', 'string', 'max:255'],
-            'passportIssuedOn' => ['required', 'date'],
+            'passportIssuedBy' => ['string', 'max:255'],
+            'passportIssuedOn' => ['date'],
             'addressOfWork' => ['nullable', 'string', 'max:500'],
             'nameOfFacility' => ['nullable', 'string', 'max:255'],
             'education' => ['nullable', 'string', 'max:255'],
             'specialty' => ['nullable', 'string', 'max:255'],
             'qualification' => ['nullable', 'string', 'max:255'],
             'martialStatus' => ['nullable', 'string', 'max:50'],
-            
+
             // Contract Information
             'contractPeriod' => ['required', 'string', 'max:100'],
             'contractType' => ['required', 'string', Rule::in([Candidate::CONTRACT_TYPE_90_DAYS, Candidate::CONTRACT_TYPE_YEARLY])],
@@ -60,11 +59,11 @@ class UpdateCandidateRequest extends FormRequest
             'workingDays' => ['nullable', 'string', 'max:100'],
             'startContractDate' => ['nullable', 'date'],
             'endContractDate' => ['nullable', 'date'],
-            
+
             // Additional Information
             'dossierNumber' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            
+
             // File uploads
             'personPassport' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
             'personPicture' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
@@ -74,7 +73,6 @@ class UpdateCandidateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status_id.required' => 'Status is required.',
             'type_id.required' => 'Type is required.',
             'company_id.required' => 'Company is required.',
             'position_id.required' => 'Position is required.',

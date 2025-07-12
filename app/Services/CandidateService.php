@@ -208,14 +208,13 @@ class CandidateService
         return $updated;
     }
 
-    public function getExpiringContracts(int $monthsAhead = 4): \Illuminate\Database\Eloquent\Collection
+    public function getExpiringContracts(int $monthsAhead = 4): \Illuminate\Database\Eloquent\Builder
     {
         $futureDate = Carbon::now()->addMonths($monthsAhead);
 
         return Candidate::with(['company:id,nameOfCompany,EIK', 'status:id,nameOfStatus', 'position:id,jobPosition'])
             ->contractExpiring($futureDate)
-            ->orderBy('endContractDate', 'desc')
-            ->get();
+            ->orderBy('endContractDate', 'asc');
     }
 
     public function getFirstQuartal(): ?string

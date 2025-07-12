@@ -16,7 +16,6 @@ class StoreCandidateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status_id' => ['required', 'integer', 'exists:statuses,id'],
             'type_id' => ['required', 'integer', Rule::in([Candidate::TYPE_CANDIDATE, Candidate::TYPE_EMPLOYEE])],
             'company_id' => ['required', 'integer', 'exists:companies,id'],
             'position_id' => ['required', 'integer', 'exists:positions,id'],
@@ -29,8 +28,8 @@ class StoreCandidateRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'nationality' => ['required', 'string', 'max:100'],
             'date' => ['required', 'date'],
-            'phoneNumber' => ['required', 'string', 'max:20'],
-            'address' => ['required', 'string', 'max:500'],
+            'phoneNumber' => ['string', 'max:20'],
+            'address' => ['string', 'max:500'],
             'passport' => ['required', 'string', 'max:50'],
             'fullName' => ['required', 'string', 'max:255'],
             'fullNameCyrillic' => ['nullable', 'string', 'max:255'],
@@ -74,7 +73,6 @@ class StoreCandidateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status_id.required' => 'Status is required.',
             'type_id.required' => 'Type is required.',
             'company_id.required' => 'Company is required.',
             'position_id.required' => 'Position is required.',
