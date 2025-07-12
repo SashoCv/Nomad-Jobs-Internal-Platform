@@ -69,8 +69,13 @@ class ArrivalCandidateController extends Controller
 
 
 
-            // Note: Cannot use orderBy inside whereHas - has no effect here
-            // You may sort statusHistories manually later if needed
+            // Join со statushistories за да можеме да сортираме по statusDate
+            $query->join('statushistories', function($join) {
+                $join->on('candidates.id', '=', 'statushistories.candidate_id')
+                     ->whereRaw('statushistories.id = (SELECT MAX(id) FROM statushistories WHERE candidate_id = candidates.id)');
+            })
+            ->orderBy('statushistories.statusDate', 'asc')
+            ->select('candidates.*');
 
             $arrivalCandidates = $query->paginate();
 
@@ -80,9 +85,10 @@ class ArrivalCandidateController extends Controller
                 $arrivalInfo = null;
                 if ($latestStatus && $latestStatus->status_id == 18) {
                     $arrivalInfo = \DB::table('arrivals')
-                        ->where('statushistories_id', $latestStatus->id)
+                        ->where('candidate_id', $candidate->id)
                         ->first();
                 }
+
 
                 return [
                     'id' => $candidate->id,

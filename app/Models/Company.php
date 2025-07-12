@@ -76,9 +76,7 @@ class Company extends Model
      */
     protected $casts = [
         'employedByMonths' => 'array',
-        'commissionRate' => 'decimal:2',
-        'dateBornDirector' => 'date',
-        'director_date_of_issue_idCard' => 'date'
+        'commissionRate' => 'decimal:2'
     ];
 
     /**

@@ -18,7 +18,7 @@ class Statushistory extends Model
     ];
 
     protected $casts = [
-        'statusDate' => 'datetime',
+        'statusDate' => 'date',
     ];
 
     public function candidate()
