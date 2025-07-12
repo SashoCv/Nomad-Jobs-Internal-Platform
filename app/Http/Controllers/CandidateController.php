@@ -50,21 +50,36 @@ class CandidateController extends Controller
     private const ROLE_COMPANY = 3;
     private const ROLE_AGENT = 4;
     private const ROLE_OWNER = 5;
-    public function getCandidatesWhoseContractsAreExpiring(): JsonResponse
+    public function getCandidatesWhoseContractsAreExpiring()
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
-            return $this->unauthorizedResponse();
-        }
+        $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
 
-        try {
-            $candidates = $this->candidateService->getExpiringContracts();
-            $paginatedCandidates = $candidates->paginate(25);
+        $candidates = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'company_id', 'status_id', 'position_id')
+            ->with([
+                'company:id,nameOfCompany,EIK',
+                'latestStatusHistory.status:id,nameOfStatus',
+                'position:id,jobPosition'
+            ])
+            ->whereDate('endContractDate', '<=', $fourMonthsBefore)
+            ->orderBy('endContractDate', 'desc')
+            ->paginate();
 
-            return $this->successResponse($paginatedCandidates);
-        } catch (\Exception $e) {
-            Log::error('Error getting expiring contracts: ' . $e->getMessage());
-            return $this->errorResponse('Failed to get expiring contracts');
-        }
+        // Трансформирај ги податоците за да го задржиш истиот формат
+        $candidates->getCollection()->transform(function ($candidate) {
+            // Зими го статусот од latestStatusHistory наместо директно од candidate
+            $latestStatus = $candidate->latestStatusHistory ? $candidate->latestStatusHistory->status : null;
+
+            $candidate->status = $latestStatus;
+            unset($candidate->latestStatusHistory); // отстрани го за да не се дуплира
+
+            return $candidate;
+        });
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $candidates,
+        ]);
     }
     public function scriptForSeasonal(): JsonResponse
     {
@@ -74,7 +89,7 @@ class CandidateController extends Controller
 
         try {
             $updated = $this->candidateService->updateSeasonalForAllCandidates();
-            
+
             return $this->successResponse(null, "Seasonal updated for {$updated} candidates");
         } catch (\Exception $e) {
             Log::error('Error updating seasonal data: ' . $e->getMessage());
@@ -91,7 +106,7 @@ class CandidateController extends Controller
 
         try {
             $updated = $this->candidateService->updateAddedByForAllCandidates();
-            
+
             return $this->successResponse(null, "Added by updated for {$updated} candidates");
         } catch (\Exception $e) {
             Log::error('Error updating addedBy data: ' . $e->getMessage());
@@ -107,7 +122,7 @@ class CandidateController extends Controller
 
         try {
             $firstQuartal = $this->candidateService->getFirstQuartal();
-            
+
             return $this->successResponse(['date' => $firstQuartal]);
         } catch (\Exception $e) {
             Log::error('Error getting first quartal: ' . $e->getMessage());
@@ -122,7 +137,7 @@ class CandidateController extends Controller
 
         try {
             $updated = $this->candidateService->updateQuartalForAllCandidates();
-            
+
             return $this->successResponse(null, "Quartal updated for {$updated} candidates");
         } catch (\Exception $e) {
             Log::error('Error updating quartal data: ' . $e->getMessage());
@@ -185,7 +200,7 @@ class CandidateController extends Controller
     {
         try {
             $query = $this->buildCandidateQuery();
-            
+
             if (!$query) {
                 return $this->unauthorizedResponse();
             }
@@ -206,7 +221,7 @@ class CandidateController extends Controller
     {
         try {
             $query = $this->buildCandidateQuery();
-            
+
             if (!$query) {
                 return $this->unauthorizedResponse();
             }
@@ -230,7 +245,7 @@ class CandidateController extends Controller
         try {
             $data = $request->validated();
             $candidate = $this->candidateService->createCandidate($data);
-            
+
             return $this->successResponse(new CandidateResource($candidate), 'Candidate created successfully');
         } catch (\Exception $e) {
             Log::error('Error creating candidate: ' . $e->getMessage());
@@ -383,9 +398,9 @@ class CandidateController extends Controller
         try {
             $candidate = Candidate::findOrFail($id);
             $data = $request->validated();
-            
+
             $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data);
-            
+
             return $this->successResponse(new CandidateResource($updatedCandidate), 'Candidate updated successfully');
         } catch (\Exception $e) {
             Log::error('Error updating candidate: ' . $e->getMessage());
@@ -525,7 +540,7 @@ class CandidateController extends Controller
         try {
             $candidate = Candidate::findOrFail($id);
             $this->candidateService->promoteToEmployee($candidate);
-            
+
             return $this->successResponse(null, 'Candidate promoted to employee successfully');
         } catch (\Exception $e) {
             Log::error('Error promoting candidate to employee: ' . $e->getMessage());
@@ -538,14 +553,14 @@ class CandidateController extends Controller
     {
         try {
             $candidate = Candidate::findOrFail($id);
-            
+
             if ($this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
                 $this->candidateService->deleteCandidate($candidate);
                 return $this->successResponse(null, 'Candidate deleted successfully');
             } elseif (Auth::user()->role_id === self::ROLE_AGENT) {
                 return $this->handleAgentDeletion($candidate, $id);
             }
-            
+
             return $this->unauthorizedResponse();
         } catch (\Exception $e) {
             Log::error('Error deleting candidate: ' . $e->getMessage());
@@ -562,13 +577,13 @@ class CandidateController extends Controller
         $agentCandidate = AgentCandidate::where('candidate_id', $id)
             ->where('user_id', Auth::id())
             ->first();
-            
+
         if ($agentCandidate) {
             $agentCandidate->delete();
             $candidate->delete();
             return $this->successResponse(null, 'Candidate deleted successfully');
         }
-        
+
         return $this->errorResponse('Agent candidate relationship not found', 404);
     }
 
