@@ -598,6 +598,7 @@ class CandidateController extends Controller
             $filters = [
                 'status_id' => $request->status_id ?? null,
                 'company_id' => $request->company_id ?? null,
+                'searchDate' => $request->searchDate ?? null,
             ];
 
             if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
@@ -606,6 +607,12 @@ class CandidateController extends Controller
                     $candidates->whereHas('statusHistories', function ($query) use ($filters) {
                         $query->where('status_id', $filters['status_id']);
                     });
+                }
+
+                if ($filters['searchDate']){
+                    $candidates->whereHas('latestStatusHistory', function ($query) use ($filters) {
+                        $query->whereDate('statusDate', $filters['searchDate']);
+                });
                 }
 
                 if($filters['company_id']) {
