@@ -870,7 +870,7 @@ class SearchController extends Controller
                         $status = $nextStatus->id;
                         $availableStatuses = [$status, 11, 12,13,14];
                         if($status === 18){
-                            $availableStatuses = [11,12,13];
+                            $availableStatuses = [11,12,13,14];
                             $candidate->addArrival = true;
                         } else {
                             $candidate->addArrival = false;
