@@ -72,6 +72,10 @@ class CandidateController extends Controller
             $candidate->status = $latestStatus;
             unset($candidate->latestStatusHistory); // отстрани го за да не се дуплира
 
+            // Format dates as ISO strings for consistent frontend handling
+            $candidate->date = $candidate->date ? Carbon::parse($candidate->date)->toISOString() : null;
+            $candidate->contractPeriodDate = $candidate->contractPeriodDate ? Carbon::parse($candidate->contractPeriodDate)->toISOString() : null;
+
             return $candidate;
         });
 
