@@ -113,6 +113,7 @@ class MedicalInsuranceController extends Controller
             $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
                 ->with($this->withCandidateRelations())
                 ->where('dateTo', '<=', $thirtyDaysAgo)
+                ->orderBy('dateTo', 'desc')
                 ->paginate();
 
             $medicalInsurances->getCollection()->transform(function ($insurance) {
