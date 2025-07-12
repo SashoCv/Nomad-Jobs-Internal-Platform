@@ -20,7 +20,7 @@ class StatisticController extends Controller
 
         // Base query with necessary relationships
         $query = Candidate::query()
-            ->with(['company:id,nameOfCompany', 'latestStatusHistory.status:id,nameOfStatus', 'agentCandidates'])
+            ->with(['company:id,nameOfCompany', 'latestStatusHistory.status:id,nameOfStatus', 'agentCandidates.user:id,firstName,lastName'])
             ->whereBetween('created_at', [$dateFrom, $dateTo]);
 
         // Apply filters
@@ -73,7 +73,13 @@ class StatisticController extends Controller
 
         $agentCounts = $candidates
             ->filter(fn($c) => optional($c->agentCandidates->first())->user_id)
-            ->groupBy(fn($c) => $c->agentCandidates->first()->user_id)
+            ->groupBy(function($c) {
+                $agentCandidate = $c->agentCandidates->first();
+                if ($agentCandidate && $agentCandidate->user) {
+                    return $agentCandidate->user->firstName . ' ' . $agentCandidate->user->lastName;
+                }
+                return 'Unknown Agent';
+            })
             ->map(function ($group, $key) {
                 return ['label' => $key, 'value' => $group->count()];
             })->values()->toArray();
