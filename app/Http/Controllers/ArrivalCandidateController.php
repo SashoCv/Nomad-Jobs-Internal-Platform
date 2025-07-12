@@ -79,7 +79,10 @@ class ArrivalCandidateController extends Controller
 
             $arrivalCandidates = $query->paginate();
 
-            $arrivalCandidates->getCollection()->transform(function ($candidate) use ($statusId) {
+            // Get all statuses for availableStatuses calculation
+            $allStatuses = \App\Models\Status::all();
+
+            $arrivalCandidates->getCollection()->transform(function ($candidate) use ($statusId, $allStatuses) {
                 $latestStatus = $candidate->latestStatusHistory;
 
                 $arrivalInfo = null;
@@ -89,6 +92,22 @@ class ArrivalCandidateController extends Controller
                         ->first();
                 }
 
+                // Calculate availableStatuses using the same logic as searchCandidateNew
+                $availableStatuses = [];
+                if($latestStatus){
+                    $nextStatusOrder = $latestStatus->status->order + 1;
+                    $nextStatus = $allStatuses->firstWhere('order', $nextStatusOrder);
+                    
+                    if($nextStatus) {
+                        $status = $nextStatus->id;
+                        $availableStatuses = [$status, 11, 12, 13, 14];
+                    } else {
+                        // If no next status, show all available statuses
+                        $availableStatuses = $allStatuses->pluck('id')->toArray();
+                    }
+                } else {
+                    $availableStatuses = $allStatuses->pluck('id')->toArray();
+                }
 
                 return [
                     'id' => $candidate->id,
@@ -98,6 +117,7 @@ class ArrivalCandidateController extends Controller
                     'company_id' => $candidate->company_id,
                     'companyName' => $candidate->company?->nameOfCompany,
                     'phoneNumber' => $candidate->phoneNumber,
+                    'availableStatuses' => $availableStatuses,
                     'statusHistories' => $latestStatus ? [
                         'id' => $latestStatus->id,
                         'description' => $latestStatus->description,
