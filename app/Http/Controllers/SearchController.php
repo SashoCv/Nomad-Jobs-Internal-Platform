@@ -851,14 +851,21 @@ class SearchController extends Controller
                     $q->where('user_id', '=', $request->user_id);
                 });
 
-            $result = $query->orderBy('id', 'DESC')->paginate(20);
+            // Провери дали има orderBy параметар за азбучно сортирање
+            if ($request->orderBy === 'name_asc') {
+                $result = $query->orderBy('fullName', 'ASC')->paginate(20);
+            } elseif ($request->orderBy === 'name_desc') {
+                $result = $query->orderBy('fullName', 'DESC')->paginate(20);
+            } else {
+                $result = $query->orderBy('id', 'DESC')->paginate(20);
+            }
             $allStatuses = Status::all();
 
             foreach ($result as $candidate) {
                 if($candidate->latestStatusHistory){
                     $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1;
                     $nextStatus = $allStatuses->firstWhere('order', $nextStatusOrder);
-                    
+
                     if($nextStatus) {
                         $status = $nextStatus->id;
                         $availableStatuses = [$status, 11, 12,13,14];
@@ -896,7 +903,14 @@ class SearchController extends Controller
                     ->orWhere('dossierNumber', '=', $request->searchEverything);
             });
 
-            $result = $query->get();
+            // Провери дали има orderBy параметар за азбучно сортирање
+            if ($request->orderBy === 'name_asc') {
+                $result = $query->orderBy('fullName', 'ASC')->get();
+            } elseif ($request->orderBy === 'name_desc') {
+                $result = $query->orderBy('fullName', 'DESC')->get();
+            } else {
+                $result = $query->orderBy('id', 'DESC')->get();
+            }
         }
 
         if ($userRoleId === 3 || $userRoleId === 5) {
