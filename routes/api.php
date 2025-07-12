@@ -19,6 +19,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
+use App\Http\Controllers\ContractPricingController;
 use App\Http\Controllers\UserOwnerController;
 use App\Http\Controllers\AsignCandidateToNomadOfficeController;
 use App\Http\Controllers\InvoiceCompanyController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\CashPaymentForCandidatesController;
 use App\Http\Controllers\MigrationDocumentPreparationController;
 use App\Http\Controllers\StatusForCandidateFromAgentController;
 use App\Http\Controllers\MedicalInsuranceController;
+use App\Http\Controllers\CompanyServiceContractController;
 use App\Http\Controllers\StatisticController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -304,5 +306,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Statistics DASHBOARD
     Route::get('statistics', [StatisticController::class, 'statistics']);
+
+
+    // Company Service Contract
+    Route::post('storeCompanyServiceContract', [CompanyServiceContractController::class, 'store']);
+    Route::get('getCompanyServiceContracts', [CompanyServiceContractController::class, 'index']);
+    Route::get('getCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'show']);
+
+
+    // Contract Pricing
+    Route::post('storeContractPricing', [ContractPricingController::class, 'store']);
 });
 

@@ -9,6 +9,15 @@ class File extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'candidate_id',
+        'category_id',
+        'file_path',
+        'file_name',
+        'file_size',
+        'mime_type'
+    ];
+
     public function candidates()
     {
         return $this->belongsTo(Candidate::class,'candidate_id');

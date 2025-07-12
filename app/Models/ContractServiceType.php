@@ -5,14 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class ContractServiceType extends Model
 {
     use HasFactory;
 
+    protected $table = 'contract_service_types';
+
     protected $fillable = [
-        'candidate_id',
-        'nameOfCategory',
-        'role_id',
-        'isGenerated',
+        'name',
     ];
 }

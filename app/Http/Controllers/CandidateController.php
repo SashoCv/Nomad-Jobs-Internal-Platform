@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Exports\CandidatesExport;
 use App\Exports\CandidatesFromStatusHistoriesExport;
+use App\Http\Requests\StoreCandidateRequest;
+use App\Http\Requests\UpdateCandidateRequest;
+use App\Http\Resources\CandidateResource;
 use App\Models\AgentCandidate;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
@@ -18,146 +21,113 @@ use App\Models\Status;
 use App\Models\Statushistory;
 use App\Models\User;
 use App\Models\UserOwner;
+use App\Services\CandidateService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as DomPDFPDF;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
-use PDF;
 use PhpOffice\PhpWord\Writer\PDF\DomPDF;
 use Svg\Tag\Rect;
 
 class CandidateController extends Controller
 {
-    public function getCandidatesWhoseContractsAreExpiring()
+    protected CandidateService $candidateService;
+
+    public function __construct(CandidateService $candidateService)
     {
-        $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
-
-        $candidates = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'company_id', 'status_id', 'position_id')
-            ->with([
-                'company:id,nameOfCompany,EIK',
-                'status:id,nameOfStatus',
-                'position:id,jobPosition'
-            ])
-            ->whereDate('endContractDate', '<=', $fourMonthsBefore)
-            ->orderBy('endContractDate', 'desc')
-            ->paginate();
-
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $candidates,
-        ]);
+        $this->candidateService = $candidateService;
     }
-    public function scriptForSeasonal()
+
+    // Role constants
+    private const ROLE_ADMIN = 1;
+    private const ROLE_SUPER_ADMIN = 2;
+    private const ROLE_COMPANY = 3;
+    private const ROLE_AGENT = 4;
+    private const ROLE_OWNER = 5;
+    public function getCandidatesWhoseContractsAreExpiring(): JsonResponse
     {
-        $candidates = Candidate::where('contractType','=','90days')->get();
-
-
-        foreach ($candidates as $candidate) {
-            $year = date('Y', strtotime($candidate->date));
-            $month = date('m', strtotime($candidate->date));
-
-            if ($month >= 5 && $month <= 9) {
-                $candidate->seasonal = 'summer' . '/' . $year;
-            } else if ($month >= 11 || $month <= 2) {
-                $candidate->seasonal = 'winter' . '/' . ($month >= 11 ? $year : $year - 1);
-            }
-            else if ($month >= 2 && $month <= 5) {
-                $candidate->seasonal = 'spring' . '/' . $year;
-            }
-            else if ($month >= 8 && $month <= 11) {
-                $candidate->seasonal = 'autumn' . '/' . $year;
-            }
-            $candidate->save();
+        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+            return $this->unauthorizedResponse();
         }
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'message' => 'Seasonal added to all candidates',
-            'data' => $candidates ?? []
-        ]);
+        try {
+            $candidates = $this->candidateService->getExpiringContracts();
+            $paginatedCandidates = $candidates->paginate(25);
+
+            return $this->successResponse($paginatedCandidates);
+        } catch (\Exception $e) {
+            Log::error('Error getting expiring contracts: ' . $e->getMessage());
+            return $this->errorResponse('Failed to get expiring contracts');
+        }
+    }
+    public function scriptForSeasonal(): JsonResponse
+    {
+        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+            return $this->unauthorizedResponse();
+        }
+
+        try {
+            $updated = $this->candidateService->updateSeasonalForAllCandidates();
+            
+            return $this->successResponse(null, "Seasonal updated for {$updated} candidates");
+        } catch (\Exception $e) {
+            Log::error('Error updating seasonal data: ' . $e->getMessage());
+            return $this->errorResponse('Failed to update seasonal data');
+        }
     }
 
 
-    public function scriptForAddedBy()
+    public function scriptForAddedBy(): JsonResponse
     {
-        $candidates = Candidate::all();
-
-        foreach ($candidates as $candidate) {
-            if ($candidate->user_id == null) {
-                $candidate->addedBy = 11;
-            } else {
-                $candidate->addedBy = $candidate->user_id;
-            }
-            $candidate->save();
+        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+            return $this->unauthorizedResponse();
         }
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'message' => 'Added by added to all candidates',
-        ]);
+        try {
+            $updated = $this->candidateService->updateAddedByForAllCandidates();
+            
+            return $this->successResponse(null, "Added by updated for {$updated} candidates");
+        } catch (\Exception $e) {
+            Log::error('Error updating addedBy data: ' . $e->getMessage());
+            return $this->errorResponse('Failed to update addedBy data');
+        }
     }
 
-    public function getFirstQuartal()
+    public function getFirstQuartal(): JsonResponse
     {
-        $candidates = Candidate::all();
-        $currentYear = date('Y');
-
-        $firstQuartal = "1" . "/" . $currentYear;
-
-        foreach ($candidates as $candidate) {
-            // Extract quartal and year from the candidate's quartal
-            $candidateParts = explode('/', $candidate->quartal);
-            $candidateQuartal = intval($candidateParts[0]); // Extract quartal
-            $candidateYear = intval($candidateParts[1]); // Extract year
-
-            // Check if candidate's year is earlier or if it's the same year but with a smaller quartal
-            if ($candidateYear < $currentYear || ($candidateYear == $currentYear && $candidateQuartal < 1)) {
-                $firstQuartal = $candidate->quartal;
-                $currentYear = $candidateYear; // Update current year for future comparisons
-            }
+        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+            return $this->unauthorizedResponse();
         }
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'date' => $firstQuartal,
-        ]);
+        try {
+            $firstQuartal = $this->candidateService->getFirstQuartal();
+            
+            return $this->successResponse(['date' => $firstQuartal]);
+        } catch (\Exception $e) {
+            Log::error('Error getting first quartal: ' . $e->getMessage());
+            return $this->errorResponse('Failed to get first quartal');
+        }
     }
-    public function addQuartalToAllCandidates()
+    public function addQuartalToAllCandidates(): JsonResponse
     {
-        $candidates = Candidate::all();
-
-        foreach ($candidates as $candidate) {
-            $candidateDate = $candidate->date;
-            $candidateYear = date('Y', strtotime($candidateDate));
-            $candidateMonth = date('m', strtotime($candidateDate));
-
-            if ($candidateMonth >= 1 && $candidateMonth <= 3) {
-                $quartal = '1' . "/" . $candidateYear;
-            } else if ($candidateMonth >= 4 && $candidateMonth <= 6) {
-                $quartal = '2' . "/" . $candidateYear;
-            } else if ($candidateMonth >= 7 && $candidateMonth <= 9) {
-                $quartal = '3' . "/" . $candidateYear;
-            } else if ($candidateMonth >= 10 && $candidateMonth <= 12) {
-                $quartal = '4' . "/" . $candidateYear;
-            }
-
-            $candidate->quartal = $quartal;
-            $candidate->save();
+        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+            return $this->unauthorizedResponse();
         }
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'message' => 'Quartal added to all candidates',
-        ]);
+        try {
+            $updated = $this->candidateService->updateQuartalForAllCandidates();
+            
+            return $this->successResponse(null, "Quartal updated for {$updated} candidates");
+        } catch (\Exception $e) {
+            Log::error('Error updating quartal data: ' . $e->getMessage());
+            return $this->errorResponse('Failed to update quartal data');
+        }
     }
 
     public function generateCandidatePdf(Request $request)
@@ -167,7 +137,7 @@ class CandidateController extends Controller
             $candidate = Candidate::where('id', '=', $candidateId)->first();
 
 
-            return PDF::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
+            return Pdf::loadView('cvTemplate', compact('candidate'))->download('candidate.pdf');
         } else {
             return response()->json([
                 'success' => false,
@@ -210,223 +180,61 @@ class CandidateController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $query = Candidate::with(['company', 'status', 'position'])->orderBy('id', 'desc');
-        } else if (Auth::user()->role_id == 3) {
-            $query = Candidate::where('company_id', '=', Auth::user()->company_id)
-                ->where('type_id', '=', 1)->orderBy('id', 'desc');
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 401,
-                'data' => []
-            ]);
-        }
-        $candidates = $query->paginate(25);
+        try {
+            $query = $this->buildCandidateQuery();
+            
+            if (!$query) {
+                return $this->unauthorizedResponse();
+            }
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $candidates,
-        ]);
+            $candidates = $query->candidates()->with(['company', 'status', 'position'])
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+
+            return $this->successResponse(CandidateResource::collection($candidates)->response()->getData());
+        } catch (\Exception $e) {
+            Log::error('Error fetching candidates: ' . $e->getMessage());
+            return $this->errorResponse('Failed to fetch candidates');
+        }
     }
 
 
-    public function employees()
+    public function employees(): JsonResponse
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $query = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 2)->orderBy('id', 'desc');
-        } else if (Auth::user()->role_id == 3) {
-            $query = Candidate::where('company_id', '=', Auth::user()->company_id)
-                ->where('type_id', '=', 2);
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 401,
-                'data' => []
-            ]);
-        }
-        $employees = $query->paginate(25);
+        try {
+            $query = $this->buildCandidateQuery();
+            
+            if (!$query) {
+                return $this->unauthorizedResponse();
+            }
 
-        return response()->json([
-            'success' => true,
-            'status' => 200,
-            'data' => $employees,
-        ]);
+            $employees = $query->employees()->with(['company', 'status', 'position'])
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+
+            return $this->successResponse(CandidateResource::collection($employees)->response()->getData());
+        } catch (\Exception $e) {
+            Log::error('Error fetching employees: ' . $e->getMessage());
+            return $this->errorResponse('Failed to fetch employees');
+        }
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreCandidateRequest $request): JsonResponse
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-
-            $person = new Candidate();
-
-            $person->status_id = $request->status_id;
-            $person->type_id = $request->type_id;
-            $person->company_id = $request->company_id;
-            $person->gender = $request->gender;
-            $person->email = $request->email;
-            $person->nationality = $request->nationality;
-            $person->date = $request->date;
-            $person->phoneNumber = $request->phoneNumber;
-            $person->address = $request->address;
-            $person->passport = $request->passport;
-            $person->fullName = $request->fullName;
-            $person->fullNameCyrillic = $request->fullNameCyrillic;
-            $person->birthday = $request->birthday;
-            $person->placeOfBirth = $request->placeOfBirth;
-            $person->country = $request->country;
-            $person->area = $request->area;
-            $person->areaOfResidence = $request->areaOfResidence;
-            $person->addressOfResidence = $request->addressOfResidence;
-            $person->periodOfResidence = $request->periodOfResidence;
-            $person->passportValidUntil = $request->passportValidUntil;
-            $person->passportIssuedBy = $request->passportIssuedBy;
-            $person->passportIssuedOn = $request->passportIssuedOn;
-            $person->addressOfWork = $request->addressOfWork;
-            $person->nameOfFacility = $request->nameOfFacility;
-            $person->education = $request->education;
-            $person->specialty = $request->specialty;
-            $person->qualification = $request->qualification;
-            $person->contractExtensionPeriod = $request->contractExtensionPeriod;
-            $person->salary = $request->salary;
-            $person->workingTime = $request->workingTime;
-            $person->workingDays = $request->workingDays;
-            $person->martialStatus = $request->martialStatus;
-            $person->contractPeriod = $request->contractPeriod;
-            $person->contractType = $request->contractType;
-            $person->position_id = $request->position_id;
-            $person->dossierNumber = $request->dossierNumber;
-            $person->notes = $request->notes;
-            $person->user_id = $request->user_id;
-            $person->addedBy = Auth::user()->id;
-            $educations = $request->education ?? [];
-            $experiences = $request->experience ?? [];
-            $person->agent_id = $request->agent_id ?? null;
-            $person->startContractDate = $request->startContractDate ?? null;
-            $person->endContractDate = $request->endContractDate ?? null;
-
-
-            preg_match('/\d+/', $request->contractPeriod, $matches);
-            $contractPeriod = isset($matches[0]) ? (int) $matches[0] : null;
-
-            if($contractPeriod === null){
-                $contractPeriodDate = null;
-            } else {
-                $date = Carbon::parse($request->date);
-                $contractPeriodDate = $date->addYears($contractPeriod);
-            }
-
-            $person->contractPeriodDate = $contractPeriodDate;
-
-            if ($request->case_id === 'null') {
-                $case_id = Null;
-            } else {
-                $case_id = $request->case_id;
-            }
-            $person->case_id = $case_id;
-
-            $quartalyYear = date('Y', strtotime($request->date));
-            $quartalyMonth = date('m', strtotime($request->date));
-
-            if ($quartalyMonth >= 1 && $quartalyMonth <= 3) {
-                $quartal = '1' . "/" . $quartalyYear;
-            } else if ($quartalyMonth >= 4 && $quartalyMonth <= 6) {
-                $quartal = '2' . "/" . $quartalyYear;
-            } else if ($quartalyMonth >= 7 && $quartalyMonth <= 9) {
-                $quartal = '3' . "/" . $quartalyYear;
-            } else if ($quartalyMonth >= 10 && $quartalyMonth <= 12) {
-                $quartal = '4' . "/" . $quartalyYear;
-            }
-
-            $person->quartal = $quartal;
-
-            if($request->contractType == '90days'){
-                if ($quartalyMonth > 5 && $quartalyMonth < 9) {
-                    $person->seasonal = 'summer' . '/' . $quartalyYear;
-                } else if ($quartalyMonth > 11 || $quartalyMonth <= 2) {
-                    $person->seasonal = 'winter' . '/' . ($quartalyMonth > 11 ? $quartalyYear : $quartalyYear - 1);
-                } else if ($quartalyMonth > 2 && $quartalyMonth <= 5) {
-                    $person->seasonal = 'spring' . '/' . $quartalyYear;
-                } else if ($quartalyMonth > 8 && $quartalyMonth <= 11) {
-                    $person->seasonal = 'autumn' . '/' . $quartalyYear;
-                }
-            } else {
-                $person->seasonal = Null;
-            }
-
-
-
-
-            if ($request->hasFile('personPassport')) {
-                Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-                $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-                $person->passportPath = $name;
-                $person->passportName = $request->file('personPassport')->getClientOriginalName();
-            }
-
-
-            if ($request->hasFile('personPicture')) {
-                Storage::disk('public')->put('personImages', $request->file('personPicture'));
-                $name = Storage::disk('public')->put('companyImages', $request->file('personPicture'));
-                $person->personPicturePath = $name;
-                $person->personPictureName = $request->file('personPicture')->getClientOriginalName();
-            }
-
-            if ($person->save()) {
-
-                $jobPositionDocument = Position::where('id', $request->position_id)->first();
-
-                if ($jobPositionDocument->positionPath != Null) {
-                    $file = new File();
-
-                    $file->candidate_id = $person->id;
-                    $file->category_id = 8;
-                    $file->fileName = $jobPositionDocument->positionName;
-                    $file->filePath = $jobPositionDocument->positionPath;
-                    $file->autoGenerated = 1;
-                    $file->deleteFile = 2;
-
-                    $file->save();
-                }
-
-                $storeCategory = new Category();
-                $storeCategory->candidate_id = $person->id;
-                $storeCategory->nameOfCategory = "Documents For Arrival Candidates";
-                $storeCategory->role_id = 2;
-                $storeCategory->isGenerated = 0;
-
-                $storeCategory->save();
-
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $person,
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'data' => [],
-                ]);
-            }
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 401,
-                'data' => [],
-            ]);
+        try {
+            $data = $request->validated();
+            $candidate = $this->candidateService->createCandidate($data);
+            
+            return $this->successResponse(new CandidateResource($candidate), 'Candidate created successfully');
+        } catch (\Exception $e) {
+            Log::error('Error creating candidate: ' . $e->getMessage());
+            return $this->errorResponse('Failed to create candidate');
         }
     }
 
@@ -569,137 +377,19 @@ class CandidateController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Candidate  $candidate
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCandidateRequest $request, $id): JsonResponse
     {
-
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-
-            $files = File::where('candidate_id', '=', $id)->where('autoGenerated', '=', 1)->where('deleteFile', '0')->get();
-
-
-            foreach ($files as $file) {
-                unlink(storage_path() . '/app/public/' . $file->filePath);
-                $file->delete();
-            }
-
-
-            $person = Candidate::where('id', '=', $id)->first();
-
-            $person->status_id = $request->status_id;
-            $person->type_id = 1;
-            $person->company_id = $request->company_id;
-            $person->gender = $request->gender;
-            $person->email = $request->email;
-            $person->nationality = $request->nationality;
-            $person->date = $request->date;
-            $person->phoneNumber = $request->phoneNumber;
-            $person->address = $request->address;
-            $person->passport = $request->passport;
-            $person->fullName = $request->fullName;
-            $person->fullNameCyrillic = $request->fullNameCyrillic;
-            $person->birthday = $request->birthday;
-            $person->placeOfBirth = $request->placeOfBirth;
-            $person->country = $request->country;
-            $person->area = $request->area;
-            $person->areaOfResidence = $request->areaOfResidence;
-            $person->addressOfResidence = $request->addressOfResidence;
-            $person->periodOfResidence = $request->periodOfResidence;
-            $person->passportValidUntil = $request->passportValidUntil;
-            $person->passportIssuedBy = $request->passportIssuedBy;
-            $person->passportIssuedOn = $request->passportIssuedOn;
-            $person->addressOfWork = $request->addressOfWork;
-            $person->nameOfFacility = $request->nameOfFacility;
-            $person->education = $request->education;
-            $person->specialty = $request->specialty;
-            $person->qualification = $request->qualification;
-            $person->contractExtensionPeriod = $request->contractExtensionPeriod;
-            $person->salary = $request->salary;
-            $person->workingTime = $request->workingTime;
-            $person->workingDays = $request->workingDays;
-            $person->martialStatus = $request->martialStatus;
-            $person->contractPeriod = $request->contractPeriod;
-            $person->contractType = $request->contractType;
-            $person->position_id = $request->position_id;
-            $person->dossierNumber = $request->dossierNumber;
-            $person->notes = $request->notes;
-            $person->user_id = $request->user_id;
-            $person->case_id = $request->case_id;
-            $person->agent_id = $request->agent_id ?? null;
-            $person->startContractDate = $request->startContractDate ?? null;
-            $person->endContractDate = $request->endContractDate ?? null;
-
-
-            $quartalyYear = date('Y', strtotime($request->date));
-            $quartalyMonth = date('m', strtotime($request->date));
-            $person->quartal = $quartalyMonth . "/" . $quartalyYear;
-
-            preg_match('/\d+/', $request->contractPeriod, $matches);
-            $contractPeriod = isset($matches[0]) ? (int) $matches[0] : null;
-
-            if($contractPeriod === null){
-                $contractPeriodDate = null;
-            } else {
-                $date = Carbon::parse($request->date);
-                $contractPeriodDate = $date->addYears($contractPeriod);
-            }
-
-            $person->contractPeriodDate = $contractPeriodDate;
-
-            if($request->contractType == '90days'){
-                if ($quartalyMonth > 5 && $quartalyMonth < 9) {
-                    $person->seasonal = 'summer' . '/' . $quartalyYear;
-                } else if ($quartalyMonth > 11 || $quartalyMonth <= 2) {
-                    $person->seasonal = 'winter' . '/' . ($quartalyMonth > 11 ? $quartalyYear : $quartalyYear - 1);
-                } else if ($quartalyMonth > 2 && $quartalyMonth <= 5) {
-                    $person->seasonal = 'spring' . '/' . $quartalyYear;
-                } else if ($quartalyMonth > 8 && $quartalyMonth <= 11) {
-                    $person->seasonal = 'autumn' . '/' . $quartalyYear;
-                }
-            } else {
-                $person->seasonal = Null;
-            }
-
-            if ($request->hasFile('personPassport')) {
-                Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-                $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-                $person->passportPath = $name;
-                $person->passportName = $request->file('personPassport')->getClientOriginalName();
-            }
-
-
-            if ($request->hasFile('personPicture')) {
-                Storage::disk('public')->put('personImages', $request->file('personPicture'));
-                $name = Storage::disk('public')->put('companyImages', $request->file('personPicture'));
-                $person->personPicturePath = $name;
-                $person->personPictureName = $request->file('personPicture')->getClientOriginalName();
-            }
-
-
-            if ($person->save()) {
-                $newPerson = Candidate::with('position')->where('id', '=', $id)->first();
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $newPerson,
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'data' => [],
-                ]);
-            }
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 401,
-                'data' => [],
-            ]);
+        try {
+            $candidate = Candidate::findOrFail($id);
+            $data = $request->validated();
+            
+            $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data);
+            
+            return $this->successResponse(new CandidateResource($updatedCandidate), 'Candidate updated successfully');
+        } catch (\Exception $e) {
+            Log::error('Error updating candidate: ' . $e->getMessage());
+            return $this->errorResponse('Failed to update candidate');
         }
     }
 
@@ -826,89 +516,60 @@ class CandidateController extends Controller
     }
 
 
-    public function worker($id)
+    public function worker($id): JsonResponse
     {
-        $worker = Candidate::where('id', '=', $id)->first();
+        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+            return $this->unauthorizedResponse();
+        }
 
-        $worker->type_id = 2;
-        $worker->status_id = 10;
-
-        if ($worker->save()) {
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'message' => 'Your change status from candidate to worker',
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'message' => 'Something went wrong',
-            ]);
+        try {
+            $candidate = Candidate::findOrFail($id);
+            $this->candidateService->promoteToEmployee($candidate);
+            
+            return $this->successResponse(null, 'Candidate promoted to employee successfully');
+        } catch (\Exception $e) {
+            Log::error('Error promoting candidate to employee: ' . $e->getMessage());
+            return $this->errorResponse('Failed to promote candidate to employee');
         }
     }
 
 
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         try {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $personDelete = Candidate::findOrFail($id);
-
-                $files = File::where('candidate_id', '=', $id)->get();
-
-                if ($files->count() > 0) {
-                    foreach ($files as $file) {
-                        if (isset($file->filePath)) {
-                            unlink(storage_path() . '/app/public/' . $file->filePath);
-                        }
-                        $file->delete();
-                    }
-
-                    $categoriesForCandidate = Category::where('candidate_id', '=', $id)->get();
-
-                    foreach ($categoriesForCandidate as $category) {
-                        $category->delete();
-                    }
-                }
-
-                if ($personDelete->delete()) {
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'message' => 'Proof! Your employ has been deleted!',
-                    ]);
-                }
-            } else if (Auth::user()->role_id == 4) {
-                $personDelete = Candidate::findOrFail($id);
-
-                if ($personDelete->update_at != null) {
-                    return response()->json([
-                        'success' => false,
-                        'status' => 500,
-                        'message' => 'You can not delete this candidate!',
-                    ]);
-                }
-
-                $agentCandidate = AgentCandidate::where('candidate_id', '=', $id)->where('user_id', '=', Auth::user()->id)->first();
-                $agentCandidate->delete();
-
-                if ($personDelete->delete()) {
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'message' => 'Proof! Your employ has been deleted!',
-                    ]);
-                }
+            $candidate = Candidate::findOrFail($id);
+            
+            if ($this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+                $this->candidateService->deleteCandidate($candidate);
+                return $this->successResponse(null, 'Candidate deleted successfully');
+            } elseif (Auth::user()->role_id === self::ROLE_AGENT) {
+                return $this->handleAgentDeletion($candidate, $id);
             }
+            
+            return $this->unauthorizedResponse();
         } catch (\Exception $e) {
-            Log::info("message", $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'message' => 'Something went wrong!',
-            ]);
+            Log::error('Error deleting candidate: ' . $e->getMessage());
+            return $this->errorResponse('Failed to delete candidate');
         }
+    }
+
+    protected function handleAgentDeletion(Candidate $candidate, int $id): JsonResponse
+    {
+        if ($candidate->updated_at !== null) {
+            return $this->errorResponse('Cannot delete this candidate', 422);
+        }
+
+        $agentCandidate = AgentCandidate::where('candidate_id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+            
+        if ($agentCandidate) {
+            $agentCandidate->delete();
+            $candidate->delete();
+            return $this->successResponse(null, 'Candidate deleted successfully');
+        }
+        
+        return $this->errorResponse('Agent candidate relationship not found', 404);
     }
 
 
@@ -1005,5 +666,74 @@ class CandidateController extends Controller
                 'message' => $e->getMessage(),
             ]);
         }
+    }
+
+    // Helper Methods
+    protected function isAuthorized(array $allowedRoles): bool
+    {
+        return in_array(Auth::user()->role_id, $allowedRoles);
+    }
+
+    protected function buildCandidateQuery(): ?\Illuminate\Database\Eloquent\Builder
+    {
+        $user = Auth::user();
+        $roleId = $user->role_id;
+
+        return match ($roleId) {
+            self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN => Candidate::query(),
+            self::ROLE_COMPANY => Candidate::byCompany($user->company_id),
+            self::ROLE_OWNER => $this->buildOwnerQuery($user->id),
+            self::ROLE_AGENT => $this->buildAgentQuery($user->id),
+            default => null,
+        };
+    }
+
+    protected function buildOwnerQuery(int $userId): \Illuminate\Database\Eloquent\Builder
+    {
+        $companyIds = UserOwner::where('user_id', $userId)->pluck('company_id');
+        return Candidate::whereIn('company_id', $companyIds);
+    }
+
+    protected function buildAgentQuery(int $userId): \Illuminate\Database\Eloquent\Builder
+    {
+        $candidateIds = AgentCandidate::where('user_id', $userId)->pluck('candidate_id');
+        return Candidate::whereIn('id', $candidateIds);
+    }
+
+    protected function successResponse($data = null, string $message = 'Success'): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'message' => $message,
+            'data' => $data,
+        ]);
+    }
+
+    protected function errorResponse(string $message = 'Error', int $status = 500): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'status' => $status,
+            'message' => $message,
+        ], $status);
+    }
+
+    protected function unauthorizedResponse(): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'status' => 401,
+            'message' => 'Unauthorized',
+        ], 401);
+    }
+
+    protected function notFoundResponse(): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'status' => 404,
+            'message' => 'Not found',
+        ], 404);
     }
 }

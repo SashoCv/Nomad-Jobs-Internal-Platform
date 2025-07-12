@@ -95,8 +95,8 @@ class ArrivalController extends Controller
             );
 
             // Dispatch jobs
-            dispatch(new SendEmailForArrivalCandidates($arrival, $statusId));
-            dispatch(new SendEmailToCompany($arrival->id));
+//            dispatch(new SendEmailForArrivalCandidates($arrival, $statusId));
+//            dispatch(new SendEmailToCompany($arrival->id));
 
             DB::commit();
 
