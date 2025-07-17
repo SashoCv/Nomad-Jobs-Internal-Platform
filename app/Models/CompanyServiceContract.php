@@ -26,13 +26,11 @@ class CompanyServiceContract extends Model
         'contractNumber',
         'agreement_type',
         'status',
-        'startDate',
-        'endDate',
+        'contractDate',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
+        'contractDate' => 'date',
     ];
 
     public function company(): BelongsTo

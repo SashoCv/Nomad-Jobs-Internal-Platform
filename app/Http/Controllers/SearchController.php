@@ -662,6 +662,10 @@ class SearchController extends Controller
 
         $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
 
+        if(Auth::user()->role_id === 3){
+            $companiesQuery->where('id', Auth::user()->company_id);
+        }
+
         if (Auth::user()->role_id === 5) {
             $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
             $companyIds = $companyOwner->pluck('company_id');

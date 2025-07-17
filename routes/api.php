@@ -34,6 +34,7 @@ use App\Http\Controllers\MigrationDocumentPreparationController;
 use App\Http\Controllers\StatusForCandidateFromAgentController;
 use App\Http\Controllers\MedicalInsuranceController;
 use App\Http\Controllers\CompanyServiceContractController;
+use App\Http\Controllers\ContractServiceTypeController;
 use App\Http\Controllers\StatisticController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -310,11 +311,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Company Service Contract
     Route::post('storeCompanyServiceContract', [CompanyServiceContractController::class, 'store']);
+    Route::post('storeContractFileForCompany', [CompanyServiceContractController::class, 'storeContractFileForCompany']);
+    Route::get('downloadContractFile/{companyId}', [CompanyServiceContractController::class, 'downloadContractFile']);
     Route::get('getCompanyServiceContracts', [CompanyServiceContractController::class, 'index']);
     Route::get('getCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'show']);
-
+    Route::post('updateCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'update']);
+    Route::delete('deleteCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'destroy']);
+    Route::delete('/deleteContractFile/{id}', [CompanyServiceContractController::class, 'deleteContractFile']);
+    // Contract Service Types
+    Route::get('getContractServiceTypes', [ContractServiceTypeController::class, 'index']);
 
     // Contract Pricing
     Route::post('storeContractPricing', [ContractPricingController::class, 'store']);
+    Route::get('getContractPricing/{id}', [ContractPricingController::class, 'show']);
+
 });
 

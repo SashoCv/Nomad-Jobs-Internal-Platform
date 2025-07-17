@@ -10,11 +10,16 @@ class ContractServiceTypeController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        //
+        try {
+            $contractServiceTypes = ContractServiceType::all('id', 'name');
+            return response()->json($contractServiceTypes);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to retrieve contract service types: ' . $e->getMessage()], 500);
+        }
     }
 
     /**

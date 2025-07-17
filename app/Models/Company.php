@@ -158,4 +158,9 @@ class Company extends Model
     {
         return $this->stampPath ? asset('storage/' . $this->stampPath) : null;
     }
+
+    public function companyFiles()
+    {
+        return $this->hasMany(CompanyFile::class, 'company_id');
+    }
 }
