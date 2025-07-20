@@ -9,6 +9,7 @@ use App\Models\CompanyServiceContract;
 use App\Models\ContractPricing;
 use App\Models\Role;
 use App\Http\Transformers\TransformCompanyServiceContract;
+use App\Models\UserOwner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -42,8 +43,18 @@ class CompanyServiceContractController extends Controller
                 $transformedData = $transformer->transform($companyServiceContracts);
 
                 return response()->json($transformedData);
-            } else {
-                return response()->json(['error' => 'Unauthorized'], 403);
+            } else if( Auth::user()->role_id == 5) {
+                $companyIds = UserOwner::where('user_id', Auth::id())
+                    ->pluck('company_id');
+                $companyServiceContracts = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','company.companyFiles'])
+                    ->whereIn('company_id', $companyIds)
+                    ->get();
+
+                $transformer = new TransformCompanyServiceContract();
+
+                $transformedData = $transformer->transform($companyServiceContracts);
+
+                return response()->json($transformedData);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to retrieve contracts: ' . $e->getMessage()], 500);
@@ -202,7 +213,6 @@ class CompanyServiceContractController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            if(Auth::user()->role_id == 1) {
                 $request->validate([
                     'company_id' => 'required|exists:companies,id',
                     'contractNumber' => 'required|string|max:255',
@@ -224,9 +234,7 @@ class CompanyServiceContractController extends Controller
                 $companyServiceContract->save();
 
                 return response()->json($companyServiceContract, 200);
-            } else {
-                return response()->json(['error' => 'Unauthorized'], 403);
-            }
+
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to update contract: ' . $e->getMessage()], 400);
         }
