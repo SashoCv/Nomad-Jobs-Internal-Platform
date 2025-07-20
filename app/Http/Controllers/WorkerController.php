@@ -17,7 +17,7 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        if (Auth::user()->role_id == 1) {
+        if ($this->isStaff()) {
             $workers = Candidate::where('type_id', '=', 2)->get();
             return response()->json([
                 'success' => true,

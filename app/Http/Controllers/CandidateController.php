@@ -21,6 +21,7 @@ use App\Models\Status;
 use App\Models\Statushistory;
 use App\Models\User;
 use App\Models\UserOwner;
+use App\Models\Role;
 use App\Services\CandidateService;
 use App\Traits\HasRolePermissions;
 use Carbon\Carbon;
@@ -46,12 +47,6 @@ class CandidateController extends Controller
         $this->candidateService = $candidateService;
     }
 
-    // Role constants
-    private const ROLE_ADMIN = 1;
-    private const ROLE_SUPER_ADMIN = 2;
-    private const ROLE_COMPANY = 3;
-    private const ROLE_AGENT = 4;
-    private const ROLE_OWNER = 5;
     public function getCandidatesWhoseContractsAreExpiring()
     {
         $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
@@ -89,7 +84,7 @@ class CandidateController extends Controller
     }
     public function scriptForSeasonal(): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -106,7 +101,7 @@ class CandidateController extends Controller
 
     public function scriptForAddedBy(): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -122,7 +117,7 @@ class CandidateController extends Controller
 
     public function getFirstQuartal(): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -137,7 +132,7 @@ class CandidateController extends Controller
     }
     public function addQuartalToAllCandidates(): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -539,7 +534,7 @@ class CandidateController extends Controller
 
     public function worker($id): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -560,10 +555,10 @@ class CandidateController extends Controller
         try {
             $candidate = Candidate::findOrFail($id);
 
-            if ($this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+            if ($this->isStaff()) {
                 $this->candidateService->deleteCandidate($candidate);
                 return $this->successResponse(null, 'Candidate deleted successfully');
-            } elseif (Auth::user()->role_id === self::ROLE_AGENT) {
+            } elseif (Auth::user()->role_id === Role::AGENT) {
                 return $this->handleAgentDeletion($candidate, $id);
             }
 
@@ -708,10 +703,10 @@ class CandidateController extends Controller
         $roleId = $user->role_id;
 
         return match ($roleId) {
-            self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN => Candidate::query(),
-            self::ROLE_COMPANY => Candidate::byCompany($user->company_id),
-            self::ROLE_OWNER => $this->buildOwnerQuery($user->id),
-            self::ROLE_AGENT => $this->buildAgentQuery($user->id),
+            Role::GENERAL_MANAGER, Role::MANAGER, Role::OFFICE, Role::HR, Role::OFFICE_MANAGER, Role::RECRUITERS, Role::FINANCE => Candidate::query(),
+            Role::COMPANY_USER => Candidate::byCompany($user->company_id),
+            Role::COMPANY_OWNER => $this->buildOwnerQuery($user->id),
+            Role::AGENT => $this->buildAgentQuery($user->id),
             default => null,
         };
     }

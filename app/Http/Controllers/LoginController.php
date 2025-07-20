@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Role;
 use App\Traits\HasRolePermissions;
 use App\Models\User;
 use App\Models\UserOwner;
@@ -24,12 +25,32 @@ class LoginController extends Controller
     {
         try {
             $user_id = Auth::user()->id;
-            $user = User::with('role')->where('id', $user_id)->first();
+            $user = User::with(['role', 'role.permissions'])->where('id', $user_id)->first();
 
             return response()->json([
                 'success' => true,
                 'status' => 201,
                 'data' => $user
+            ]);
+        } catch (Exception $e) {
+            Log::info($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ]);
+        }
+    }
+
+    public function roles()
+    {
+        try {
+            $roles = Role::with('permissions')->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $roles
             ]);
         } catch (Exception $e) {
             Log::info($e->getMessage());
