@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Traits\HasRolePermissions;
 use App\Models\CompanyCategory;
 use App\Models\CompanyFile;
 use App\Models\CompanyServiceContract;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 
 class CompanyServiceContractController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -25,7 +27,7 @@ class CompanyServiceContractController extends Controller
     {
         try {
             // Check if the user is authorized to view the contracts
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id ==2) {
+            if($this->isStaff()) {
 
             $companyServiceContracts = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','company.companyFiles'])->get();
 

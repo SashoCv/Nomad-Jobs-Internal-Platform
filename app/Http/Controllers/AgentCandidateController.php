@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AgentCandidateResource;
+use App\Traits\HasRolePermissions;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
@@ -20,6 +21,7 @@ use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class AgentCandidateController extends Controller
 {
+    use HasRolePermissions;
     public function __construct(
     ) {
     }
@@ -254,7 +256,7 @@ class AgentCandidateController extends Controller
                 ->orderBy('company_jobs.company_id', 'desc');
 
             if ($request->company_job_id != null) {
-                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
+                if ($this->isStaff() || Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
                     $query->where('company_job_id', $request->company_job_id);
                 } else if (Auth::user()->role_id == 4) {
                     $query->where('agent_candidates.user_id', $user_id)

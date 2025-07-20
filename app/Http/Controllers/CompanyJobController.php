@@ -8,10 +8,12 @@ use App\Models\Company;
 use App\Models\CompanyJob;
 use App\Models\User;
 use App\Models\UserOwner;
+use App\Models\Role;
 use App\Notifications\CompanyJobCreatedNotification;
 use App\Repository\NotificationRepository;
 use App\Repository\SendEmailRepositoryForCreateCompanyJob;
 use App\Repository\UsersNotificationRepository;
+use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +21,7 @@ use Illuminate\Support\Facades\Notification as FacadesNotification;
 
 class CompanyJobController extends Controller
 {
+    use HasRolePermissions;
 
     public function __construct(
         private UsersNotificationRepository $usersNotificationRepository,
@@ -30,6 +33,11 @@ class CompanyJobController extends Controller
 
     public function index(Request $request)
     {
+        // Check permissions for new roles (6-10)
+        if (!$this->canViewJobs()) {
+            return $this->unauthorizedResponse('Cannot view job posts');
+        }
+
         $user = Auth::user();
         $roleId = $user->role_id;
         $contractType = $request->contract_type;
@@ -58,28 +66,34 @@ class CompanyJobController extends Controller
         }
 
         switch ($roleId) {
-            case 1:
-            case 2:
+            case Role::GENERAL_MANAGER:
+            case Role::MANAGER:
+            case Role::OFFICE:
+            case Role::HR:
+            case Role::OFFICE_MANAGER:
+            case Role::RECRUITERS:
+            case Role::FINANCE:
+                // New role system - full access with filtering by company if specified
                 if ($companyId = $request->company_id) {
                     $query->where('companies.id', $companyId);
                 }
                 break;
 
-            case 3:
-                // Company-specific role
+            case Role::COMPANY_USER:
+                // Company-specific role (preserve existing logic)
                 $query->where('company_jobs.company_id', $user->company_id);
                 break;
 
-            case 5:
-                // COMPANY OWNER
+            case Role::COMPANY_OWNER:
+                // COMPANY OWNER (preserve existing logic)
                 $companyIds = UserOwner::where('user_id', $user->id)
                     ->pluck('company_id')
                     ->toArray();
                 $query->whereIn('company_jobs.company_id', $companyIds);
                 break;
 
-            case 4:
-                // AGENT
+            case Role::AGENT:
+                // AGENT (preserve existing logic)
                 $companyJobIds = AssignedJob::where('user_id', $user->id)
                     ->pluck('company_job_id')
                     ->toArray();
@@ -122,7 +136,7 @@ class CompanyJobController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $companyJob = new CompanyJob();
 
@@ -159,7 +173,7 @@ class CompanyJobController extends Controller
                 UsersNotificationRepository::createNotificationForUsers($notification_id);
                 $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
 
-                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                if ($this->isStaff()) {
                     if ($request->agentsIds) {
                         $agents = $request->agentsIds;
                         foreach ($agents as $agentId) {
@@ -279,14 +293,14 @@ class CompanyJobController extends Controller
      */
     public function show($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
+        if ($this->isStaff() || Auth::user()->role_id == 5) {
             $companyJob = CompanyJob::where('id', $id)->first();
             $company = Company::where('id', $companyJob->company_id)->first();
             $companyJob->companyImage = $company->logoPath;
             $companyJob->companyCity = $company->companyCity;
             $companyJob->companyName = $company->nameOfCompany;
 
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
                 $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
                 $agentsIds = [];
                 foreach ($assignedJobs as $assignedJob) {
@@ -356,7 +370,7 @@ class CompanyJobController extends Controller
      */
     public function update(Request $request, CompanyJob $companyJob)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
+        if ($this->isStaff() || Auth::user()->role_id == 5) {
             $companyJob = CompanyJob::find($request->id);
 
             $companyJob->user_id = $request->user_id;
@@ -388,7 +402,7 @@ class CompanyJobController extends Controller
                 $notification = NotificationRepository::createNotification($notificationData);
                 UsersNotificationRepository::createNotificationForUsers($notification);
 
-                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+                if ($this->isStaff()) {
                     if ($request->agentsIds || $request->agentsIds == []) {
                         $agents = $request->agentsIds;
                         if (!empty($agents)) {
@@ -467,7 +481,7 @@ class CompanyJobController extends Controller
      */
     public function destroy($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $companyJob = CompanyJob::find($id);
 
             $allCandidatesFromAgent = AgentCandidate::where('company_job_id', $id)->get();

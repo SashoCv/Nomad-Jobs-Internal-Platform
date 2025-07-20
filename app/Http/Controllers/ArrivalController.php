@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
+use App\Traits\HasRolePermissions;
 use App\Jobs\SendEmailToCompany;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Mail;
 
 class ArrivalController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -27,7 +29,7 @@ class ArrivalController extends Controller
     public function index(): JsonResponse
     {
         try {
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if($this->isStaff()) {
                 $arrivals = Arrival::with(['company', 'candidate'])->get();
             } else {
                 $arrivals = []; // Here i need to implement the logic to get the arrivals for the Company
@@ -184,7 +186,7 @@ class ArrivalController extends Controller
 
     public function destroy($id): JsonResponse
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             try {
                 $arrivalCandidates = ArrivalCandidate::where('arrival_id', $id)->first();
                 $arrivalCandidates->delete();

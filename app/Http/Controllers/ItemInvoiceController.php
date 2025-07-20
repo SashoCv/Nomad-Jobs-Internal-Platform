@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\ItemInvoice;
+use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ItemInvoiceController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +17,7 @@ class ItemInvoiceController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if($this->isStaff()) {
             $itemInvoices = ItemInvoice::all();
             return response()->json($itemInvoices);
         } else {

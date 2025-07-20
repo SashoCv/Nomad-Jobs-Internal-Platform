@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Traits\HasRolePermissions;
 use App\Models\User;
 use App\Models\UserOwner;
 use Carbon\Carbon;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\URL;
 
 class LoginController extends Controller
 {
+    use HasRolePermissions;
 
     public function user(Request $request)
     {

@@ -22,6 +22,7 @@ use App\Models\Statushistory;
 use App\Models\User;
 use App\Models\UserOwner;
 use App\Services\CandidateService;
+use App\Traits\HasRolePermissions;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,7 @@ use Svg\Tag\Rect;
 
 class CandidateController extends Controller
 {
+    use HasRolePermissions;
     protected CandidateService $candidateService;
 
     public function __construct(CandidateService $candidateService)
@@ -151,7 +153,7 @@ class CandidateController extends Controller
 
     public function generateCandidatePdf(Request $request)
     {
-        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
+        if($this->isStaff()){
             $candidateId = $request->candidateId;
             $candidate = Candidate::where('id', '=', $candidateId)->first();
 
@@ -171,7 +173,7 @@ class CandidateController extends Controller
     {
 
         try {
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if($this->isStaff()) {
                 $candidates = Candidate::where('company_id', '=', $id)->select('id', 'fullNameCyrillic as fullName')->get();
 
                 return response()->json([
@@ -323,7 +325,7 @@ class CandidateController extends Controller
     }
     public function showPerson($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $person = Candidate::where('id', '=', $id)->first();
         } else if (Auth::user()->role_id == 3) {
             $person = Candidate::where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
@@ -355,7 +357,7 @@ class CandidateController extends Controller
 
     public function showPersonNew($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $person = DB::table('candidates')
                 ->join('companies', 'companies.id', '=', 'candidates.company_id')
                 ->where('candidates.id', $id)
@@ -415,7 +417,7 @@ class CandidateController extends Controller
 
     public function extendContractForCandidate(Request $request, $id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $oldPerson = Candidate::where('id', '=', $id)->first();
             $contractPeriodNumber = $oldPerson->contractPeriodNumber;
             $newContractPeriodNumber = $contractPeriodNumber + 1;
@@ -601,7 +603,7 @@ class CandidateController extends Controller
                 'searchDate' => $request->searchDate ?? null,
             ];
 
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
                 $candidates = Candidate::with(['company', 'latestStatusHistory','latestStatusHistory.status', 'position']);
                 if ($filters['status_id']) {
                     $candidates->whereHas('statusHistories', function ($query) use ($filters) {
@@ -652,7 +654,7 @@ class CandidateController extends Controller
     public function exportCandidatesBasedOnStatus(Request $request)
     {
         try {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
 
                 $dateFrom = $request->dateFrom ?? null;
                 $dateTo = $request->dateTo ?? null;

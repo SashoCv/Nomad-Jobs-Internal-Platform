@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
+use App\Traits\HasRolePermissions;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Category;
@@ -20,6 +21,7 @@ use App\Repository\UsersNotificationRepository;
 
 class StatusController extends Controller
 {
+    use HasRolePermissions;
 
     public function __construct(
         private UsersNotificationRepository $usersNotificationRepository,
@@ -96,7 +98,7 @@ class StatusController extends Controller
     public function updateStatusForCandidate(Request $request)
     {
 
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $candidate_id = $request->candidate_id;
             $status_id = $request->status_id;

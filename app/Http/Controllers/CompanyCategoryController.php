@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\CompanyCategory;
+use App\Traits\HasRolePermissions;
 use App\Models\CompanyFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CompanyCategoryController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -37,7 +39,7 @@ class CompanyCategoryController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $category = new CompanyCategory();
 

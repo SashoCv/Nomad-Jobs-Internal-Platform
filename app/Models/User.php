@@ -61,5 +61,32 @@ class User extends Authenticatable
     {
         return $this->hasMany(Favorite::class);
     }
+
+    public function hasPermission($permission)
+    {
+        return $this->role && $this->role->hasPermission($permission);
+    }
+
+    public function hasAnyPermission($permissions)
+    {
+        if (!$this->role) return false;
+        
+        foreach ($permissions as $permission) {
+            if ($this->role->hasPermission($permission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function hasRole($roleId)
+    {
+        return $this->role_id == $roleId;
+    }
+
+    public function hasAnyRole($roleIds)
+    {
+        return in_array($this->role_id, $roleIds);
+    }
     
 }

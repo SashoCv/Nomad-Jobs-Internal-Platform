@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CompanyCategory;
+use App\Traits\HasRolePermissions;
 use App\Models\CompanyFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class CompanyFileController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Store a newly created resource in storage.
      *
@@ -69,7 +71,7 @@ class CompanyFileController extends Controller
     {
         $companyFiles = CompanyFile::where('company_id', '=', $id)->get();
 
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $companyCategories = CompanyCategory::where('company_id', '=', $id)->get();
             return response()->json([
                 'success' => true,
@@ -103,7 +105,7 @@ class CompanyFileController extends Controller
      */
     public function destroy($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $companyFile = CompanyFile::findOrFail($id);
             if ($companyFile->delete()) {
                 unlink(storage_path() . '/app/public/' . $companyFile->filePath);
