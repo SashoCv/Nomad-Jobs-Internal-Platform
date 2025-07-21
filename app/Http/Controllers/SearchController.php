@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AgentCandidateResource;
+use App\Traits\HasRolePermissions;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Company;
@@ -14,10 +15,11 @@ use Illuminate\Support\Facades\Auth;
 
 class SearchController extends Controller
 {
+    use HasRolePermissions;
 
     public function searchCandidate(Request $request)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
 
@@ -335,7 +337,7 @@ class SearchController extends Controller
 
     public function searchWorker(Request $request)
     { {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
 
                 if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
 

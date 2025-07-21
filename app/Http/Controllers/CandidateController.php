@@ -21,7 +21,9 @@ use App\Models\Status;
 use App\Models\Statushistory;
 use App\Models\User;
 use App\Models\UserOwner;
+use App\Models\Role;
 use App\Services\CandidateService;
+use App\Traits\HasRolePermissions;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +39,7 @@ use Svg\Tag\Rect;
 
 class CandidateController extends Controller
 {
+    use HasRolePermissions;
     protected CandidateService $candidateService;
 
     public function __construct(CandidateService $candidateService)
@@ -44,12 +47,6 @@ class CandidateController extends Controller
         $this->candidateService = $candidateService;
     }
 
-    // Role constants
-    private const ROLE_ADMIN = 1;
-    private const ROLE_SUPER_ADMIN = 2;
-    private const ROLE_COMPANY = 3;
-    private const ROLE_AGENT = 4;
-    private const ROLE_OWNER = 5;
     public function getCandidatesWhoseContractsAreExpiring()
     {
         $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
@@ -87,7 +84,7 @@ class CandidateController extends Controller
     }
     public function scriptForSeasonal(): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -104,7 +101,7 @@ class CandidateController extends Controller
 
     public function scriptForAddedBy(): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -120,7 +117,7 @@ class CandidateController extends Controller
 
     public function getFirstQuartal(): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -135,7 +132,7 @@ class CandidateController extends Controller
     }
     public function addQuartalToAllCandidates(): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -151,7 +148,7 @@ class CandidateController extends Controller
 
     public function generateCandidatePdf(Request $request)
     {
-        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
+        if($this->isStaff()){
             $candidateId = $request->candidateId;
             $candidate = Candidate::where('id', '=', $candidateId)->first();
 
@@ -171,7 +168,7 @@ class CandidateController extends Controller
     {
 
         try {
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if($this->isStaff()) {
                 $candidates = Candidate::where('company_id', '=', $id)->select('id', 'fullNameCyrillic as fullName')->get();
 
                 return response()->json([
@@ -323,7 +320,7 @@ class CandidateController extends Controller
     }
     public function showPerson($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $person = Candidate::where('id', '=', $id)->first();
         } else if (Auth::user()->role_id == 3) {
             $person = Candidate::where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
@@ -355,7 +352,7 @@ class CandidateController extends Controller
 
     public function showPersonNew($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $person = DB::table('candidates')
                 ->join('companies', 'companies.id', '=', 'candidates.company_id')
                 ->where('candidates.id', $id)
@@ -415,7 +412,7 @@ class CandidateController extends Controller
 
     public function extendContractForCandidate(Request $request, $id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $oldPerson = Candidate::where('id', '=', $id)->first();
             $contractPeriodNumber = $oldPerson->contractPeriodNumber;
             $newContractPeriodNumber = $contractPeriodNumber + 1;
@@ -537,7 +534,7 @@ class CandidateController extends Controller
 
     public function worker($id): JsonResponse
     {
-        if (!$this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+        if (!$this->isStaff()) {
             return $this->unauthorizedResponse();
         }
 
@@ -558,10 +555,10 @@ class CandidateController extends Controller
         try {
             $candidate = Candidate::findOrFail($id);
 
-            if ($this->isAuthorized([self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN])) {
+            if ($this->isStaff()) {
                 $this->candidateService->deleteCandidate($candidate);
                 return $this->successResponse(null, 'Candidate deleted successfully');
-            } elseif (Auth::user()->role_id === self::ROLE_AGENT) {
+            } elseif (Auth::user()->role_id === Role::AGENT) {
                 return $this->handleAgentDeletion($candidate, $id);
             }
 
@@ -601,7 +598,7 @@ class CandidateController extends Controller
                 'searchDate' => $request->searchDate ?? null,
             ];
 
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
                 $candidates = Candidate::with(['company', 'latestStatusHistory','latestStatusHistory.status', 'position']);
                 if ($filters['status_id']) {
                     $candidates->whereHas('statusHistories', function ($query) use ($filters) {
@@ -652,7 +649,7 @@ class CandidateController extends Controller
     public function exportCandidatesBasedOnStatus(Request $request)
     {
         try {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
 
                 $dateFrom = $request->dateFrom ?? null;
                 $dateTo = $request->dateTo ?? null;
@@ -706,10 +703,10 @@ class CandidateController extends Controller
         $roleId = $user->role_id;
 
         return match ($roleId) {
-            self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN => Candidate::query(),
-            self::ROLE_COMPANY => Candidate::byCompany($user->company_id),
-            self::ROLE_OWNER => $this->buildOwnerQuery($user->id),
-            self::ROLE_AGENT => $this->buildAgentQuery($user->id),
+            Role::GENERAL_MANAGER, Role::MANAGER, Role::OFFICE, Role::HR, Role::OFFICE_MANAGER, Role::RECRUITERS, Role::FINANCE => Candidate::query(),
+            Role::COMPANY_USER => Candidate::byCompany($user->company_id),
+            Role::COMPANY_OWNER => $this->buildOwnerQuery($user->id),
+            Role::AGENT => $this->buildAgentQuery($user->id),
             default => null,
         };
     }

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Industry;
+use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class IndustryController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +17,7 @@ class IndustryController extends Controller
      */
     public function index()
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $allIndustries = Industry::all();
 
@@ -51,7 +53,7 @@ class IndustryController extends Controller
      */
     public function store(Request $request)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $industry = new Industry();
 
@@ -111,7 +113,7 @@ class IndustryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $industry = Industry::where('id', '=', $id)->first();
 
@@ -148,7 +150,7 @@ class IndustryController extends Controller
      */
     public function destroy($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $industry = Industry::where('id', '=', $id)->first();
 

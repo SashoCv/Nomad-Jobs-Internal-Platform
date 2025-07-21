@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Status;
+use App\Traits\HasRolePermissions;
 use App\Models\StatusArrival;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class StatusArrivalController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -17,7 +19,7 @@ class StatusArrivalController extends Controller
     public function index()
     {
         try {
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if($this->isStaff()) {
                 $statusArrivals = Status::select('id', 'nameOfStatus as statusName')->where('showOnHomePage', 1)->orderBy('order')->get();
             } else {
                 return response()->json([

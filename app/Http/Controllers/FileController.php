@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidate;
+use App\Traits\HasRolePermissions;
 use App\Models\Category;
 use App\Models\File;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use ZipArchive;
 
 class FileController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -196,7 +198,7 @@ class FileController extends Controller
      */
     public function destroy($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $fileDelete = File::findOrFail($id);
 

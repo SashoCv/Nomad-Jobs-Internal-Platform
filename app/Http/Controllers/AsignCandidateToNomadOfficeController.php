@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
+use App\Traits\HasRolePermissions;
 use App\Models\AsignCandidateToNomadOffice;
 use App\Models\Candidate;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AsignCandidateToNomadOfficeController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -18,7 +20,7 @@ class AsignCandidateToNomadOfficeController extends Controller
     public function index()
     {
         try{
-            if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2){
+            if($this->isStaff()){
                 $candidatesAddByAgent = Candidate::with(['company', 'status', 'position', 'user','cases','agentCandidates'])
                ->whereHas('agentCandidates')->get();
             } else {
