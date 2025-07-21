@@ -4,13 +4,14 @@ namespace App\Http\Requests;
 
 use App\Models\Candidate;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class UpdateCandidateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return in_array(auth()->user()->role_id, [1, 2]);
+        return Auth::check();
     }
 
     public function rules(): array

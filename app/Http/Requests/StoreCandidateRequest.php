@@ -5,15 +5,14 @@ namespace App\Http\Requests;
 use App\Models\Candidate;
 use App\Traits\HasRolePermissions;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class StoreCandidateRequest extends FormRequest
 {
-    use HasRolePermissions;
-
     public function authorize(): bool
     {
-        return $this->isStaff();
+        return Auth::check();
     }
 
     public function rules(): array
