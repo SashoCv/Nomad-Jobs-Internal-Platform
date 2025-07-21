@@ -263,7 +263,7 @@ class AgentCandidateController extends Controller
                         ->where('company_job_id', $request->company_job_id);
                 }
             } else {
-                if (Auth::user()->role_id == 1) {
+                if (Auth::user()->role_id == 1) {  // I need new implementations
                     $query->where('nomad_office_id', null);
                 } else if (Auth::user()->role_id == 2){
                     $query->where('agent_candidates.nomad_office_id', $user_id);

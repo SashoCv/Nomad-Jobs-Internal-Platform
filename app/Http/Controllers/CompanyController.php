@@ -9,6 +9,7 @@ use App\Models\CompanyAdress;
 use App\Models\File;
 use App\Models\User;
 use App\Models\UserOwner;
+use App\Traits\HasRolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,38 +21,30 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Class CompanyController
- * 
+ *
  * Handles CRUD operations for companies with role-based access control
  */
 class CompanyController extends Controller
 {
-    /**
-     * Role constants for better readability
-     */
-    const ROLE_ADMIN = 1;
-    const ROLE_SUPER_ADMIN = 2;
+    use HasRolePermissions;
+
     const ROLE_COMPANY_USER = 3;
     const ROLE_OWNER = 5;
-
-    /**
-     * Admin roles that have full access
-     */
-    const ADMIN_ROLES = [self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN];
 
 
     /**
      * Display a listing of companies based on user role.
-     * 
+     *
      * @return JsonResponse
      */
     public function index(): JsonResponse
     {
         $user = Auth::user();
-        
-        $companies = match($user->role_id) {
-            self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN => $this->getCompaniesForAdmin(),
-            self::ROLE_COMPANY_USER => $this->getCompaniesForCompanyUser($user),
-            self::ROLE_OWNER => $this->getCompaniesForOwner($user),
+
+        $companies = match(true) {
+            $this->isStaff() => $this->getCompaniesForAdmin(),
+            $user->role_id === self::ROLE_COMPANY_USER => $this->getCompaniesForCompanyUser($user),
+            $user->role_id === self::ROLE_OWNER => $this->getCompaniesForOwner($user),
             default => collect([])
         };
 
@@ -89,7 +82,7 @@ class CompanyController extends Controller
 
     /**
      * Validate if company exists by EIK
-     * 
+     *
      * @param string $eik
      * @return bool
      */
@@ -99,18 +92,8 @@ class CompanyController extends Controller
     }
 
     /**
-     * Check if user has admin privileges
-     * 
-     * @return bool
-     */
-    private function isAdmin(): bool
-    {
-        return in_array(Auth::user()->role_id, self::ADMIN_ROLES);
-    }
-
-    /**
      * Handle file upload for company
-     * 
+     *
      * @param Request $request
      * @param Company $company
      * @param string $fileField
@@ -128,7 +111,7 @@ class CompanyController extends Controller
 
     /**
      * Handle company addresses creation/update
-     * 
+     *
      * @param Company $company
      * @param array $addresses
      * @param bool $isUpdate
@@ -151,13 +134,13 @@ class CompanyController extends Controller
     }
     /**
      * Store a newly created company in storage.
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
     public function store(Request $request): JsonResponse
     {
-        if (!$this->isAdmin()) {
+        if (!$this->isStaff()) {
             return response()->json([
                 'success' => false,
                 'status' => 403,
@@ -191,7 +174,7 @@ class CompanyController extends Controller
 
             $this->handleFileUpload($request, $company, 'companyLogo', 'logoPath', 'logoName');
             $this->handleFileUpload($request, $company, 'companyStamp', 'stampPath', 'stampName');
-            
+
             $company->save();
 
             $companyAddresses = json_decode($request->company_addresses, true);
@@ -209,7 +192,7 @@ class CompanyController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating company: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
@@ -227,15 +210,15 @@ class CompanyController extends Controller
     public function show(int $id): JsonResponse
     {
         $user = Auth::user();
-        
-        $company = match($user->role_id) {
-            self::ROLE_ADMIN, self::ROLE_SUPER_ADMIN => 
+
+        $company = match(true) {
+            $this->isStaff() =>
                 Company::with(['industry', 'company_addresses'])->find($id),
-            self::ROLE_COMPANY_USER => 
+            $user->role_id === self::ROLE_COMPANY_USER =>
                 Company::with(['industry', 'company_addresses'])
                     ->where('id', $user->company_id)
                     ->first(),
-            self::ROLE_OWNER => 
+            $user->role_id === self::ROLE_OWNER =>
                 Company::with(['industry', 'company_addresses'])
                     ->whereIn('id', UserOwner::where('user_id', $user->id)->pluck('company_id'))
                     ->where('id', $id)
@@ -278,7 +261,7 @@ class CompanyController extends Controller
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        if (!$this->isAdmin()) {
+        if (!$this->isStaff()) {
             return response()->json([
                 'success' => false,
                 'status' => 403,
@@ -288,7 +271,7 @@ class CompanyController extends Controller
 
         try {
             $company = Company::findOrFail($id);
-            
+
             DB::beginTransaction();
 
             $updateData = $request->only([
@@ -306,7 +289,7 @@ class CompanyController extends Controller
 
             $this->handleFileUpload($request, $company, 'companyLogo', 'logoPath', 'logoName');
             $this->handleFileUpload($request, $company, 'companyStamp', 'stampPath', 'stampName');
-            
+
             $company->save();
 
             $companyAddresses = json_decode($request->company_addresses, true);
@@ -324,7 +307,7 @@ class CompanyController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating company: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
@@ -341,7 +324,7 @@ class CompanyController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        if (!$this->isAdmin()) {
+        if (!$this->isStaff()) {
             return response()->json([
                 'success' => false,
                 'status' => 403,
@@ -360,7 +343,7 @@ class CompanyController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Error deleting company: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
