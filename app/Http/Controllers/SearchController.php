@@ -754,7 +754,7 @@ class SearchController extends Controller
 
         $userRoleId = Auth::user()->role_id;
 
-        if ($userRoleId === 1 || $userRoleId === 2) {
+        if ($this->isStaff()) {
             $query->where('type_id', '!=', 3);
         }
 

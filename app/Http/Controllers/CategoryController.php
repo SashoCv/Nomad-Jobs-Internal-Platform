@@ -14,22 +14,14 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        if (Auth::user()->role_id == 1) {
+        if ($this->isStaff()) {
 
             $categories = Category::all();
 
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $categories,
-            ]);
-        } else if (Auth::user()->role_id == 2) {
-
-            $categories = Category::where('role_id', '=', 2)->orWhere('role_id', '=', 3)->get();
             return response()->json([
                 'success' => true,
                 'status' => 200,
@@ -59,7 +51,7 @@ class CategoryController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -126,7 +118,7 @@ class CategoryController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Category  $category
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(Request $request)
     {

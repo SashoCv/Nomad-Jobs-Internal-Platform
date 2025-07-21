@@ -65,10 +65,7 @@ class LoginController extends Controller
 
     public function admins()
     {
-
-
             $admins = User::where('role_id', 1)->where('email', '!=', "phoenix.dev.mk@gmail.com")->get();
-
 
             return response()->json([
                 "status" => 200,

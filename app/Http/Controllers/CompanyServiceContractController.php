@@ -82,7 +82,7 @@ class CompanyServiceContractController extends Controller
     public function store(Request $request)
     {
         try {
-            if(Auth::user()->role_id == 1) {
+            if($this->isStaff()) {
                 $request->validate([
                     'company_id' => 'required|exists:companies,id',
                     'contractNumber' => 'required|string|max:255',
