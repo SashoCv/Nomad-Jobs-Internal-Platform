@@ -24,13 +24,15 @@ class CompanyRequestController extends Controller
     public function index()
     {
         try {
-            $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user'])->get();
+            $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user','companyJob.changeLogs'])->get();
 
             if(Auth::user()->role_id ==3){
                 $companyRequests = $companyRequests->filter(function ($request) {
                     return $request->companyJob->company_id == Auth::user()->company_id;
                 });
             }
+
+
 
             $transformedData = $this->transformerService->transformCompanyRequests($companyRequests);
 

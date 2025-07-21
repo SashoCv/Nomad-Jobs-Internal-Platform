@@ -25,7 +25,6 @@ class UpdateCandidateRequest extends FormRequest
 
             // Personal Information
             'gender' => ['required', 'string', 'max:10'],
-            'email' => ['required', 'email', 'max:255'],
             'nationality' => ['required', 'string', 'max:100'],
             'date' => ['required', 'date'],
             'phoneNumber' => ['string', 'max:20'],

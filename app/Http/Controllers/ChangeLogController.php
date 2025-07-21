@@ -15,7 +15,7 @@ class ChangeLogController extends Controller
     public function index()
     {
         try {
-            $changeLogs = ChangeLog::with(['user'])->get();
+            $changeLogs = ChangeLog::with(['user','user.company'])->get();
 
             return response()->json([
                 "status" => "success",

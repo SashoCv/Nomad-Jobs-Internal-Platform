@@ -51,8 +51,19 @@ class CompanyRequestTransformerService
                 'id' => $user->id,
                 'full_name' => $user->firstName . ' ' . $user->lastName,
                 'email' => $user->email,
-
-            ]
+            ],
+            'change_logs' => $companyJob->changeLogs->map(function ($changeLog) {
+                return [
+                    'id' => $changeLog->id,
+                    'field_name' => $changeLog->fieldName,
+                    'full_name' =>  $changeLog->user->firstName . ' ' . $changeLog->user->lastName,
+                    'old_value' => $changeLog->oldValue,
+                    'new_value' => $changeLog->newValue,
+                    'status' => $changeLog->status,
+                    'is_applied' => $changeLog->isApplied,
+                    'created_at' => $changeLog->created_at,
+                ];
+            })->toArray()
         ];
     }
 }
