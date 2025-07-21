@@ -17,6 +17,7 @@ use App\Http\Controllers\ItemsForInvoicesController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\ChangeLogController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\ContractPricingController;
@@ -35,6 +36,7 @@ use App\Http\Controllers\StatusForCandidateFromAgentController;
 use App\Http\Controllers\MedicalInsuranceController;
 use App\Http\Controllers\CompanyServiceContractController;
 use App\Http\Controllers\ContractServiceTypeController;
+use App\Http\Controllers\CompanyRequestController;
 use App\Http\Controllers\StatisticController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -318,13 +320,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'show']);
     Route::post('updateCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'update']);
     Route::delete('deleteCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'destroy']);
-    Route::delete('/deleteContractFile/{id}', [CompanyServiceContractController::class, 'deleteContractFile']);
+    Route::delete('deleteContractFile/{id}', [CompanyServiceContractController::class, 'deleteContractFile']);
     // Contract Service Types
     Route::get('getContractServiceTypes', [ContractServiceTypeController::class, 'index']);
 
     // Contract Pricing
     Route::post('storeContractPricing', [ContractPricingController::class, 'store']);
     Route::get('getContractPricing/{id}', [ContractPricingController::class, 'show']);
+    Route::delete('deleteContractPricing/{id}', [ContractPricingController::class, 'destroy']);
 
+
+    // Company Requests
+    Route::get('companyRequests', [CompanyRequestController::class, 'index']);
+    Route::get('showPriceForCompanyBasedOnRequest/{id}', [CompanyRequestController::class, 'showPriceBasedOnRequest']);
+
+    Route::post('approveCompanyRequest/{id}', [CompanyRequestController::class, 'approveCompanyRequest']);
+    Route::post('rejectCompanyRequest/{id}', [CompanyRequestController::class, 'rejectCompanyRequest']);
+
+
+    // Change Logs
+    Route::post('storeChangeLog', [ChangeLogController::class, 'store']);
+    Route::get('changeLogs', [ChangeLogController::class, 'index']);
+    Route::post('approveLog/{id}', [ChangeLogController::class, 'approveLog']);
 });
 
