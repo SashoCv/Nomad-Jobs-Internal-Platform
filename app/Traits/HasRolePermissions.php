@@ -75,128 +75,287 @@ trait HasRolePermissions
         return response()->json(['error' => $message], 403);
     }
 
-    /**
-     * Helper method to check if user can view companies
-     */
+    // Permission helper methods for all admin functions
+    
+    // Dashboard
+    protected function canViewDashboard()
+    {
+        return $this->checkPermission(Permission::DASHBOARD_VIEW);
+    }
+    
+    // Home
+    protected function canViewHome()
+    {
+        return $this->checkPermission(Permission::HOME_VIEW);
+    }
+    
+    protected function canFilterHome()
+    {
+        return $this->checkPermission(Permission::HOME_FILTER);
+    }
+    
+    protected function canViewArrivals()
+    {
+        return $this->checkPermission(Permission::HOME_ARRIVALS);
+    }
+    
+    protected function canChangeArrivalStatus()
+    {
+        return $this->checkPermission(Permission::HOME_CHANGE_STATUS);
+    }
+    
+    // Companies
     protected function canViewCompanies()
     {
         return $this->checkPermission(Permission::COMPANIES_VIEW);
     }
-
-    /**
-     * Helper method to check if user can create companies
-     */
+    
     protected function canCreateCompanies()
     {
         return $this->checkPermission(Permission::COMPANIES_CREATE);
     }
-
-    /**
-     * Helper method to check if user can edit companies
-     */
+    
     protected function canEditCompanies()
     {
         return $this->checkPermission(Permission::COMPANIES_EDIT);
     }
-
-    /**
-     * Helper method to check if user can delete companies
-     */
+    
     protected function canDeleteCompanies()
     {
         return $this->checkPermission(Permission::COMPANIES_DELETE);
     }
-
-    /**
-     * Helper method to check if user can access company contracts
-     */
-    protected function canAccessCompanyContracts()
+    
+    // Industries
+    protected function canViewIndustries()
     {
-        return $this->checkPermission(Permission::COMPANIES_CONTRACTS);
+        return $this->checkPermission(Permission::INDUSTRIES_VIEW);
     }
-
-    /**
-     * Helper method to check if user can view users
-     */
-    protected function canViewUsers()
+    
+    protected function canCreateIndustries()
     {
-        return $this->checkPermission(Permission::USERS_VIEW);
+        return $this->checkPermission(Permission::INDUSTRIES_CREATE);
     }
-
-    /**
-     * Helper method to check if user can create company users only
-     */
-    protected function canCreateCompanyUsers()
+    
+    protected function canEditIndustries()
     {
-        return $this->checkPermission(Permission::USERS_CREATE_COMPANIES);
+        return $this->checkPermission(Permission::INDUSTRIES_EDIT);
     }
-
-    /**
-     * Helper method to check if user can create agent users only
-     */
-    protected function canCreateAgentUsers()
+    
+    protected function canDeleteIndustries()
     {
-        return $this->checkPermission(Permission::USERS_CREATE_AGENTS);
+        return $this->checkPermission(Permission::INDUSTRIES_DELETE);
     }
-
-    /**
-     * Helper method to check if user can view candidates
-     */
+    
+    // Contracts
+    protected function canViewContracts()
+    {
+        return $this->checkPermission(Permission::CONTRACTS_VIEW);
+    }
+    
+    protected function canCreateContracts()
+    {
+        return $this->checkPermission(Permission::CONTRACTS_CREATE);
+    }
+    
+    protected function canEditContracts()
+    {
+        return $this->checkPermission(Permission::CONTRACTS_EDIT);
+    }
+    
+    protected function canDeleteContracts()
+    {
+        return $this->checkPermission(Permission::CONTRACTS_DELETE);
+    }
+    
+    // Requests
+    protected function canViewRequests()
+    {
+        return $this->checkPermission(Permission::REQUESTS_VIEW);
+    }
+    
+    protected function canApproveRequests()
+    {
+        return $this->checkPermission(Permission::REQUESTS_APPROVE);
+    }
+    
+    protected function canDeleteRequests()
+    {
+        return $this->checkPermission(Permission::REQUESTS_DELETE);
+    }
+    
+    // Candidates
     protected function canViewCandidates()
     {
         return $this->checkPermission(Permission::CANDIDATES_VIEW);
     }
-
-    /**
-     * Helper method to check if user can create/edit candidates
-     */
-    protected function canManageCandidates()
+    
+    protected function canCreateCandidates()
     {
-        return $this->checkAnyPermission([
-            Permission::CANDIDATES_CREATE,
-            Permission::CANDIDATES_EDIT,
-            Permission::CANDIDATES_DELETE
-        ]);
+        return $this->checkPermission(Permission::CANDIDATES_CREATE);
     }
-
-    /**
-     * Helper method to check if user can view job posts
-     */
-    protected function canViewJobs()
+    
+    protected function canEditCandidates()
     {
-        return $this->checkPermission(Permission::JOBS_VIEW);
+        return $this->checkPermission(Permission::CANDIDATES_EDIT);
     }
-
-    /**
-     * Helper method to check if user can manage job posts
-     */
-    protected function canManageJobs()
+    
+    protected function canDeleteCandidates()
     {
-        return $this->checkAnyPermission([
-            Permission::JOBS_CREATE,
-            Permission::JOBS_EDIT,
-            Permission::JOBS_DELETE
-        ]);
+        return $this->checkPermission(Permission::CANDIDATES_DELETE);
     }
-
-    /**
-     * Helper method to check if user can view finance
-     */
-    protected function canViewFinance()
+    
+    // Agent Candidates
+    protected function canViewAgentCandidates()
     {
-        return $this->checkPermission(Permission::FINANCE_VIEW);
+        return $this->checkPermission(Permission::AGENT_CANDIDATES_VIEW);
     }
-
-    /**
-     * Helper method to check if user can manage finance
-     */
-    protected function canManageFinance()
+    
+    protected function canChangeAgentCandidateStatus()
     {
-        return $this->checkAnyPermission([
-            Permission::FINANCE_CREATE,
-            Permission::FINANCE_EDIT,
-            Permission::FINANCE_DELETE
-        ]);
+        return $this->checkPermission(Permission::AGENT_CANDIDATES_CHANGE_STATUS);
+    }
+    
+    protected function canDeleteAgentCandidates()
+    {
+        return $this->checkPermission(Permission::AGENT_CANDIDATES_DELETE);
+    }
+    
+    // Multi Applicant Generator
+    protected function canAccessMultiApplicantGenerator()
+    {
+        return $this->checkPermission(Permission::MULTI_APPLICANT_GENERATOR);
+    }
+    
+    // Expired Items
+    protected function canViewExpiredContracts()
+    {
+        return $this->checkPermission(Permission::EXPIRED_CONTRACTS_VIEW);
+    }
+    
+    protected function canViewExpiredMedicalInsurance()
+    {
+        return $this->checkPermission(Permission::EXPIRED_MEDICAL_INSURANCE_VIEW);
+    }
+    
+    // Documents
+    protected function canViewDocuments()
+    {
+        return $this->checkPermission(Permission::DOCUMENTS_VIEW);
+    }
+    
+    protected function canCreateDocuments()
+    {
+        return $this->checkPermission(Permission::DOCUMENTS_CREATE);
+    }
+    
+    protected function canEditDocuments()
+    {
+        return $this->checkPermission(Permission::DOCUMENTS_EDIT);
+    }
+    
+    protected function canDeleteDocuments()
+    {
+        return $this->checkPermission(Permission::DOCUMENTS_DELETE);
+    }
+    
+    // Status History
+    protected function canViewStatusHistory()
+    {
+        return $this->checkPermission(Permission::STATUS_HISTORY_VIEW);
+    }
+    
+    // Users
+    protected function canViewUsers()
+    {
+        return $this->checkPermission(Permission::USERS_VIEW);
+    }
+    
+    protected function canCreateUsers()
+    {
+        return $this->checkPermission(Permission::USERS_CREATE);
+    }
+    
+    protected function canEditUsers()
+    {
+        return $this->checkPermission(Permission::USERS_EDIT);
+    }
+    
+    protected function canDeleteUsers()
+    {
+        return $this->checkPermission(Permission::USERS_DELETE);
+    }
+    
+    protected function canCreateCompanyUsers()
+    {
+        return $this->checkPermission(Permission::USERS_CREATE_COMPANIES);
+    }
+    
+    protected function canCreateAgentUsers()
+    {
+        return $this->checkPermission(Permission::USERS_CREATE_AGENTS);
+    }
+    
+    // Job Postings
+    protected function canViewJobPostings()
+    {
+        return $this->checkPermission(Permission::JOB_POSTINGS_VIEW);
+    }
+    
+    protected function canCreateJobPostings()
+    {
+        return $this->checkPermission(Permission::JOB_POSTINGS_CREATE);
+    }
+    
+    protected function canEditJobPostings()
+    {
+        return $this->checkPermission(Permission::JOB_POSTINGS_EDIT);
+    }
+    
+    protected function canDeleteJobPostings()
+    {
+        return $this->checkPermission(Permission::JOB_POSTINGS_DELETE);
+    }
+    
+    // Job Positions
+    protected function canViewJobPositions()
+    {
+        return $this->checkPermission(Permission::JOB_POSITIONS_VIEW);
+    }
+    
+    protected function canCreateJobPositions()
+    {
+        return $this->checkPermission(Permission::JOB_POSITIONS_CREATE);
+    }
+    
+    protected function canEditJobPositions()
+    {
+        return $this->checkPermission(Permission::JOB_POSITIONS_EDIT);
+    }
+    
+    protected function canDeleteJobPositions()
+    {
+        return $this->checkPermission(Permission::JOB_POSITIONS_DELETE);
+    }
+    
+    // Finances
+    protected function canViewFinances()
+    {
+        return $this->checkPermission(Permission::FINANCES_VIEW);
+    }
+    
+    protected function canCreateFinances()
+    {
+        return $this->checkPermission(Permission::FINANCES_CREATE);
+    }
+    
+    protected function canEditFinances()
+    {
+        return $this->checkPermission(Permission::FINANCES_EDIT);
+    }
+    
+    protected function canDeleteFinances()
+    {
+        return $this->checkPermission(Permission::FINANCES_DELETE);
     }
 
     /**

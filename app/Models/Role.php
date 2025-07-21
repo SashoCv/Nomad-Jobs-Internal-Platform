@@ -23,7 +23,21 @@ class Role extends Model
 
     public function hasPermission($permission)
     {
-        return $this->permissions()->where('name', $permission)->exists();
+        return $this->permissions()->where('slug', $permission)->exists();
+    }
+
+    public function hasAnyPermission($permissions)
+    {
+        return $this->permissions()->whereIn('slug', $permissions)->exists();
+    }
+
+    public function givePermissionTo($permission)
+    {
+        if (is_string($permission)) {
+            $permission = Permission::where('slug', $permission)->firstOrFail();
+        }
+        
+        return $this->permissions()->syncWithoutDetaching($permission->id);
     }
 
     // Role constants
