@@ -20,37 +20,37 @@ class PermissionSeeder extends Seeder
         // Create all permissions
         $permissions = [
             // Companies
-            ['name' => Permission::COMPANIES_VIEW, 'description' => 'View companies'],
-            ['name' => Permission::COMPANIES_CREATE, 'description' => 'Create companies'],
-            ['name' => Permission::COMPANIES_EDIT, 'description' => 'Edit companies'],
-            ['name' => Permission::COMPANIES_DELETE, 'description' => 'Delete companies'],
-            ['name' => Permission::COMPANIES_CONTRACTS, 'description' => 'Manage company contracts'],
+            ['name' => Permission::COMPANIES_VIEW, 'slug' => 'companies-view', 'description' => 'View companies'],
+            ['name' => Permission::COMPANIES_CREATE, 'slug' => 'companies-create', 'description' => 'Create companies'],
+            ['name' => Permission::COMPANIES_EDIT, 'slug' => 'companies-edit', 'description' => 'Edit companies'],
+            ['name' => Permission::COMPANIES_DELETE, 'slug' => 'companies-delete', 'description' => 'Delete companies'],
+            ['name' => Permission::COMPANIES_CONTRACTS, 'slug' => 'companies-contracts', 'description' => 'Manage company contracts'],
 
             // Users
-            ['name' => Permission::USERS_VIEW, 'description' => 'View users'],
-            ['name' => Permission::USERS_CREATE, 'description' => 'Create users'],
-            ['name' => Permission::USERS_EDIT, 'description' => 'Edit users'],
-            ['name' => Permission::USERS_DELETE, 'description' => 'Delete users'],
-            ['name' => Permission::USERS_CREATE_COMPANIES, 'description' => 'Create company users only'],
-            ['name' => Permission::USERS_CREATE_AGENTS, 'description' => 'Create agent users only'],
+            ['name' => Permission::USERS_VIEW, 'slug' => 'users-view', 'description' => 'View users'],
+            ['name' => Permission::USERS_CREATE, 'slug' => 'users-create', 'description' => 'Create users'],
+            ['name' => Permission::USERS_EDIT, 'slug' => 'users-edit', 'description' => 'Edit users'],
+            ['name' => Permission::USERS_DELETE, 'slug' => 'users-delete', 'description' => 'Delete users'],
+            ['name' => Permission::USERS_CREATE_COMPANIES, 'slug' => 'users-create-companies', 'description' => 'Create company users only'],
+            ['name' => Permission::USERS_CREATE_AGENTS, 'slug' => 'users-create-agents', 'description' => 'Create agent users only'],
 
             // Candidates
-            ['name' => Permission::CANDIDATES_VIEW, 'description' => 'View candidates'],
-            ['name' => Permission::CANDIDATES_CREATE, 'description' => 'Create candidates'],
-            ['name' => Permission::CANDIDATES_EDIT, 'description' => 'Edit candidates'],
-            ['name' => Permission::CANDIDATES_DELETE, 'description' => 'Delete candidates'],
+            ['name' => Permission::CANDIDATES_VIEW, 'slug' => 'candidates-view', 'description' => 'View candidates'],
+            ['name' => Permission::CANDIDATES_CREATE, 'slug' => 'candidates-create', 'description' => 'Create candidates'],
+            ['name' => Permission::CANDIDATES_EDIT, 'slug' => 'candidates-edit', 'description' => 'Edit candidates'],
+            ['name' => Permission::CANDIDATES_DELETE, 'slug' => 'candidates-delete', 'description' => 'Delete candidates'],
 
             // Jobs
-            ['name' => Permission::JOBS_VIEW, 'description' => 'View job posts'],
-            ['name' => Permission::JOBS_CREATE, 'description' => 'Create job posts'],
-            ['name' => Permission::JOBS_EDIT, 'description' => 'Edit job posts'],
-            ['name' => Permission::JOBS_DELETE, 'description' => 'Delete job posts'],
+            ['name' => Permission::JOBS_VIEW, 'slug' => 'jobs-view', 'description' => 'View job posts'],
+            ['name' => Permission::JOBS_CREATE, 'slug' => 'jobs-create', 'description' => 'Create job posts'],
+            ['name' => Permission::JOBS_EDIT, 'slug' => 'jobs-edit', 'description' => 'Edit job posts'],
+            ['name' => Permission::JOBS_DELETE, 'slug' => 'jobs-delete', 'description' => 'Delete job posts'],
 
             // Finance
-            ['name' => Permission::FINANCE_VIEW, 'description' => 'View finance'],
-            ['name' => Permission::FINANCE_CREATE, 'description' => 'Create finance records'],
-            ['name' => Permission::FINANCE_EDIT, 'description' => 'Edit finance records'],
-            ['name' => Permission::FINANCE_DELETE, 'description' => 'Delete finance records'],
+            ['name' => Permission::FINANCE_VIEW, 'slug' => 'finance-view', 'description' => 'View finance'],
+            ['name' => Permission::FINANCE_CREATE, 'slug' => 'finance-create', 'description' => 'Create finance records'],
+            ['name' => Permission::FINANCE_EDIT, 'slug' => 'finance-edit', 'description' => 'Edit finance records'],
+            ['name' => Permission::FINANCE_DELETE, 'slug' => 'finance-delete', 'description' => 'Delete finance records'],
         ];
 
         foreach ($permissions as $permission) {

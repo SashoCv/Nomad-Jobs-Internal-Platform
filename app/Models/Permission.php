@@ -27,6 +27,7 @@ class Permission extends Model
     const COMPANIES_CREATE = 'companies.create';
     const COMPANIES_EDIT = 'companies.edit';
     const COMPANIES_DELETE = 'companies.delete';
+    const COMPANIES_CONTRACTS = 'companies.contracts';
     
     const INDUSTRIES_VIEW = 'industries.view';
     const INDUSTRIES_CREATE = 'industries.create';
@@ -80,8 +81,18 @@ class Permission extends Model
     const JOB_POSITIONS_EDIT = 'job_positions.edit';
     const JOB_POSITIONS_DELETE = 'job_positions.delete';
     
+    const JOBS_VIEW = 'jobs.view';
+    const JOBS_CREATE = 'jobs.create';
+    const JOBS_EDIT = 'jobs.edit';
+    const JOBS_DELETE = 'jobs.delete';
+    
     const FINANCES_VIEW = 'finances.view';
     const FINANCES_CREATE = 'finances.create';
     const FINANCES_EDIT = 'finances.edit';
     const FINANCES_DELETE = 'finances.delete';
+    
+    const FINANCE_VIEW = 'finance.view';
+    const FINANCE_CREATE = 'finance.create';
+    const FINANCE_EDIT = 'finance.edit';
+    const FINANCE_DELETE = 'finance.delete';
 }
