@@ -95,4 +95,12 @@ class Permission extends Model
     const FINANCE_CREATE = 'finance.create';
     const FINANCE_EDIT = 'finance.edit';
     const FINANCE_DELETE = 'finance.delete';
+    
+    const INSURANCE_READ = 'insurance.read';
+    const INSURANCE_CREATE = 'insurance.create';
+    const INSURANCE_UPDATE = 'insurance.update';
+    const INSURANCE_DELETE = 'insurance.delete';
+    
+    const NOTIFICATIONS_READ = 'notifications.read';
+    const NOTIFICATIONS_UPDATE = 'notifications.update';
 }

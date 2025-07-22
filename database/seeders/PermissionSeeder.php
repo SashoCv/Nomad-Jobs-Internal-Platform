@@ -51,6 +51,16 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::FINANCE_CREATE, 'slug' => 'finance-create', 'description' => 'Create finance records'],
             ['name' => Permission::FINANCE_EDIT, 'slug' => 'finance-edit', 'description' => 'Edit finance records'],
             ['name' => Permission::FINANCE_DELETE, 'slug' => 'finance-delete', 'description' => 'Delete finance records'],
+
+            // Insurance
+            ['name' => Permission::INSURANCE_READ, 'slug' => 'insurance-read', 'description' => 'Read insurance'],
+            ['name' => Permission::INSURANCE_CREATE, 'slug' => 'insurance-create', 'description' => 'Create insurance'],
+            ['name' => Permission::INSURANCE_UPDATE, 'slug' => 'insurance-update', 'description' => 'Update insurance'],
+            ['name' => Permission::INSURANCE_DELETE, 'slug' => 'insurance-delete', 'description' => 'Delete insurance'],
+
+            // Notifications
+            ['name' => Permission::NOTIFICATIONS_READ, 'slug' => 'notifications-read', 'description' => 'Read notifications'],
+            ['name' => Permission::NOTIFICATIONS_UPDATE, 'slug' => 'notifications-update', 'description' => 'Update notifications'],
         ];
 
         foreach ($permissions as $permission) {
@@ -70,7 +80,7 @@ class PermissionSeeder extends Seeder
             $generalManager->permissions()->sync($allPermissions);
         }
 
-        // Role 2: Manager - Full access except Users (only add companies) & Finance (read-only)
+        // Role 2: Manager - Full access except Users (only add companies) & Finance (read-only) + Insurance & Notifications
         $manager = Role::find(Role::MANAGER);
         if ($manager) {
             $managerPermissions = Permission::whereNotIn('name', [
@@ -85,13 +95,19 @@ class PermissionSeeder extends Seeder
             
             $additionalPermissions = Permission::whereIn('name', [
                 Permission::USERS_CREATE_COMPANIES,
-                Permission::FINANCE_VIEW
+                Permission::FINANCE_VIEW,
+                Permission::INSURANCE_READ,
+                Permission::INSURANCE_CREATE,
+                Permission::INSURANCE_UPDATE,
+                Permission::INSURANCE_DELETE,
+                Permission::NOTIFICATIONS_READ,
+                Permission::NOTIFICATIONS_UPDATE
             ])->pluck('id');
             
             $manager->permissions()->sync($managerPermissions->merge($additionalPermissions));
         }
 
-        // Role 6: Office - Full access except Companies (no contract register), Users (no access), Job Posts (no access), Finance (no access)
+        // Role 6: Office - Full access except Companies (no contract register), Users (no access), Job Posts (no access), Finance (no access) + Insurance & Notifications
         $office = Role::find(Role::OFFICE);
         if ($office) {
             $officePermissions = Permission::whereNotIn('name', [
@@ -112,10 +128,19 @@ class PermissionSeeder extends Seeder
                 Permission::FINANCE_DELETE
             ])->pluck('id');
             
-            $office->permissions()->sync($officePermissions);
+            $additionalPermissions = Permission::whereIn('name', [
+                Permission::INSURANCE_READ,
+                Permission::INSURANCE_CREATE,
+                Permission::INSURANCE_UPDATE,
+                Permission::INSURANCE_DELETE,
+                Permission::NOTIFICATIONS_READ,
+                Permission::NOTIFICATIONS_UPDATE
+            ])->pluck('id');
+            
+            $office->permissions()->sync($officePermissions->merge($additionalPermissions));
         }
 
-        // Role 7: HR - Full access except Companies (no contract register), Users (no access), Finance (no access)
+        // Role 7: HR - Full access except Companies (no contract register), Users (no access), Finance (no access) + Insurance & Notifications
         $hr = Role::find(Role::HR);
         if ($hr) {
             $hrPermissions = Permission::whereNotIn('name', [
@@ -132,10 +157,19 @@ class PermissionSeeder extends Seeder
                 Permission::FINANCE_DELETE
             ])->pluck('id');
             
-            $hr->permissions()->sync($hrPermissions);
+            $additionalPermissions = Permission::whereIn('name', [
+                Permission::INSURANCE_READ,
+                Permission::INSURANCE_CREATE,
+                Permission::INSURANCE_UPDATE,
+                Permission::INSURANCE_DELETE,
+                Permission::NOTIFICATIONS_READ,
+                Permission::NOTIFICATIONS_UPDATE
+            ])->pluck('id');
+            
+            $hr->permissions()->sync($hrPermissions->merge($additionalPermissions));
         }
 
-        // Role 8: Office Manager - Full access except Candidates (read-only), Users (only add companies), Finance (no access)
+        // Role 8: Office Manager - Full access except Candidates (read-only), Users (only add companies), Finance (no access) + Insurance & Notifications
         $officeManager = Role::find(Role::OFFICE_MANAGER);
         if ($officeManager) {
             $officeManagerPermissions = Permission::whereNotIn('name', [
@@ -154,13 +188,19 @@ class PermissionSeeder extends Seeder
             
             $additionalPermissions = Permission::whereIn('name', [
                 Permission::CANDIDATES_VIEW,
-                Permission::USERS_CREATE_COMPANIES
+                Permission::USERS_CREATE_COMPANIES,
+                Permission::INSURANCE_READ,
+                Permission::INSURANCE_CREATE,
+                Permission::INSURANCE_UPDATE,
+                Permission::INSURANCE_DELETE,
+                Permission::NOTIFICATIONS_READ,
+                Permission::NOTIFICATIONS_UPDATE
             ])->pluck('id');
             
             $officeManager->permissions()->sync($officeManagerPermissions->merge($additionalPermissions));
         }
 
-        // Role 9: Recruiters - Full access except Companies (no contract register), Users (only add agents), Finance (no access)
+        // Role 9: Recruiters - Full access except Companies (no contract register), Users (only add agents), Finance (no access) + Insurance & Notifications
         $recruiters = Role::find(Role::RECRUITERS);
         if ($recruiters) {
             $recruitersPermissions = Permission::whereNotIn('name', [
@@ -177,13 +217,19 @@ class PermissionSeeder extends Seeder
             ])->pluck('id');
             
             $additionalPermissions = Permission::whereIn('name', [
-                Permission::USERS_CREATE_AGENTS
+                Permission::USERS_CREATE_AGENTS,
+                Permission::INSURANCE_READ,
+                Permission::INSURANCE_CREATE,
+                Permission::INSURANCE_UPDATE,
+                Permission::INSURANCE_DELETE,
+                Permission::NOTIFICATIONS_READ,
+                Permission::NOTIFICATIONS_UPDATE
             ])->pluck('id');
             
             $recruiters->permissions()->sync($recruitersPermissions->merge($additionalPermissions));
         }
 
-        // Role 10: Finance - Read-only access to Candidates, Companies, Users, Job Posts; Full access to Finance
+        // Role 10: Finance - Read-only access to Candidates, Companies, Users, Job Posts; Full access to Finance + Insurance & Notifications
         $finance = Role::find(Role::FINANCE);
         if ($finance) {
             $financePermissions = Permission::whereIn('name', [
@@ -194,7 +240,13 @@ class PermissionSeeder extends Seeder
                 Permission::FINANCE_VIEW,
                 Permission::FINANCE_CREATE,
                 Permission::FINANCE_EDIT,
-                Permission::FINANCE_DELETE
+                Permission::FINANCE_DELETE,
+                Permission::INSURANCE_READ,
+                Permission::INSURANCE_CREATE,
+                Permission::INSURANCE_UPDATE,
+                Permission::INSURANCE_DELETE,
+                Permission::NOTIFICATIONS_READ,
+                Permission::NOTIFICATIONS_UPDATE
             ])->pluck('id');
             
             $finance->permissions()->sync($financePermissions);
