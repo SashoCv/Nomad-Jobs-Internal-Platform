@@ -34,12 +34,14 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::USERS_DELETE, 'slug' => 'users-delete', 'description' => 'Delete users'],
             ['name' => Permission::USERS_CREATE_COMPANIES, 'slug' => 'users-create-companies', 'description' => 'Create company users only'],
             ['name' => Permission::USERS_CREATE_AGENTS, 'slug' => 'users-create-agents', 'description' => 'Create agent users only'],
+            ['name' => Permission::USERS_PASSWORD_RESET, 'slug' => 'users-password-reset', 'description' => 'Reset user passwords'],
 
             // Candidates
             ['name' => Permission::CANDIDATES_VIEW, 'slug' => 'candidates-view', 'description' => 'View candidates'],
             ['name' => Permission::CANDIDATES_CREATE, 'slug' => 'candidates-create', 'description' => 'Create candidates'],
             ['name' => Permission::CANDIDATES_EDIT, 'slug' => 'candidates-edit', 'description' => 'Edit candidates'],
             ['name' => Permission::CANDIDATES_DELETE, 'slug' => 'candidates-delete', 'description' => 'Delete candidates'],
+            ['name' => Permission::CANDIDATES_EXPORT, 'slug' => 'candidates-export', 'description' => 'Export candidates'],
 
             // Jobs
             ['name' => Permission::JOBS_VIEW, 'slug' => 'jobs-view', 'description' => 'View job posts'],
@@ -52,6 +54,7 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::FINANCE_CREATE, 'slug' => 'finance-create', 'description' => 'Create finance records'],
             ['name' => Permission::FINANCE_EDIT, 'slug' => 'finance-edit', 'description' => 'Edit finance records'],
             ['name' => Permission::FINANCE_DELETE, 'slug' => 'finance-delete', 'description' => 'Delete finance records'],
+            ['name' => Permission::FINANCE_EXPORT, 'slug' => 'finance-export', 'description' => 'Export finance data'],
 
             // Insurance
             ['name' => Permission::INSURANCE_READ, 'slug' => 'insurance-read', 'description' => 'Read insurance'],
@@ -81,6 +84,10 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::DOCUMENTS_CREATE, 'slug' => 'documents-create', 'description' => 'Create documents'],
             ['name' => Permission::DOCUMENTS_EDIT, 'slug' => 'documents-edit', 'description' => 'Edit documents'],
             ['name' => Permission::DOCUMENTS_DELETE, 'slug' => 'documents-delete', 'description' => 'Delete documents'],
+            ['name' => Permission::DOCUMENTS_UPLOAD, 'slug' => 'documents-upload', 'description' => 'Upload documents'],
+            ['name' => Permission::DOCUMENTS_DOWNLOAD, 'slug' => 'documents-download', 'description' => 'Download documents'],
+            ['name' => Permission::DOCUMENTS_GENERATE, 'slug' => 'documents-generate', 'description' => 'Generate documents'],
+            ['name' => Permission::DOCUMENTS_PREPARATION, 'slug' => 'documents-preparation', 'description' => 'Prepare documents'],
 
             // Status History
             ['name' => Permission::STATUS_HISTORY_VIEW, 'slug' => 'status-history-view', 'description' => 'View status history'],
