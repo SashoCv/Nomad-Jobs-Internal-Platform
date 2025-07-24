@@ -30,10 +30,6 @@ class CompanyJobController extends Controller
 
     public function index(Request $request)
     {
-        if (!$this->canViewJobs()) {
-            return $this->unauthorizedResponse('Cannot view job posts');
-        }
-
         $user = Auth::user();
         $roleId = $user->role_id;
         $contractType = $request->contract_type;
@@ -93,7 +89,7 @@ class CompanyJobController extends Controller
                 break;
         }
 
-        $allJobPostings = $query->get();
+        $allJobPostings = $query->paginate();
 
         return response()->json([
             "status" => "success",

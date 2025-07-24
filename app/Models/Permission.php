@@ -29,6 +29,12 @@ class Permission extends Model
     const COMPANIES_DELETE = 'companies.delete';
     const COMPANIES_CONTRACTS = 'companies.contracts';
     
+    // Company Contracts - separate permissions
+    const COMPANIES_CONTRACTS_VIEW = 'companies.contracts.view';
+    const COMPANIES_CONTRACTS_CREATE = 'companies.contracts.create';
+    const COMPANIES_CONTRACTS_EDIT = 'companies.contracts.edit';
+    const COMPANIES_CONTRACTS_DELETE = 'companies.contracts.delete';
+    
     const INDUSTRIES_VIEW = 'industries.view';
     const INDUSTRIES_CREATE = 'industries.create';
     const INDUSTRIES_EDIT = 'industries.edit';

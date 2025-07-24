@@ -19,6 +19,7 @@ class PermissionSeeder extends Seeder
     {
         // Create all permissions
         $permissions = [
+            ['name' => Permission::DASHBOARD_VIEW, 'slug' => 'dashboard-view', 'description' => 'View dashboard'],
             // Companies
             ['name' => Permission::COMPANIES_VIEW, 'slug' => 'companies-view', 'description' => 'View companies'],
             ['name' => Permission::COMPANIES_CREATE, 'slug' => 'companies-create', 'description' => 'Create companies'],
@@ -61,6 +62,64 @@ class PermissionSeeder extends Seeder
             // Notifications
             ['name' => Permission::NOTIFICATIONS_READ, 'slug' => 'notifications-read', 'description' => 'Read notifications'],
             ['name' => Permission::NOTIFICATIONS_UPDATE, 'slug' => 'notifications-update', 'description' => 'Update notifications'],
+
+            // Agent-Candidate
+            ['name' => Permission::AGENT_CANDIDATES_CHANGE_STATUS, 'slug' => 'agent-candidates-change-status', 'description' => 'Change status of agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_DELETE, 'slug' => 'agent-candidates-delete', 'description' => 'Delete agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_VIEW, 'slug' => 'agent-candidates-view', 'description' => 'View agent candidates'],
+
+
+            // Multi Applicant Generator
+            ['name' => Permission::MULTI_APPLICANT_GENERATOR, 'slug' => 'multi-applicant-generator-access', 'description' => 'Access multi applicant generator'],
+
+            // Contracts
+            ['name' => Permission::EXPIRED_CONTRACTS_VIEW, 'slug' => 'expired-contracts-view', 'description' => 'View expired contracts'],
+            ['name' => Permission::EXPIRED_MEDICAL_INSURANCE_VIEW, 'slug' => 'expired-medical-insurance-view', 'description' => 'View expired medical insurance'],
+
+            // Documents
+            ['name' => Permission::DOCUMENTS_VIEW, 'slug' => 'documents-view', 'description' => 'View documents'],
+            ['name' => Permission::DOCUMENTS_CREATE, 'slug' => 'documents-create', 'description' => 'Create documents'],
+            ['name' => Permission::DOCUMENTS_EDIT, 'slug' => 'documents-edit', 'description' => 'Edit documents'],
+            ['name' => Permission::DOCUMENTS_DELETE, 'slug' => 'documents-delete', 'description' => 'Delete documents'],
+
+            // Status History
+            ['name' => Permission::STATUS_HISTORY_VIEW, 'slug' => 'status-history-view', 'description' => 'View status history'],
+
+            // Job Postings
+            ['name' => Permission::JOB_POSTINGS_VIEW, 'slug' => 'job-postings-view', 'description' => 'View job postings'],
+            ['name' => Permission::JOB_POSTINGS_CREATE, 'slug' => 'job-postings-create', 'description' => 'Create job postings'],
+            ['name' => Permission::JOB_POSTINGS_EDIT, 'slug' => 'job-postings-edit', 'description' => 'Edit job postings'],
+            ['name' => Permission::JOB_POSTINGS_DELETE, 'slug' => 'job-postings-delete', 'description' => 'Delete job postings'],
+
+            // Job Positions
+            ['name' => Permission::JOB_POSITIONS_VIEW, 'slug' => 'job-positions-view', 'description' => 'View job positions'],
+            ['name' => Permission::JOB_POSITIONS_CREATE, 'slug' => 'job-positions-create', 'description' => 'Create job positions'],
+            ['name' => Permission::JOB_POSITIONS_EDIT, 'slug' => 'job-positions-edit', 'description' => 'Edit job positions'],
+            ['name' => Permission::JOB_POSITIONS_DELETE, 'slug' => 'job-positions-delete', 'description' => 'Delete job positions'],
+
+            //Home
+            ['name' => Permission::HOME_VIEW, 'slug' => 'home-view', 'description' => 'View home page'],
+            ['name' => Permission::HOME_ARRIVALS, 'slug' => 'home-arrivals', 'description' => 'View home arrivals'],
+            ['name' => Permission::HOME_FILTER, 'slug' => 'home-filter', 'description' => 'View home filter'],
+            ['name' => Permission::HOME_CHANGE_STATUS, 'slug' => 'home-change-status', 'description' => 'Change status from home page'],
+
+            // Industries
+            ['name' => Permission::INDUSTRIES_VIEW, 'slug' => 'industries-view', 'description' => 'View industries'],
+            ['name' => Permission::INDUSTRIES_CREATE, 'slug' => 'industries-create', 'description' => 'Create industries'],
+            ['name' => Permission::INDUSTRIES_EDIT, 'slug' => 'industries-edit', 'description' => 'Edit industries'],
+            ['name' => Permission::INDUSTRIES_DELETE, 'slug' => 'industries-delete', 'description' => 'Delete industries'],
+
+
+            // Requests
+            ['name' => Permission::REQUESTS_VIEW, 'slug' => 'requests-view', 'description' => 'View requests'],
+            ['name' => Permission::REQUESTS_APPROVE, 'slug' => 'requests-approve', 'description' => 'Approve requests'],
+            ['name' => Permission::REQUESTS_DELETE, 'slug' => 'requests-delete', 'description' => 'Delete requests'],
+
+            // Company Contracts
+            ['name' => Permission::COMPANIES_CONTRACTS_CREATE, 'slug' => 'companies-contracts-create', 'description' => 'Create company contracts'],
+            ['name' => Permission::COMPANIES_CONTRACTS_EDIT, 'slug' => 'companies-contracts-edit', 'description' => 'Edit company contracts'],
+            ['name' => Permission::COMPANIES_CONTRACTS_DELETE, 'slug' => 'companies-contracts-delete', 'description' => 'Delete company contracts'],
+            ['name' => Permission::COMPANIES_CONTRACTS_VIEW, 'slug' => 'companies-contracts-view', 'description' => 'View company contracts'],
         ];
 
         foreach ($permissions as $permission) {
@@ -84,34 +143,65 @@ class PermissionSeeder extends Seeder
         $manager = Role::find(Role::MANAGER);
         if ($manager) {
             $managerPermissions = Permission::whereNotIn('name', [
-                Permission::USERS_VIEW,
-                Permission::USERS_CREATE,
                 Permission::USERS_EDIT,
                 Permission::USERS_DELETE,
                 Permission::FINANCE_CREATE,
                 Permission::FINANCE_EDIT,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
-            
-            $additionalPermissions = Permission::whereIn('name', [
-                Permission::USERS_CREATE_COMPANIES,
-                Permission::FINANCE_VIEW,
-                Permission::INSURANCE_READ,
-                Permission::INSURANCE_CREATE,
-                Permission::INSURANCE_UPDATE,
-                Permission::INSURANCE_DELETE,
-                Permission::NOTIFICATIONS_READ,
-                Permission::NOTIFICATIONS_UPDATE
+
+            $manager->permissions()->sync($managerPermissions);
+        }
+
+        // Role 3: Company User
+        $companyUser = Role::find(Role::COMPANY_USER);
+        if ($companyUser) {
+            $companyUserPermissions = Permission::whereIn('name', [
+                Permission::COMPANIES_VIEW,
+                Permission::COMPANIES_CONTRACTS_VIEW,
+                Permission::COMPANIES_EDIT,
+                Permission::CANDIDATES_VIEW,
+                Permission::JOBS_VIEW,
+                Permission::JOBS_CREATE,
             ])->pluck('id');
-            
-            $manager->permissions()->sync($managerPermissions->merge($additionalPermissions));
+
+            $companyUser->permissions()->sync($companyUserPermissions);
+        }
+
+        // Role 4: Agent - Full access except Companies (no contract register), Users (no access), Finance (no access) + Insurance & Notifications
+        $agent = Role::find(Role::AGENT);
+        if ($agent) {
+            $agentPermissions = Permission::whereIn('name', [
+                Permission::JOB_POSTINGS_VIEW,
+                Permission::CANDIDATES_VIEW,
+            ])->pluck('id');
+
+            $agent->permissions()->sync($agentPermissions);
+        }
+
+        // Role 5: Company Owner - Full access except Users (no access), Finance (no access) + Insurance & Notifications
+        $companyOwner = Role::find(Role::COMPANY_OWNER);
+        if ($companyOwner) {
+            $companyOwnerPermissions = Permission::whereIn('name', [
+                Permission::COMPANIES_VIEW,
+                Permission::COMPANIES_CONTRACTS_VIEW,
+                Permission::COMPANIES_EDIT,
+                Permission::CANDIDATES_VIEW,
+                Permission::JOBS_VIEW,
+                Permission::JOBS_CREATE,
+            ])->pluck('id');
+
+            $companyOwner->permissions()->sync($companyOwnerPermissions);
         }
 
         // Role 6: Office - Full access except Companies (no contract register), Users (no access), Job Posts (no access), Finance (no access) + Insurance & Notifications
         $office = Role::find(Role::OFFICE);
         if ($office) {
             $officePermissions = Permission::whereNotIn('name', [
-                Permission::COMPANIES_CONTRACTS,
+                Permission::COMPANIES_CONTRACTS_CREATE,
+                Permission::COMPANIES_CONTRACTS_EDIT,
+                Permission::COMPANIES_CONTRACTS_DELETE,
+                Permission::COMPANIES_CONTRACTS_VIEW,
                 Permission::USERS_VIEW,
                 Permission::USERS_CREATE,
                 Permission::USERS_EDIT,
@@ -127,24 +217,18 @@ class PermissionSeeder extends Seeder
                 Permission::FINANCE_EDIT,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
-            
-            $additionalPermissions = Permission::whereIn('name', [
-                Permission::INSURANCE_READ,
-                Permission::INSURANCE_CREATE,
-                Permission::INSURANCE_UPDATE,
-                Permission::INSURANCE_DELETE,
-                Permission::NOTIFICATIONS_READ,
-                Permission::NOTIFICATIONS_UPDATE
-            ])->pluck('id');
-            
-            $office->permissions()->sync($officePermissions->merge($additionalPermissions));
+
+            $office->permissions()->sync($officePermissions);
         }
 
         // Role 7: HR - Full access except Companies (no contract register), Users (no access), Finance (no access) + Insurance & Notifications
         $hr = Role::find(Role::HR);
         if ($hr) {
             $hrPermissions = Permission::whereNotIn('name', [
-                Permission::COMPANIES_CONTRACTS,
+                Permission::COMPANIES_CONTRACTS_CREATE,
+                Permission::COMPANIES_CONTRACTS_EDIT,
+                Permission::COMPANIES_CONTRACTS_DELETE,
+                Permission::COMPANIES_CONTRACTS_VIEW,
                 Permission::USERS_VIEW,
                 Permission::USERS_CREATE,
                 Permission::USERS_EDIT,
@@ -156,17 +240,8 @@ class PermissionSeeder extends Seeder
                 Permission::FINANCE_EDIT,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
-            
-            $additionalPermissions = Permission::whereIn('name', [
-                Permission::INSURANCE_READ,
-                Permission::INSURANCE_CREATE,
-                Permission::INSURANCE_UPDATE,
-                Permission::INSURANCE_DELETE,
-                Permission::NOTIFICATIONS_READ,
-                Permission::NOTIFICATIONS_UPDATE
-            ])->pluck('id');
-            
-            $hr->permissions()->sync($hrPermissions->merge($additionalPermissions));
+
+            $hr->permissions()->sync($hrPermissions);
         }
 
         // Role 8: Office Manager - Full access except Candidates (read-only), Users (only add companies), Finance (no access) + Insurance & Notifications
@@ -174,10 +249,12 @@ class PermissionSeeder extends Seeder
         if ($officeManager) {
             $officeManagerPermissions = Permission::whereNotIn('name', [
                 Permission::CANDIDATES_CREATE,
+                Permission::AGENT_CANDIDATES_VIEW,
+                Permission::AGENT_CANDIDATES_CHANGE_STATUS,
+                Permission::AGENT_CANDIDATES_DELETE,
+                Permission::MULTI_APPLICANT_GENERATOR,
                 Permission::CANDIDATES_EDIT,
                 Permission::CANDIDATES_DELETE,
-                Permission::USERS_VIEW,
-                Permission::USERS_CREATE,
                 Permission::USERS_EDIT,
                 Permission::USERS_DELETE,
                 Permission::FINANCE_VIEW,
@@ -185,70 +262,47 @@ class PermissionSeeder extends Seeder
                 Permission::FINANCE_EDIT,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
-            
-            $additionalPermissions = Permission::whereIn('name', [
-                Permission::CANDIDATES_VIEW,
-                Permission::USERS_CREATE_COMPANIES,
-                Permission::INSURANCE_READ,
-                Permission::INSURANCE_CREATE,
-                Permission::INSURANCE_UPDATE,
-                Permission::INSURANCE_DELETE,
-                Permission::NOTIFICATIONS_READ,
-                Permission::NOTIFICATIONS_UPDATE
-            ])->pluck('id');
-            
-            $officeManager->permissions()->sync($officeManagerPermissions->merge($additionalPermissions));
+
+            $officeManager->permissions()->sync($officeManagerPermissions);
         }
 
         // Role 9: Recruiters - Full access except Companies (no contract register), Users (only add agents), Finance (no access) + Insurance & Notifications
         $recruiters = Role::find(Role::RECRUITERS);
         if ($recruiters) {
             $recruitersPermissions = Permission::whereNotIn('name', [
-                Permission::COMPANIES_CONTRACTS,
-                Permission::USERS_VIEW,
-                Permission::USERS_CREATE,
+                Permission::COMPANIES_CONTRACTS_CREATE,
+                Permission::COMPANIES_CONTRACTS_EDIT,
+                Permission::COMPANIES_CONTRACTS_DELETE,
+                Permission::COMPANIES_CONTRACTS_VIEW,
                 Permission::USERS_EDIT,
                 Permission::USERS_DELETE,
-                Permission::USERS_CREATE_COMPANIES,
                 Permission::FINANCE_VIEW,
                 Permission::FINANCE_CREATE,
                 Permission::FINANCE_EDIT,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
-            
-            $additionalPermissions = Permission::whereIn('name', [
-                Permission::USERS_CREATE_AGENTS,
-                Permission::INSURANCE_READ,
-                Permission::INSURANCE_CREATE,
-                Permission::INSURANCE_UPDATE,
-                Permission::INSURANCE_DELETE,
-                Permission::NOTIFICATIONS_READ,
-                Permission::NOTIFICATIONS_UPDATE
-            ])->pluck('id');
-            
-            $recruiters->permissions()->sync($recruitersPermissions->merge($additionalPermissions));
+
+            $recruiters->permissions()->sync($recruitersPermissions);
         }
 
         // Role 10: Finance - Read-only access to Candidates, Companies, Users, Job Posts; Full access to Finance + Insurance & Notifications
         $finance = Role::find(Role::FINANCE);
         if ($finance) {
-            $financePermissions = Permission::whereIn('name', [
-                Permission::CANDIDATES_VIEW,
-                Permission::COMPANIES_VIEW,
-                Permission::USERS_VIEW,
-                Permission::JOBS_VIEW,
-                Permission::FINANCE_VIEW,
-                Permission::FINANCE_CREATE,
-                Permission::FINANCE_EDIT,
-                Permission::FINANCE_DELETE,
-                Permission::INSURANCE_READ,
-                Permission::INSURANCE_CREATE,
-                Permission::INSURANCE_UPDATE,
-                Permission::INSURANCE_DELETE,
-                Permission::NOTIFICATIONS_READ,
-                Permission::NOTIFICATIONS_UPDATE
+            $financePermissions = Permission::whereNotIn('name', [
+                Permission::CANDIDATES_CREATE,
+                Permission::CANDIDATES_EDIT,
+                Permission::CANDIDATES_DELETE,
+                Permission::COMPANIES_CREATE,
+                Permission::COMPANIES_EDIT,
+                Permission::COMPANIES_DELETE,
+                Permission::USERS_CREATE,
+                Permission::USERS_EDIT,
+                Permission::USERS_DELETE,
+                Permission::JOBS_CREATE,
+                Permission::JOBS_EDIT,
+                Permission::JOBS_DELETE,
             ])->pluck('id');
-            
+
             $finance->permissions()->sync($financePermissions);
         }
     }
