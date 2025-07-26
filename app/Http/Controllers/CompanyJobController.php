@@ -36,7 +36,27 @@ class CompanyJobController extends Controller
 
         $query = DB::table('company_jobs')
             ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+            ->leftJoin('agent_candidates', function($join) {
+                $join->on('agent_candidates.company_job_id', '=', 'company_jobs.id')
+                     ->where('agent_candidates.status_for_candidate_from_agent_id', '=', 3);
+            })
             ->select(
+                'company_jobs.id',
+                'companies.logoPath',
+                'companies.companyCity',
+                'company_jobs.company_id',
+                'company_jobs.job_title',
+                'company_jobs.number_of_positions',
+                'company_jobs.contract_type',
+                'company_jobs.job_description',
+                'companies.nameOfCompany',
+                'company_jobs.created_at',
+                'company_jobs.updated_at',
+                'company_jobs.deleted_at',
+                DB::raw("COUNT(agent_candidates.id) as candidates_count")
+            )
+            ->whereNull('company_jobs.deleted_at')
+            ->groupBy(
                 'company_jobs.id',
                 'companies.logoPath',
                 'companies.companyCity',
@@ -50,7 +70,6 @@ class CompanyJobController extends Controller
                 'company_jobs.updated_at',
                 'company_jobs.deleted_at'
             )
-            ->whereNull('company_jobs.deleted_at')
             ->orderBy('company_jobs.created_at', 'desc');
 
         if ($contractType) {
@@ -88,6 +107,7 @@ class CompanyJobController extends Controller
                 $query->whereIn('company_jobs.id', $companyJobIds);
                 break;
         }
+
 
         $allJobPostings = $query->paginate();
 
