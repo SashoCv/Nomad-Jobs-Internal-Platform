@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
+use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Traits\HasRolePermissions;
 use App\Jobs\SendEmailToCompany;
 use App\Models\Arrival;
@@ -96,9 +97,7 @@ class ArrivalController extends Controller
                 ]
             );
 
-            // Dispatch jobs
-//            dispatch(new SendEmailForArrivalCandidates($arrival, $statusId));
-//            dispatch(new SendEmailToCompany($arrival->id));
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate));
 
             DB::commit();
 
@@ -165,9 +164,7 @@ class ArrivalController extends Controller
                 ]
             );
 
-            // Dispatch jobs
-            dispatch(new SendEmailForArrivalCandidates($arrival, $statusId)); // Here we need to change mail content for update
-            dispatch(new SendEmailToCompany($arrival->id)); // Also we need to change mail content for update
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate));
 
             DB::commit();
 

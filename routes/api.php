@@ -268,7 +268,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Arrivals
-    Route::post('storeArrival', [ArrivalController::class, 'store']); // i need statushistories
+    Route::post('storeArrival', [ArrivalController::class, 'store']); // i need statushistories mail also here
     Route::post('updateArrival/{id}', [ArrivalController::class, 'update']);
     Route::get('getAllArrivals', [ArrivalController::class, 'index']);
     Route::delete('deleteArrival/{id}', [ArrivalController::class, 'destroy']);

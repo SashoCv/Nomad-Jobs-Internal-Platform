@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
+use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Traits\HasRolePermissions;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
@@ -111,23 +112,16 @@ class StatusController extends Controller
             $statusHistory->statusDate = Carbon::createFromFormat('m-d-Y', $statusDate)->format('Y-m-d');
             $statusHistory->description = $description;
 
-            if (!$statusHistory->save()) {
+            if ($statusHistory->save()) {
+                dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate));
+
                 return response()->json([
-                    'status' => 500,
-                    'message' => 'Failed to save status history',
-                    'data' => [],
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $statusHistory,
                 ]);
             }
         }
-
-
-//            $companyForThisCandidate = $candidate->company_id;
-//            $companyName = Company::where('id', $companyForThisCandidate)->first();
-
-//            $notificationData = [
-//                'message' => 'Status for candidate ' . $candidate->fullNameCyrillic . ' has been changed', 'company' => $companyName->nameOfCompany,
-//                'type' => 'Changed Status',
-//            ];
     }
     /**
      * Remove the specified resource from storage.
