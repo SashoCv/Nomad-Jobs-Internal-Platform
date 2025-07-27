@@ -123,7 +123,10 @@ class PermissionSeeder extends Seeder
         // Role 1: General Manager - Full access
         $generalManager = Role::find(Role::GENERAL_MANAGER);
         if ($generalManager) {
-            $allPermissions = Permission::all()->pluck('id');
+            $allPermissions = Permission::whereNotIn('name', [
+                Permission::CHANGE_LOGS_CREATE,
+            ])->pluck('id');
+
             $generalManager->permissions()->sync($allPermissions);
         }
 
@@ -153,6 +156,7 @@ class PermissionSeeder extends Seeder
                 Permission::JOB_POSTINGS_CREATE,
                 Permission::COMPANY_JOB_REQUESTS_READ,
                 Permission::CHANGE_LOGS_READ,
+                Permission::CHANGE_LOGS_CREATE,
             ])->pluck('id');
 
             $companyUser->permissions()->sync($companyUserPermissions);
@@ -181,6 +185,7 @@ class PermissionSeeder extends Seeder
                 Permission::JOB_POSTINGS_CREATE,
                 Permission::COMPANY_JOB_REQUESTS_READ,
                 Permission::CHANGE_LOGS_READ,
+                Permission::CHANGE_LOGS_CREATE,
             ])->pluck('id');
 
             $companyOwner->permissions()->sync($companyOwnerPermissions);
