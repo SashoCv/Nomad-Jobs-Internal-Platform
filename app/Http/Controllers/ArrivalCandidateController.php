@@ -93,21 +93,41 @@ class ArrivalCandidateController extends Controller
                         ->first();
                 }
 
-                // Calculate availableStatuses using the same logic as searchCandidateNew
+                // Calculate availableStatuses and addArrival using the same logic as searchCandidateNew
                 $availableStatuses = [];
+                $addArrival = false;
                 if($latestStatus){
+                    $currentStatusId = $latestStatus->status_id;
                     $nextStatusOrder = $latestStatus->status->order + 1;
                     $nextStatus = $allStatuses->firstWhere('order', $nextStatusOrder);
 
                     if($nextStatus) {
                         $status = $nextStatus->id;
                         $availableStatuses = [$status, 11, 12, 13, 14];
+                        if($status === 18){
+                            $availableStatuses = [$status, 11, 12, 13, 14];
+                            $addArrival = true;
+                        } else {
+                            $addArrival = false;
+                        }
                     } else {
-                        // If no next status, show all available statuses
-                        $availableStatuses = $allStatuses->pluck('id')->toArray();
+                        // If no next status, check if candidate is at status 18 or beyond
+                        if($currentStatusId >= 18) {
+                            // For candidates at status 18 and beyond, allow transition to termination statuses and next sequential status
+                            $availableStatuses = [11, 12, 13, 14];
+                            // Add next sequential statuses if they exist
+                            $higherStatuses = $allStatuses->where('order', '>', $latestStatus->status->order)->pluck('id')->toArray();
+                            $availableStatuses = array_merge($availableStatuses, $higherStatuses);
+                            $availableStatuses = array_unique($availableStatuses);
+                        } else {
+                            // For other cases, show all available statuses
+                            $availableStatuses = $allStatuses->pluck('id')->toArray();
+                        }
+                        $addArrival = false;
                     }
                 } else {
                     $availableStatuses = $allStatuses->pluck('id')->toArray();
+                    $addArrival = false;
                 }
 
                 return [
@@ -119,6 +139,8 @@ class ArrivalCandidateController extends Controller
                     'companyName' => $candidate->company?->nameOfCompany,
                     'phoneNumber' => $candidate->phoneNumber,
                     'availableStatuses' => $availableStatuses,
+                    'addArrival' => $addArrival,
+                    'has_files' => File::where('candidate_id', $candidate->id)->exists(),
                     'statusHistories' => $latestStatus ? [
                         'id' => $latestStatus->id,
                         'description' => $latestStatus->description,
