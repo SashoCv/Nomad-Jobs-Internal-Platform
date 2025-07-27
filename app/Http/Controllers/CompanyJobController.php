@@ -16,6 +16,7 @@ use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Permission;
 
 class CompanyJobController extends Controller
 {
@@ -197,6 +198,12 @@ class CompanyJobController extends Controller
         if ($this->checkPermission(Permission::JOBS_READ)) {
             $companyJob = CompanyJob::where('id', $id)->first();
 
+            $candidates_count = DB::table('agent_candidates')
+                ->where('company_job_id', $id)
+                ->where('status_for_candidate_from_agent_id', 3)
+                ->count();
+
+            $companyJob->candidates_count = $candidates_count;
             if (!$companyJob) {
                 return response()->json([
                     "status" => "error",
