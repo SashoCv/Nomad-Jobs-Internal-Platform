@@ -31,14 +31,67 @@ class ChangeLogController extends Controller
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+
+    public function approveChangeLog($id)
     {
-        //
+        try {
+            $changeLog = ChangeLog::findOrFail($id);
+            $changeLog->status = 'approved';
+            $changeLog->isApplied = true;
+            $changeLog->save();
+
+            $tableName = $changeLog->tableName;
+            $recordId = $changeLog->record_id;
+            $fieldName = $changeLog->fieldName;
+            $newValue = $changeLog->newValue;
+            if ($tableName === 'company_jobs') {
+                $model = \App\Models\CompanyJob::findOrFail($recordId);
+                $model->{$fieldName} = $newValue;
+            } elseif ($tableName === 'contract_pricing') {
+                $model = \App\Models\ContractPricing::findOrFail($recordId);
+                $model->{$fieldName} = $newValue;
+            } else {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Invalid table name"
+                ], 400);
+            }
+            $model->save();
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Change log approved successfully",
+                "data" => $changeLog
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Failed to approve change log",
+                "error" => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function rejectChangeLog($changeLogId)
+    {
+        try {
+            $changeLog = ChangeLog::findOrFail($changeLogId);
+            $changeLog->status = 'rejected';
+            $changeLog->isApplied = false;
+            $changeLog->save();
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Change log rejected successfully",
+                "data" => $changeLog
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Failed to reject change log",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -159,10 +212,24 @@ class ChangeLogController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\ChangeLog  $changeLog
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(ChangeLog $changeLog)
+    public function destroy($id)
     {
-        //
+        try {
+            $changeLog = ChangeLog::findOrFail($id);
+            $changeLog->delete();
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Change log deleted successfully"
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Failed to delete change log",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
 }

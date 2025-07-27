@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\File;
@@ -48,6 +49,7 @@ class CandidateService
             ];
 
             $candidate->statusHistories()->create($statusHistory);
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidate->id, Carbon::now()->toDateString()));
 
             // Handle file uploads
             $this->handleFileUploads($candidate, $data);

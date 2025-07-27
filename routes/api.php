@@ -343,5 +343,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('storeChangeLog', [ChangeLogController::class, 'store']);
     Route::get('changeLogs', [ChangeLogController::class, 'index']);
     Route::post('approveLog/{id}', [ChangeLogController::class, 'approveLog']);
+    Route::post('approveChangeLog/{id}', [ChangeLogController::class, 'approveChangeLog']);
+    Route::post('declineChangeLog/{id}', [ChangeLogController::class, 'rejectChangeLog']);
+    Route::delete('deleteChangeLog/{id}', [ChangeLogController::class, 'destroy']);
 });
 
