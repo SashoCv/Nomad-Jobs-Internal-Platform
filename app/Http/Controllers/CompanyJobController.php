@@ -244,6 +244,7 @@ class CompanyJobController extends Controller
         $user = Auth::user();
 
         if ($this->checkPermission(Permission::JOBS_UPDATE)) {
+            $companyJob = CompanyJob::find($companyJobId);
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
