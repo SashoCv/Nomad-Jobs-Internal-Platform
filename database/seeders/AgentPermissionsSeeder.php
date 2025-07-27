@@ -15,16 +15,16 @@ class AgentPermissionsSeeder extends Seeder
     public function run(): void
     {
         // Agent permissions - limited access
-        // Allowed to VIEW job postings and full CRUD for candidates
+        // Allowed to VIEW job postings and specific agent candidate operations
         $allowedPermissions = [
-            Permission::JOB_POSTINGS_VIEW,
-            Permission::CANDIDATES_VIEW,
-            Permission::CANDIDATES_CREATE,
-            Permission::CANDIDATES_EDIT,
-            Permission::CANDIDATES_DELETE,
+            Permission::JOB_POSTINGS_READ,
+            Permission::CANDIDATES_READ,
+            Permission::AGENT_CANDIDATES_CREATE,
+            Permission::AGENT_CANDIDATES_CHANGE_STATUS,
+            Permission::AGENT_CANDIDATES_DELETE,
         ];
 
-        $permissionIds = Permission::whereIn('slug', $allowedPermissions)
+        $permissionIds = Permission::whereIn('name', $allowedPermissions)
             ->pluck('id')->toArray();
 
         // Assign permissions to Agent role (role_id = 4)
@@ -34,8 +34,9 @@ class AgentPermissionsSeeder extends Seeder
             
             echo "Agent permissions assigned successfully!\n";
             echo "Agent has access to " . count($permissionIds) . " permissions:\n";
-            echo "- Job Postings: VIEW only\n";
-            echo "- Candidates: FULL ACCESS (view, create, edit, delete)\n";
+            echo "- Job Postings: READ only\n";
+            echo "- Candidates: READ only\n";
+            echo "- Agent Candidates: CREATE, CHANGE_STATUS, DELETE\n";
             echo "Agent has NO access to other modules (uses existing role-based logic).\n";
         } else {
             echo "Agent role not found!\n";

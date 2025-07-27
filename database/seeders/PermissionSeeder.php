@@ -54,9 +54,10 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::NOTIFICATIONS_READ, 'slug' => 'notifications:read', 'description' => 'Read notifications'],
             ['name' => Permission::NOTIFICATIONS_UPDATE, 'slug' => 'notifications:update', 'description' => 'Update notifications'],
 
+            ['name' => Permission::AGENT_CANDIDATES_READ, 'slug' => 'agent_candidates:read', 'description' => 'Read agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_CREATE, 'slug' => 'agent_candidates:create', 'description' => 'Create agent candidates'],
             ['name' => Permission::AGENT_CANDIDATES_CHANGE_STATUS, 'slug' => 'agent_candidates:change_status', 'description' => 'Change status of agent candidates'],
             ['name' => Permission::AGENT_CANDIDATES_DELETE, 'slug' => 'agent_candidates:delete', 'description' => 'Delete agent candidates'],
-            ['name' => Permission::AGENT_CANDIDATES_READ, 'slug' => 'agent_candidates:read', 'description' => 'Read agent candidates'],
 
 
             ['name' => Permission::MULTI_APPLICANT_GENERATOR, 'slug' => 'multi_applicant_generator:access', 'description' => 'Access multi applicant generator'],
