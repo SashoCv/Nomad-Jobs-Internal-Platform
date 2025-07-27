@@ -125,7 +125,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
             // Log success
             Log::info("Email sent successfully to " . $data['candidateName']);
         } catch (\Exception $e) {
-            // Log any error if mail fails to send
+            Log::info("Failed to send email for candidate ID: " . $this->candidateId);
             Log::error("Error sending email: " . $e->getMessage());
         }
     }

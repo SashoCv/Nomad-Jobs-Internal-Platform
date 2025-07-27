@@ -228,7 +228,9 @@ class ArrivalCandidateController extends Controller
 
                 Log::info('Notification created for status update: ' . json_encode($notificationData));
                 UsersNotificationRepository::createNotificationForUsers($notification);
+
                 dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate));
+                Log::info('Email job dispatched for status update: ' . $request->status_id . ' for candidate ID: ' . $id);
             }
 
             return response()->json([
