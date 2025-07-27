@@ -76,12 +76,6 @@ class Permission extends Model
     const JOB_POSITIONS_CREATE = 'job_positions:create';
     const JOB_POSITIONS_UPDATE = 'job_positions:update';
     const JOB_POSITIONS_DELETE = 'job_positions:delete';
-
-    const JOBS_READ = 'jobs:read';
-    const JOBS_CREATE = 'jobs:create';
-    const JOBS_UPDATE = 'jobs:update';
-    const JOBS_DELETE = 'jobs:delete';
-
     const FINANCE_READ = 'finances:read';
     const FINANCE_CREATE = 'finances:create';
     const FINANCE_UPDATE = 'finances:update';

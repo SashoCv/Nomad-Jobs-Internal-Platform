@@ -40,11 +40,6 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::CANDIDATES_DELETE, 'slug' => 'candidates:delete', 'description' => 'Delete candidates'],
             ['name' => Permission::CANDIDATES_EXPORT, 'slug' => 'candidates:export', 'description' => 'Export candidates'],
 
-            ['name' => Permission::JOBS_READ, 'slug' => 'jobs:read', 'description' => 'Read job posts'],
-            ['name' => Permission::JOBS_CREATE, 'slug' => 'jobs:create', 'description' => 'Create job posts'],
-            ['name' => Permission::JOBS_UPDATE, 'slug' => 'jobs:update', 'description' => 'Edit job posts'],
-            ['name' => Permission::JOBS_DELETE, 'slug' => 'jobs:delete', 'description' => 'Delete job posts'],
-
             ['name' => Permission::FINANCE_READ, 'slug' => 'finances:read', 'description' => 'Read finance'],
             ['name' => Permission::FINANCE_CREATE, 'slug' => 'finances:create', 'description' => 'Create finance records'],
             ['name' => Permission::FINANCE_UPDATE, 'slug' => 'finances:update', 'description' => 'Edit finance records'],
@@ -205,10 +200,6 @@ class PermissionSeeder extends Seeder
                 Permission::USERS_DELETE,
                 Permission::USERS_CREATE_COMPANIES,
                 Permission::USERS_CREATE_AGENTS,
-                Permission::JOBS_READ,
-                Permission::JOBS_CREATE,
-                Permission::JOBS_UPDATE,
-                Permission::JOBS_DELETE,
                 Permission::FINANCE_READ,
                 Permission::FINANCE_CREATE,
                 Permission::FINANCE_UPDATE,
@@ -295,9 +286,6 @@ class PermissionSeeder extends Seeder
                 Permission::USERS_CREATE,
                 Permission::USERS_UPDATE,
                 Permission::USERS_DELETE,
-                Permission::JOBS_CREATE,
-                Permission::JOBS_UPDATE,
-                Permission::JOBS_DELETE,
             ])->pluck('id');
 
             $finance->permissions()->sync($financePermissions);

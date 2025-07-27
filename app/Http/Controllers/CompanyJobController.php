@@ -128,7 +128,7 @@ class CompanyJobController extends Controller
     {
         $user = Auth::user();
 
-        if ($this->checkPermission(Permission::JOBS_CREATE)) {
+        if ($this->checkPermission(Permission::JOB_POSTINGS_CREATE)) {
             $companyJob = new CompanyJob();
 
             $companyJob->user_id = $user->id;
