@@ -127,11 +127,16 @@ class CompanyJobController extends Controller
     {
         $user = Auth::user();
 
-        if ($this->isStaff() || $user->role_id == Role::COMPANY_USER || $user->role_id == Role::COMPANY_OWNER) {
+        if ($this->checkPermission(Permission::JOBS_CREATE)) {
             $companyJob = new CompanyJob();
 
             $companyJob->user_id = $user->id;
-            $companyJob->company_id = $user->role_id == Role::COMPANY_USER ? $user->company_id : $request->company_id;
+            // Set company_id based on user role - company users can only create for their company
+            if ($user->hasRole(Role::COMPANY_USER)) {
+                $companyJob->company_id = $user->company_id;
+            } else {
+                $companyJob->company_id = $request->company_id;
+            }
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
@@ -189,7 +194,7 @@ class CompanyJobController extends Controller
     {
         $user = Auth::user();
 
-        if ($this->isStaff() || $user->role_id == Role::COMPANY_OWNER || $user->role_id == Role::COMPANY_USER) {
+        if ($this->checkPermission(Permission::JOBS_READ)) {
             $companyJob = CompanyJob::where('id', $id)->first();
 
             if (!$companyJob) {
@@ -231,8 +236,7 @@ class CompanyJobController extends Controller
     {
         $user = Auth::user();
 
-        if ($this->isStaff() || $user->role_id == Role::COMPANY_OWNER || $user->role_id == Role::COMPANY_USER) {
-            $companyJob = CompanyJob::find($companyJobId);
+        if ($this->checkPermission(Permission::JOBS_UPDATE)) {
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;

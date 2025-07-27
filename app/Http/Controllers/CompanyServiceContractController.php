@@ -9,6 +9,7 @@ use App\Models\CompanyFile;
 use App\Models\CompanyServiceContract;
 use App\Models\ContractPricing;
 use App\Models\Role;
+use App\Models\Permission;
 use App\Http\Transformers\TransformCompanyServiceContract;
 use App\Models\UserOwner;
 use Illuminate\Http\Request;
@@ -27,37 +28,33 @@ class CompanyServiceContractController extends Controller
     {
         try {
             // Check if the user is authorized to view the contracts
-            if($this->isStaff()) {
+            $user = Auth::user();
 
-            $companyServiceContracts = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','company.companyFiles'])->get();
+            if (!$this->checkPermission(Permission::COMPANIES_CONTRACTS_READ)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
+            $query = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','company.companyFiles']);
+
+            if ($this->isStaff()) {
+                // Staff can see all contracts
+                $companyServiceContracts = $query->get();
+            } else if ($user->hasRole(Role::COMPANY_USER)) {
+                // Company users see only their company's contracts
+                $companyServiceContracts = $query->where('company_id', $user->company_id)->get();
+            } else if ($user->hasRole(Role::COMPANY_OWNER)) {
+                // Company owners see contracts for companies they own
+                $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
+                $companyServiceContracts = $query->whereIn('company_id', $companyIds)->get();
+            } else {
+                // Default: no contracts visible
+                $companyServiceContracts = collect();
+            }
 
             $transformer = new TransformCompanyServiceContract();
             $transformedData = $transformer->transform($companyServiceContracts);
 
             return response()->json($transformedData);
-            } else if (Auth::user()->role_id ==3) {
-                $companyId = Auth::user()->company_id;
-                $companyServiceContracts = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','company.companyFiles'])
-                    ->where('company_id', $companyId)
-                    ->get();
-
-                $transformer = new TransformCompanyServiceContract();
-                $transformedData = $transformer->transform($companyServiceContracts);
-
-                return response()->json($transformedData);
-            } else if( Auth::user()->role_id == 5) {
-                $companyIds = UserOwner::where('user_id', Auth::id())
-                    ->pluck('company_id');
-                $companyServiceContracts = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','company.companyFiles'])
-                    ->whereIn('company_id', $companyIds)
-                    ->get();
-
-                $transformer = new TransformCompanyServiceContract();
-
-                $transformedData = $transformer->transform($companyServiceContracts);
-
-                return response()->json($transformedData);
-            }
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to retrieve contracts: ' . $e->getMessage()], 500);
         }
@@ -82,31 +79,31 @@ class CompanyServiceContractController extends Controller
     public function store(Request $request)
     {
         try {
-            if($this->isStaff()) {
-                $request->validate([
-                    'company_id' => 'required|exists:companies,id',
-                    'contractNumber' => 'required|string|max:255',
-                    'agreement_type' => 'required|in:' . implode(',', [
-                            CompanyServiceContract::AGREEMENT_TYPE_STANDARD,
-                            // Add more agreement types here if needed
-                        ]),
-                    'status' => 'required|in:' . implode(',', [
-                            CompanyServiceContract::STATUS_PENDING,
-                            CompanyServiceContract::STATUS_ACTIVE,
-                            CompanyServiceContract::STATUS_EXPIRED,
-                            CompanyServiceContract::STATUS_TERMINATED
-                        ]),
-                    'contractDate' => 'required|date',
-                ]);
-
-
-                $companyServiceContract = new CompanyServiceContract($request->all());
-                $companyServiceContract->save();
-
-                return response()->json($companyServiceContract, 201);
-            } else {
-                return response()->json(['error' => 'Unauthorized'], 403);
+            if (!$this->checkPermission(Permission::COMPANIES_CONTRACTS_CREATE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
             }
+
+            $request->validate([
+                'company_id' => 'required|exists:companies,id',
+                'contractNumber' => 'required|string|max:255',
+                'agreement_type' => 'required|in:' . implode(',', [
+                        CompanyServiceContract::AGREEMENT_TYPE_STANDARD,
+                        // Add more agreement types here if needed
+                    ]),
+                'status' => 'required|in:' . implode(',', [
+                        CompanyServiceContract::STATUS_PENDING,
+                        CompanyServiceContract::STATUS_ACTIVE,
+                        CompanyServiceContract::STATUS_EXPIRED,
+                        CompanyServiceContract::STATUS_TERMINATED
+                    ]),
+                'contractDate' => 'required|date',
+            ]);
+
+
+            $companyServiceContract = new CompanyServiceContract($request->all());
+            $companyServiceContract->save();
+
+            return response()->json($companyServiceContract, 201);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to create contract: ' . $e->getMessage()], 400);
         }
@@ -116,6 +113,10 @@ class CompanyServiceContractController extends Controller
     public function storeContractFileForCompany(Request $request)
     {
         try {
+            if (!$this->checkPermission(Permission::DOCUMENTS_CREATE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $request->validate([
                 'company_service_contract_id' => 'required|exists:company_service_contracts,id',
                 'file' => 'required|file', // Adjust file types and size as needed
@@ -215,27 +216,31 @@ class CompanyServiceContractController extends Controller
     public function update(Request $request, $id)
     {
         try {
-                $request->validate([
-                    'company_id' => 'required|exists:companies,id',
-                    'contractNumber' => 'required|string|max:255',
-                    'agreement_type' => 'required|in:' . implode(',', [
-                            CompanyServiceContract::AGREEMENT_TYPE_STANDARD,
-                            // Add more agreement types here if needed
-                        ]),
-                    'status' => 'required|in:' . implode(',', [
-                            CompanyServiceContract::STATUS_PENDING,
-                            CompanyServiceContract::STATUS_ACTIVE,
-                            CompanyServiceContract::STATUS_EXPIRED,
-                            CompanyServiceContract::STATUS_TERMINATED
-                        ]),
-                    'contractDate' => 'required|date',
-                ]);
+            if (!$this->checkPermission(Permission::COMPANIES_CONTRACTS_UPDATE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
 
-                $companyServiceContract = CompanyServiceContract::findOrFail($id);
-                $companyServiceContract->fill($request->all());
-                $companyServiceContract->save();
+            $request->validate([
+                'company_id' => 'required|exists:companies,id',
+                'contractNumber' => 'required|string|max:255',
+                'agreement_type' => 'required|in:' . implode(',', [
+                        CompanyServiceContract::AGREEMENT_TYPE_STANDARD,
+                        // Add more agreement types here if needed
+                    ]),
+                'status' => 'required|in:' . implode(',', [
+                        CompanyServiceContract::STATUS_PENDING,
+                        CompanyServiceContract::STATUS_ACTIVE,
+                        CompanyServiceContract::STATUS_EXPIRED,
+                        CompanyServiceContract::STATUS_TERMINATED
+                    ]),
+                'contractDate' => 'required|date',
+            ]);
 
-                return response()->json($companyServiceContract, 200);
+            $companyServiceContract = CompanyServiceContract::findOrFail($id);
+            $companyServiceContract->fill($request->all());
+            $companyServiceContract->save();
+
+            return response()->json($companyServiceContract, 200);
 
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to update contract: ' . $e->getMessage()], 400);
@@ -251,6 +256,10 @@ class CompanyServiceContractController extends Controller
     public function destroy($id)
     {
         try {
+            if (!$this->checkPermission(Permission::COMPANIES_CONTRACTS_DELETE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $contractPricing = ContractPricing::where('company_service_contract_id', $id)->get();
             if($contractPricing->isNotEmpty()) {
                 foreach ($contractPricing as $pricing) {
@@ -279,6 +288,10 @@ class CompanyServiceContractController extends Controller
     public function deleteContractFile($id)
     {
         try {
+            if (!$this->checkPermission(Permission::DOCUMENTS_DELETE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $companyId = CompanyServiceContract::where('id', $id)->value('company_id');
             $companyFile = CompanyFile::where('company_id', $companyId)
                 ->where('fileName', 'Contract File')->get();
