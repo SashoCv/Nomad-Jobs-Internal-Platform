@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\ChangeLog;
+use App\Models\Role;
+use App\Models\UserOwner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ChangeLogController extends Controller
 {
@@ -16,6 +19,18 @@ class ChangeLogController extends Controller
     {
         try {
             $changeLogs = ChangeLog::with(['user','user.company'])->get();
+
+            if(Auth::user()->hasRole(Role::COMPANY_USER)) {
+                $changeLogs = $changeLogs->filter(function ($log) {
+                    return $log->company_id === Auth::user()->company_id;
+                });
+            } elseif(Auth::user()->hasRole(Role::COMPANY_OWNER)) {
+                $companyIds = UserOwner::where('user_id', Auth::id())
+                    ->pluck('company_id');
+                $changeLogs = $changeLogs->filter(function ($log) use ($companyIds) {
+                    return $companyIds->contains($log->company_id);
+                });
+            }
 
             return response()->json([
                 "status" => "success",
