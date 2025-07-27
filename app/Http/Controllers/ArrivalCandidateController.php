@@ -18,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
@@ -97,7 +98,7 @@ class ArrivalCandidateController extends Controller
                 if($latestStatus){
                     $nextStatusOrder = $latestStatus->status->order + 1;
                     $nextStatus = $allStatuses->firstWhere('order', $nextStatusOrder);
-                    
+
                     if($nextStatus) {
                         $status = $nextStatus->id;
                         $availableStatuses = [$status, 11, 12, 13, 14];
@@ -224,6 +225,8 @@ class ArrivalCandidateController extends Controller
                 ];
 
                 $notification = NotificationRepository::createNotification($notificationData);
+
+                Log::info('Notification created for status update: ' . json_encode($notificationData));
                 UsersNotificationRepository::createNotificationForUsers($notification);
                 dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate));
             }
@@ -233,6 +236,7 @@ class ArrivalCandidateController extends Controller
                 'arrivalCandidate' => $statusHistory,
             ]);
         } catch (\Exception $e) {
+            Log::info('Error updating arrival candidate: ' . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
