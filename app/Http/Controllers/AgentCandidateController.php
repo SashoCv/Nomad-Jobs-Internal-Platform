@@ -74,7 +74,7 @@ class AgentCandidateController extends Controller
 
     public function agentAddCandidateForAssignedJob(Request $request)
     {
-        if (!$this->checkPermission(Permission::CANDIDATES_CREATE)) {
+        if (!$this->checkPermission(Permission::AGENT_CANDIDATES_CREATE)) {
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 

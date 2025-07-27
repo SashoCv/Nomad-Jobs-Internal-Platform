@@ -204,6 +204,11 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::AGENT_CANDIDATES_CHANGE_STATUS);
     }
 
+    protected function canCreateAgentCandidates()
+    {
+        return $this->checkPermission(Permission::AGENT_CANDIDATES_CREATE);
+    }
+
     protected function canDeleteAgentCandidates()
     {
         return $this->checkPermission(Permission::AGENT_CANDIDATES_DELETE);

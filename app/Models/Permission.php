@@ -49,6 +49,7 @@ class Permission extends Model
     const CANDIDATES_EXPORT = 'candidates:export';
 
     const AGENT_CANDIDATES_READ = 'agent_candidates:read';
+    const AGENT_CANDIDATES_CREATE = 'agent_candidates:create';
     const AGENT_CANDIDATES_CHANGE_STATUS = 'agent_candidates:change_status';
     const AGENT_CANDIDATES_DELETE = 'agent_candidates:delete';
 
