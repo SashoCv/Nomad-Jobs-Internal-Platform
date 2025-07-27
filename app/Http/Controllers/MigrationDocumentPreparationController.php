@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Exports\InvoicesExport;
 use App\Exports\MigrationDocumentPreparationExport;
 use App\Models\MigrationDocumentPreparation;
+use App\Models\Permission;
+use App\Traits\HasRolePermissions;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class MigrationDocumentPreparationController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -21,6 +24,13 @@ class MigrationDocumentPreparationController extends Controller
      */
     public function index(Request $request)
     {
+        if (!$this->checkPermission(Permission::DOCUMENTS_PREPARATION)) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Unauthorized access",
+            ], 403);
+        }
+        
         try {
             $searchByUser = $request->user_id;
             $searchByCompany = $request->company_id;
@@ -74,6 +84,13 @@ class MigrationDocumentPreparationController extends Controller
 
     public function export(Request $request)
     {
+        if (!$this->checkPermission(Permission::DOCUMENTS_PREPARATION)) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Unauthorized access",
+            ], 403);
+        }
+        
         try {
             $searchByUser = $request->user_id;
             $searchByCompany = $request->company_id;
@@ -139,6 +156,13 @@ class MigrationDocumentPreparationController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$this->checkPermission(Permission::DOCUMENTS_PREPARATION)) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Unauthorized access",
+            ], 403);
+        }
+        
         try {
             $migrationDocumentPreparation = new MigrationDocumentPreparation();
             $migrationDocumentPreparation->candidate_id = $request->candidate_id;
@@ -175,6 +199,13 @@ class MigrationDocumentPreparationController extends Controller
      */
     public function show($id)
     {
+        if (!$this->checkPermission(Permission::DOCUMENTS_PREPARATION)) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Unauthorized access",
+            ], 403);
+        }
+        
         try {
             $migrationDocumentPreparation = MigrationDocumentPreparation::select(
                 'id',
@@ -226,6 +257,13 @@ class MigrationDocumentPreparationController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!$this->checkPermission(Permission::DOCUMENTS_PREPARATION)) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Unauthorized access",
+            ], 403);
+        }
+        
         try {
             $migrationDocumentPreparation = MigrationDocumentPreparation::find($id);
             $migrationDocumentPreparation->candidate_id = $request->candidate_id;
@@ -261,6 +299,13 @@ class MigrationDocumentPreparationController extends Controller
      */
     public function destroy($id)
     {
+        if (!$this->checkPermission(Permission::DOCUMENTS_PREPARATION)) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Unauthorized access",
+            ], 403);
+        }
+        
         try {
             $migrationDocumentPreparation = MigrationDocumentPreparation::find($id);
             if($migrationDocumentPreparation->delete()) {
