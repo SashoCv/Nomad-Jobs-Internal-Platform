@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpWord\Writer\PDF\DomPDF;
 use Svg\Tag\Rect;
+use App\Models\Permission;
 
 class CandidateController extends Controller
 {
