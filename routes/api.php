@@ -17,8 +17,10 @@ use App\Http\Controllers\ItemsForInvoicesController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\ChangeLogController;
 use App\Http\Controllers\StatushistoryController;
 use App\Http\Controllers\UserNotificationController;
+use App\Http\Controllers\ContractPricingController;
 use App\Http\Controllers\UserOwnerController;
 use App\Http\Controllers\AsignCandidateToNomadOfficeController;
 use App\Http\Controllers\InvoiceCompanyController;
@@ -32,6 +34,10 @@ use App\Http\Controllers\CashPaymentForCandidatesController;
 use App\Http\Controllers\MigrationDocumentPreparationController;
 use App\Http\Controllers\StatusForCandidateFromAgentController;
 use App\Http\Controllers\MedicalInsuranceController;
+use App\Http\Controllers\CompanyServiceContractController;
+use App\Http\Controllers\ContractServiceTypeController;
+use App\Http\Controllers\CompanyRequestController;
+use App\Http\Controllers\StatisticController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -64,6 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     Route::get('user', [LoginController::class, 'user'])->name('user');
+    Route::get('roles', [LoginController::class, 'roles']);
+    Route::get('rolesIdAndName', [LoginController::class, 'rolesIdAndName']);
     Route::get('admins', [LoginController::class, 'admins']);
     Route::post('changePasswordForUser', [LoginController::class, 'changePasswordForUser']);
 
@@ -110,7 +118,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
     Route::get('getCandidatesForCompany/{id}', [CandidateController::class, 'getCandidatesForCompany']);
     Route::post('extendContractForCandidate/{id}', [CandidateController::class, 'extendContractForCandidate']);
-
+    Route::get('exportCandidates', [CandidateController::class, 'exportCandidates']); // new route for exporting candidates with latest status
+    Route::get('exportCandidatesBasedOnStatus', [CandidateController::class, 'exportCandidatesBasedOnStatus']); // new route for exporting candidates based on status
 
 
     // Files
@@ -259,7 +268,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Arrivals
-    Route::post('storeArrival', [ArrivalController::class, 'store']);
+    Route::post('storeArrival', [ArrivalController::class, 'store']); // i need statushistories mail also here
     Route::post('updateArrival/{id}', [ArrivalController::class, 'update']);
     Route::get('getAllArrivals', [ArrivalController::class, 'index']);
     Route::delete('deleteArrival/{id}', [ArrivalController::class, 'destroy']);
@@ -298,5 +307,44 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('deleteMigrationDocumentPreparation/{id}', [MigrationDocumentPreparationController::class, 'destroy']);
     Route::get('exportMigrationDocumentPreparation', [MigrationDocumentPreparationController::class, 'export']);
 
+
+
+    // Statistics DASHBOARD
+    Route::get('statistics', [StatisticController::class, 'statistics']);
+
+
+    // Company Service Contract
+    Route::post('storeCompanyServiceContract', [CompanyServiceContractController::class, 'store']);
+    Route::post('storeContractFileForCompany', [CompanyServiceContractController::class, 'storeContractFileForCompany']);
+    Route::get('downloadContractFile/{companyId}', [CompanyServiceContractController::class, 'downloadContractFile']);
+    Route::get('getCompanyServiceContracts', [CompanyServiceContractController::class, 'index']);
+    Route::get('getCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'show']);
+    Route::post('updateCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'update']);
+    Route::delete('deleteCompanyServiceContract/{id}', [CompanyServiceContractController::class, 'destroy']);
+    Route::delete('deleteContractFile/{id}', [CompanyServiceContractController::class, 'deleteContractFile']);
+    // Contract Service Types
+    Route::get('getContractServiceTypes', [ContractServiceTypeController::class, 'index']);
+
+    // Contract Pricing
+    Route::post('storeContractPricing', [ContractPricingController::class, 'store']);
+    Route::get('getContractPricing/{id}', [ContractPricingController::class, 'show']);
+    Route::delete('deleteContractPricing/{id}', [ContractPricingController::class, 'destroy']);
+
+
+    // Company Requests
+    Route::get('companyRequests', [CompanyRequestController::class, 'index']);
+    Route::get('showPriceForCompanyBasedOnRequest/{id}', [CompanyRequestController::class, 'showPriceBasedOnRequest']);
+
+    Route::post('approveCompanyRequest/{id}', [CompanyRequestController::class, 'approveCompanyRequest']);
+    Route::post('rejectCompanyRequest/{id}', [CompanyRequestController::class, 'rejectCompanyRequest']);
+
+
+    // Change Logs
+    Route::post('storeChangeLog', [ChangeLogController::class, 'store']);
+    Route::get('changeLogs', [ChangeLogController::class, 'index']);
+    Route::post('approveLog/{id}', [ChangeLogController::class, 'approveLog']);
+    Route::post('approveChangeLog/{id}', [ChangeLogController::class, 'approveChangeLog']);
+    Route::post('declineChangeLog/{id}', [ChangeLogController::class, 'rejectChangeLog']);
+    Route::delete('deleteChangeLog/{id}', [ChangeLogController::class, 'destroy']);
 });
 

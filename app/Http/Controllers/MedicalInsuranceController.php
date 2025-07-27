@@ -32,8 +32,8 @@ class MedicalInsuranceController extends Controller
                 ->where('candidate_id', $id)
                 ->get()
                 ->map(function ($insurance) {
-                    $insurance->dateFrom = Carbon::parse($insurance->dateFrom)->format('d-m-Y');
-                    $insurance->dateTo = Carbon::parse($insurance->dateTo)->format('d-m-Y');
+                    $insurance->dateFrom = Carbon::parse($insurance->dateFrom)->toISOString();
+                    $insurance->dateTo = Carbon::parse($insurance->dateTo)->toISOString();
                     return $insurance;
                 });
 
@@ -62,8 +62,8 @@ class MedicalInsuranceController extends Controller
                 ->first();
 
             if ($medicalInsurance) {
-                $medicalInsurance->dateFrom = Carbon::parse($medicalInsurance->dateFrom)->format('d-m-Y');
-                $medicalInsurance->dateTo = Carbon::parse($medicalInsurance->dateTo)->format('d-m-Y');
+                $medicalInsurance->dateFrom = Carbon::parse($medicalInsurance->dateFrom)->toISOString();
+                $medicalInsurance->dateTo = Carbon::parse($medicalInsurance->dateTo)->toISOString();
             }
 
 
@@ -113,11 +113,12 @@ class MedicalInsuranceController extends Controller
             $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
                 ->with($this->withCandidateRelations())
                 ->where('dateTo', '<=', $thirtyDaysAgo)
+                ->orderBy('dateTo', 'desc')
                 ->paginate();
 
             $medicalInsurances->getCollection()->transform(function ($insurance) {
-                $insurance->dateFrom = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateFrom)->format('d-m-Y');
-                $insurance->dateTo = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateTo)->format('d-m-Y');
+                $insurance->dateFrom = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateFrom)->toISOString();
+                $insurance->dateTo = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateTo)->toISOString();
                 return $insurance;
             });
 

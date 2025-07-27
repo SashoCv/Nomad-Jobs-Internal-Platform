@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\InvoicesExport;
+use App\Traits\HasRolePermissions;
 use App\Models\Company;
 use App\Models\InvoiceCompany;
 use App\Models\InvoiceCompanyCandidate;
@@ -18,6 +19,7 @@ use Maatwebsite\Excel\Excel;
 
 class InvoiceCompanyController extends Controller
 {
+    use HasRolePermissions;
     protected $excel;
 
     public function __construct(Excel $excel)
@@ -27,7 +29,7 @@ class InvoiceCompanyController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
                 $query = InvoiceCompany::with([
                     'company' => function ($query) {
                         $query->select('id', 'nameOfCompany');
@@ -287,7 +289,7 @@ class InvoiceCompanyController extends Controller
     public function destroy($id): JsonResponse
     {
         try {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
 
                 $invoiceCompany = InvoiceCompany::find($id);
                 $itemInvoice = ItemInvoice::where('invoice_companies_id', $id)->get();
@@ -313,7 +315,7 @@ class InvoiceCompanyController extends Controller
     public function invoicePaid(Request $request, $id): JsonResponse
     {
         try {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
 
                 $invoiceCompany = InvoiceCompany::find($id);
 
@@ -340,7 +342,7 @@ class InvoiceCompanyController extends Controller
     public function downloadExcelForInvoices(Request $request)
     {
         try {
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+            if ($this->isStaff()) {
 
                 $invoices = InvoiceCompanyCandidate::with('candidate', 'invoiceCompany', 'invoiceCompany.company', 'invoiceCompany.itemInvoice')
                     ->get();

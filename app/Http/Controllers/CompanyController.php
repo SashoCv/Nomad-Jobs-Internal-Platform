@@ -9,193 +9,236 @@ use App\Models\CompanyAdress;
 use App\Models\File;
 use App\Models\User;
 use App\Models\UserOwner;
+use App\Traits\HasRolePermissions;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
-
+/**
+ * Class CompanyController
+ *
+ * Handles CRUD operations for companies with role-based access control
+ */
 class CompanyController extends Controller
 {
+    use HasRolePermissions;
+
+    const ROLE_COMPANY_USER = 3;
+    const ROLE_OWNER = 5;
 
 
-    public function index()
+    /**
+     * Display a listing of companies based on user role.
+     *
+     * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $companies = Company::with('company_addresses')->get();
+        $user = Auth::user();
 
-            return response()->json([
-                'status' => 200,
-                'data' => $companies
-            ]);
-        } else if (Auth::user()->role_id == 3) {
-            $companies = Company::where('id', '=', Auth::user()->company_id)->get(['id', 'nameOfCompany']);
+        $companies = match(true) {
+            $this->isStaff() => $this->getCompaniesForAdmin(),
+            $user->role_id === self::ROLE_COMPANY_USER => $this->getCompaniesForCompanyUser($user),
+            $user->role_id === self::ROLE_OWNER => $this->getCompaniesForOwner($user),
+            default => collect([])
+        };
 
-            return response()->json([
-                'status' => 200,
-                'data' => $companies
-            ]);
-        } else if (Auth::user()->role_id == 5) {
-            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = [];
-            foreach ($userOwners as $userOwner) {
-                array_push($userOwnersArray, $userOwner->company_id);
-            }
-            $companies = Company::with('company_addresses')->whereIn('id', $userOwnersArray)->get();
+        return response()->json([
+            'status' => 200,
+            'data' => $companies
+        ]);
+    }
 
+    /**
+     * Get companies for admin users
+     */
+    private function getCompaniesForAdmin()
+    {
+        return Company::with('company_addresses')->get();
+    }
 
-            return response()->json([
-                'status' => 200,
-                'data' => $companies
-            ]);
-        }
+    /**
+     * Get companies for company users
+     */
+    private function getCompaniesForCompanyUser($user)
+    {
+        return Company::where('id', $user->company_id)->get(['id', 'nameOfCompany']);
+    }
+
+    /**
+     * Get companies for owner users
+     */
+    private function getCompaniesForOwner($user)
+    {
+        $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
+        return Company::with('company_addresses')->whereIn('id', $companyIds)->get();
     }
 
 
-    public function validateCompanyByEik($eik)
+    /**
+     * Validate if company exists by EIK
+     *
+     * @param string $eik
+     * @return bool
+     */
+    private function validateCompanyByEik(string $eik): bool
     {
-        $allCompanies = Company::all();
-        $company = $allCompanies->where('EIK', '=', $eik)->first();
+        return Company::byEik($eik)->exists();
+    }
 
-        if($company){
-            return true;
-        } else {
-            return false;
+    /**
+     * Handle file upload for company
+     *
+     * @param Request $request
+     * @param Company $company
+     * @param string $fileField
+     * @param string $pathField
+     * @param string $nameField
+     */
+    private function handleFileUpload(Request $request, Company $company, string $fileField, string $pathField, string $nameField): void
+    {
+        if ($request->hasFile($fileField)) {
+            $path = Storage::disk('public')->put('companyImages', $request->file($fileField));
+            $company->$pathField = $path;
+            $company->$nameField = $request->file($fileField)->getClientOriginalName();
         }
     }
-    public function store(Request $request)
+
+    /**
+     * Handle company addresses creation/update
+     *
+     * @param Company $company
+     * @param array $addresses
+     * @param bool $isUpdate
+     */
+    private function handleCompanyAddresses(Company $company, array $addresses, bool $isUpdate = false): void
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($isUpdate) {
+            CompanyAdress::where('company_id', $company->id)->delete();
+        }
 
-            $eik = $request->EIK;
-
-            if($this->validateCompanyByEik($eik)){
-                throw new \Exception('Company with this EIK already exists!');
-            }
-
-            if($request->commissionRate == "null"){
-                $commissionRate = null;
-            } else {
-                $commissionRate = $request->commissionRate;
-            }
-
-            $company = new Company();
-
-            if ($request->hasFile('companyLogo')) {
-                Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
-                $name = Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
-                $company->logoPath = $name;
-                $company->logoName = $request->file('companyLogo')->getClientOriginalName();
-            }
-
-            if ($request->hasFile('companyStamp')) {
-                Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
-                $name = Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
-                $company->stampPath = $name;
-                $company->stampName = $request->file('companyStamp')->getClientOriginalName();
-            }
-
-            $company->nameOfCompany = $request->nameOfCompany;
-            $company->address = $request->address;
-            $company->email = $request->email;
-            $company->website = $request->website;
-            $company->phoneNumber = $request->phoneNumber;
-            $company->EIK = $request->EIK;
-            $company->contactPerson = $request->contactPerson;
-            $company->EGN = $request->EGN;
-            $company->dateBornDirector = $request->dateBornDirector;
-            $company->companyCity = $request->companyCity;
-            $company->industry_id = $request->industry_id;
-            $company->foreignersLC12 = $request->foreignersLC12;
-            $company->description = $request->description;
-            $company->nameOfContactPerson = $request->nameOfContactPerson;
-            $company->phoneOfContactPerson = $request->phoneOfContactPerson;
-            $company->director_idCard = $request->director_idCard;
-            $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
-            $company->commissionRate = $commissionRate;
-
-
-
-            if ($request->employedByMonths) {
-                $employedByMonths = json_decode(json_encode($request->employedByMonths));
-            }
-
-            $company->employedByMonths = $employedByMonths ?? Null;
-
-            $company_addresses = json_decode($request->company_addresses, true);
-            Log::info('company_addresses:', [$company_addresses]);
-            Log::info('request_company_addresses:', [$request->company_addresses]);
-
-            if ($company->save()) {
-
-                if ($company_addresses) {
-                    foreach ($company_addresses as $address) {
-                        $companyAddress = new CompanyAdress();
-                        $companyAddress->company_id = $company->id;
-                        $companyAddress->address = $address['address'];
-                        $companyAddress->city = $address['city'];
-                        $companyAddress->state = $address['state'];
-                        $companyAddress->zip_code = $address['zip_code'];
-                        $companyAddress->save();
-                    }
-                }
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $company
-
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'data' => []
-                ]);
-            }
-        } else {
+        foreach ($addresses as $address) {
+            CompanyAdress::create([
+                'company_id' => $company->id,
+                'address' => $address['address'],
+                'city' => $address['city'],
+                'state' => $address['state'],
+                'zip_code' => $address['zip_code']
+            ]);
+        }
+    }
+    /**
+     * Store a newly created company in storage.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function store(Request $request): JsonResponse
+    {
+        if (!$this->isStaff()) {
             return response()->json([
                 'success' => false,
                 'status' => 403,
                 'data' => []
             ]);
         }
-    }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function show($id)
-    {
-        if(Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-            $company = Company::with(['industry','company_addresses'])->where('id', '=', $id)->first();
-        } else if(Auth::user()->role_id == 3) {
-            $company = Company::with(['industry','company_addresses'])->where('id', '=', Auth::user()->company_id)->first();
-        } else if(Auth::user()->role_id == 5) {
-            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = [];
-            foreach($userOwners as $userOwner) {
-                array_push($userOwnersArray, $userOwner->company_id);
+        try {
+            if ($this->validateCompanyByEik($request->EIK)) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 422,
+                    'message' => 'Company with this EIK already exists!'
+                ]);
             }
-            $company = Company::with(['industry','company_addresses'])->whereIn('id', $userOwnersArray)->where('id', '=', $id)->first();
-        }
 
-        if($company){
+            DB::beginTransaction();
+
+            $companyData = $request->only([
+                'nameOfCompany', 'address', 'email', 'companyEmail', 'website',
+                'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
+                'companyCity', 'industry_id', 'foreignersLC12', 'description',
+                'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
+                'director_date_of_issue_idCard'
+            ]);
+
+            $companyData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
+            $companyData['employedByMonths'] = $request->employedByMonths ?: null;
+
+            $company = Company::create($companyData);
+
+            $this->handleFileUpload($request, $company, 'companyLogo', 'logoPath', 'logoName');
+            $this->handleFileUpload($request, $company, 'companyStamp', 'stampPath', 'stampName');
+
+            $company->save();
+
+            $companyAddresses = json_decode($request->company_addresses, true);
+            if ($companyAddresses) {
+                $this->handleCompanyAddresses($company, $companyAddresses);
+            }
+
+            DB::commit();
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => $company
-            ],200);
-        } else {
+                'data' => $company->load('company_addresses')
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating company: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'status' => 500,
-                'data' => []
-            ],500);
+                'message' => 'Error creating company'
+            ]);
         }
+    }
+
+    /**
+     * Display the specified company.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(int $id): JsonResponse
+    {
+        $user = Auth::user();
+
+        $company = match(true) {
+            $this->isStaff() =>
+                Company::with(['industry', 'company_addresses'])->find($id),
+            $user->role_id === self::ROLE_COMPANY_USER =>
+                Company::with(['industry', 'company_addresses'])
+                    ->where('id', $user->company_id)
+                    ->first(),
+            $user->role_id === self::ROLE_OWNER =>
+                Company::with(['industry', 'company_addresses'])
+                    ->whereIn('id', UserOwner::where('user_id', $user->id)->pluck('company_id'))
+                    ->where('id', $id)
+                    ->first(),
+            default => null
+        };
+
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'status' => 404,
+                'message' => 'Company not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $company
+        ]);
     }
 
     /**
@@ -210,149 +253,102 @@ class CompanyController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified company in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\JsonResponse
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id): JsonResponse
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if (!$this->isStaff()) {
+            return response()->json([
+                'success' => false,
+                'status' => 403,
+                'message' => 'Unauthorized'
+            ]);
+        }
 
+        try {
+            $company = Company::findOrFail($id);
 
-            if ($request->addressOne === 'null') {
-                $addressOne = Null;
-            } else {
-                $addressOne = $request->addressOne;
+            DB::beginTransaction();
+
+            $updateData = $request->only([
+                'nameOfCompany', 'address', 'email', 'companyEmail', 'website',
+                'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
+                'companyCity', 'industry_id', 'foreignersLC12', 'description',
+                'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
+                'director_date_of_issue_idCard'
+            ]);
+
+            $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
+            $updateData['employedByMonths'] = $request->employedByMonths === 'null' ? null : $request->employedByMonths;
+
+            $company->fill($updateData);
+
+            $this->handleFileUpload($request, $company, 'companyLogo', 'logoPath', 'logoName');
+            $this->handleFileUpload($request, $company, 'companyStamp', 'stampPath', 'stampName');
+
+            $company->save();
+
+            $companyAddresses = json_decode($request->company_addresses, true);
+            if ($companyAddresses) {
+                $this->handleCompanyAddresses($company, $companyAddresses, true);
             }
 
-            if ($request->addressTwo === 'null') {
-                $addressTwo = Null;
-            } else {
-                $addressTwo = $request->addressTwo;
-            }
+            DB::commit();
 
-            if ($request->addressThree === 'null') {
-                $addressThree = Null;
-            } else {
-                $addressThree = $request->addressThree;
-            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $company->load('company_addresses')
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating company: ' . $e->getMessage());
 
-            if ($request->employedByMonths === 'null') {
-                $employedByMonths = Null;
-            } else {
-                $employedByMonths = json_decode(json_encode($request->employedByMonths));
-            }
-
-            if ($request->description === 'null') {
-                $description = Null;
-            } else {
-                $description = $request->description;
-            }
-
-            $company = Company::where('id', '=', $id)->first();
-
-            if ($request->hasFile('companyLogo')) {
-                Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
-                $name = Storage::disk('public')->put('companyImages', $request->file('companyLogo'));
-                $company->logoPath = $name;
-                $company->logoName = $request->file('companyLogo')->getClientOriginalName();
-            }
-
-            if ($request->hasFile('companyStamp')) {
-                Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
-                $name = Storage::disk('public')->put('companyImages', $request->file('companyStamp'));
-                $company->stampPath = $name;
-                $company->stampName = $request->file('companyStamp')->getClientOriginalName();
-            }
-
-            if($request->commissionRate == 'null'){
-                $commissionRate = null;
-            } else {
-                $commissionRate = $request->commissionRate;
-            }
-
-            $company->nameOfCompany = $request->nameOfCompany;
-            $company->address = $request->address;
-            $company->email = $request->email;
-            $company->website = $request->website;
-            $company->phoneNumber = $request->phoneNumber;
-            $company->EIK = $request->EIK;
-            $company->contactPerson = $request->contactPerson;
-            $company->EGN = $request->EGN;
-            $company->dateBornDirector = $request->dateBornDirector;
-            $company->companyCity = $request->companyCity;
-            $company->industry_id = $request->industry_id;
-            $company->foreignersLC12 = $request->foreignersLC12;
-            $company->description = $request->description;
-            $company->nameOfContactPerson = $request->nameOfContactPerson;
-            $company->phoneOfContactPerson = $request->phoneOfContactPerson;
-            $company->director_idCard = $request->director_idCard;
-            $company->director_date_of_issue_idCard = $request->director_date_of_issue_idCard;
-            $company->commissionRate = $commissionRate;
-
-            $company_addresses = json_decode($request->company_addresses, true);
-
-
-            if ($company->save()) {
-                if ($company_addresses) {
-                    $companyAddresses = CompanyAdress::where('company_id', '=', $company->id)->get();
-                    foreach ($companyAddresses as $companyAddress) {
-                        $companyAddress->delete();
-                    }
-                    foreach ($company_addresses as $address) {
-                        $companyAddress = new CompanyAdress();
-                        $companyAddress->company_id = $company->id;
-                        $companyAddress->address = $address['address'];
-                        $companyAddress->city = $address['city'];
-                        $companyAddress->state = $address['state'];
-                        $companyAddress->zip_code = $address['zip_code'];
-                        $companyAddress->save();
-                    }
-                }
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $company,
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'data' => [],
-                ]);
-            }
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Error updating company'
+            ]);
         }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified company from storage.
      *
-     * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\JsonResponse
+     * @param int $id
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if (!$this->isStaff()) {
+            return response()->json([
+                'success' => false,
+                'status' => 403,
+                'message' => 'Unauthorized'
+            ]);
+        }
 
-            try {
-                $company = Company::findOrFail($id);
-                $company->delete();
+        try {
+            $company = Company::findOrFail($id);
+            $company->delete();
 
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => []
-                ]);
-            } catch (\Exception $e) {
-                Log::info('Error deleting company:', [$e->getMessage()]);
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'data' => []
-                ]);
-            }
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Company deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting company: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Error deleting company'
+            ]);
         }
     }
 }

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
+use App\Jobs\SendEmailForArrivalStatusCandidates;
+use App\Traits\HasRolePermissions;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Category;
 use App\Models\Status;
+use App\Models\Statushistory;
 use App\Models\UserNotification;
 use App\Repository\NotificationRepository;
 use Carbon\Carbon;
@@ -19,6 +22,7 @@ use App\Repository\UsersNotificationRepository;
 
 class StatusController extends Controller
 {
+    use HasRolePermissions;
 
     public function __construct(
         private UsersNotificationRepository $usersNotificationRepository,
@@ -95,84 +99,30 @@ class StatusController extends Controller
     public function updateStatusForCandidate(Request $request)
     {
 
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
-            $idForCandidate = $request->candidate_id;
-            $changedStatus = $request->status_id;
+            $candidate_id = $request->candidate_id;
+            $status_id = $request->status_id;
+            $description = $request->description ?? null;
+            $statusDate = $request->statusDate ?? Carbon::now()->format('Y-m-d');
 
-            $candidate = Candidate::where('id', $idForCandidate)->first();
-            $candidate->status_id = $changedStatus;
+            $statusHistory = new Statushistory();
+            $statusHistory->candidate_id = $candidate_id;
+            $statusHistory->status_id = $status_id;
+            $statusHistory->statusDate = Carbon::createFromFormat('m-d-Y', $statusDate)->format('Y-m-d');
+            $statusHistory->description = $description;
 
-            $companyForThisCandidate = $candidate->company_id;
-            $companyName = Company::where('id', $companyForThisCandidate)->first();
-
-            $notificationData = [
-                'message' => 'Status for candidate ' . $candidate->fullNameCyrillic . ' has been changed', 'company' => $companyName->nameOfCompany,
-                'type' => 'Changed Status',
-            ];
-
-
-            // implement the sendEmailRepositoryForCreateStatusForCandidate
-
-            if ($candidate->save()) {
-
-                $notification = NotificationRepository::createNotification($notificationData);
-                UsersNotificationRepository::createNotificationForUsers($notification);
-
-                if($candidate->status_id == 4){
-                    $arrival = new Arrival();
-
-                    $arrival->company_id = $candidate->company_id;
-                    $arrival->candidate_id = $candidate->id;
-                    $arrival->arrival_date =  null;
-                    $arrival->arrival_time = null;
-                    $arrival->arrival_location = null;
-                    $arrival->arrival_flight = null;
-                    $arrival->where_to_stay = null;
-                    $arrival->phone_number = null;
-
-                    if ($arrival->save()) {
-                        $arrivalCandidate = new ArrivalCandidate();
-
-                        $arrivalCandidate->arrival_id = $arrival->id;
-                        $arrivalCandidate->status_arrival_id = 7;  // Poluchil viza
-                        $arrivalCandidate->status_description = 'Получил виза';
-                        $arrivalCandidate->status_date = Carbon::now()->format('d-m-Y');
-
-                        $arrivalCandidate->save();
-
-
-                        $category = new Category();
-                        $category->nameOfCategory = 'Documents For Arrival Candidates';
-                        $category->candidate_id = $request->candidate_id;
-                        $category->role_id = 2;
-                        $category->isGenerated = 0;
-                        $category->save();
-                    }
-
-                }
+            if ($statusHistory->save()) {
+                dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate));
 
                 return response()->json([
+                    'success' => true,
                     'status' => 200,
-                    'message' => 'you have updated the status',
-                    'data' => $candidate,
-                ]);
-            } else {
-                return response()->json([
-                    'status' => 500,
-                    'message' => 'something went wrong',
-                    'data' => [],
+                    'data' => $statusHistory,
                 ]);
             }
-        } else {
-            return response()->json([
-                'status' => 500,
-                'message' => 'you dont have permissions',
-                'data' => [],
-            ]);
         }
     }
-
     /**
      * Remove the specified resource from storage.
      *

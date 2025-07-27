@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Role;
+use App\Traits\HasRolePermissions;
 use App\Models\User;
 use App\Models\UserOwner;
 use Carbon\Carbon;
@@ -17,12 +19,13 @@ use Illuminate\Support\Facades\URL;
 
 class LoginController extends Controller
 {
+    use HasRolePermissions;
 
     public function user(Request $request)
     {
         try {
             $user_id = Auth::user()->id;
-            $user = User::with('role')->where('id', $user_id)->first();
+            $user = User::with(['role', 'role.permissions'])->where('id', $user_id)->first();
 
             return response()->json([
                 'success' => true,
@@ -39,13 +42,59 @@ class LoginController extends Controller
         }
     }
 
+    public function roles()
+    {
+        try {
+            $roles = Role::with('permissions')->get();
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $roles
+            ]);
+        } catch (Exception $e) {
+            Log::info($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ]);
+        }
+    }
+
+    public function rolesIdAndName()
+    {
+        try {
+            if(Auth::user()->role_id == 1){
+                $roles = Role::select('id', 'roleName')->get();
+            } else if (Auth::user()->role_id == 2 || Auth::user()->role_id == 8){
+                $roles = Role::select('id', 'roleName')->where('id', '=', 3)
+                    ->orWhere('id', '=', 5)
+                    ->get();
+            } else if (Auth::user()->role_id == 9) {
+                $roles = Role::select('id', 'roleName')->where('id', '=', 4)
+                    ->get();
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $roles
+            ]);
+        } catch (Exception $e) {
+            Log::info($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'data' => []
+            ]);
+        }
+    }
+
 
     public function admins()
     {
-
-
             $admins = User::where('role_id', 1)->where('email', '!=', "phoenix.dev.mk@gmail.com")->get();
-
 
             return response()->json([
                 "status" => 200,
@@ -68,12 +117,12 @@ class LoginController extends Controller
             $users = User::with(['company', 'role'])
                 ->where('id','!=','22')
                 ->where('role_id', $role_id)->get();
-        } else {
+        } else if ($this->isStaff()){
             $users = User::with(['company', 'role'])
                 ->where('id','!=','22')->get();
         }
 
-        if (Auth::user()->role_id == 1) {
+        if ($users && $users->count() > 0) {
             return response()->json([
                 'success' => true,
                 'status' => 200,

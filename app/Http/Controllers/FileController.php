@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidate;
+use App\Traits\HasRolePermissions;
 use App\Models\Category;
 use App\Models\File;
 use Illuminate\Http\Request;
@@ -13,10 +14,11 @@ use ZipArchive;
 
 class FileController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
@@ -80,7 +82,7 @@ class FileController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -139,7 +141,7 @@ class FileController extends Controller
 
         $categoriesQuery = Category::where('candidate_id', $id);
 
-        if ($userRoleId == 1 || $userRoleId == 2) {
+        if ($this->isStaff()) {
             $categoriesQuery->whereNull('candidate_id')->orWhere('candidate_id', $id);
         } elseif ($userRoleId == 3) {
             $categoriesQuery->where('role_id', 3)->orWhere('role_id', 4);
@@ -164,7 +166,7 @@ class FileController extends Controller
 
         $files = $filesQuery->get();
 
-        $candidatePassport = ($userRoleId == 1) ? Candidate::where('id', $id)->value('passportPath') : null;
+        $candidatePassport = $this->isStaff() ? Candidate::where('id', $id)->value('passportPath') : null;
 
         return response()->json([
             'success' => true,
@@ -192,11 +194,11 @@ class FileController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\File  $file
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
 
             $fileDelete = File::findOrFail($id);
 

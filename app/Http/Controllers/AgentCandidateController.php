@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AgentCandidateResource;
+use App\Traits\HasRolePermissions;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\File;
+use App\Models\Role;
+use App\Models\Permission;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use Illuminate\Http\Request;
@@ -20,6 +23,7 @@ use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class AgentCandidateController extends Controller
 {
+    use HasRolePermissions;
     public function __construct(
     ) {
     }
@@ -29,6 +33,11 @@ class AgentCandidateController extends Controller
         if(!Auth::user()){
             return response()->json(['message' => 'Unauthorized'], 401);
         }
+
+        if (!$this->checkPermission(Permission::DOCUMENTS_DOWNLOAD)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $candidateCategoryId = Category::where('candidate_id', $candidateId)->where('nameOfCategory', 'files from agent')->first()->id;
 
         if(!$candidateCategoryId){
@@ -65,6 +74,10 @@ class AgentCandidateController extends Controller
 
     public function agentAddCandidateForAssignedJob(Request $request)
     {
+        if (!$this->checkPermission(Permission::AGENT_CANDIDATES_CREATE)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $getCompanyJob = DB::table('company_jobs')->where('id', $request->company_job_id)->first();
         if(!$getCompanyJob){
             return response()->json(['message' => 'Job not found'], 404);
@@ -174,7 +187,7 @@ class AgentCandidateController extends Controller
             ];
 
             $categoryForFiles = new Category();
-            $categoryForFiles->role_id = 4;
+            $categoryForFiles->role_id = Role::AGENT;
             $categoryForFiles->nameOfCategory = 'files from agent';
             $categoryForFiles->candidate_id = $person->id;
             $categoryForFiles->isGenerated = 0;
@@ -223,6 +236,10 @@ class AgentCandidateController extends Controller
     public function getCandidatesForAssignedJob($id)
     {
         try {
+            if (!$this->checkPermission(Permission::AGENT_CANDIDATES_READ)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id');
 
@@ -240,6 +257,10 @@ class AgentCandidateController extends Controller
     public function getAllCandidatesFromAgents(Request $request)
     {
         try {
+            if (!$this->checkPermission(Permission::AGENT_CANDIDATES_READ)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $companyId = $request->company_id;
             $name = $request->name;
             $status = $request->status;
@@ -253,19 +274,21 @@ class AgentCandidateController extends Controller
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
                 ->orderBy('company_jobs.company_id', 'desc');
 
+            $user = Auth::user();
+
             if ($request->company_job_id != null) {
-                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
+                if ($this->isStaff() || $user->hasRole(Role::COMPANY_USER) || $user->hasRole(Role::COMPANY_OWNER)) {
                     $query->where('company_job_id', $request->company_job_id);
-                } else if (Auth::user()->role_id == 4) {
+                } else if ($user->hasRole(Role::AGENT)) {
                     $query->where('agent_candidates.user_id', $user_id)
                         ->where('company_job_id', $request->company_job_id);
                 }
             } else {
-                if (Auth::user()->role_id == 1) {
+                if ($user->hasRole(Role::GENERAL_MANAGER)) {
                     $query->where('nomad_office_id', null);
-                } else if (Auth::user()->role_id == 2){
+                } else if ($user->hasRole(Role::MANAGER)){
                     $query->where('agent_candidates.nomad_office_id', $user_id);
-                } else if (Auth::user()->role_id == 4) {
+                } else if ($user->hasRole(Role::AGENT)) {
                     $query->where('agent_candidates.user_id', $user_id);
                 }
             }
@@ -307,6 +330,10 @@ class AgentCandidateController extends Controller
     public function destroy($id)
     {
         try {
+            if (!$this->checkPermission(Permission::AGENT_CANDIDATES_DELETE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
             if ($agentCandidate) {
                 $agentCandidate->delete();

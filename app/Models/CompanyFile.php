@@ -9,6 +9,15 @@ class CompanyFile extends Model
 {
     use HasFactory;
 
+    protected $table = 'company_files';
+
+    protected $fillable = [
+        'company_id',
+        'company_category_id',
+        'fileName',
+        'filePath',
+    ];
+
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id');

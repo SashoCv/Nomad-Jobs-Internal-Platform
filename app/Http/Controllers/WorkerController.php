@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidate;
+use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class WorkerController extends Controller
 {
+    use HasRolePermissions;
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +17,7 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        if (Auth::user()->role_id == 1) {
+        if ($this->isStaff()) {
             $workers = Candidate::where('type_id', '=', 2)->get();
             return response()->json([
                 'success' => true,

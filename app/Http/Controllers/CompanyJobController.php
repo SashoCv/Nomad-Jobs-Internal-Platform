@@ -2,31 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AgentCandidate;
-use App\Models\AssignedJob;
 use App\Models\Company;
 use App\Models\CompanyJob;
+use App\Models\CompanyRequest;
 use App\Models\User;
 use App\Models\UserOwner;
+use App\Models\Role;
+use App\Models\AssignedJob;
 use App\Notifications\CompanyJobCreatedNotification;
 use App\Repository\NotificationRepository;
 use App\Repository\SendEmailRepositoryForCreateCompanyJob;
 use App\Repository\UsersNotificationRepository;
+use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification as FacadesNotification;
+use App\Models\Permission;
 
 class CompanyJobController extends Controller
 {
+    use HasRolePermissions;
 
-    public function __construct(
-        private UsersNotificationRepository $usersNotificationRepository,
-        private NotificationRepository $notificationRepository,
-        private SendEmailRepositoryForCreateCompanyJob $sendEmailRepositoryForCreateCompanyJob
-    ) {
+    protected SendEmailRepositoryForCreateCompanyJob $sendEmailRepositoryForCreateCompanyJob;
+
+    public function __construct(SendEmailRepositoryForCreateCompanyJob $sendEmailRepositoryForCreateCompanyJob)
+    {
+        $this->sendEmailRepositoryForCreateCompanyJob = $sendEmailRepositoryForCreateCompanyJob;
     }
-
 
     public function index(Request $request)
     {
@@ -36,7 +38,27 @@ class CompanyJobController extends Controller
 
         $query = DB::table('company_jobs')
             ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+            ->leftJoin('agent_candidates', function($join) {
+                $join->on('agent_candidates.company_job_id', '=', 'company_jobs.id')
+                     ->where('agent_candidates.status_for_candidate_from_agent_id', '=', 3);
+            })
             ->select(
+                'company_jobs.id',
+                'companies.logoPath',
+                'companies.companyCity',
+                'company_jobs.company_id',
+                'company_jobs.job_title',
+                'company_jobs.number_of_positions',
+                'company_jobs.contract_type',
+                'company_jobs.job_description',
+                'companies.nameOfCompany',
+                'company_jobs.created_at',
+                'company_jobs.updated_at',
+                'company_jobs.deleted_at',
+                DB::raw("COUNT(agent_candidates.id) as candidates_count")
+            )
+            ->whereNull('company_jobs.deleted_at')
+            ->groupBy(
                 'company_jobs.id',
                 'companies.logoPath',
                 'companies.companyCity',
@@ -50,7 +72,6 @@ class CompanyJobController extends Controller
                 'company_jobs.updated_at',
                 'company_jobs.deleted_at'
             )
-            ->whereNull('company_jobs.deleted_at')
             ->orderBy('company_jobs.created_at', 'desc');
 
         if ($contractType) {
@@ -58,44 +79,40 @@ class CompanyJobController extends Controller
         }
 
         switch ($roleId) {
-            case 1:
-            case 2:
+            case Role::GENERAL_MANAGER:
+            case Role::MANAGER:
+            case Role::OFFICE:
+            case Role::HR:
+            case Role::OFFICE_MANAGER:
+            case Role::RECRUITERS:
+            case Role::FINANCE:
                 if ($companyId = $request->company_id) {
                     $query->where('companies.id', $companyId);
                 }
                 break;
 
-            case 3:
-                // Company-specific role
+            case Role::COMPANY_USER:
                 $query->where('company_jobs.company_id', $user->company_id);
                 break;
 
-            case 5:
-                // COMPANY OWNER
+            case Role::COMPANY_OWNER:
                 $companyIds = UserOwner::where('user_id', $user->id)
                     ->pluck('company_id')
                     ->toArray();
                 $query->whereIn('company_jobs.company_id', $companyIds);
                 break;
 
-            case 4:
-                // AGENT
+            case Role::AGENT:
                 $companyJobIds = AssignedJob::where('user_id', $user->id)
                     ->pluck('company_job_id')
                     ->toArray();
                 $query->whereIn('company_jobs.id', $companyJobIds);
                 break;
-
-            default:
-                return response()->json([
-                    "status" => "error",
-                    "message" => "Unauthorized access",
-                ], 403);
         }
+
 
         $allJobPostings = $query->paginate();
 
-        // Return the response
         return response()->json([
             "status" => "success",
             "message" => "Job retrieved successfully",
@@ -103,72 +120,66 @@ class CompanyJobController extends Controller
         ], 200);
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        $user = Auth::user();
 
+        if ($this->checkPermission(Permission::JOB_POSTINGS_CREATE)) {
             $companyJob = new CompanyJob();
 
-            $companyJob->user_id = Auth::user()->id;
-            $companyJob->company_id = $request->company_id;
+            $companyJob->user_id = $user->id;
+            // Set company_id based on user role - company users can only create for their company
+            if ($user->hasRole(Role::COMPANY_USER)) {
+                $companyJob->company_id = $user->company_id;
+            } else {
+                $companyJob->company_id = $request->company_id;
+            }
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
             $companyJob->contract_type = $request->contract_type;
-            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
-            $companyJob->salary= $request->salary;
-            $companyJob->bonus= $request->bonus;
-            $companyJob->workTime= $request->workTime;
-            $companyJob->additionalWork= $request->additionalWork;
-            $companyJob->vacationDays= $request->vacationDays;
-            $companyJob->rent= $request->rent;
-            $companyJob->food= $request->food;
-            $companyJob->otherDescription= $request->otherDescription;
-
+            $companyJob->requirementsForCandidates = $request->requirementsForCandidates;
+            $companyJob->salary = $request->salary;
+            $companyJob->bonus = $request->bonus;
+            $companyJob->workTime = $request->workTime;
+            $companyJob->additionalWork = $request->additionalWork;
+            $companyJob->vacationDays = $request->vacationDays;
+            $companyJob->rent = $request->rent;
+            $companyJob->food = $request->food;
+            $companyJob->otherDescription = $request->otherDescription;
 
             if ($companyJob->save()) {
-
-                $companyName = Company::where('id', $request->company_id)->first();
+                $companyName = Company::where('id', $companyJob->company_id)->first();
                 $companyForThisJob = $companyName->nameOfCompany;
 
+                // Create Request
+                $companyRequest = new CompanyRequest();
+                $companyRequest->company_job_id = $companyJob->id;
+                $companyRequest->approved = false; // Automatically approve for staff
+                $companyRequest->description = "Job created by " . $user->firstName . " " . $user->lastName;
+                $companyRequest->save();
 
-
-                $notificationMessages = array(
-                    'message' =>  $companyForThisJob . ' created new job posting: ' . $request->job_title,
+                $notificationMessages = [
+                    'message' => $companyForThisJob . ' created new job posting: ' . $request->job_title,
                     'type' => 'job_posting'
-                );
+                ];
 
                 $notification_id = NotificationRepository::createNotification($notificationMessages);
                 UsersNotificationRepository::createNotificationForUsers($notification_id);
+
                 $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
 
-                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                    if ($request->agentsIds) {
-                        $agents = $request->agentsIds;
-                        foreach ($agents as $agentId) {
-                            $assignedJob = new AssignedJob();
-                            $assignedJob->user_id = $agentId;
-                            $assignedJob->company_job_id = $companyJob->id;
-
-                            $assignedJob->save();
-                        }
+                if ($this->isStaff() && $request->agentsIds) {
+                    foreach ($request->agentsIds as $agentId) {
+                        AssignedJob::create([
+                            'user_id' => $agentId,
+                            'company_job_id' => $companyJob->id
+                        ]);
                     }
                 }
 
@@ -180,231 +191,99 @@ class CompanyJobController extends Controller
             } else {
                 return response()->json(['message' => 'Job creation failed'], 400);
             }
-        } else if (Auth::user()->role_id == 3) {
-            $companyJob = new CompanyJob();
-
-            $companyJob->user_id = Auth::user()->id;
-            $companyJob->company_id = Auth::user()->company_id;
-            $companyJob->job_title = $request->job_title;
-            $companyJob->number_of_positions = $request->number_of_positions;
-            $companyJob->job_description = $request->job_description;
-            $companyJob->contract_type = $request->contract_type;
-            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
-            $companyJob->salary= $request->salary;
-            $companyJob->bonus= $request->bonus;
-            $companyJob->workTime= $request->workTime;
-            $companyJob->additionalWork= $request->additionalWork;
-            $companyJob->vacationDays= $request->vacationDays;
-            $companyJob->rent= $request->rent;
-            $companyJob->food= $request->food;
-            $companyJob->otherDescription= $request->otherDescription;
-
-
-            if ($companyJob->save()) {
-
-                $companyName = Company::where('id', Auth::user()->company_id)->first();
-                $companyForThisJob = $companyName->nameOfCompany;
-
-                $notificationData = [
-                    'message' => $companyForThisJob . ' created new job posting: ' . $request->job_title,
-                    'type' => "job_posting"
-                ];
-
-
-
-                $notification = NotificationRepository::createNotification($notificationData);
-                UsersNotificationRepository::createNotificationForUsers($notification);
-                $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
-
-
-                return response()->json([
-                    "status" => "success",
-                    "message" => "Job created successfully",
-                    "data" => $companyJob
-                ], 200);
-            } else {
-                return response()->json(['message' => 'Job creation failed'], 400);
-            }
-        } else if (Auth::user()->role_id == 5) {
-            $companyJob = new CompanyJob();
-
-            $companyJob->user_id = Auth::user()->id;
-            $companyJob->company_id = $request->company_id;
-            $companyJob->job_title = $request->job_title;
-            $companyJob->number_of_positions = $request->number_of_positions;
-            $companyJob->job_description = $request->job_description;
-            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
-            $companyJob->salary= $request->salary;
-            $companyJob->bonus= $request->bonus;
-            $companyJob->workTime= $request->workTime;
-            $companyJob->additionalWork= $request->additionalWork;
-            $companyJob->vacationDays= $request->vacationDays;
-            $companyJob->rent= $request->rent;
-            $companyJob->food= $request->food;
-            $companyJob->otherDescription= $request->otherDescription;
-
-            if ($companyJob->save()) {
-
-                $companyName = Company::where('id', $request->company_id)->first();
-                $companyForThisJob = $companyName->nameOfCompany;
-
-                $notificationData = [
-                    'message' => $companyForThisJob . ' created new job posting: ' . $request->job_title,
-                    'type' => "job_posting"
-                ];
-
-
-
-                $notification = NotificationRepository::createNotification($notificationData);
-                UsersNotificationRepository::createNotificationForUsers($notification);
-                $this->sendEmailRepositoryForCreateCompanyJob->sendEmail($companyJob);
-
-
-                return response()->json([
-                    "status" => "success",
-                    "message" => "Job created successfully",
-                    "data" => $companyJob
-                ], 200);
-            } else {
-                return response()->json(['message' => 'Job creation failed'], 400);
-            }
         }
+
+        return response()->json([
+            "status" => "error",
+            "message" => "Unauthorized access",
+        ], 403);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\CompanyJob  $companyJob
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
+        $user = Auth::user();
+
+        if ($this->checkPermission(Permission::JOB_POSTINGS_READ)) {
             $companyJob = CompanyJob::where('id', $id)->first();
-            $company = Company::where('id', $companyJob->company_id)->first();
-            $companyJob->companyImage = $company->logoPath;
-            $companyJob->companyCity = $company->companyCity;
-            $companyJob->companyName = $company->nameOfCompany;
 
-            if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
-                $agentsIds = [];
-                foreach ($assignedJobs as $assignedJob) {
-                    $agent = User::where('id', $assignedJob->user_id)->first();
-                    $agentsIds[] = $agent->id;
-                }
-                $companyJob->agentsIds = $agentsIds;
-            }
+            $candidates_count = DB::table('agent_candidates')
+                ->where('company_job_id', $id)
+                ->where('status_for_candidate_from_agent_id', 3)
+                ->count();
 
-            return response()->json([
-                "status" => "success",
-                "message" => "Job retrieved successfully",
-                "data" => $companyJob
-            ], 200);
-        } else if (Auth::user()->role_id == 3) {
-            $companyJob = CompanyJob::where('id', $id)->where('company_id', Auth::user()->company_id)->first();
-            $company = Company::where('id', $companyJob->company_id)->first();
-            $companyJob->companyImage = $company->logoPath;
-            $companyJob->companyCity = $company->companyCity;
-            $companyJob->companyName = $company->nameOfCompany;
-
-
-            return response()->json([
-                "status" => "success",
-                "message" => "Job retrieved successfully",
-                "data" => $companyJob
-            ], 200);
-        } else if (Auth::user()->role_id == 4) {
-            $assignedJob = AssignedJob::where('user_id', Auth::user()->id)->where('company_job_id', $id)->first();
-            if ($assignedJob) {
-
-                $companyJob = CompanyJob::where('id', $id)->first();
-                $company = Company::where('id', $companyJob->company_id)->first();
-                $companyJob->companyImage = $company->logoPath;
-                $companyJob->companyCity = $company->companyCity;
-                $companyJob->companyName = $company->nameOfCompany;
-
-
+            $companyJob->candidates_count = $candidates_count;
+            if (!$companyJob) {
                 return response()->json([
-                    "status" => "success",
-                    "message" => "Job retrieved successfully",
-                    "data" => $companyJob
-                ], 200);
-            } else {
-                return response()->json(['message' => 'You are not authorized to view this job'], 401);
+                    "status" => "error",
+                    "message" => "Job not found",
+                ], 404);
             }
+
+            $company = Company::where('id', $companyJob->company_id)->first();
+            $companyJob->companyImage = $company->logoPath;
+            $companyJob->companyCity = $company->companyCity;
+            $companyJob->companyName = $company->nameOfCompany;
+
+            if ($this->isStaff()) {
+                $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
+                $companyJob->agentsIds = $assignedJobs->pluck('user_id')->toArray();
+            }
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Job retrieved successfully",
+                "data" => $companyJob
+            ], 200);
         }
+
+        return response()->json([
+            "status" => "error",
+            "message" => "Unauthorized access",
+        ], 403);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\CompanyJob  $companyJob
-     * @return \Illuminate\Http\Response
-     */
     public function edit(CompanyJob $companyJob)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\CompanyJob  $companyJob
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, CompanyJob $companyJob)
+    public function update(Request $request, $companyJobId)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2 || Auth::user()->role_id == 5) {
-            $companyJob = CompanyJob::find($request->id);
+        $user = Auth::user();
 
-            $companyJob->user_id = $request->user_id;
-            $companyJob->company_id = $request->company_id;
+        if ($this->checkPermission(Permission::JOB_POSTINGS_UPDATE)) {
+            $companyJob = CompanyJob::find($companyJobId);
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
             $companyJob->contract_type = $request->contract_type;
-            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
-            $companyJob->salary= $request->salary;
-            $companyJob->bonus= $request->bonus;
-            $companyJob->workTime= $request->workTime;
-            $companyJob->additionalWork= $request->additionalWork;
-            $companyJob->vacationDays= $request->vacationDays;
-            $companyJob->rent= $request->rent;
-            $companyJob->food= $request->food;
-            $companyJob->otherDescription= $request->otherDescription;
+            $companyJob->requirementsForCandidates = $request->requirementsForCandidates;
+            $companyJob->salary = $request->salary;
+            $companyJob->bonus = $request->bonus;
+            $companyJob->workTime = $request->workTime;
+            $companyJob->additionalWork = $request->additionalWork;
+            $companyJob->vacationDays = $request->vacationDays;
+            $companyJob->rent = $request->rent;
+            $companyJob->food = $request->food;
+            $companyJob->otherDescription = $request->otherDescription;
 
-            $companyForThisJob = Company::where('id', $request->company_id)->first();
-            $companyForThisJob = $companyForThisJob->nameOfCompany;
+            $companyForThisJob = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
 
             if ($companyJob->save()) {
-
                 $notificationData = [
-                    'message' =>  $companyForThisJob . ' updated new job posting: ' . $request->job_title,
+                    'message' => $companyForThisJob . ' updated job posting: ' . $request->job_title,
                     'type' => 'job_posting_updated'
                 ];
 
                 $notification = NotificationRepository::createNotification($notificationData);
                 UsersNotificationRepository::createNotificationForUsers($notification);
 
-                if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
-                    if ($request->agentsIds || $request->agentsIds == []) {
-                        $agents = $request->agentsIds;
-                        if (!empty($agents)) {
-                            foreach ($agents as $agentId) {
-                                $exists = AssignedJob::where('user_id', $agentId)
-                                    ->where('company_job_id', $companyJob->id)
-                                    ->exists();
-
-                                if (!$exists) {
-                                    $assignedJob = new AssignedJob();
-                                    $assignedJob->user_id = $agentId;
-                                    $assignedJob->company_job_id = $companyJob->id;
-                                    $assignedJob->save();
-                                }
-                            }
-                        }
+                if ($this->isStaff() && $request->has('agentsIds')) {
+                    foreach ($request->agentsIds as $agentId) {
+                        AssignedJob::firstOrCreate([
+                            'user_id' => $agentId,
+                            'company_job_id' => $companyJob->id,
+                        ]);
                     }
                 }
 
@@ -413,75 +292,40 @@ class CompanyJobController extends Controller
                     "message" => "Job updated successfully",
                     "data" => $companyJob
                 ], 200);
-            } else {
-                return response()->json(['message' => 'Job update failed'], 400);
             }
-        } else
-            if (Auth::user()->role_id == 3) {
-            $companyJob = CompanyJob::where('id', $request->id)->where('company_id', Auth::user()->company_id)->first();
 
-            $companyJob->user_id = $request->user_id;
-            $companyJob->company_id = $request->company_id;
-            $companyJob->job_title = $request->job_title;
-            $companyJob->number_of_positions = $request->number_of_positions;
-            $companyJob->job_description = $request->job_description;
-            $companyJob->contract_type = $request->contract_type;
-            $companyJob->requirementsForCandidates= $request->requirementsForCandidates;
-            $companyJob->salary= $request->salary;
-            $companyJob->bonus= $request->bonus;
-            $companyJob->workTime= $request->workTime;
-            $companyJob->additionalWork= $request->additionalWork;
-            $companyJob->vacationDays= $request->vacationDays;
-            $companyJob->rent= $request->rent;
-            $companyJob->food= $request->food;
-            $companyJob->otherDescription= $request->otherDescription;
-
-            $companyForThisJob = Company::where('id', Auth::user()->company_id)->first();
-            $companyForThisJob = $companyForThisJob->nameOfCompany;
-            if ($companyJob->save()) {
-
-                $notificationData = [
-                    'message' => $companyForThisJob . ' updated new job posting: ' . $request->job_title,
-                    'type' => 'job_posting_updated'
-                ];
-
-                $notification = NotificationRepository::createNotification($notificationData);
-                UsersNotificationRepository::createNotificationForUsers($notification);
-
-                return response()->json([
-                    "status" => "success",
-                    "message" => "Job retrieved successfully",
-                    "data" => $companyJob
-                ], 200);
-            } else {
-                return response()->json(['message' => 'Job update failed'], 400);
-            }
+            return response()->json(['message' => 'Job update failed'], 400);
         }
+
+        return response()->json([
+            "status" => "error",
+            "message" => "Unauthorized access",
+        ], 403);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\CompanyJob  $companyJob
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function destroy($id)
     {
-        if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2) {
+        if ($this->isStaff()) {
             $companyJob = CompanyJob::find($id);
 
-            $allCandidatesFromAgent = AgentCandidate::where('company_job_id', $id)->get();
-            foreach ($allCandidatesFromAgent as $candidate) {
-                $candidate->delete();
-            }
-            if ($companyJob->delete()) {
+            if (!$companyJob) {
                 return response()->json([
-                    "status" => "success",
-                    "message" => "Job deleted successfully",
-                ], 200);
-            } else {
-                return response()->json(['message' => 'Job deletion failed'], 400);
+                    "status" => "error",
+                    "message" => "Job not found",
+                ], 404);
             }
+
+            $companyJob->delete();
+
+            return response()->json([
+                "status" => "success",
+                "message" => "Job deleted successfully",
+            ], 200);
         }
+
+        return response()->json([
+            "status" => "error",
+            "message" => "Unauthorized access",
+        ], 403);
     }
 }

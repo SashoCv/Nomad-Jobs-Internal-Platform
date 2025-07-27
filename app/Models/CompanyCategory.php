@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class CompanyCategory extends Model
 {
     use HasFactory;
+
+    protected $table = 'company_categories';
+
+    protected $fillable = [
+        'role_id',
+        'company_id',
+        'companyNameCategory'
+    ];
 }

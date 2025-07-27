@@ -38,9 +38,6 @@ class ChangeCandidateStatusToArrival extends Command
                 $candidate->status_date = $candidate->arrival->arrival_date;
                 $candidate->status_description = 'Candidate arrived';
                 $candidate->save();
-
-
-                // need to send mail to company with the candidate details
             }
         }
         $this->info('Changing the status of the candidate to arrival');

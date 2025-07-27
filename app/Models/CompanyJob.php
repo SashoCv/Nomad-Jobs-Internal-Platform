@@ -21,4 +21,9 @@ class CompanyJob extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function changeLogs()
+    {
+        return $this->hasMany(ChangeLog::class, 'record_id')->where('tableName', 'company_jobs');
+    }
 }
