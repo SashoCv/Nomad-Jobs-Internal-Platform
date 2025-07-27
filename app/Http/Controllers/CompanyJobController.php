@@ -227,12 +227,12 @@ class CompanyJobController extends Controller
         //
     }
 
-    public function update(Request $request, CompanyJob $companyJob)
+    public function update(Request $request, $companyJobId)
     {
         $user = Auth::user();
 
         if ($this->isStaff() || $user->role_id == Role::COMPANY_OWNER || $user->role_id == Role::COMPANY_USER) {
-
+            $companyJob = CompanyJob::find($companyJobId);
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
