@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\CompanyJob;
+use App\Models\CompanyRequest;
 use App\Models\User;
 use App\Models\UserOwner;
 use App\Models\Role;
@@ -156,6 +157,13 @@ class CompanyJobController extends Controller
                 $companyName = Company::where('id', $companyJob->company_id)->first();
                 $companyForThisJob = $companyName->nameOfCompany;
 
+                // Create Request
+                $companyRequest = new CompanyRequest();
+                $companyRequest->company_job_id = $companyJob->id;
+                $companyRequest->approved = false; // Automatically approve for staff
+                $companyRequest->description = "Job created by " . $user->firstName . " " . $user->lastName;
+                $companyRequest->save();
+
                 $notificationMessages = [
                     'message' => $companyForThisJob . ' created new job posting: ' . $request->job_title,
                     'type' => 'job_posting'
@@ -195,7 +203,7 @@ class CompanyJobController extends Controller
     {
         $user = Auth::user();
 
-        if ($this->checkPermission(Permission::JOBS_READ)) {
+        if ($this->checkPermission(Permission::JOB_POSTINGS_READ)) {
             $companyJob = CompanyJob::where('id', $id)->first();
 
             $candidates_count = DB::table('agent_candidates')
