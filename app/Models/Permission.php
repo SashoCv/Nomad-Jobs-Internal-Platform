@@ -16,104 +16,97 @@ class Permission extends Model
         return $this->belongsToMany(Role::class, 'role_permissions');
     }
 
-    // Admin Permission constants
-    const DASHBOARD_VIEW = 'dashboard.view';
-    const HOME_VIEW = 'home.view';
-    const HOME_FILTER = 'home.filter';
-    const HOME_ARRIVALS = 'home.arrivals';
-    const HOME_CHANGE_STATUS = 'home.change_status';
+    const DASHBOARD_READ = 'dashboard:read';
+    const HOME_READ = 'home:read';
+    const HOME_FILTER = 'home:filter';
+    const HOME_ARRIVALS = 'home:arrivals';
+    const HOME_CHANGE_STATUS = 'home:change_status';
 
-    const COMPANIES_VIEW = 'companies.view';
-    const COMPANIES_CREATE = 'companies.create';
-    const COMPANIES_EDIT = 'companies.edit';
-    const COMPANIES_DELETE = 'companies.delete';
-    const COMPANIES_CONTRACTS = 'companies.contracts';
+    const COMPANIES_READ = 'companies:read';
+    const COMPANIES_CREATE = 'companies:create';
+    const COMPANIES_UPDATE = 'companies:update';
+    const COMPANIES_DELETE = 'companies:delete';
+    const COMPANIES_CONTRACTS = 'companies:contracts';
 
-    // Company Contracts - separate permissions
-    const COMPANIES_CONTRACTS_VIEW = 'companies.contracts.view';
-    const COMPANIES_CONTRACTS_CREATE = 'companies.contracts.create';
-    const COMPANIES_CONTRACTS_EDIT = 'companies.contracts.edit';
-    const COMPANIES_CONTRACTS_DELETE = 'companies.contracts.delete';
+    const COMPANIES_CONTRACTS_READ = 'companies_contracts:read';
+    const COMPANIES_CONTRACTS_CREATE = 'companies_contracts:create';
+    const COMPANIES_CONTRACTS_UPDATE = 'companies_contracts:update';
+    const COMPANIES_CONTRACTS_DELETE = 'companies_contracts:delete';
 
-    const INDUSTRIES_VIEW = 'industries.view';
-    const INDUSTRIES_CREATE = 'industries.create';
-    const INDUSTRIES_EDIT = 'industries.edit';
-    const INDUSTRIES_DELETE = 'industries.delete';
+    const INDUSTRIES_READ = 'industries:read';
+    const INDUSTRIES_CREATE = 'industries:create';
+    const INDUSTRIES_UPDATE = 'industries:update';
+    const INDUSTRIES_DELETE = 'industries:delete';
 
-    const CONTRACTS_VIEW = 'contracts.view';
-    const CONTRACTS_CREATE = 'contracts.create';
-    const CONTRACTS_EDIT = 'contracts.edit';
-    const CONTRACTS_DELETE = 'contracts.delete';
+    const COMPANY_JOB_REQUESTS_READ = 'requests:read';
+    const COMPANY_JOB_REQUESTS_APPROVE = 'requests:approve';
+    const COMPANY_JOB_REQUESTS_DELETE = 'requests:delete';
 
-    const REQUESTS_VIEW = 'requests.view';
-    const REQUESTS_APPROVE = 'requests.approve';
-    const REQUESTS_DELETE = 'requests.delete';
+    const CANDIDATES_READ = 'candidates:read';
+    const CANDIDATES_CREATE = 'candidates:create';
+    const CANDIDATES_UPDATE = 'candidates:update';
+    const CANDIDATES_DELETE = 'candidates:delete';
+    const CANDIDATES_EXPORT = 'candidates:export';
 
-    const CANDIDATES_VIEW = 'candidates.view';
-    const CANDIDATES_CREATE = 'candidates.create';
-    const CANDIDATES_EDIT = 'candidates.edit';
-    const CANDIDATES_DELETE = 'candidates.delete';
-    const CANDIDATES_EXPORT = 'candidates.export';
+    const AGENT_CANDIDATES_READ = 'agent_candidates:read';
+    const AGENT_CANDIDATES_CHANGE_STATUS = 'agent_candidates:change_status';
+    const AGENT_CANDIDATES_DELETE = 'agent_candidates:delete';
 
-    const AGENT_CANDIDATES_VIEW = 'agent_candidates.view';
-    const AGENT_CANDIDATES_CHANGE_STATUS = 'agent_candidates.change_status';
-    const AGENT_CANDIDATES_DELETE = 'agent_candidates.delete';
+    const MULTI_APPLICANT_GENERATOR = 'multi_applicant_generator:access';
 
-    const MULTI_APPLICANT_GENERATOR = 'multi_applicant_generator.access';
+    const EXPIRED_CONTRACTS_READ = 'expired_contracts:read';
+    const EXPIRED_MEDICAL_INSURANCE_READ = 'expired_medical_insurance:read';
 
-    const EXPIRED_CONTRACTS_VIEW = 'expired_contracts.view';
-    const EXPIRED_MEDICAL_INSURANCE_VIEW = 'expired_medical_insurance.view';
+    const STATUS_HISTORY_READ = 'status_history:read';
 
-    const STATUS_HISTORY_VIEW = 'status_history.view';
+    const USERS_READ = 'users:read';
+    const USERS_CREATE = 'users:create';
+    const USERS_CREATE_COMPANIES = 'users:create_companies';
+    const USERS_CREATE_AGENTS = 'users:create_agents';
+    const USERS_UPDATE = 'users:update';
+    const USERS_DELETE = 'users:delete';
+    const USERS_PASSWORD_RESET = 'users:password_reset';
 
-    const USERS_VIEW = 'users.view';
-    const USERS_CREATE = 'users.create';
-    const USERS_CREATE_COMPANIES = 'users.create.companies';
-    const USERS_CREATE_AGENTS = 'users.create.agents';
-    const USERS_EDIT = 'users.edit';
-    const USERS_DELETE = 'users.delete';
-    const USERS_PASSWORD_RESET = 'users.password_reset';
+    const JOB_POSTINGS_READ = 'job_postings:read';
+    const JOB_POSTINGS_CREATE = 'job_postings:create';
+    const JOB_POSTINGS_UPDATE = 'job_postings:update';
+    const JOB_POSTINGS_DELETE = 'job_postings:delete';
 
-    const JOB_POSTINGS_VIEW = 'job_postings.view';
-    const JOB_POSTINGS_CREATE = 'job_postings.create';
-    const JOB_POSTINGS_EDIT = 'job_postings.edit';
-    const JOB_POSTINGS_DELETE = 'job_postings.delete';
+    const JOB_POSITIONS_READ = 'job_positions:read';
+    const JOB_POSITIONS_CREATE = 'job_positions:create';
+    const JOB_POSITIONS_UPDATE = 'job_positions:update';
+    const JOB_POSITIONS_DELETE = 'job_positions:delete';
 
-    const JOB_POSITIONS_VIEW = 'job_positions.view';
-    const JOB_POSITIONS_CREATE = 'job_positions.create';
-    const JOB_POSITIONS_EDIT = 'job_positions.edit';
-    const JOB_POSITIONS_DELETE = 'job_positions.delete';
+    const JOBS_READ = 'jobs:read';
+    const JOBS_CREATE = 'jobs:create';
+    const JOBS_UPDATE = 'jobs:update';
+    const JOBS_DELETE = 'jobs:delete';
 
-    const JOBS_VIEW = 'jobs.view';
-    const JOBS_CREATE = 'jobs.create';
-    const JOBS_EDIT = 'jobs.edit';
-    const JOBS_DELETE = 'jobs.delete';
+    const FINANCE_READ = 'finances:read';
+    const FINANCE_CREATE = 'finances:create';
+    const FINANCE_UPDATE = 'finances:update';
+    const FINANCE_DELETE = 'finances:delete';
+    const FINANCE_EXPORT = 'finances:export';
 
-    const FINANCES_VIEW = 'finances.view';
-    const FINANCES_CREATE = 'finances.create';
-    const FINANCES_EDIT = 'finances.edit';
-    const FINANCES_DELETE = 'finances.delete';
+    const INSURANCE_READ = 'insurance:read';
+    const INSURANCE_CREATE = 'insurance:create';
+    const INSURANCE_UPDATE = 'insurance:update';
+    const INSURANCE_DELETE = 'insurance:delete';
 
-    const FINANCE_VIEW = 'finance.view';
-    const FINANCE_CREATE = 'finance.create';
-    const FINANCE_EDIT = 'finance.edit';
-    const FINANCE_DELETE = 'finance.delete';
-    const FINANCE_EXPORT = 'finance.export';
+    const NOTIFICATIONS_READ = 'notifications:read';
+    const NOTIFICATIONS_UPDATE = 'notifications:update';
 
-    const INSURANCE_READ = 'insurance.read';
-    const INSURANCE_CREATE = 'insurance.create';
-    const INSURANCE_UPDATE = 'insurance.update';
-    const INSURANCE_DELETE = 'insurance.delete';
+    const DOCUMENTS_READ = 'documents:read';
+    const DOCUMENTS_CREATE = 'documents:create';
+    const DOCUMENTS_UPDATE = 'documents:update';
+    const DOCUMENTS_DELETE = 'documents:delete';
+    const DOCUMENTS_UPLOAD = 'documents:upload';
+    const DOCUMENTS_DOWNLOAD = 'documents:download';
+    const DOCUMENTS_GENERATE = 'documents:generate';
+    const DOCUMENTS_PREPARATION = 'documents:preparation';
 
-    const NOTIFICATIONS_READ = 'notifications.read';
-    const NOTIFICATIONS_UPDATE = 'notifications.update';
-
-    const DOCUMENTS_VIEW = 'documents.view';
-    const DOCUMENTS_CREATE = 'documents.create';
-    const DOCUMENTS_EDIT = 'documents.edit';
-    const DOCUMENTS_DELETE = 'documents.delete';
-    const DOCUMENTS_UPLOAD = 'documents.upload';
-    const DOCUMENTS_DOWNLOAD = 'documents.download';
-    const DOCUMENTS_GENERATE = 'documents.generate';
-    const DOCUMENTS_PREPARATION = 'documents.preparation';
+    const CHANGE_LOGS_READ = 'change_logs:read';
+    const CHANGE_LOGS_CREATE = 'change_logs:create';
+    const CHANGE_LOGS_APPROVE = 'change_logs:approve';
+    const CHANGE_LOGS_DELETE = 'change_logs:delete';
 }

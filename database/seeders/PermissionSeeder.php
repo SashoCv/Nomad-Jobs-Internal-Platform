@@ -17,116 +17,102 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-        // Create all permissions
         $permissions = [
-            ['name' => Permission::DASHBOARD_VIEW, 'slug' => 'dashboard.view', 'description' => 'View dashboard'],
-            // Companies
-            ['name' => Permission::COMPANIES_VIEW, 'slug' => 'companies.view', 'description' => 'View companies'],
-            ['name' => Permission::COMPANIES_CREATE, 'slug' => 'companies.create', 'description' => 'Create companies'],
-            ['name' => Permission::COMPANIES_EDIT, 'slug' => 'companies.edit', 'description' => 'Edit companies'],
-            ['name' => Permission::COMPANIES_DELETE, 'slug' => 'companies.delete', 'description' => 'Delete companies'],
-            ['name' => Permission::COMPANIES_CONTRACTS, 'slug' => 'companies.contracts', 'description' => 'Manage company contracts'],
+            ['name' => Permission::DASHBOARD_READ, 'slug' => 'dashboard:read', 'description' => 'Read dashboard'],
+            ['name' => Permission::COMPANIES_READ, 'slug' => 'companies:read', 'description' => 'Read companies'],
+            ['name' => Permission::COMPANIES_CREATE, 'slug' => 'companies:create', 'description' => 'Create companies'],
+            ['name' => Permission::COMPANIES_UPDATE, 'slug' => 'companies:update', 'description' => 'Edit companies'],
+            ['name' => Permission::COMPANIES_DELETE, 'slug' => 'companies:delete', 'description' => 'Delete companies'],
+            ['name' => Permission::COMPANIES_CONTRACTS, 'slug' => 'companies:contracts', 'description' => 'Manage company contracts'],
 
-            // Users
-            ['name' => Permission::USERS_VIEW, 'slug' => 'users.view', 'description' => 'View users'],
-            ['name' => Permission::USERS_CREATE, 'slug' => 'users.create', 'description' => 'Create users'],
-            ['name' => Permission::USERS_EDIT, 'slug' => 'users.edit', 'description' => 'Edit users'],
-            ['name' => Permission::USERS_DELETE, 'slug' => 'users.delete', 'description' => 'Delete users'],
-            ['name' => Permission::USERS_CREATE_COMPANIES, 'slug' => 'users.create_companies', 'description' => 'Create company users only'],
-            ['name' => Permission::USERS_CREATE_AGENTS, 'slug' => 'users.create_agents', 'description' => 'Create agent users only'],
-            ['name' => Permission::USERS_PASSWORD_RESET, 'slug' => 'users.password_reset', 'description' => 'Reset user passwords'],
+            ['name' => Permission::USERS_READ, 'slug' => 'users:read', 'description' => 'Read users'],
+            ['name' => Permission::USERS_CREATE, 'slug' => 'users:create', 'description' => 'Create users'],
+            ['name' => Permission::USERS_UPDATE, 'slug' => 'users:update', 'description' => 'Edit users'],
+            ['name' => Permission::USERS_DELETE, 'slug' => 'users:delete', 'description' => 'Delete users'],
+            ['name' => Permission::USERS_CREATE_COMPANIES, 'slug' => 'users:create_companies', 'description' => 'Create company users only'],
+            ['name' => Permission::USERS_CREATE_AGENTS, 'slug' => 'users:create_agents', 'description' => 'Create agent users only'],
+            ['name' => Permission::USERS_PASSWORD_RESET, 'slug' => 'users:password_reset', 'description' => 'Reset user passwords'],
 
             // Candidates
-            ['name' => Permission::CANDIDATES_VIEW, 'slug' => 'candidates.view', 'description' => 'View candidates'],
-            ['name' => Permission::CANDIDATES_CREATE, 'slug' => 'candidates.create', 'description' => 'Create candidates'],
-            ['name' => Permission::CANDIDATES_EDIT, 'slug' => 'candidates.edit', 'description' => 'Edit candidates'],
-            ['name' => Permission::CANDIDATES_DELETE, 'slug' => 'candidates.delete', 'description' => 'Delete candidates'],
-            ['name' => Permission::CANDIDATES_EXPORT, 'slug' => 'candidates.export', 'description' => 'Export candidates'],
+            ['name' => Permission::CANDIDATES_READ, 'slug' => 'candidates:read', 'description' => 'Read candidates'],
+            ['name' => Permission::CANDIDATES_CREATE, 'slug' => 'candidates:create', 'description' => 'Create candidates'],
+            ['name' => Permission::CANDIDATES_UPDATE, 'slug' => 'candidates:update', 'description' => 'Edit candidates'],
+            ['name' => Permission::CANDIDATES_DELETE, 'slug' => 'candidates:delete', 'description' => 'Delete candidates'],
+            ['name' => Permission::CANDIDATES_EXPORT, 'slug' => 'candidates:export', 'description' => 'Export candidates'],
 
-            // Jobs
-            ['name' => Permission::JOBS_VIEW, 'slug' => 'jobs.view', 'description' => 'View job posts'],
-            ['name' => Permission::JOBS_CREATE, 'slug' => 'jobs.create', 'description' => 'Create job posts'],
-            ['name' => Permission::JOBS_EDIT, 'slug' => 'jobs.edit', 'description' => 'Edit job posts'],
-            ['name' => Permission::JOBS_DELETE, 'slug' => 'jobs.delete', 'description' => 'Delete job posts'],
+            ['name' => Permission::JOBS_READ, 'slug' => 'jobs:read', 'description' => 'Read job posts'],
+            ['name' => Permission::JOBS_CREATE, 'slug' => 'jobs:create', 'description' => 'Create job posts'],
+            ['name' => Permission::JOBS_UPDATE, 'slug' => 'jobs:update', 'description' => 'Edit job posts'],
+            ['name' => Permission::JOBS_DELETE, 'slug' => 'jobs:delete', 'description' => 'Delete job posts'],
 
-            // Finance
-            ['name' => Permission::FINANCE_VIEW, 'slug' => 'finances.view', 'description' => 'View finance'],
-            ['name' => Permission::FINANCE_CREATE, 'slug' => 'finances.create', 'description' => 'Create finance records'],
-            ['name' => Permission::FINANCE_EDIT, 'slug' => 'finances.edit', 'description' => 'Edit finance records'],
-            ['name' => Permission::FINANCE_DELETE, 'slug' => 'finances.delete', 'description' => 'Delete finance records'],
-            ['name' => Permission::FINANCE_EXPORT, 'slug' => 'finances.export', 'description' => 'Export finance data'],
+            ['name' => Permission::FINANCE_READ, 'slug' => 'finances:read', 'description' => 'Read finance'],
+            ['name' => Permission::FINANCE_CREATE, 'slug' => 'finances:create', 'description' => 'Create finance records'],
+            ['name' => Permission::FINANCE_UPDATE, 'slug' => 'finances:update', 'description' => 'Edit finance records'],
+            ['name' => Permission::FINANCE_DELETE, 'slug' => 'finances:delete', 'description' => 'Delete finance records'],
+            ['name' => Permission::FINANCE_EXPORT, 'slug' => 'finances:export', 'description' => 'Export finance data'],
 
-            // Insurance
-            ['name' => Permission::INSURANCE_READ, 'slug' => 'insurance.read', 'description' => 'Read insurance'],
-            ['name' => Permission::INSURANCE_CREATE, 'slug' => 'insurance.create', 'description' => 'Create insurance'],
-            ['name' => Permission::INSURANCE_UPDATE, 'slug' => 'insurance.update', 'description' => 'Update insurance'],
-            ['name' => Permission::INSURANCE_DELETE, 'slug' => 'insurance.delete', 'description' => 'Delete insurance'],
+            ['name' => Permission::INSURANCE_READ, 'slug' => 'insurance:read', 'description' => 'Read insurance'],
+            ['name' => Permission::INSURANCE_CREATE, 'slug' => 'insurance:create', 'description' => 'Create insurance'],
+            ['name' => Permission::INSURANCE_UPDATE, 'slug' => 'insurance:update', 'description' => 'Update insurance'],
+            ['name' => Permission::INSURANCE_DELETE, 'slug' => 'insurance:delete', 'description' => 'Delete insurance'],
 
-            // Notifications
-            ['name' => Permission::NOTIFICATIONS_READ, 'slug' => 'notifications.read', 'description' => 'Read notifications'],
-            ['name' => Permission::NOTIFICATIONS_UPDATE, 'slug' => 'notifications.update', 'description' => 'Update notifications'],
+            ['name' => Permission::NOTIFICATIONS_READ, 'slug' => 'notifications:read', 'description' => 'Read notifications'],
+            ['name' => Permission::NOTIFICATIONS_UPDATE, 'slug' => 'notifications:update', 'description' => 'Update notifications'],
 
-            // Agent-Candidate
-            ['name' => Permission::AGENT_CANDIDATES_CHANGE_STATUS, 'slug' => 'agent_candidates.change_status', 'description' => 'Change status of agent candidates'],
-            ['name' => Permission::AGENT_CANDIDATES_DELETE, 'slug' => 'agent_candidates.delete', 'description' => 'Delete agent candidates'],
-            ['name' => Permission::AGENT_CANDIDATES_VIEW, 'slug' => 'agent_candidates.view', 'description' => 'View agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_CHANGE_STATUS, 'slug' => 'agent_candidates:change_status', 'description' => 'Change status of agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_DELETE, 'slug' => 'agent_candidates:delete', 'description' => 'Delete agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_READ, 'slug' => 'agent_candidates:read', 'description' => 'Read agent candidates'],
 
 
-            // Multi Applicant Generator
-            ['name' => Permission::MULTI_APPLICANT_GENERATOR, 'slug' => 'multi_applicant_generator.access', 'description' => 'Access multi applicant generator'],
+            ['name' => Permission::MULTI_APPLICANT_GENERATOR, 'slug' => 'multi_applicant_generator:access', 'description' => 'Access multi applicant generator'],
 
-            // Contracts
-            ['name' => Permission::EXPIRED_CONTRACTS_VIEW, 'slug' => 'expired_contracts.view', 'description' => 'View expired contracts'],
-            ['name' => Permission::EXPIRED_MEDICAL_INSURANCE_VIEW, 'slug' => 'expired_medical_insurance.view', 'description' => 'View expired medical insurance'],
+            ['name' => Permission::EXPIRED_CONTRACTS_READ, 'slug' => 'expired_contracts:read', 'description' => 'Read expired contracts'],
+            ['name' => Permission::EXPIRED_MEDICAL_INSURANCE_READ, 'slug' => 'expired_medical_insurance:read', 'description' => 'Read expired medical insurance'],
 
-            // Documents
-            ['name' => Permission::DOCUMENTS_VIEW, 'slug' => 'documents.view', 'description' => 'View documents'],
-            ['name' => Permission::DOCUMENTS_CREATE, 'slug' => 'documents.create', 'description' => 'Create documents'],
-            ['name' => Permission::DOCUMENTS_EDIT, 'slug' => 'documents.edit', 'description' => 'Edit documents'],
-            ['name' => Permission::DOCUMENTS_DELETE, 'slug' => 'documents.delete', 'description' => 'Delete documents'],
-            ['name' => Permission::DOCUMENTS_UPLOAD, 'slug' => 'documents.upload', 'description' => 'Upload documents'],
-            ['name' => Permission::DOCUMENTS_DOWNLOAD, 'slug' => 'documents.download', 'description' => 'Download documents'],
-            ['name' => Permission::DOCUMENTS_GENERATE, 'slug' => 'documents.generate', 'description' => 'Generate documents'],
-            ['name' => Permission::DOCUMENTS_PREPARATION, 'slug' => 'documents.preparation', 'description' => 'Prepare documents'],
+            ['name' => Permission::DOCUMENTS_READ, 'slug' => 'documents:read', 'description' => 'Read documents'],
+            ['name' => Permission::DOCUMENTS_CREATE, 'slug' => 'documents:create', 'description' => 'Create documents'],
+            ['name' => Permission::DOCUMENTS_UPDATE, 'slug' => 'documents:update', 'description' => 'Edit documents'],
+            ['name' => Permission::DOCUMENTS_DELETE, 'slug' => 'documents:delete', 'description' => 'Delete documents'],
+            ['name' => Permission::DOCUMENTS_UPLOAD, 'slug' => 'documents:upload', 'description' => 'Upload documents'],
+            ['name' => Permission::DOCUMENTS_DOWNLOAD, 'slug' => 'documents:download', 'description' => 'Download documents'],
+            ['name' => Permission::DOCUMENTS_GENERATE, 'slug' => 'documents:generate', 'description' => 'Generate documents'],
+            ['name' => Permission::DOCUMENTS_PREPARATION, 'slug' => 'documents:preparation', 'description' => 'Prepare documents'],
 
-            // Status History
-            ['name' => Permission::STATUS_HISTORY_VIEW, 'slug' => 'status_history.view', 'description' => 'View status history'],
+            ['name' => Permission::STATUS_HISTORY_READ, 'slug' => 'status_history:read', 'description' => 'Read status history'],
 
-            // Job Postings
-            ['name' => Permission::JOB_POSTINGS_VIEW, 'slug' => 'job_postings.view', 'description' => 'View job postings'],
-            ['name' => Permission::JOB_POSTINGS_CREATE, 'slug' => 'job_postings.create', 'description' => 'Create job postings'],
-            ['name' => Permission::JOB_POSTINGS_EDIT, 'slug' => 'job_postings.edit', 'description' => 'Edit job postings'],
-            ['name' => Permission::JOB_POSTINGS_DELETE, 'slug' => 'job_postings.delete', 'description' => 'Delete job postings'],
+            ['name' => Permission::JOB_POSTINGS_READ, 'slug' => 'job_postings:read', 'description' => 'Read job postings'],
+            ['name' => Permission::JOB_POSTINGS_CREATE, 'slug' => 'job_postings:create', 'description' => 'Create job postings'],
+            ['name' => Permission::JOB_POSTINGS_UPDATE, 'slug' => 'job_postings:update', 'description' => 'Edit job postings'],
+            ['name' => Permission::JOB_POSTINGS_DELETE, 'slug' => 'job_postings:delete', 'description' => 'Delete job postings'],
 
-            // Job Positions
-            ['name' => Permission::JOB_POSITIONS_VIEW, 'slug' => 'job_positions.view', 'description' => 'View job positions'],
-            ['name' => Permission::JOB_POSITIONS_CREATE, 'slug' => 'job_positions.create', 'description' => 'Create job positions'],
-            ['name' => Permission::JOB_POSITIONS_EDIT, 'slug' => 'job_positions.edit', 'description' => 'Edit job positions'],
-            ['name' => Permission::JOB_POSITIONS_DELETE, 'slug' => 'job_positions.delete', 'description' => 'Delete job positions'],
+            ['name' => Permission::JOB_POSITIONS_READ, 'slug' => 'job_positions:read', 'description' => 'Read job positions'],
+            ['name' => Permission::JOB_POSITIONS_CREATE, 'slug' => 'job_positions:create', 'description' => 'Create job positions'],
+            ['name' => Permission::JOB_POSITIONS_UPDATE, 'slug' => 'job_positions:update', 'description' => 'Edit job positions'],
+            ['name' => Permission::JOB_POSITIONS_DELETE, 'slug' => 'job_positions:delete', 'description' => 'Delete job positions'],
 
-            //Home
-            ['name' => Permission::HOME_VIEW, 'slug' => 'home.view', 'description' => 'View home page'],
-            ['name' => Permission::HOME_ARRIVALS, 'slug' => 'home.arrivals', 'description' => 'View home arrivals'],
-            ['name' => Permission::HOME_FILTER, 'slug' => 'home.filter', 'description' => 'View home filter'],
-            ['name' => Permission::HOME_CHANGE_STATUS, 'slug' => 'home.change_status', 'description' => 'Change status from home page'],
+            ['name' => Permission::HOME_READ, 'slug' => 'home:read', 'description' => 'Read home page'],
+            ['name' => Permission::HOME_ARRIVALS, 'slug' => 'home:arrivals', 'description' => 'View home arrivals'],
+            ['name' => Permission::HOME_FILTER, 'slug' => 'home:filter', 'description' => 'View home filter'],
+            ['name' => Permission::HOME_CHANGE_STATUS, 'slug' => 'home:change_status', 'description' => 'Change status from home page'],
 
-            // Industries
-            ['name' => Permission::INDUSTRIES_VIEW, 'slug' => 'industries.view', 'description' => 'View industries'],
-            ['name' => Permission::INDUSTRIES_CREATE, 'slug' => 'industries.create', 'description' => 'Create industries'],
-            ['name' => Permission::INDUSTRIES_EDIT, 'slug' => 'industries.edit', 'description' => 'Edit industries'],
-            ['name' => Permission::INDUSTRIES_DELETE, 'slug' => 'industries.delete', 'description' => 'Delete industries'],
+            ['name' => Permission::INDUSTRIES_READ, 'slug' => 'industries:read', 'description' => 'Read industries'],
+            ['name' => Permission::INDUSTRIES_CREATE, 'slug' => 'industries:create', 'description' => 'Create industries'],
+            ['name' => Permission::INDUSTRIES_UPDATE, 'slug' => 'industries:update', 'description' => 'Edit industries'],
+            ['name' => Permission::INDUSTRIES_DELETE, 'slug' => 'industries:delete', 'description' => 'Delete industries'],
 
+            ['name' => Permission::COMPANY_JOB_REQUESTS_READ, 'slug' => 'requests:read', 'description' => 'Read company job requests'],
+            ['name' => Permission::COMPANY_JOB_REQUESTS_APPROVE, 'slug' => 'requests:approve', 'description' => 'Approve company job requests'],
+            ['name' => Permission::COMPANY_JOB_REQUESTS_DELETE, 'slug' => 'requests:delete', 'description' => 'Delete company job requests'],
 
-            // Requests
-            ['name' => Permission::REQUESTS_VIEW, 'slug' => 'requests.view', 'description' => 'View requests'],
-            ['name' => Permission::REQUESTS_APPROVE, 'slug' => 'requests.approve', 'description' => 'Approve requests'],
-            ['name' => Permission::REQUESTS_DELETE, 'slug' => 'requests.delete', 'description' => 'Delete requests'],
+            ['name' => Permission::COMPANIES_CONTRACTS_CREATE, 'slug' => 'companies_contracts:create', 'description' => 'Create company contracts'],
+            ['name' => Permission::COMPANIES_CONTRACTS_UPDATE, 'slug' => 'companies_contracts:update', 'description' => 'Edit company contracts'],
+            ['name' => Permission::COMPANIES_CONTRACTS_DELETE, 'slug' => 'companies_contracts:delete', 'description' => 'Delete company contracts'],
+            ['name' => Permission::COMPANIES_CONTRACTS_READ, 'slug' => 'companies_contracts:read', 'description' => 'Read company contracts'],
 
-            // Company Contracts
-            ['name' => Permission::COMPANIES_CONTRACTS_CREATE, 'slug' => 'contracts.create', 'description' => 'Create company contracts'],
-            ['name' => Permission::COMPANIES_CONTRACTS_EDIT, 'slug' => 'contracts.edit', 'description' => 'Edit company contracts'],
-            ['name' => Permission::COMPANIES_CONTRACTS_DELETE, 'slug' => 'contracts.delete', 'description' => 'Delete company contracts'],
-            ['name' => Permission::COMPANIES_CONTRACTS_VIEW, 'slug' => 'contracts.view', 'description' => 'View company contracts'],
+            ['name' => Permission::CHANGE_LOGS_READ, 'slug' => 'change_logs:read', 'description' => 'Read change logs'],
+            ['name' => Permission::CHANGE_LOGS_CREATE, 'slug' => 'change_logs:create', 'description' => 'Create change logs'],
+            ['name' => Permission::CHANGE_LOGS_APPROVE, 'slug' => 'change_logs:approve', 'description' => 'Approve change logs'],
+            ['name' => Permission::CHANGE_LOGS_DELETE, 'slug' => 'change_logs:delete', 'description' => 'Delete change logs'],
         ];
 
         foreach ($permissions as $permission) {
@@ -150,10 +136,10 @@ class PermissionSeeder extends Seeder
         $manager = Role::find(Role::MANAGER);
         if ($manager) {
             $managerPermissions = Permission::whereNotIn('name', [
-                Permission::USERS_EDIT,
+                Permission::USERS_UPDATE,
                 Permission::USERS_DELETE,
                 Permission::FINANCE_CREATE,
-                Permission::FINANCE_EDIT,
+                Permission::FINANCE_UPDATE,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
 
@@ -164,11 +150,11 @@ class PermissionSeeder extends Seeder
         $companyUser = Role::find(Role::COMPANY_USER);
         if ($companyUser) {
             $companyUserPermissions = Permission::whereIn('name', [
-                Permission::COMPANIES_VIEW,
-                Permission::COMPANIES_CONTRACTS_VIEW,
-                Permission::COMPANIES_EDIT,
-                Permission::CANDIDATES_VIEW,
-                Permission::JOBS_VIEW,
+                Permission::COMPANIES_READ,
+                Permission::COMPANIES_CONTRACTS_READ,
+                Permission::COMPANIES_UPDATE,
+                Permission::CANDIDATES_READ,
+                Permission::JOBS_READ,
                 Permission::JOBS_CREATE,
             ])->pluck('id');
 
@@ -179,8 +165,8 @@ class PermissionSeeder extends Seeder
         $agent = Role::find(Role::AGENT);
         if ($agent) {
             $agentPermissions = Permission::whereIn('name', [
-                Permission::JOB_POSTINGS_VIEW,
-                Permission::CANDIDATES_VIEW,
+                Permission::JOB_POSTINGS_READ,
+                Permission::CANDIDATES_READ,
             ])->pluck('id');
 
             $agent->permissions()->sync($agentPermissions);
@@ -190,11 +176,11 @@ class PermissionSeeder extends Seeder
         $companyOwner = Role::find(Role::COMPANY_OWNER);
         if ($companyOwner) {
             $companyOwnerPermissions = Permission::whereIn('name', [
-                Permission::COMPANIES_VIEW,
-                Permission::COMPANIES_CONTRACTS_VIEW,
-                Permission::COMPANIES_EDIT,
-                Permission::CANDIDATES_VIEW,
-                Permission::JOBS_VIEW,
+                Permission::COMPANIES_READ,
+                Permission::COMPANIES_CONTRACTS_READ,
+                Permission::COMPANIES_UPDATE,
+                Permission::CANDIDATES_READ,
+                Permission::JOBS_READ,
                 Permission::JOBS_CREATE,
             ])->pluck('id');
 
@@ -206,22 +192,22 @@ class PermissionSeeder extends Seeder
         if ($office) {
             $officePermissions = Permission::whereNotIn('name', [
                 Permission::COMPANIES_CONTRACTS_CREATE,
-                Permission::COMPANIES_CONTRACTS_EDIT,
+                Permission::COMPANIES_CONTRACTS_UPDATE,
                 Permission::COMPANIES_CONTRACTS_DELETE,
-                Permission::COMPANIES_CONTRACTS_VIEW,
-                Permission::USERS_VIEW,
+                Permission::COMPANIES_CONTRACTS_READ,
+                Permission::USERS_READ,
                 Permission::USERS_CREATE,
-                Permission::USERS_EDIT,
+                Permission::USERS_UPDATE,
                 Permission::USERS_DELETE,
                 Permission::USERS_CREATE_COMPANIES,
                 Permission::USERS_CREATE_AGENTS,
-                Permission::JOBS_VIEW,
+                Permission::JOBS_READ,
                 Permission::JOBS_CREATE,
-                Permission::JOBS_EDIT,
+                Permission::JOBS_UPDATE,
                 Permission::JOBS_DELETE,
-                Permission::FINANCE_VIEW,
+                Permission::FINANCE_READ,
                 Permission::FINANCE_CREATE,
-                Permission::FINANCE_EDIT,
+                Permission::FINANCE_UPDATE,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
 
@@ -233,18 +219,18 @@ class PermissionSeeder extends Seeder
         if ($hr) {
             $hrPermissions = Permission::whereNotIn('name', [
                 Permission::COMPANIES_CONTRACTS_CREATE,
-                Permission::COMPANIES_CONTRACTS_EDIT,
+                Permission::COMPANIES_CONTRACTS_UPDATE,
                 Permission::COMPANIES_CONTRACTS_DELETE,
-                Permission::COMPANIES_CONTRACTS_VIEW,
-                Permission::USERS_VIEW,
+                Permission::COMPANIES_CONTRACTS_READ,
+                Permission::USERS_READ,
                 Permission::USERS_CREATE,
-                Permission::USERS_EDIT,
+                Permission::USERS_UPDATE,
                 Permission::USERS_DELETE,
                 Permission::USERS_CREATE_COMPANIES,
                 Permission::USERS_CREATE_AGENTS,
-                Permission::FINANCE_VIEW,
+                Permission::FINANCE_READ,
                 Permission::FINANCE_CREATE,
-                Permission::FINANCE_EDIT,
+                Permission::FINANCE_UPDATE,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
 
@@ -256,17 +242,17 @@ class PermissionSeeder extends Seeder
         if ($officeManager) {
             $officeManagerPermissions = Permission::whereNotIn('name', [
                 Permission::CANDIDATES_CREATE,
-                Permission::AGENT_CANDIDATES_VIEW,
+                Permission::AGENT_CANDIDATES_READ,
                 Permission::AGENT_CANDIDATES_CHANGE_STATUS,
                 Permission::AGENT_CANDIDATES_DELETE,
                 Permission::MULTI_APPLICANT_GENERATOR,
-                Permission::CANDIDATES_EDIT,
+                Permission::CANDIDATES_UPDATE,
                 Permission::CANDIDATES_DELETE,
-                Permission::USERS_EDIT,
+                Permission::USERS_UPDATE,
                 Permission::USERS_DELETE,
-                Permission::FINANCE_VIEW,
+                Permission::FINANCE_READ,
                 Permission::FINANCE_CREATE,
-                Permission::FINANCE_EDIT,
+                Permission::FINANCE_UPDATE,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
 
@@ -278,14 +264,14 @@ class PermissionSeeder extends Seeder
         if ($recruiters) {
             $recruitersPermissions = Permission::whereNotIn('name', [
                 Permission::COMPANIES_CONTRACTS_CREATE,
-                Permission::COMPANIES_CONTRACTS_EDIT,
+                Permission::COMPANIES_CONTRACTS_UPDATE,
                 Permission::COMPANIES_CONTRACTS_DELETE,
-                Permission::COMPANIES_CONTRACTS_VIEW,
-                Permission::USERS_EDIT,
+                Permission::COMPANIES_CONTRACTS_READ,
+                Permission::USERS_UPDATE,
                 Permission::USERS_DELETE,
-                Permission::FINANCE_VIEW,
+                Permission::FINANCE_READ,
                 Permission::FINANCE_CREATE,
-                Permission::FINANCE_EDIT,
+                Permission::FINANCE_UPDATE,
                 Permission::FINANCE_DELETE
             ])->pluck('id');
 
@@ -297,16 +283,16 @@ class PermissionSeeder extends Seeder
         if ($finance) {
             $financePermissions = Permission::whereNotIn('name', [
                 Permission::CANDIDATES_CREATE,
-                Permission::CANDIDATES_EDIT,
+                Permission::CANDIDATES_UPDATE,
                 Permission::CANDIDATES_DELETE,
                 Permission::COMPANIES_CREATE,
-                Permission::COMPANIES_EDIT,
+                Permission::COMPANIES_UPDATE,
                 Permission::COMPANIES_DELETE,
                 Permission::USERS_CREATE,
-                Permission::USERS_EDIT,
+                Permission::USERS_UPDATE,
                 Permission::USERS_DELETE,
                 Permission::JOBS_CREATE,
-                Permission::JOBS_EDIT,
+                Permission::JOBS_UPDATE,
                 Permission::JOBS_DELETE,
             ])->pluck('id');
 

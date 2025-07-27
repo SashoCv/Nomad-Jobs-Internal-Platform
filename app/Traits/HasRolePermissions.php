@@ -80,13 +80,13 @@ trait HasRolePermissions
     // Dashboard
     protected function canViewDashboard()
     {
-        return $this->checkPermission(Permission::DASHBOARD_VIEW);
+        return $this->checkPermission(Permission::DASHBOARD_READ);
     }
     
     // Home
     protected function canViewHome()
     {
-        return $this->checkPermission(Permission::HOME_VIEW);
+        return $this->checkPermission(Permission::HOME_READ);
     }
     
     protected function canFilterHome()
@@ -107,7 +107,7 @@ trait HasRolePermissions
     // Companies
     protected function canViewCompanies()
     {
-        return $this->checkPermission(Permission::COMPANIES_VIEW);
+        return $this->checkPermission(Permission::COMPANIES_READ);
     }
     
     protected function canCreateCompanies()
@@ -115,9 +115,9 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::COMPANIES_CREATE);
     }
     
-    protected function canEditCompanies()
+    protected function canUpdateCompanies()
     {
-        return $this->checkPermission(Permission::COMPANIES_EDIT);
+        return $this->checkPermission(Permission::COMPANIES_UPDATE);
     }
     
     protected function canDeleteCompanies()
@@ -128,7 +128,7 @@ trait HasRolePermissions
     // Industries
     protected function canViewIndustries()
     {
-        return $this->checkPermission(Permission::INDUSTRIES_VIEW);
+        return $this->checkPermission(Permission::INDUSTRIES_READ);
     }
     
     protected function canCreateIndustries()
@@ -136,9 +136,9 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::INDUSTRIES_CREATE);
     }
     
-    protected function canEditIndustries()
+    protected function canUpdateIndustries()
     {
-        return $this->checkPermission(Permission::INDUSTRIES_EDIT);
+        return $this->checkPermission(Permission::INDUSTRIES_UPDATE);
     }
     
     protected function canDeleteIndustries()
@@ -149,44 +149,44 @@ trait HasRolePermissions
     // Contracts
     protected function canViewContracts()
     {
-        return $this->checkPermission(Permission::CONTRACTS_VIEW);
+        return $this->checkPermission(Permission::COMPANIES_CONTRACTS_READ);
     }
     
     protected function canCreateContracts()
     {
-        return $this->checkPermission(Permission::CONTRACTS_CREATE);
+        return $this->checkPermission(Permission::COMPANIES_CONTRACTS_CREATE);
     }
     
-    protected function canEditContracts()
+    protected function canUpdateContracts()
     {
-        return $this->checkPermission(Permission::CONTRACTS_EDIT);
+        return $this->checkPermission(Permission::COMPANIES_CONTRACTS_UPDATE);
     }
     
     protected function canDeleteContracts()
     {
-        return $this->checkPermission(Permission::CONTRACTS_DELETE);
+        return $this->checkPermission(Permission::COMPANIES_CONTRACTS_DELETE);
     }
     
     // Requests
     protected function canViewRequests()
     {
-        return $this->checkPermission(Permission::REQUESTS_VIEW);
+        return $this->checkPermission(Permission::COMPANY_JOB_REQUESTS_READ);
     }
     
     protected function canApproveRequests()
     {
-        return $this->checkPermission(Permission::REQUESTS_APPROVE);
+        return $this->checkPermission(Permission::COMPANY_JOB_REQUESTS_APPROVE);
     }
     
     protected function canDeleteRequests()
     {
-        return $this->checkPermission(Permission::REQUESTS_DELETE);
+        return $this->checkPermission(Permission::COMPANY_JOB_REQUESTS_DELETE);
     }
     
     // Candidates
     protected function canViewCandidates()
     {
-        return $this->checkPermission(Permission::CANDIDATES_VIEW);
+        return $this->checkPermission(Permission::CANDIDATES_READ);
     }
     
     protected function canCreateCandidates()
@@ -194,9 +194,9 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::CANDIDATES_CREATE);
     }
     
-    protected function canEditCandidates()
+    protected function canUpdateCandidates()
     {
-        return $this->checkPermission(Permission::CANDIDATES_EDIT);
+        return $this->checkPermission(Permission::CANDIDATES_UPDATE);
     }
     
     protected function canDeleteCandidates()
@@ -207,7 +207,7 @@ trait HasRolePermissions
     // Agent Candidates
     protected function canViewAgentCandidates()
     {
-        return $this->checkPermission(Permission::AGENT_CANDIDATES_VIEW);
+        return $this->checkPermission(Permission::AGENT_CANDIDATES_READ);
     }
     
     protected function canChangeAgentCandidateStatus()
@@ -229,18 +229,18 @@ trait HasRolePermissions
     // Expired Items
     protected function canViewExpiredContracts()
     {
-        return $this->checkPermission(Permission::EXPIRED_CONTRACTS_VIEW);
+        return $this->checkPermission(Permission::EXPIRED_CONTRACTS_READ);
     }
     
     protected function canViewExpiredMedicalInsurance()
     {
-        return $this->checkPermission(Permission::EXPIRED_MEDICAL_INSURANCE_VIEW);
+        return $this->checkPermission(Permission::EXPIRED_MEDICAL_INSURANCE_READ);
     }
     
     // Documents
     protected function canViewDocuments()
     {
-        return $this->checkPermission(Permission::DOCUMENTS_VIEW);
+        return $this->checkPermission(Permission::DOCUMENTS_READ);
     }
     
     protected function canCreateDocuments()
@@ -248,9 +248,9 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::DOCUMENTS_CREATE);
     }
     
-    protected function canEditDocuments()
+    protected function canUpdateDocuments()
     {
-        return $this->checkPermission(Permission::DOCUMENTS_EDIT);
+        return $this->checkPermission(Permission::DOCUMENTS_UPDATE);
     }
     
     protected function canDeleteDocuments()
@@ -261,13 +261,13 @@ trait HasRolePermissions
     // Status History
     protected function canViewStatusHistory()
     {
-        return $this->checkPermission(Permission::STATUS_HISTORY_VIEW);
+        return $this->checkPermission(Permission::STATUS_HISTORY_READ);
     }
     
     // Users
     protected function canViewUsers()
     {
-        return $this->checkPermission(Permission::USERS_VIEW);
+        return $this->checkPermission(Permission::USERS_READ);
     }
     
     protected function canCreateUsers()
@@ -275,9 +275,9 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::USERS_CREATE);
     }
     
-    protected function canEditUsers()
+    protected function canUpdateUsers()
     {
-        return $this->checkPermission(Permission::USERS_EDIT);
+        return $this->checkPermission(Permission::USERS_UPDATE);
     }
     
     protected function canDeleteUsers()
@@ -298,7 +298,7 @@ trait HasRolePermissions
     // Job Postings
     protected function canViewJobPostings()
     {
-        return $this->checkPermission(Permission::JOB_POSTINGS_VIEW);
+        return $this->checkPermission(Permission::JOB_POSTINGS_READ);
     }
     
     protected function canCreateJobPostings()
@@ -306,9 +306,9 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::JOB_POSTINGS_CREATE);
     }
     
-    protected function canEditJobPostings()
+    protected function canUpdateJobPostings()
     {
-        return $this->checkPermission(Permission::JOB_POSTINGS_EDIT);
+        return $this->checkPermission(Permission::JOB_POSTINGS_UPDATE);
     }
     
     protected function canDeleteJobPostings()
@@ -319,7 +319,7 @@ trait HasRolePermissions
     // Job Positions
     protected function canViewJobPositions()
     {
-        return $this->checkPermission(Permission::JOB_POSITIONS_VIEW);
+        return $this->checkPermission(Permission::JOB_POSITIONS_READ);
     }
     
     protected function canCreateJobPositions()
@@ -327,9 +327,9 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::JOB_POSITIONS_CREATE);
     }
     
-    protected function canEditJobPositions()
+    protected function canUpdateJobPositions()
     {
-        return $this->checkPermission(Permission::JOB_POSITIONS_EDIT);
+        return $this->checkPermission(Permission::JOB_POSITIONS_UPDATE);
     }
     
     protected function canDeleteJobPositions()
@@ -340,22 +340,22 @@ trait HasRolePermissions
     // Finances
     protected function canViewFinances()
     {
-        return $this->checkPermission(Permission::FINANCES_VIEW);
+        return $this->checkPermission(Permission::FINANCE_READ);
     }
     
     protected function canCreateFinances()
     {
-        return $this->checkPermission(Permission::FINANCES_CREATE);
+        return $this->checkPermission(Permission::FINANCE_CREATE);
     }
     
-    protected function canEditFinances()
+    protected function canUpdateFinances()
     {
-        return $this->checkPermission(Permission::FINANCES_EDIT);
+        return $this->checkPermission(Permission::FINANCE_UPDATE);
     }
     
     protected function canDeleteFinances()
     {
-        return $this->checkPermission(Permission::FINANCES_DELETE);
+        return $this->checkPermission(Permission::FINANCE_DELETE);
     }
 
     /**
