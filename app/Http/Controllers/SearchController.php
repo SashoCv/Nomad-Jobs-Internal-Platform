@@ -827,8 +827,7 @@ class SearchController extends Controller
             }
 
             $candidates = $candidatesQuery->paginate(20);
-            return $candidates;
-//            return AgentCandidateResource::collection($candidates);
+            return AgentCandidateResource::collection($candidates);
         }
 
         if ($user->hasRole(Role::COMPANY_OWNER)) {
