@@ -171,6 +171,7 @@ class PermissionSeeder extends Seeder
             $agentPermissions = Permission::whereIn('name', [
                 Permission::JOB_POSTINGS_READ,
                 Permission::CANDIDATES_READ,
+                Permission::CANDIDATES_UPDATE,
             ])->pluck('id');
 
             $agent->permissions()->sync($agentPermissions);
