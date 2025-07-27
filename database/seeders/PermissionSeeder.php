@@ -157,6 +157,8 @@ class PermissionSeeder extends Seeder
                 Permission::COMPANY_JOB_REQUESTS_READ,
                 Permission::CHANGE_LOGS_READ,
                 Permission::CHANGE_LOGS_CREATE,
+                Permission::DOCUMENTS_READ,
+                Permission::DOCUMENTS_CREATE,
             ])->pluck('id');
 
             $companyUser->permissions()->sync($companyUserPermissions);
@@ -186,6 +188,8 @@ class PermissionSeeder extends Seeder
                 Permission::COMPANY_JOB_REQUESTS_READ,
                 Permission::CHANGE_LOGS_READ,
                 Permission::CHANGE_LOGS_CREATE,
+                Permission::DOCUMENTS_READ,
+                Permission::DOCUMENTS_CREATE,
             ])->pluck('id');
 
             $companyOwner->permissions()->sync($companyOwnerPermissions);
