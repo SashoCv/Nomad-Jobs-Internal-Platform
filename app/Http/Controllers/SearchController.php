@@ -10,6 +10,8 @@ use App\Models\Company;
 use App\Models\CompanyFile;
 use App\Models\Status;
 use App\Models\UserOwner;
+use App\Models\Role;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,6 +21,12 @@ class SearchController extends Controller
 
     public function searchCandidate(Request $request)
     {
+        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
+        $user = Auth::user();
+
         if ($this->isStaff()) {
 
             if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
@@ -175,9 +183,12 @@ class SearchController extends Controller
                 ]);
             }
         } else {
+            // Company users can only see their own company candidates
+            $companyId = $user->company_id;
+
             if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -186,7 +197,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus == '' && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -195,7 +206,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -206,7 +217,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)
                     ->where('company_id', '=', $request->searchCompany)
-                    ->where('company_id', '=', Auth::user()->company_id)
+                    ->where('company_id', '=', $companyId)
                     ->get();
 
                 return response()->json([
@@ -218,7 +229,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                    ->where('company_id', '=', Auth::user()->company_id)
+                    ->where('company_id', '=', $companyId)
                     ->get();
 
                 return response()->json([
@@ -230,7 +241,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('company_id', '=', $request->searchCompany)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)
-                    ->where('company_id', '=', Auth::user()->company_id)
+                    ->where('company_id', '=', $companyId)
                     ->get();
 
                 return response()->json([
@@ -243,7 +254,7 @@ class SearchController extends Controller
                 $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)
                     ->where('status_id', '=', $request->searchStatus)
                     ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                    ->where('company_id', '=', Auth::user()->company_id)
+                    ->where('company_id', '=', $companyId)
                     ->get();
 
                 return response()->json([
@@ -252,7 +263,7 @@ class SearchController extends Controller
                     'data' => $result
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -261,7 +272,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -270,7 +281,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -279,7 +290,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -288,7 +299,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -297,7 +308,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -306,7 +317,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('status_id', '=', $request->searchStatus)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -315,7 +326,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName == '' && $request->searchCompany && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('date', '=', $request->searchDate)->where('status_id', '=', $request->searchStatus)->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -324,7 +335,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -336,326 +347,338 @@ class SearchController extends Controller
     }
 
     public function searchWorker(Request $request)
-    { {
-            if ($this->isStaff()) {
-
-                if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)
-                        ->where('company_id', '=', $request->searchCompany)
-                        ->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)
-                        ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                        ->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('company_id', '=', $request->searchCompany)
-                        ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)
-                        ->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)
-
-                        ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                        ->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate == '') {
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                }
-            } else {
-                if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)
-                        ->where('company_id', '=', $request->searchCompany)
-                        ->where('company_id', '=', Auth::user()->company_id)
-                        ->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)
-                        ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                        ->where('company_id', '=', Auth::user()->company_id)
-                        ->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('company_id', '=', $request->searchCompany)
-                        ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)
-                        ->where('company_id', '=', Auth::user()->company_id)
-                        ->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)
-
-                        ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                        ->where('company_id', '=', Auth::user()->company_id)
-                        ->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate == '') {
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
-
-                    $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', Auth::user()->company_id)->get();
-
-                    return response()->json([
-                        'success' => true,
-                        'status' => 200,
-                        'data' => $result
-                    ]);
-                }
+    {
+        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
+        $user = Auth::user();
+
+        if ($this->isStaff()) {
+
+            if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)
+                    ->where('company_id', '=', $request->searchCompany)
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)
+                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('company_id', '=', $request->searchCompany)
+                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)
+
+                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate == '') {
+                $result = Candidate::with('company')->where('type_id', '=', 2)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            }
+        } else {
+            // Company users can only see their own company workers
+            $companyId = $user->company_id;
+
+            if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)
+                    ->where('company_id', '=', $request->searchCompany)
+                    ->where('company_id', '=', $companyId)
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)
+                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where('company_id', '=', $companyId)
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('company_id', '=', $request->searchCompany)
+                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)
+                    ->where('company_id', '=', $companyId)
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)
+
+                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where('company_id', '=', $companyId)
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate == '') {
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany == '' && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName == '' && $request->searchCompany && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
+            } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
+
+                $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 200,
+                    'data' => $result
+                ]);
             }
         }
     }
 
     public function searchCompany(Request $request)
     {
+        if (!$this->checkPermission(Permission::COMPANIES_READ)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $EIK = $request->input('EIK');
         $nameOfCompany = $request->input('nameOfCompany');
         $status = $request->input('status_id');
@@ -663,13 +686,14 @@ class SearchController extends Controller
         $companyId = $request->input('company_id');
 
         $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
+        $user = Auth::user();
 
-        if(Auth::user()->role_id === 3){
-            $companiesQuery->where('id', Auth::user()->company_id);
+        if($user->hasRole(Role::COMPANY_USER)){
+            $companiesQuery->where('id', $user->company_id);
         }
 
-        if (Auth::user()->role_id === 5) {
-            $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
+        if ($user->hasRole(Role::COMPANY_OWNER)) {
+            $companyOwner = UserOwner::where('user_id', $user->id)->get();
             $companyIds = $companyOwner->pluck('company_id');
 
             $companiesQuery->whereIn('id', $companyIds);
@@ -742,6 +766,10 @@ class SearchController extends Controller
 
     public function searchCandidateNew(Request $request)
     {
+        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $searchEverything = $request->searchEverything;
 
         $query = Candidate::with([
@@ -752,17 +780,17 @@ class SearchController extends Controller
             'latestStatusHistory.status',
         ]);
 
-        $userRoleId = Auth::user()->role_id;
+        $user = Auth::user();
 
         if ($this->isStaff()) {
             $query->where('type_id', '!=', 3);
         }
 
-        if ($userRoleId === 3) {
-            $query->where('company_id', Auth::user()->company_id);
+        if ($user->hasRole(Role::COMPANY_USER)) {
+            $query->where('company_id', $user->company_id);
         }
 
-        if ($userRoleId === 4) {
+        if ($user->hasRole(Role::AGENT)) {
             $searchName = $request->searchName;
             $searchCompanyJob = $request->searchCompanyJob;
             $searchAgentStatus = $request->searchAgentStatus;
@@ -771,7 +799,7 @@ class SearchController extends Controller
 
             $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
-                ->where('agent_candidates.user_id', Auth::user()->id);
+                ->where('agent_candidates.user_id', $user->id);
 
             $candidatesQuery->when($searchName, function ($q) use ($searchName) {
                 $q->whereHas('candidate', function ($subquery) use ($searchName) {
@@ -802,8 +830,8 @@ class SearchController extends Controller
             return AgentCandidateResource::collection($candidates);
         }
 
-        if ($userRoleId === 5) {
-            $companyOwner = UserOwner::where('user_id', Auth::user()->id)->get();
+        if ($user->hasRole(Role::COMPANY_OWNER)) {
+            $companyOwner = UserOwner::where('user_id', $user->id)->get();
             $companyIds = $companyOwner->pluck('company_id');
 
             $query->whereIn('company_id', $companyIds);
@@ -920,7 +948,7 @@ class SearchController extends Controller
             }
         }
 
-        if ($userRoleId === 3 || $userRoleId === 5) {
+        if ($user->hasRole(Role::COMPANY_USER) || $user->hasRole(Role::COMPANY_OWNER)) {
             if ($result instanceof \Illuminate\Pagination\LengthAwarePaginator) {
                 $result->getCollection()->transform(function ($candidate) {
                     $candidate->phoneNumber = null;

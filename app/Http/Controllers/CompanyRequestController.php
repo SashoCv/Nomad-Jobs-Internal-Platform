@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\CompanyRequest;
 use App\Models\CompanyServiceContract;
 use App\Models\ContractPricing;
+use App\Models\Role;
+use App\Models\Permission;
+use App\Models\UserOwner;
+use App\Traits\HasRolePermissions;
 use App\Services\CompanyRequestTransformerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +16,8 @@ use Illuminate\Support\Facades\Log;
 
 class CompanyRequestController extends Controller
 {
+    use HasRolePermissions;
+
     public function __construct(
         private CompanyRequestTransformerService $transformerService
     ) {}
@@ -24,15 +30,26 @@ class CompanyRequestController extends Controller
     public function index()
     {
         try {
-            $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user','companyJob.changeLogs'])->get();
+            $user = Auth::user();
 
-            if(Auth::user()->role_id ==3){
-                $companyRequests = $companyRequests->filter(function ($request) {
-                    return $request->companyJob->company_id == Auth::user()->company_id;
-                });
+            if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_READ)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
             }
 
+            $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user','companyJob.changeLogs'])->get();
 
+            // Filter requests based on user role
+            if ($user->hasRole(Role::COMPANY_USER)) {
+                $companyRequests = $companyRequests->filter(function ($request) use ($user) {
+                    return $request->companyJob->company_id == $user->company_id;
+                });
+            } else if ($user->hasRole(Role::COMPANY_OWNER)) {
+                $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
+                $companyRequests = $companyRequests->filter(function ($request) use ($companyIds) {
+                    return $companyIds->contains($request->companyJob->company_id);
+                });
+            }
+            // Staff can see all requests (no filtering needed)
 
             $transformedData = $this->transformerService->transformCompanyRequests($companyRequests);
 
@@ -57,6 +74,10 @@ class CompanyRequestController extends Controller
     public function approveCompanyRequest(Request $request, $companyRequestId)
     {
         try {
+            if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_APPROVE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $companyRequest = CompanyRequest::findOrFail($companyRequestId);
             $companyRequest->approved = true;
             $companyRequest->description = $request->input('description', "Approved by " . auth()->user()->firstName . " " . auth()->user()->lastName);
@@ -85,6 +106,10 @@ class CompanyRequestController extends Controller
     public function rejectCompanyRequest($companyRequestId)
     {
         try {
+            if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_APPROVE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $companyRequest = CompanyRequest::findOrFail($companyRequestId);
             $companyRequest->approved = false;
             $companyRequest->description = "Rejected by " . auth()->user()->firstName . " " . auth()->user()->lastName;
@@ -119,6 +144,10 @@ class CompanyRequestController extends Controller
     public function showPriceBasedOnRequest($companyRequestId)
     {
         try {
+            if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_READ)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $companyRequest = CompanyRequest::with([
                 'companyJob',
                 'companyJob.company',

@@ -263,23 +263,26 @@ class CandidateController extends Controller
     public function show($id)
     {
         $user = Auth::user();
-        $roleId = $user->role_id;
+
+        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
 
         $query = Candidate::with(['categories', 'company', 'position','statusHistories','statusHistories.status'])->where('id', $id);
 
-        if ($roleId == 1 || $roleId == 2) {
+        if ($this->isStaff()) {
             $person = $query->first();
 
             $agent = AgentCandidate::where('candidate_id', $id)->first();
             $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
-        } elseif ($roleId == 3) {
+        } elseif ($user->hasRole(Role::COMPANY_USER)) {
             $person = $query->where('company_id', $user->company_id)->first();
             $person->phoneNumber = null;
-        } elseif ($roleId == 5) {
+        } elseif ($user->hasRole(Role::COMPANY_OWNER)) {
             $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
             $person = $query->whereIn('company_id', $companyIds)->first();
             $person->phoneNumber = null;
-        } elseif ($roleId == 4) {
+        } elseif ($user->hasRole(Role::AGENT)) {
             $candidateIds = AgentCandidate::where('user_id', $user->id)->pluck('candidate_id');
             $person = $query->whereIn('id', $candidateIds)->first();
         } else {
@@ -320,17 +323,27 @@ class CandidateController extends Controller
     }
     public function showPerson($id)
     {
+        $user = Auth::user();
+
+        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
+        $query = Candidate::where('id', '=', $id);
+
         if ($this->isStaff()) {
-            $person = Candidate::where('id', '=', $id)->first();
-        } else if (Auth::user()->role_id == 3) {
-            $person = Candidate::where('id', '=', $id)->where('company_id', Auth::user()->company_id)->first();
-        } else if (Auth::user()->role_id == 5) {
-            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = [];
-            foreach ($userOwners as $userOwner) {
-                array_push($userOwnersArray, $userOwner->company_id);
-            }
-            $person = Candidate::where('id', '=', $id)->whereIn('company_id', $userOwnersArray)->first();
+            // Staff can see any candidate
+            $person = $query->first();
+        } else if ($user->hasRole(Role::COMPANY_USER)) {
+            // Company users can only see candidates from their company
+            $person = $query->where('company_id', $user->company_id)->first();
+        } else if ($user->hasRole(Role::COMPANY_OWNER)) {
+            // Company owners can see candidates from companies they own
+            $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
+            $person = $query->whereIn('company_id', $companyIds)->first();
+        } else {
+            // Default: no access
+            $person = null;
         }
 
         if (isset($person)) {
@@ -352,28 +365,30 @@ class CandidateController extends Controller
 
     public function showPersonNew($id)
     {
+        $user = Auth::user();
+
+        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
+        $query = DB::table('candidates')
+            ->join('companies', 'companies.id', '=', 'candidates.company_id')
+            ->where('candidates.id', $id)
+            ->select('candidates.*', 'companies.nameOfCompany');
+
         if ($this->isStaff()) {
-            $person = DB::table('candidates')
-                ->join('companies', 'companies.id', '=', 'candidates.company_id')
-                ->where('candidates.id', $id)
-                ->select('candidates.*', 'companies.nameOfCompany')->first();
-        } else if (Auth::user()->role_id == 3) {
-            $person = DB::table('candidates')
-                ->join('companies', 'companies.id', '=', 'candidates.company_id')
-                ->where('candidates.id', $id)
-                ->where('candidates.company_id', Auth::user()->company_id)
-                ->select('candidates.*', 'companies.nameOfCompany')->first();
-        } else if (Auth::user()->role_id == 5) {
-            $userOwners = UserOwner::where('user_id', '=', Auth::user()->id)->get();
-            $userOwnersArray = [];
-            foreach ($userOwners as $userOwner) {
-                array_push($userOwnersArray, $userOwner->company_id);
-            }
-            $person = DB::table('candidates')
-                ->join('companies', 'companies.id', '=', 'candidates.company_id')
-                ->where('candidates.id', $id)
-                ->whereIn('candidates.company_id', $userOwnersArray)
-                ->select('candidates.*', 'companies.nameOfCompany')->first();
+            // Staff can see any candidate
+            $person = $query->first();
+        } else if ($user->hasRole(Role::COMPANY_USER)) {
+            // Company users can only see candidates from their company
+            $person = $query->where('candidates.company_id', $user->company_id)->first();
+        } else if ($user->hasRole(Role::COMPANY_OWNER)) {
+            // Company owners can see candidates from companies they own
+            $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
+            $person = $query->whereIn('candidates.company_id', $companyIds)->first();
+        } else {
+            // Default: no access
+            $person = null;
         }
         if (isset($person)) {
             return response()->json([
@@ -558,7 +573,7 @@ class CandidateController extends Controller
             if ($this->isStaff()) {
                 $this->candidateService->deleteCandidate($candidate);
                 return $this->successResponse(null, 'Candidate deleted successfully');
-            } elseif (Auth::user()->role_id === Role::AGENT) {
+            } elseif (Auth::user()->hasRole(Role::AGENT)) {
                 return $this->handleAgentDeletion($candidate, $id);
             }
 
@@ -592,11 +607,17 @@ class CandidateController extends Controller
     public function exportCandidates(Request $request)
     {
         try {
+            if (!$this->checkPermission(Permission::CANDIDATES_EXPORT)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
             $filters = [
                 'status_id' => $request->status_id ?? null,
                 'company_id' => $request->company_id ?? null,
                 'searchDate' => $request->searchDate ?? null,
             ];
+
+            $user = Auth::user();
 
             if ($this->isStaff()) {
                 $candidates = Candidate::with(['company', 'latestStatusHistory','latestStatusHistory.status', 'position']);
@@ -615,9 +636,9 @@ class CandidateController extends Controller
                 if($filters['company_id']) {
                     $candidates->where('company_id', $filters['company_id']);
                 }
-            } else if (Auth::user()->role_id == 3) {
+            } else if ($user->hasRole(Role::COMPANY_USER)) {
                 $candidates = Candidate::with(['company', 'statusHistories', 'position'])
-                    ->where('company_id', Auth::user()->company_id);
+                    ->where('company_id', $user->company_id);
 
                 if ($filters['status_id']) {
                     $candidates->whereHas('statusHistories', function ($query) use ($filters) {
@@ -700,15 +721,18 @@ class CandidateController extends Controller
     protected function buildCandidateQuery(): ?\Illuminate\Database\Eloquent\Builder
     {
         $user = Auth::user();
-        $roleId = $user->role_id;
 
-        return match ($roleId) {
-            Role::GENERAL_MANAGER, Role::MANAGER, Role::OFFICE, Role::HR, Role::OFFICE_MANAGER, Role::RECRUITERS, Role::FINANCE => Candidate::query(),
-            Role::COMPANY_USER => Candidate::byCompany($user->company_id),
-            Role::COMPANY_OWNER => $this->buildOwnerQuery($user->id),
-            Role::AGENT => $this->buildAgentQuery($user->id),
-            default => null,
-        };
+        if ($this->isStaff()) {
+            return Candidate::query();
+        } elseif ($user->hasRole(Role::COMPANY_USER)) {
+            return Candidate::byCompany($user->company_id);
+        } elseif ($user->hasRole(Role::COMPANY_OWNER)) {
+            return $this->buildOwnerQuery($user->id);
+        } elseif ($user->hasRole(Role::AGENT)) {
+            return $this->buildAgentQuery($user->id);
+        }
+
+        return null;
     }
 
     protected function buildOwnerQuery(int $userId): \Illuminate\Database\Eloquent\Builder

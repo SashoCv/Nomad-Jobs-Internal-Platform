@@ -38,12 +38,6 @@ class RolePermissionMiddleware
         if ($permission) {
             $permissions = explode('|', $permission);
             
-            // For roles 3, 4, 5 (company user, agent, company owner) - preserve existing logic
-            if ($user->hasAnyRole([Role::COMPANY_USER, Role::AGENT, Role::COMPANY_OWNER])) {
-                // Skip permission checks for these roles to preserve existing logic
-                return $next($request);
-            }
-            
             if (!$user->hasAnyPermission($permissions)) {
                 return response()->json(['error' => 'Insufficient permissions'], 403);
             }
