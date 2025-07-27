@@ -232,12 +232,11 @@ class CompanyJobController extends Controller
         //
     }
 
-    public function update(Request $request, CompanyJob $companyJob)
+    public function update(Request $request, $companyJobId)
     {
         $user = Auth::user();
 
         if ($this->checkPermission(Permission::JOBS_UPDATE)) {
-
             $companyJob->job_title = $request->job_title;
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
