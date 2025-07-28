@@ -23,7 +23,7 @@ class CandidateService
             $candidate->fill($data);
 
             $candidate->addedBy = Auth::id();
-            $statusId = $data['status_id'] ?? 1; // Default to 'New' status if not provided
+            $statusId = $data['status_id'] ?? 16; // Default to 'New' status if not provided
 
 
             // Calculate derived fields
