@@ -248,6 +248,7 @@ class CandidateController extends Controller
             $data = $request->validated();
             $candidate = $this->candidateService->createCandidate($data);
 
+            Log::info('Candidate created successfully', ['candidate_id' => $candidate->id]);
             return $this->successResponse(new CandidateResource($candidate), 'Candidate created successfully');
         } catch (\Exception $e) {
             Log::error('Error creating candidate: ' . $e->getMessage());
