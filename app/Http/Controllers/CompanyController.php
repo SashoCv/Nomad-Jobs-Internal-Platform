@@ -207,7 +207,7 @@ class CompanyController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function show(int $id): JsonResponse
+    public function show($id): JsonResponse
     {
         $user = Auth::user();
 
