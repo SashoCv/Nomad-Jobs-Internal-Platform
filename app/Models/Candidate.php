@@ -274,12 +274,13 @@ class Candidate extends Model
 
         $now = Carbon::now();
         $fourMonthsFromNow = $now->copy()->addMonths(4);
+        $endDate = Carbon::parse($this->endContractDate);
 
-        if ($this->endContractDate->lessThan($now)) {
+        if ($endDate->lessThan($now)) {
             return 'Expired';
         }
 
-        if ($this->endContractDate->lessThan($fourMonthsFromNow)) {
+        if ($endDate->lessThan($fourMonthsFromNow)) {
             return 'Expiring soon';
         }
 
