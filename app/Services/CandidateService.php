@@ -81,7 +81,7 @@ class CandidateService
             if (isset($data['status_id'])) {
                 $statusHistory = new Statushistory();
                 $statusHistory->candidate_id = $candidate->id;
-                $statusHistory->status_id = $data['status_id'];
+                $statusHistory->status_id = $data['status_id'] ?? $candidate->latestStatusHistory->status->id;
                 $statusHistory->statusDate = Carbon::now()->toDateString();
                 $statusHistory->description = 'Candidate updated';
                 $statusHistory->save();
