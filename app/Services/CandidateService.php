@@ -27,7 +27,8 @@ class CandidateService
 
 
             // Calculate derived fields
-            $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));
+            $date = $data['date'] instanceof Carbon ? $data['date'] : Carbon::parse($data['date']);
+            $candidate->quartal = $candidate->calculateQuartal($date);
 
             if ($data['contractType'] === Candidate::CONTRACT_TYPE_90_DAYS) {
                 $candidate->seasonal = $candidate->calculateSeason(Carbon::parse($data['date']));

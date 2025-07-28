@@ -219,7 +219,7 @@ class Candidate extends Model
         ]);
     }
 
-    public function calculateQuartal(Carbon $date): string
+    public function calculateQuartal($date): string
     {
         $year = $date->year;
         $month = $date->month;
@@ -234,7 +234,7 @@ class Candidate extends Model
         return $quartal . '/' . $year;
     }
 
-    public function calculateSeason(Carbon $date): string
+    public function calculateSeason($date): string
     {
         $year = $date->year;
         $month = $date->month;
