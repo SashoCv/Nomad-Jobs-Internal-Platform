@@ -76,7 +76,7 @@ class CandidateService
             $candidate->fill($data);
 
             Log::info("Updating candidate with ID: {$candidate->id}", [$data]);
-            Log::info("Candidate data before update:", [$candidate->latestStatusHistory()]);
+            Log::info("Candidate data before update:", [$candidate->latestStatusHistory->status->id ?? 'N/A']);
             // Status history update
             if (isset($data['status_id'])) {
                 $statusHistory = new Statushistory();
