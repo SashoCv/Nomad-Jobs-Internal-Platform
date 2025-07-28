@@ -10,6 +10,7 @@ use App\Models\Position;
 use App\Models\Statushistory;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -84,6 +85,7 @@ class CandidateService
                 $statusHistory->save();
             }
 
+            Log::info("Updating candidate with ID: {$candidate->id} and status ID:", [$data['status_id'] ?? 'N/A']);
             // Recalculate derived fields
             $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));
 
