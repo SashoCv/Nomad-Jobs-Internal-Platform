@@ -26,15 +26,6 @@ class Candidate extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
-        'birthday' => 'date',
-        'passportValidUntil' => 'date',
-        'passportIssuedOn' => 'date',
-        'startContractDate' => 'date',
-        'endContractDate' => 'date',
-        'contractPeriodDate' => 'date',
-        'salary' => 'decimal:2',
-        'contractPeriodNumber' => 'integer',
     ];
 
     const TYPE_CANDIDATE = 1;
