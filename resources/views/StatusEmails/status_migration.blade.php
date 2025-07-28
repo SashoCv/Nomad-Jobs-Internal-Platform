@@ -20,7 +20,7 @@
                 е със сменен статус –
                 <span style="font-weight: bold; color: #27ae60;">
                     @if ($data['contractType'] === 'indefinite')
-                        входирани документи в дирекция „Миграция“ към МВР (ЕРПР{{ $data['contractPeriod'] ? ', ' . $data['contractPeriod'] : '' }}).
+                        входирани документи в дирекция „Миграция“ към МВР (ЕРПР).
                     @else
                         входирани документи в АЗ, МТСП (сезонна заетост – сз90).
                     @endif
