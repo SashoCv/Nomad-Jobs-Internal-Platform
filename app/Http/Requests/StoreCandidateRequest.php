@@ -27,7 +27,11 @@ class StoreCandidateRequest extends FormRequest
 
             // Personal Information
             'gender' => ['required', 'string', 'max:10'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phoneNumber' => ['nullable', 'string', 'max:20'],
             'nationality' => ['required', 'string', 'max:100'],
+            'date' => ['required'],
+            'birthday' => ['nullable'],
             'address' => ['string', 'max:500'],
             'passport' => ['required', 'string', 'max:50'],
             'fullName' => ['required', 'string', 'max:255'],
