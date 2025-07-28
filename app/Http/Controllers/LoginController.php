@@ -193,9 +193,7 @@ class LoginController extends Controller
 
     public function store(Request $request)
     {
-
-        if (Auth::user()->role_id == 1) {
-            $request->validate(
+         $request->validate(
                 [
                     'firstName' => 'required',
                     'email' => 'required|email',
@@ -280,13 +278,6 @@ class LoginController extends Controller
                     'data' => []
                 ]);
             }
-        } else {
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => []
-            ]);
-        }
     }
     /**
      * Display the specified resource.
