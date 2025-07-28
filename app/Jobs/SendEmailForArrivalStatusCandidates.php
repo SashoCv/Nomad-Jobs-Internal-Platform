@@ -118,7 +118,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
 
         try {
             Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $company) {
-                $message->to("sasocvetanoski@gmail.com") // tuka da se vide na koja mail
+                $message->to($company->email) // tuka da se vide na koja mail
                 ->subject('Notification for ' . $data['candidateName']);
             });
 
