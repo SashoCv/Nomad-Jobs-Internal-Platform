@@ -20,7 +20,7 @@ class CandidateResource extends JsonResource
             'nationality' => $this->nationality,
             'passport' => $this->passport,
             'address' => $this->address,
-            'birthday' => $this->birthday?->format('Y-m-d'),
+            'birthday' => $this->birthday,
             'placeOfBirth' => $this->placeOfBirth,
             'country' => $this->country,
             'area' => $this->area,
@@ -64,7 +64,7 @@ class CandidateResource extends JsonResource
             'hasArrival' => $this->has_arrival,
             'createdAt' => $this->created_at?->format('Y-m-d H:i:s'),
             'updatedAt' => $this->updated_at?->format('Y-m-d H:i:s'),
-            
+
             // Relationships
             'company' => $this->whenLoaded('company'),
             'status' => $this->whenLoaded('status'),
@@ -81,7 +81,7 @@ class CandidateResource extends JsonResource
             'experience' => $this->whenLoaded('experience'),
             'medicalInsurance' => $this->whenLoaded('medicalInsurance'),
             'arrival' => $this->whenLoaded('arrival'),
-            
+
             // Conditional fields
             'agentFullName' => $this->when(isset($this->agentFullName), $this->agentFullName),
         ];
@@ -90,17 +90,17 @@ class CandidateResource extends JsonResource
     protected function shouldShowPersonalInfo(): bool
     {
         $userRole = auth()->user()->role_id ?? null;
-        
+
         // Admin and super admin can see all info
         if (in_array($userRole, [1, 2])) {
             return true;
         }
-        
+
         // Hide sensitive info for company users and owners
         if (in_array($userRole, [3, 5])) {
             return false;
         }
-        
+
         // Agent can see their candidates' info
         return $userRole === 4;
     }
