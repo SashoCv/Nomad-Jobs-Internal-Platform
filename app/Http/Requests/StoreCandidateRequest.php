@@ -29,7 +29,6 @@ class StoreCandidateRequest extends FormRequest
             'nationality' => ['required', 'string', 'max:100'],
             'date' => ['required'],
             'birthday' => ['nullable'],
-            'address' => ['string', 'max:500'],
             'passport' => ['required', 'string', 'max:50'],
             'fullName' => ['required', 'string', 'max:255'],
             'fullNameCyrillic' => ['nullable', 'string', 'max:255'],
