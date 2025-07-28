@@ -21,9 +21,6 @@ class StoreCandidateRequest extends FormRequest
             'type_id' => ['required', 'integer', Rule::in([Candidate::TYPE_CANDIDATE, Candidate::TYPE_EMPLOYEE])],
             'company_id' => ['required', 'integer', 'exists:companies,id'],
             'position_id' => ['required', 'integer', 'exists:positions,id'],
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'case_id' => ['nullable', 'integer', 'exists:cases,id'],
-            'agent_id' => ['nullable', 'integer', 'exists:users,id'],
 
             // Personal Information
             'gender' => ['required', 'string', 'max:10'],
