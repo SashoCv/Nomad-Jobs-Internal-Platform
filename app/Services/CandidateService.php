@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\File;
 use App\Models\Position;
+use App\Models\Statushistory;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -75,12 +76,12 @@ class CandidateService
 
             // Status history update
             if (isset($data['status_id'])) {
-                $candidate->statusHistories()->create([
-                    'candidate_id' => $candidate->id,
-                    'status_id' => $data['status_id'],
-                    'statusDate' => Carbon::now()->toDateString(),
-                    'description' => 'Status updated',
-                ]);
+                $statusHistory = new Statushistory();
+                $statusHistory->candidate_id = $candidate->id;
+                $statusHistory->status_id = $data['status_id'];
+                $statusHistory->statusDate = Carbon::now()->toDateString();
+                $statusHistory->description = 'Candidate updated';
+                $statusHistory->save();
             }
 
             // Recalculate derived fields
