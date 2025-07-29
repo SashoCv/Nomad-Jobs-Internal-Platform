@@ -28,6 +28,9 @@ class CandidateService
 
 
             // Calculate derived fields
+            Log::info("Creating candidate with data:", [$data]);
+            Log::info("type of date:", [gettype($data['date'])]);
+
             $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));
 
             if ($data['contractType'] === Candidate::CONTRACT_TYPE_90_DAYS) {
