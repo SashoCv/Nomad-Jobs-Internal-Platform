@@ -168,7 +168,13 @@ class CompanyController extends Controller
             ]);
 
             $companyData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
-            $companyData['employedByMonths'] = $request->employedByMonths ?: null;
+            
+            // Parse employedByMonths JSON string to array so Laravel can cast it properly
+            if ($request->employedByMonths && $request->employedByMonths !== 'null') {
+                $companyData['employedByMonths'] = json_decode($request->employedByMonths, true);
+            } else {
+                $companyData['employedByMonths'] = null;
+            }
 
             $company = Company::create($companyData);
 
@@ -283,7 +289,13 @@ class CompanyController extends Controller
             ]);
 
             $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
-            $updateData['employedByMonths'] = $request->employedByMonths ?? null;
+            
+            // Parse employedByMonths JSON string to array so Laravel can cast it properly
+            if ($request->employedByMonths && $request->employedByMonths !== 'null') {
+                $updateData['employedByMonths'] = json_decode($request->employedByMonths, true);
+            } else {
+                $updateData['employedByMonths'] = null;
+            }
 
             $company->fill($updateData);
 
