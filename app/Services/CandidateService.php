@@ -21,6 +21,7 @@ class CandidateService
     {
         return DB::transaction(function () use ($data) {
             $candidate = new Candidate();
+            $candidate->user_id = is_numeric($data['user_id']) ? (int) $data['user_id'] : null;
             $candidate->fill($data);
 
             $candidate->addedBy = Auth::id();
