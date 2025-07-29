@@ -72,7 +72,7 @@ class CandidateService
         });
     }
 
-    public function updateCandidate(Candidate $candidate, array $data): Candidate
+    public function updateCandidate(Candidate $candidate, $data): Candidate
     {
         return DB::transaction(function () use ($candidate, $data) {
             // Clean up auto-generated files
@@ -83,12 +83,22 @@ class CandidateService
             Log::info("Updating candidate with ID: {$candidate->id}", [$data]);
             Log::info("Candidate data before update:", [$candidate->latestStatusHistory->status->id ?? 'N/A']);
             // Status history update
+            if (isset($data['status_id'])) {
+                $statusHistory = new Statushistory();
+                $statusHistory->candidate_id = $candidate->id;
+                $statusHistory->status_id = $data['status_id'] ?? $candidate->latestStatusHistory->status->id;
+                $statusHistory->statusDate = Carbon::now()->toDateString();
+                $statusHistory->description = 'Candidate updated';
+                $statusHistory->save();
+            }
 
+            Log::info("Updating candidate with ID: {$candidate->id} and status ID:", [$data['status_id'] ?? 'N/A']);
             // Recalculate derived fields
             $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));
 
             if ($data['contractType'] === Candidate::CONTRACT_TYPE_90_DAYS) {
                 $candidate->seasonal = $candidate->calculateSeason(Carbon::parse($data['date']));
+                Log::info("Candidate seasonal status updated to: {$candidate->seasonal}");
             } else {
                 $candidate->seasonal = null;
             }
@@ -105,7 +115,7 @@ class CandidateService
             // Handle file uploads
             $this->handleFileUploads($candidate, $data);
 
-            return $candidate;
+            return $candidate->load('position');
         });
     }
 
