@@ -80,7 +80,7 @@ class CandidateService
             Log::info("Updating candidate with ID: {$candidate->id}", [$data]);
             Log::info("Candidate data before update:", [$candidate->latestStatusHistory->status->id ?? 'N/A']);
             // Status history update
-            if (isset($data['status_id'])) {
+            if (isset($data['status_id']) && $data['status_id'] !== $candidate->latestStatusHistory->status->id) {
                 $statusHistory = new Statushistory();
                 $statusHistory->candidate_id = $candidate->id;
                 $statusHistory->status_id = $data['status_id'] ?? $candidate->latestStatusHistory->status->id;
