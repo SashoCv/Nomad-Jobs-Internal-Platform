@@ -245,7 +245,8 @@ class CandidateController extends Controller
     public function store(StoreCandidateRequest $request): JsonResponse
     {
         try {
-            $data = $request->validated();
+            $data = $request->all();
+            Log::info('Creating candidate with data in STORE', ['data' => $data]);
             $candidate = $this->candidateService->createCandidate($data);
 
             Log::info('Candidate created successfully', ['candidate_id' => $candidate->id]);

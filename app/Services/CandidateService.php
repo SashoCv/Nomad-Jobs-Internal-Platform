@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 
 class CandidateService
 {
-    public function createCandidate(array $data): Candidate
+    public function createCandidate($data): Candidate
     {
         return DB::transaction(function () use ($data) {
             $candidate = new Candidate();
