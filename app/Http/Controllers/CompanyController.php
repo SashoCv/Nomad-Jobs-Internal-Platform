@@ -283,7 +283,7 @@ class CompanyController extends Controller
             ]);
 
             $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
-            $updateData['employedByMonths'] = $request->employedByMonths === 'null' ? null : $request->employedByMonths;
+            $updateData['employedByMonths'] = $request->employedByMonths ?? null;
 
             $company->fill($updateData);
 
