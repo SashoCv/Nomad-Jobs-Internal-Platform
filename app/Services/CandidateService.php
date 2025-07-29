@@ -29,7 +29,8 @@ class CandidateService
 
             // Calculate derived fields
             Log::info("Creating candidate with data:", [$data]);
-            Log::info("type of date:", [gettype($data['date'])]);
+            Log::info("type of date:", [gettype($data['date'])]); // this is string from front
+            Log::info('carbon parse date:', [Carbon::parse($data['date'])]);
 
             $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));
 

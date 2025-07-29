@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 
 class Candidate extends Model
 {
@@ -225,6 +226,8 @@ class Candidate extends Model
         $year = $date->year;
         $month = $date->month;
 
+        Log::info('year: ' . $year . ', month: ' . $month);
+
         $quartal = match (true) {
             $month >= 1 && $month <= 3 => 1,
             $month >= 4 && $month <= 6 => 2,
@@ -249,6 +252,7 @@ class Candidate extends Model
 
         $seasonYear = ($season === self::SEASON_WINTER && $month <= 2) ? $year - 1 : $year;
 
+        Log::info('Season: ' . $season . ', Year: ' . $seasonYear);
         return $season . '/' . $seasonYear;
     }
 
@@ -257,6 +261,7 @@ class Candidate extends Model
         preg_match('/\d+/', $contractPeriod, $matches);
         $period = isset($matches[0]) ? (int) $matches[0] : null;
 
+        Log::info('Contract period: ' . $contractPeriod . ', Period: ' . $period);
         return $period ? $startDate->copy()->addYears($period) : null;
     }
 
