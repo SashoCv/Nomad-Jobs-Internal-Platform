@@ -416,7 +416,7 @@ class CandidateController extends Controller
     {
         try {
             $candidate = Candidate::findOrFail($id);
-            $data = $request->validated();
+            $data = $request->all();
 
             $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data);
 
