@@ -84,7 +84,7 @@ class CandidateService
             Log::info("Current status ID for candidate ID {$candidate->id}: {$currentStatusId}");
             Log::info('data[status_id]: ' , [$data['status_id']]);
 
-            if (isset($data['status_id']) && $data['status_id'] !== $currentStatusId) {
+            if (isset($data['status_id']) && $data['status_id'] != $currentStatusId) {
                 $statusHistory = new Statushistory();
                 $statusHistory->candidate_id = $candidate->id;
                 $statusHistory->status_id = $data['status_id'] ?? $currentStatusId ?? 16; // Default to 'New' status if not provided
