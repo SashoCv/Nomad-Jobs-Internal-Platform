@@ -350,6 +350,7 @@ class CandidateController extends Controller
         }
 
         if (isset($person)) {
+            $person->date = $person->date ? Carbon::parse($person->date)->format('Y-m-d') : null;
             return response()->json([
                 'success' => true,
                 'status' => 200,
