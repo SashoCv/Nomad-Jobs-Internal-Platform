@@ -27,7 +27,7 @@ class Candidate extends Model
     ];
 
     protected $casts = [
-        'date' => 'date'
+        'date' => 'date:Y-m-d',
     ];
 
     const TYPE_CANDIDATE = 1;
