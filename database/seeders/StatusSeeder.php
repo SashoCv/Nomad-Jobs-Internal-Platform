@@ -16,7 +16,9 @@ class StatusSeeder extends Seeder
     public function run()
     {
         DB::table('statuses')->insert([
-            'nameOfStatus' => 'Очаква се',
+            'nameOfStatus' => 'Отказ от посолството',
+            'order' => 6.5,
+            'showOnHomePage' => 1
         ]);
     }
 }

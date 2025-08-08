@@ -684,6 +684,7 @@ class SearchController extends Controller
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
         $companyId = $request->input('company_id');
+        $perPage = $request->input('perPage', 10);
 
         $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
         $user = Auth::user();
@@ -724,7 +725,7 @@ class SearchController extends Controller
         }
 
 
-        $companies = $companiesQuery->orderBy('id', 'DESC')->paginate(20);
+        $companies = $companiesQuery->orderBy('id', 'DESC')->paginate($perPage);
 
         return response()->json(['companies' => $companies]);
     }

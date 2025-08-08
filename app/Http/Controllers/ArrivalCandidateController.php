@@ -233,13 +233,14 @@ class ArrivalCandidateController extends Controller
     public function update(Request $request, $id)
     {
         try {
-
             $statusHistory = new Statushistory();
             $statusHistory->candidate_id = $id;
             $statusHistory->status_id = $request->status_id;
             $statusHistory->statusDate = Carbon::createFromFormat('m-d-Y', $request->statusDate)->format('Y-m-d');
             $statusHistory->description = $request->description;
 
+            $sendEmail = $request->sendEmail ?? false;
+            Log::info('sendEmail in nachelo', ['sendEmail' => $sendEmail]);
             if ($statusHistory->save()) {
                 $notificationData = [
                     'message' => 'Status updated for candidate: ' . $statusHistory->candidate->fullName,
@@ -251,8 +252,10 @@ class ArrivalCandidateController extends Controller
                 Log::info('Notification created for status update: ' . json_encode($notificationData));
                 UsersNotificationRepository::createNotificationForUsers($notification);
 
-                dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate));
-                Log::info('Email job dispatched for status update: ' . $request->status_id . ' for candidate ID: ' . $id);
+                if($sendEmail){
+                    dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate));
+                    Log::info('Email job dispatched for status update: ' . $request->status_id . ' for candidate ID: ' . $id);
+                }
             }
 
             return response()->json([

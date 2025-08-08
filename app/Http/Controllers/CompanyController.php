@@ -164,11 +164,11 @@ class CompanyController extends Controller
                 'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
                 'companyCity', 'industry_id', 'foreignersLC12', 'description',
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
-                'director_date_of_issue_idCard'
+                'director_date_of_issue_idCard','companyEmail', 'companyPhone'
             ]);
 
             $companyData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
-            
+
             // Parse employedByMonths JSON string to array so Laravel can cast it properly
             if ($request->employedByMonths && $request->employedByMonths !== 'null') {
                 $companyData['employedByMonths'] = json_decode($request->employedByMonths, true);
@@ -285,11 +285,11 @@ class CompanyController extends Controller
                 'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
                 'companyCity', 'industry_id', 'foreignersLC12', 'description',
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
-                'director_date_of_issue_idCard'
+                'director_date_of_issue_idCard', 'companyEmail', 'companyPhone'
             ]);
 
             $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
-            
+
             // Parse employedByMonths JSON string to array so Laravel can cast it properly
             if ($request->employedByMonths && $request->employedByMonths !== 'null') {
                 $updateData['employedByMonths'] = json_decode($request->employedByMonths, true);
