@@ -899,34 +899,9 @@ class SearchController extends Controller
             foreach ($result as $candidate) {
                 if($candidate->latestStatusHistory){
                     $currentStatusId = $candidate->latestStatusHistory->status_id;
-                    $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1;
-                    $nextStatus = $allStatuses->firstWhere('order', $nextStatusOrder);
 
-                    if($nextStatus) {
-                        $status = $nextStatus->id;
-                        $availableStatuses = [$status, 11, 12,13,14];
-                        if($status === 18){
-                            $availableStatuses = [$status, 11, 12, 13, 14];
-                            $candidate->addArrival = true;
-                        } else {
-                            $candidate->addArrival = false;
-                        }
-                        $candidate->availableStatuses = $availableStatuses;
-                    } else {
-                        // If no next status, check if candidate is at status 18 or beyond
-                        if($currentStatusId >= 18) {
-                            // For candidates at status 18 and beyond, allow transition to termination statuses and next sequential status
-                            $availableStatuses = [11, 12, 13, 14];
-                            // Add next sequential statuses if they exist
-                            $higherStatuses = $allStatuses->where('order', '>', $candidate->latestStatusHistory->status->order)->pluck('id')->toArray();
-                            $availableStatuses = array_merge($availableStatuses, $higherStatuses);
-                            $candidate->availableStatuses = array_unique($availableStatuses);
-                        } else {
-                            // For other cases, show all available statuses
-                            $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
-                        }
-                        $candidate->addArrival = false;
-                    }
+                    $candidate->availableStatuses = $allStatuses->where('id', '!=', $currentStatusId)->pluck('id')->toArray();
+                    $candidate->addArrival = ($currentStatusId == 18);
                 } else {
                     $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
                     $candidate->addArrival = false;
