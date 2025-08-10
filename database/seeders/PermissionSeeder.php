@@ -172,6 +172,10 @@ class PermissionSeeder extends Seeder
                 Permission::JOB_POSTINGS_READ,
                 Permission::CANDIDATES_READ,
                 Permission::CANDIDATES_UPDATE,
+                Permission::AGENT_CANDIDATES_CREATE,
+                Permission::AGENT_CANDIDATES_READ,
+                Permission::AGENT_CANDIDATES_CHANGE_STATUS,
+                Permission::AGENT_CANDIDATES_DELETE,
             ])->pluck('id');
 
             $agent->permissions()->sync($agentPermissions);
