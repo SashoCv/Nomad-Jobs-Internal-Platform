@@ -675,10 +675,6 @@ class SearchController extends Controller
 
     public function searchCompany(Request $request)
     {
-        if (!$this->checkPermission(Permission::COMPANIES_READ)) {
-            return response()->json(['error' => 'Insufficient permissions'], 403);
-        }
-
         $EIK = $request->input('EIK');
         $nameOfCompany = $request->input('nameOfCompany');
         $status = $request->input('status_id');

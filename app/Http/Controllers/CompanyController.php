@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Models\CompanyAdress;
 use App\Models\File;
+use App\Models\Permission;
 use App\Models\User;
 use App\Models\UserOwner;
 use App\Traits\HasRolePermissions;
@@ -218,7 +219,7 @@ class CompanyController extends Controller
         $user = Auth::user();
 
         $company = match(true) {
-            $this->isStaff() =>
+            $this->isStaff()  || $this->checkPermission(Permission::AGENT_COMPANIES_READ) =>
                 Company::with(['industry', 'company_addresses'])->find($id),
             $user->role_id === self::ROLE_COMPANY_USER =>
                 Company::with(['industry', 'company_addresses'])
