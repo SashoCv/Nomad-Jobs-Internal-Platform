@@ -19,9 +19,9 @@ class AgentPermissionsSeeder extends Seeder
         $allowedPermissions = [
             Permission::JOB_POSTINGS_READ,
             Permission::CANDIDATES_READ,
-            Permission::AGENT_CANDIDATES_CREATE,
-            Permission::AGENT_CANDIDATES_CHANGE_STATUS,
-            Permission::AGENT_CANDIDATES_DELETE,
+            Permission::CANDIDATES_FROM_AGENT_CREATE,
+            Permission::CANDIDATES_FROM_AGENT_CHANGE_STATUS,
+            Permission::CANDIDATES_FROM_AGENT_DELETE,
         ];
 
         $permissionIds = Permission::whereIn('name', $allowedPermissions)

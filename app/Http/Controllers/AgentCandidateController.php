@@ -74,7 +74,7 @@ class AgentCandidateController extends Controller
 
     public function agentAddCandidateForAssignedJob(Request $request)
     {
-        if (!$this->checkPermission(Permission::AGENT_CANDIDATES_CREATE)) {
+        if (!$this->checkPermission(Permission::CANDIDATES_FROM_AGENT_CREATE)) {
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
@@ -236,7 +236,7 @@ class AgentCandidateController extends Controller
     public function getCandidatesForAssignedJob($id)
     {
         try {
-            if (!$this->checkPermission(Permission::AGENT_CANDIDATES_READ)) {
+            if (!$this->checkPermission(Permission::CANDIDATES_FROM_AGENT_READ)) {
                 return response()->json(['error' => 'Insufficient permissions'], 403);
             }
 
@@ -257,7 +257,7 @@ class AgentCandidateController extends Controller
     public function getAllCandidatesFromAgents(Request $request)
     {
         try {
-            if (!$this->checkPermission(Permission::AGENT_CANDIDATES_READ)) {
+            if (!$this->checkPermission(Permission::CANDIDATES_FROM_AGENT_READ)) {
                 return response()->json(['error' => 'Insufficient permissions'], 403);
             }
 
@@ -330,7 +330,7 @@ class AgentCandidateController extends Controller
     public function destroy($id)
     {
         try {
-            if (!$this->checkPermission(Permission::AGENT_CANDIDATES_DELETE)) {
+            if (!$this->checkPermission(Permission::CANDIDATES_FROM_AGENT_DELETE)) {
                 return response()->json(['error' => 'Insufficient permissions'], 403);
             }
 

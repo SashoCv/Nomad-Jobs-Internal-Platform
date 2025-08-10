@@ -54,9 +54,9 @@ class AdminPermissionsSeeder extends Seeder
             ['name' => 'Candidates Delete', 'slug' => Permission::CANDIDATES_DELETE, 'module' => 'candidates'],
             
             // Agent Candidates
-            ['name' => 'Agent Candidates View', 'slug' => Permission::AGENT_CANDIDATES_VIEW, 'module' => 'agent_candidates'],
-            ['name' => 'Agent Candidates Change Status', 'slug' => Permission::AGENT_CANDIDATES_CHANGE_STATUS, 'module' => 'agent_candidates'],
-            ['name' => 'Agent Candidates Delete', 'slug' => Permission::AGENT_CANDIDATES_DELETE, 'module' => 'agent_candidates'],
+            ['name' => 'Candidates From Agent View', 'slug' => Permission::CANDIDATES_FROM_AGENT_READ, 'module' => 'candidates_from_agent'],
+            ['name' => 'Candidates From Agent Change Status', 'slug' => Permission::CANDIDATES_FROM_AGENT_CHANGE_STATUS, 'module' => 'candidates_from_agent'],
+            ['name' => 'Candidates From Agent Delete', 'slug' => Permission::CANDIDATES_FROM_AGENT_DELETE, 'module' => 'candidates_from_agent'],
             
             // Multi Applicant Generator
             ['name' => 'Multi Applicant Generator', 'slug' => Permission::MULTI_APPLICANT_GENERATOR, 'module' => 'multi_applicant'],

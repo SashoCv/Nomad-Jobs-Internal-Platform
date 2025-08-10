@@ -54,10 +54,10 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::NOTIFICATIONS_READ, 'slug' => 'notifications:read', 'description' => 'Read notifications'],
             ['name' => Permission::NOTIFICATIONS_UPDATE, 'slug' => 'notifications:update', 'description' => 'Update notifications'],
 
-            ['name' => Permission::AGENT_CANDIDATES_READ, 'slug' => 'agent_candidates:read', 'description' => 'Read agent candidates'],
-            ['name' => Permission::AGENT_CANDIDATES_CREATE, 'slug' => 'agent_candidates:create', 'description' => 'Create agent candidates'],
-            ['name' => Permission::AGENT_CANDIDATES_CHANGE_STATUS, 'slug' => 'agent_candidates:change_status', 'description' => 'Change status of agent candidates'],
-            ['name' => Permission::AGENT_CANDIDATES_DELETE, 'slug' => 'agent_candidates:delete', 'description' => 'Delete agent candidates'],
+            ['name' => Permission::CANDIDATES_FROM_AGENT_READ, 'slug' => 'candidates_from_agent:read', 'description' => 'Read candidates from agent'],
+            ['name' => Permission::CANDIDATES_FROM_AGENT_CREATE, 'slug' => 'candidates_from_agent:create', 'description' => 'Create candidates from agent'],
+            ['name' => Permission::CANDIDATES_FROM_AGENT_CHANGE_STATUS, 'slug' => 'candidates_from_agent:change_status', 'description' => 'Change status of candidates from agent'],
+            ['name' => Permission::CANDIDATES_FROM_AGENT_DELETE, 'slug' => 'candidates_from_agent:delete', 'description' => 'Delete candidates from agent'],
 
 
             ['name' => Permission::MULTI_APPLICANT_GENERATOR, 'slug' => 'multi_applicant_generator:access', 'description' => 'Access multi applicant generator'],
@@ -109,6 +109,10 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::CHANGE_LOGS_CREATE, 'slug' => 'change_logs:create', 'description' => 'Create change logs'],
             ['name' => Permission::CHANGE_LOGS_APPROVE, 'slug' => 'change_logs:approve', 'description' => 'Approve change logs'],
             ['name' => Permission::CHANGE_LOGS_DELETE, 'slug' => 'change_logs:delete', 'description' => 'Delete change logs'],
+
+            ['name' => Permission::AGENT_CANDIDATES_CREATE, 'slug' => 'agent_candidates:create', 'description' => 'Create agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_READ, 'slug' => 'agent_candidates:read', 'description' => 'Read agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_UPDATE, 'slug' => 'agent_candidates:update', 'description' => 'Update agent candidates'],
         ];
 
         foreach ($permissions as $permission) {
@@ -172,10 +176,11 @@ class PermissionSeeder extends Seeder
                 Permission::JOB_POSTINGS_READ,
                 Permission::CANDIDATES_READ,
                 Permission::CANDIDATES_UPDATE,
-                Permission::AGENT_CANDIDATES_CREATE,
                 Permission::AGENT_CANDIDATES_READ,
-                Permission::AGENT_CANDIDATES_CHANGE_STATUS,
-                Permission::AGENT_CANDIDATES_DELETE,
+                Permission::AGENT_CANDIDATES_CREATE,
+                Permission::AGENT_CANDIDATES_UPDATE,
+                Permission::DOCUMENTS_READ,
+                Permission::DOCUMENTS_CREATE,
             ])->pluck('id');
 
             $agent->permissions()->sync($agentPermissions);
@@ -252,9 +257,9 @@ class PermissionSeeder extends Seeder
         if ($officeManager) {
             $officeManagerPermissions = Permission::whereNotIn('name', [
                 Permission::CANDIDATES_CREATE,
-                Permission::AGENT_CANDIDATES_READ,
-                Permission::AGENT_CANDIDATES_CHANGE_STATUS,
-                Permission::AGENT_CANDIDATES_DELETE,
+                Permission::CANDIDATES_FROM_AGENT_READ,
+                Permission::CANDIDATES_FROM_AGENT_CHANGE_STATUS,
+                Permission::CANDIDATES_FROM_AGENT_DELETE,
                 Permission::MULTI_APPLICANT_GENERATOR,
                 Permission::CANDIDATES_UPDATE,
                 Permission::CANDIDATES_DELETE,
