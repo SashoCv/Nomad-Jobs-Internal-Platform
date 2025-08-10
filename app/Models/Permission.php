@@ -105,7 +105,7 @@ class Permission extends Model
     const CHANGE_LOGS_APPROVE = 'change_logs:approve';
     const CHANGE_LOGS_DELETE = 'change_logs:delete';
 
-    const AGENT_CANDIDATES_READ = 'agent_candidates:read';
-    const AGENT_CANDIDATES_CREATE = 'agent_candidates:create';
-    const AGENT_CANDIDATES_UPDATE = 'agent_candidates:update';
+    const AGENT_CANDIDATES_READ = 'agent:candidates:read';
+    const AGENT_CANDIDATES_CREATE = 'agent:candidates:create';
+    const AGENT_CANDIDATES_UPDATE = 'agent:candidates:update';
 }
