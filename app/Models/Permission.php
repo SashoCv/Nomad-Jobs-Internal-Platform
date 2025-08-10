@@ -108,4 +108,5 @@ class Permission extends Model
     const AGENT_CANDIDATES_READ = 'agent:candidates:read';
     const AGENT_CANDIDATES_CREATE = 'agent:candidates:create';
     const AGENT_CANDIDATES_UPDATE = 'agent:candidates:update';
+    const AGENT_COMPANIES_READ = 'agent:companies:read';
 }
