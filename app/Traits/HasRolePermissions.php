@@ -196,22 +196,22 @@ trait HasRolePermissions
     // Agent Candidates
     protected function canViewAgentCandidates()
     {
-        return $this->checkPermission(Permission::AGENT_CANDIDATES_READ);
+        return $this->checkPermission(Permission::CANDIDATES_FROM_AGENT_READ);
     }
 
     protected function canChangeAgentCandidateStatus()
     {
-        return $this->checkPermission(Permission::AGENT_CANDIDATES_CHANGE_STATUS);
+        return $this->checkPermission(Permission::CANDIDATES_FROM_AGENT_CHANGE_STATUS);
     }
 
     protected function canCreateAgentCandidates()
     {
-        return $this->checkPermission(Permission::AGENT_CANDIDATES_CREATE);
+        return $this->checkPermission(Permission::CANDIDATES_FROM_AGENT_CREATE);
     }
 
     protected function canDeleteAgentCandidates()
     {
-        return $this->checkPermission(Permission::AGENT_CANDIDATES_DELETE);
+        return $this->checkPermission(Permission::CANDIDATES_FROM_AGENT_DELETE);
     }
 
     // Multi Applicant Generator

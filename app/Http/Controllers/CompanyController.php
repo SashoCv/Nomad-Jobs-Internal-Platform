@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Company;
 use App\Models\CompanyAdress;
 use App\Models\File;
+use App\Models\Permission;
 use App\Models\User;
 use App\Models\UserOwner;
 use App\Traits\HasRolePermissions;
@@ -164,11 +165,11 @@ class CompanyController extends Controller
                 'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
                 'companyCity', 'industry_id', 'foreignersLC12', 'description',
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
-                'director_date_of_issue_idCard'
+                'director_date_of_issue_idCard','companyEmail', 'companyPhone'
             ]);
 
             $companyData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
-            
+
             // Parse employedByMonths JSON string to array so Laravel can cast it properly
             if ($request->employedByMonths && $request->employedByMonths !== 'null') {
                 $companyData['employedByMonths'] = json_decode($request->employedByMonths, true);
@@ -218,7 +219,7 @@ class CompanyController extends Controller
         $user = Auth::user();
 
         $company = match(true) {
-            $this->isStaff() =>
+            $this->isStaff()  || $this->checkPermission(Permission::AGENT_COMPANIES_READ) =>
                 Company::with(['industry', 'company_addresses'])->find($id),
             $user->role_id === self::ROLE_COMPANY_USER =>
                 Company::with(['industry', 'company_addresses'])
@@ -285,11 +286,11 @@ class CompanyController extends Controller
                 'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
                 'companyCity', 'industry_id', 'foreignersLC12', 'description',
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
-                'director_date_of_issue_idCard'
+                'director_date_of_issue_idCard', 'companyEmail', 'companyPhone'
             ]);
 
             $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
-            
+
             // Parse employedByMonths JSON string to array so Laravel can cast it properly
             if ($request->employedByMonths && $request->employedByMonths !== 'null') {
                 $updateData['employedByMonths'] = json_decode($request->employedByMonths, true);

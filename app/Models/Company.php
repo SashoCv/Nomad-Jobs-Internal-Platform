@@ -68,7 +68,9 @@ class Company extends Model
         'logoName',
         'stampPath',
         'stampName',
-        'employedByMonths'
+        'employedByMonths',
+        'companyPhone',
+        'companyEmail',
     ];
 
     /**

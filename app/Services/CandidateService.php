@@ -78,22 +78,22 @@ class CandidateService
             $candidate->fill($data);
 
             // Status history update - Fixed null check
-            $latestStatusHistory = $candidate->latestStatusHistory;
-            $currentStatusId = $latestStatusHistory?->status?->id;
+//            $latestStatusHistory = $candidate->latestStatusHistory;
+//            $currentStatusId = $latestStatusHistory?->status?->id;
 
-            Log::info("Current status ID for candidate ID {$candidate->id}: {$currentStatusId}");
-            Log::info('data[status_id]: ' , [$data['status_id']]);
+//            Log::info("Current status ID for candidate ID {$candidate->id}: {$currentStatusId}");
+//            Log::info('data[status_id]: ' , [$data['status_id']]);
+//
+//            if (isset($data['status_id']) && $data['status_id'] != $currentStatusId) {
+//                $statusHistory = new Statushistory();
+//                $statusHistory->candidate_id = $candidate->id;
+//                $statusHistory->status_id = $data['status_id'] ?? $currentStatusId ?? 16; // Default to 'New' status if not provided
+//                $statusHistory->statusDate = Carbon::now()->toDateString();
+//                $statusHistory->description = 'Candidate updated';
+//                $statusHistory->save();
+//            }
 
-            if (isset($data['status_id']) && $data['status_id'] != $currentStatusId) {
-                $statusHistory = new Statushistory();
-                $statusHistory->candidate_id = $candidate->id;
-                $statusHistory->status_id = $data['status_id'] ?? $currentStatusId ?? 16; // Default to 'New' status if not provided
-                $statusHistory->statusDate = Carbon::now()->toDateString();
-                $statusHistory->description = 'Candidate updated';
-                $statusHistory->save();
-            }
-
-            Log::info("Updating candidate with ID: {$candidate->id} and status ID:", [$data['status_id'] ?? 'N/A']);
+//            Log::info("Updating candidate with ID: {$candidate->id} and status ID:", [$data['status_id'] ?? 'N/A']);
 
             // Recalculate derived fields
             $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));

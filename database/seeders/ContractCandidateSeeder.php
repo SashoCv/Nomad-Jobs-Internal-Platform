@@ -6,7 +6,7 @@ use App\Models\ContractCandidate;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class ContaractCandidateSeeder extends Seeder
+class ContractCandidateSeeder extends Seeder
 {
     /**
      * Run the database seeds.

@@ -48,10 +48,10 @@ class Permission extends Model
     const CANDIDATES_DELETE = 'candidates:delete';
     const CANDIDATES_EXPORT = 'candidates:export';
 
-    const AGENT_CANDIDATES_READ = 'agent_candidates:read';
-    const AGENT_CANDIDATES_CREATE = 'agent_candidates:create';
-    const AGENT_CANDIDATES_CHANGE_STATUS = 'agent_candidates:change_status';
-    const AGENT_CANDIDATES_DELETE = 'agent_candidates:delete';
+    const CANDIDATES_FROM_AGENT_READ = 'candidates_from_agent:read';
+    const CANDIDATES_FROM_AGENT_CREATE = 'candidates_from_agent:create';
+    const CANDIDATES_FROM_AGENT_CHANGE_STATUS = 'candidates_from_agent:change_status';
+    const CANDIDATES_FROM_AGENT_DELETE = 'candidates_from_agent:delete';
 
     const MULTI_APPLICANT_GENERATOR = 'multi_applicant_generator:access';
 
@@ -104,4 +104,9 @@ class Permission extends Model
     const CHANGE_LOGS_CREATE = 'change_logs:create';
     const CHANGE_LOGS_APPROVE = 'change_logs:approve';
     const CHANGE_LOGS_DELETE = 'change_logs:delete';
+
+    const AGENT_CANDIDATES_READ = 'agent:candidates:read';
+    const AGENT_CANDIDATES_CREATE = 'agent:candidates:create';
+    const AGENT_CANDIDATES_UPDATE = 'agent:candidates:update';
+    const AGENT_COMPANIES_READ = 'agent:companies:read';
 }

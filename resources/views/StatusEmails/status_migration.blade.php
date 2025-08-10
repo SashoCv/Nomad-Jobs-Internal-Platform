@@ -19,8 +19,8 @@
                 ({{ $data['jobPosition'] }}), към дата {{ $data['statusDate'] }},
                 е със сменен статус –
                 <span style="font-weight: bold; color: #27ae60;">
-                    @if ($data['contractType'] === 'indefinite')
-                        входирани документи в дирекция „Миграция“ към МВР (ЕРПР).
+                    @if (str_starts_with($data['contractType'], 'ERPR'))
+                        входирани документи в дирекция „Миграция" към МВР (ЕРПР).
                     @else
                         входирани документи в АЗ, МТСП (сезонна заетост – сз90).
                     @endif

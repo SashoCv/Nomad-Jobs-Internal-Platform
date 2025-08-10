@@ -675,15 +675,12 @@ class SearchController extends Controller
 
     public function searchCompany(Request $request)
     {
-        if (!$this->checkPermission(Permission::COMPANIES_READ)) {
-            return response()->json(['error' => 'Insufficient permissions'], 403);
-        }
-
         $EIK = $request->input('EIK');
         $nameOfCompany = $request->input('nameOfCompany');
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
         $companyId = $request->input('company_id');
+        $perPage = $request->input('perPage', 10);
 
         $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
         $user = Auth::user();
@@ -724,7 +721,7 @@ class SearchController extends Controller
         }
 
 
-        $companies = $companiesQuery->orderBy('id', 'DESC')->paginate(20);
+        $companies = $companiesQuery->orderBy('id', 'DESC')->paginate($perPage);
 
         return response()->json(['companies' => $companies]);
     }
@@ -898,34 +895,9 @@ class SearchController extends Controller
             foreach ($result as $candidate) {
                 if($candidate->latestStatusHistory){
                     $currentStatusId = $candidate->latestStatusHistory->status_id;
-                    $nextStatusOrder = $candidate->latestStatusHistory->status->order + 1;
-                    $nextStatus = $allStatuses->firstWhere('order', $nextStatusOrder);
 
-                    if($nextStatus) {
-                        $status = $nextStatus->id;
-                        $availableStatuses = [$status, 11, 12,13,14];
-                        if($status === 18){
-                            $availableStatuses = [$status, 11, 12, 13, 14];
-                            $candidate->addArrival = true;
-                        } else {
-                            $candidate->addArrival = false;
-                        }
-                        $candidate->availableStatuses = $availableStatuses;
-                    } else {
-                        // If no next status, check if candidate is at status 18 or beyond
-                        if($currentStatusId >= 18) {
-                            // For candidates at status 18 and beyond, allow transition to termination statuses and next sequential status
-                            $availableStatuses = [11, 12, 13, 14];
-                            // Add next sequential statuses if they exist
-                            $higherStatuses = $allStatuses->where('order', '>', $candidate->latestStatusHistory->status->order)->pluck('id')->toArray();
-                            $availableStatuses = array_merge($availableStatuses, $higherStatuses);
-                            $candidate->availableStatuses = array_unique($availableStatuses);
-                        } else {
-                            // For other cases, show all available statuses
-                            $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
-                        }
-                        $candidate->addArrival = false;
-                    }
+                    $candidate->availableStatuses = $allStatuses->where('id', '!=', $currentStatusId)->pluck('id')->toArray();
+                    $candidate->addArrival = ($currentStatusId == 18);
                 } else {
                     $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
                     $candidate->addArrival = false;

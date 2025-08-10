@@ -73,6 +73,7 @@ class ArrivalController extends Controller
 
             // Status ID for "Arrival Expected"
             $statusId = 18;
+            $sendEmail = $request->sendEmail ?? false;
 
             Statushistory::create([
                 'candidate_id' => $candidateId,
@@ -93,7 +94,10 @@ class ArrivalController extends Controller
                 ]
             );
 
-            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate));
+            if($sendEmail){
+                dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate));
+                Log::info('send arrival information email for candidate ID: ' . $candidateId);
+            }
 
             DB::commit();
 

@@ -39,7 +39,16 @@ class StatisticController extends Controller
         }
 
         if ($contractType) {
-            $query->where('contractType', $contractType);
+            $map = [
+                'ЕРПР 1' => 'ERPR 1',
+                'ЕРПР 2' => 'ERPR 2',
+                'ЕРПР 3' => 'ERPR 3',
+                '90 дена' => '90days',
+                '9 месеци' => '9months',
+            ];
+
+            $contractTypeLatin = $map[$contractType] ?? $contractType;
+            $query->where('contractType', $contractTypeLatin);
         }
 
         if ($status) {

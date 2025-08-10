@@ -19,6 +19,7 @@ use App\Models\Candidate;
 use App\Models\Company;
 use App\Repository\SendEmailRepositoryForCreateCompanyJob;
 use App\Repository\UsersNotificationRepository;
+use Illuminate\Support\Facades\Log;
 
 class StatusController extends Controller
 {
@@ -105,6 +106,7 @@ class StatusController extends Controller
             $status_id = $request->status_id;
             $description = $request->description ?? null;
             $statusDate = $request->statusDate ?? Carbon::now()->format('Y-m-d');
+            $sendEmail = $request->sendEmail ?? false;
 
             $statusHistory = new Statushistory();
             $statusHistory->candidate_id = $candidate_id;
@@ -113,7 +115,10 @@ class StatusController extends Controller
             $statusHistory->description = $description;
 
             if ($statusHistory->save()) {
-                dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate));
+                if($sendEmail){
+                    dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate));
+                    Log::info("Email sent for candidate ID: {$candidate_id} with status ID: {$status_id} on date: {$statusDate}");
+                }
 
                 return response()->json([
                     'success' => true,
