@@ -12,6 +12,7 @@ use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
+use App\Models\ContractCandidate;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\File;
@@ -53,7 +54,7 @@ class CandidateController extends Controller
     public function types()
     {
         try {
-            $allTypes = Type::all();
+            $allTypes = ContractCandidate::all();
             return response()->json([
                 'success' => true,
                 'status' => 200,
