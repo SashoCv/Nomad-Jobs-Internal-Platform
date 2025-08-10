@@ -110,9 +110,9 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::CHANGE_LOGS_APPROVE, 'slug' => 'change_logs:approve', 'description' => 'Approve change logs'],
             ['name' => Permission::CHANGE_LOGS_DELETE, 'slug' => 'change_logs:delete', 'description' => 'Delete change logs'],
 
-            ['name' => Permission::AGENT_CANDIDATES_CREATE, 'slug' => 'agent_candidates:create', 'description' => 'Create agent candidates'],
-            ['name' => Permission::AGENT_CANDIDATES_READ, 'slug' => 'agent_candidates:read', 'description' => 'Read agent candidates'],
-            ['name' => Permission::AGENT_CANDIDATES_UPDATE, 'slug' => 'agent_candidates:update', 'description' => 'Update agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_CREATE, 'slug' => 'agent:candidates:create', 'description' => 'Create agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_READ, 'slug' => 'agent:candidates:read', 'description' => 'Read agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_UPDATE, 'slug' => 'agent:candidates:update', 'description' => 'Update agent candidates'],
         ];
 
         foreach ($permissions as $permission) {
