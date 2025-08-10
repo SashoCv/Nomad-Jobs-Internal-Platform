@@ -19,6 +19,7 @@ use App\Models\MedicalInsurance;
 use App\Models\Position;
 use App\Models\Status;
 use App\Models\Statushistory;
+use App\Models\Type;
 use App\Models\User;
 use App\Models\UserOwner;
 use App\Models\Role;
@@ -46,6 +47,26 @@ class CandidateController extends Controller
     public function __construct(CandidateService $candidateService)
     {
         $this->candidateService = $candidateService;
+    }
+
+
+    public function types()
+    {
+        try {
+            $allTypes = Type::all();
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => $allTypes,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching types: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Failed to fetch types',
+            ]);
+        }
     }
 
     public function getCandidatesWhoseContractsAreExpiring()

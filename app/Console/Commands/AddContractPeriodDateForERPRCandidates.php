@@ -30,7 +30,7 @@ class AddContractPeriodDateForERPRCandidates extends Command
         $allCandidates = Candidate::all();
 
         foreach ($allCandidates as $candidate) {
-           if($candidate->contractType === "indefinite"){
+           if($candidate->contractType === "indefinite" || str_starts_with($candidate->contractType, 'ERPR')){
                $date = Carbon::parse($candidate->date);
                $contractPeriodRaw = $candidate->contractPeriod;
 

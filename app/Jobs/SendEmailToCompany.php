@@ -75,7 +75,9 @@ class SendEmailToCompany implements ShouldQueue
 
     public function getTypeOfContract($contractType)
     {
-        if($contractType == "indefinite") {
+        if(str_starts_with($contractType, 'ERPR')) {
+            return "ЕРПР";
+        } elseif($contractType == "indefinite") {
             return "ЕРПР";
         } elseif($contractType == "90days") {
             return "90 дена";
