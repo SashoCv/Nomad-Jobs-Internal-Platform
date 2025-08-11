@@ -863,7 +863,17 @@ class SearchController extends Controller
                     $q->where('dossierNumber', '=', $request->dossierNumber);
                 })
                 ->when($request->contractType, function ($q) use ($request) {
-                    $q->where('contractType', '=', $request->contractType);
+                    $contractType = $request->contractType;
+                    $map = [
+                        'ЕРПР 1' => 'ERPR 1',
+                        'ЕРПР 2' => 'ERPR 2',
+                        'ЕРПР 3' => 'ERPR 3',
+                        '90 дена' => '90days',
+                        '9 месеци' => '9months',
+                    ];
+
+                    $contractTypeLatin = $map[$contractType] ?? $contractType;
+                    $q->where('contractType', '=', $contractTypeLatin);
                 })
                 ->when($request->searchAddedBy, function ($q) use ($request) {
                     if ($request->searchAddedBy === 'notDefined') {
