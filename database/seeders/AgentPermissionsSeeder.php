@@ -19,9 +19,10 @@ class AgentPermissionsSeeder extends Seeder
         $allowedPermissions = [
             Permission::JOB_POSTINGS_READ,
             Permission::CANDIDATES_READ,
-            Permission::CANDIDATES_FROM_AGENT_CREATE,
-            Permission::CANDIDATES_FROM_AGENT_CHANGE_STATUS,
-            Permission::CANDIDATES_FROM_AGENT_DELETE,
+            Permission::AGENT_CANDIDATES_READ,
+            Permission::AGENT_CANDIDATES_CREATE,
+            Permission::AGENT_CANDIDATES_UPDATE,
+            Permission::AGENT_CANDIDATES_DELETE,
         ];
 
         $permissionIds = Permission::whereIn('name', $allowedPermissions)
@@ -31,7 +32,7 @@ class AgentPermissionsSeeder extends Seeder
         $agentRole = Role::find(Role::AGENT);
         if ($agentRole) {
             $agentRole->permissions()->sync($permissionIds);
-            
+
             echo "Agent permissions assigned successfully!\n";
             echo "Agent has access to " . count($permissionIds) . " permissions:\n";
             echo "- Job Postings: READ only\n";
