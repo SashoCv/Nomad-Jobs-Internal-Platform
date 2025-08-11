@@ -113,6 +113,7 @@ class PermissionSeeder extends Seeder
             ['name' => Permission::AGENT_CANDIDATES_CREATE, 'slug' => 'agent:candidates:create', 'description' => 'Create agent candidates'],
             ['name' => Permission::AGENT_CANDIDATES_READ, 'slug' => 'agent:candidates:read', 'description' => 'Read agent candidates'],
             ['name' => Permission::AGENT_CANDIDATES_UPDATE, 'slug' => 'agent:candidates:update', 'description' => 'Update agent candidates'],
+            ['name' => Permission::AGENT_CANDIDATES_DELETE, 'slug' => 'agent:candidates:delete', 'description' => 'Delete agent candidates'],
             ['name' => Permission::AGENT_COMPANIES_READ, 'slug' => 'agent:companies:read', 'description' => 'View agent companies'],
         ];
 
@@ -180,6 +181,7 @@ class PermissionSeeder extends Seeder
                 Permission::AGENT_CANDIDATES_READ,
                 Permission::AGENT_CANDIDATES_CREATE,
                 Permission::AGENT_CANDIDATES_UPDATE,
+                Permission::AGENT_CANDIDATES_DELETE,
                 Permission::DOCUMENTS_READ,
                 Permission::DOCUMENTS_CREATE,
                 Permission::AGENT_COMPANIES_READ,
