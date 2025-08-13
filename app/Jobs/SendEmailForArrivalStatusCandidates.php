@@ -103,6 +103,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         }
 
 
+        Log::info('contractType: ' . $candidate->contractType);
         $data = [
             'candidateName' => $candidate->fullNameCyrillic,
             'candidateEmail' => $candidate->email ?? 'No Email Provided',
@@ -122,7 +123,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 return;
             }
             Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $company) {
-                $message->to($company->companyEmail)
+                $message->to("sasocvetanoski@gmail.com")
                 ->subject('Notification for ' . $data['candidateName']);
             });
 
