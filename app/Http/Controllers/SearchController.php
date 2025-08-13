@@ -868,8 +868,8 @@ class SearchController extends Controller
                         'ЕРПР 1' => 'ЕРПР 1',
                         'ЕРПР 2' => 'ЕРПР 2',
                         'ЕРПР 3' => 'ЕРПР 3',
-                        '90 дена' => '90days',
-                        '9 месеци' => '9months',
+                        '90 дена' => '90 дена',
+                        '9 месеци' => '9 месеци',
                     ];
 
                     $contractTypeLatin = $map[$contractType] ?? $contractType;
