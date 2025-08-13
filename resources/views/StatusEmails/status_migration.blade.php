@@ -19,7 +19,7 @@
                 ({{ $data['jobPosition'] }}), към дата {{ $data['statusDate'] }},
                 е със сменен статус –
                 <span style="font-weight: bold; color: #27ae60;">
-                    @if (substr($data['contractType'], 0, 4) === 'ЕРПР')
+                    @if ($data['contractType'] == "ЕРПР 1" || $data['contractType'] == "ЕРПР 2" || $data['contractType'] == "ЕРПР 3")
                         входирани документи в дирекция „Миграция" към МВР (ЕРПР).
                     @else
                         входирани документи в АЗ, МТСП (сезонна заетост – сз90).
