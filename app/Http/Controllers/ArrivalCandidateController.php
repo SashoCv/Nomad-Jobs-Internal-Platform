@@ -75,7 +75,7 @@ class ArrivalCandidateController extends Controller
                 $join->on('candidates.id', '=', 'statushistories.candidate_id')
                      ->whereRaw('statushistories.id = (SELECT MAX(id) FROM statushistories WHERE candidate_id = candidates.id)');
             })
-            ->orderBy('statushistories.statusDate', 'asc')
+            ->orderBy('statushistories.statusDate', 'desc')
             ->select('candidates.*');
 
             $arrivalCandidates = $query->paginate();

@@ -888,6 +888,9 @@ class SearchController extends Controller
                 ->when($request->nationality, function ($q) use ($request) {
                     $q->where('nationality', 'LIKE', '%' . $request->nationality . '%');
                 })
+                ->when($request->searchAgent, function ($q) use ($request) {
+                    $q->where('addedBy', '=', $request->searchAgent);
+                })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
                 });

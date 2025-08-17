@@ -144,19 +144,24 @@ class FileController extends Controller
         if ($this->isStaff()) {
             $categoriesQuery->whereNull('candidate_id')->orWhere('candidate_id', $id);
         } elseif ($userRoleId == 3) {
-            $categoriesQuery->where('role_id', 3)->orWhere('role_id', 4);
+            $categoriesQuery->where('role_id', 3)->orWhere('role_id', 4)->where('candidate_id', $id);
         } elseif ($userRoleId == 4) {
-            $categoriesQuery->where('role_id', 4);
+            $categoriesQuery->where('role_id', 4)->where('candidate_id', $id);
         } elseif ($userRoleId == 5) {
-            $categoriesQuery->whereIn('role_id', [3, 4, 5]);
+            $categoriesQuery->whereIn('role_id', [3, 4, 5])->where('candidate_id', $id);
         }
 
         $categories = $categoriesQuery->orderBy('id', 'asc')->get();
         $categoriesIds = $categories->pluck('id');
-        $filesQuery = File::where('candidate_id', $id);
+        $filesQuery = File::with('category')->where('candidate_id', $id);
 
         if ($userRoleId == 3 || $userRoleId == 5) {
-            $filesQuery->where('company_restriction', 0);
+            $filesQuery->where(function($query) {
+                $query->where('company_restriction', 0)
+                    ->orWhereHas('category', function($q) {
+                        $q->where('role_id', 3);
+                    });
+            });
         }
 
         if($userRoleId == 4) {

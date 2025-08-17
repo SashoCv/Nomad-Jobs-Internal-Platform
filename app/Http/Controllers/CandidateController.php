@@ -641,6 +641,7 @@ class CandidateController extends Controller
                 'status_id' => $request->status_id ?? null,
                 'company_id' => $request->company_id ?? null,
                 'searchDate' => $request->searchDate ?? null,
+                'searchAgent' => $request->searchAgent ?? null,
             ];
 
             $user = Auth::user();
@@ -661,6 +662,10 @@ class CandidateController extends Controller
 
                 if($filters['company_id']) {
                     $candidates->where('company_id', $filters['company_id']);
+                }
+
+                if ($filters['searchAgent']) {
+                    $candidates->where('addedBy', $filters['searchAgent']);
                 }
             } else if ($user->hasRole(Role::COMPANY_USER)) {
                 $candidates = Candidate::with(['company', 'statusHistories', 'position'])

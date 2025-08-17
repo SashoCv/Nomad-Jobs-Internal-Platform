@@ -152,6 +152,7 @@ class CompanyJobController extends Controller
             $companyJob->rent = $request->rent;
             $companyJob->food = $request->food;
             $companyJob->otherDescription = $request->otherDescription;
+            $companyJob->countryOfOrigin = $request->countryOfOrigin; // Assuming this field is added in the migration
 
             if ($companyJob->save()) {
                 $companyName = Company::where('id', $companyJob->company_id)->first();
@@ -266,6 +267,7 @@ class CompanyJobController extends Controller
             $companyJob->rent = $request->rent;
             $companyJob->food = $request->food;
             $companyJob->otherDescription = $request->otherDescription;
+            $companyJob->countryOfOrigin = $request->countryOfOrigin; // Assuming this field is added in the migration
 
             $companyForThisJob = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
 

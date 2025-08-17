@@ -48,11 +48,11 @@ class checkOrphanedFilesCommand extends Command
         $this->info("Database files: " . count($dbFiles));
         $this->warn("Orphaned files (in storage, not in DB): " . count($orphanedFiles));
 
-        if (!empty($orphanedFiles)) {
-            foreach ($orphanedFiles as $file) {
-                $this->line(" - " . $file);
-            }
-        }
+//        if (!empty($orphanedFiles)) {
+//            foreach ($orphanedFiles as $file) {
+//                $this->line(" - " . $file);
+//            }
+//        }
 
         // ако пуштиш со --delete, ќе ги избрише
         if ($this->option('delete') && !empty($orphanedFiles)) {

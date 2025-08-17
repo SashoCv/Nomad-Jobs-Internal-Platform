@@ -166,7 +166,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('categories', [CategoryController::class, 'index']);
     Route::post('storeCategory', [CategoryController::class, 'store']);
-    Route::post('deleteCategory', [CategoryController::class, 'destroy']);
+    Route::delete('deleteCategory', [CategoryController::class, 'destroy']);
 
 
     // Status History
