@@ -46,6 +46,7 @@
         <th>Почеток</th>
         <th>Крај</th>
         <th>Плата (€)</th>
+        <th>Дата на статус</th>
         <th>Статус</th>
         <th>Компанија</th>
     </tr>
@@ -69,6 +70,11 @@
             <td>{{ $candidate->startContractDate ?? '-' }}</td>
             <td>{{ $candidate->endContractDate ?? '-' }}</td>
             <td>{{ $candidate->salary }}</td>
+            <td>
+                {{ $candidate->latestStatusHistory && $candidate->latestStatusHistory->statusDate
+                    ? \Carbon\Carbon::parse($candidate->latestStatusHistory->statusDate)->format('d-m-Y')
+                    : '-' }}
+            </td>
             <td>{{ $candidate->latestStatusHistory->status->nameOfStatus ?? 'N/A' }}</td>
             <td>{{ $candidate->company->nameOfCompany ?? 'N/A' }}</td>
         </tr>
