@@ -18,14 +18,6 @@ class DeleteFilesFromStorageForCandidatesThatAreDeleted extends Command
         // Наоѓаме сите кандидати со soft delete или со статус "Отказ"
         $candidates = Candidate::with('files', 'latestStatusHistory.status')
             ->whereNotNull('deleted_at')
-            ->orWhereHas('latestStatusHistory.status', function ($query) {
-                $query->whereIn('nameOfStatus', [
-                    'Отказ от Миграция',
-                    'Отказ от кандидата',
-                    'Отказ от компанията',
-                    'Отказ от посолството'
-                ]);
-            })
             ->get();
 
 
