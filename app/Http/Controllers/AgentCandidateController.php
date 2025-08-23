@@ -257,10 +257,6 @@ class AgentCandidateController extends Controller
     public function getAllCandidatesFromAgents(Request $request)
     {
         try {
-            if (!$this->checkPermission(Permission::CANDIDATES_FROM_AGENT_READ)) {
-                return response()->json(['error' => 'Insufficient permissions'], 403);
-            }
-
             $companyId = $request->company_id;
             $name = $request->name;
             $status = $request->status;
