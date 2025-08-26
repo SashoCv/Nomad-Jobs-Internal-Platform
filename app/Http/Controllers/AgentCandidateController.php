@@ -268,10 +268,6 @@ class AgentCandidateController extends Controller
             $user_id = Auth::user()->id;
             $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
-                ->where(function ($q) {
-                    $q->where('agent_candidates.status_for_candidate_from_agent_id', '!=', 3)
-                        ->orWhereNull('agent_candidates.nomad_office_id');
-                })
                 ->orderBy('company_jobs.company_id', 'desc');
 
             $user = Auth::user();
