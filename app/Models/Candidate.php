@@ -33,7 +33,7 @@ class Candidate extends Model
     const TYPE_CANDIDATE = 1;
     const TYPE_EMPLOYEE = 2;
 
-    const CONTRACT_TYPE_90_DAYS = '90 дена';
+    const CONTRACT_TYPE_90_DAYS = '90 дни';
     const CONTRACT_TYPE_YEARLY = 'indefinite';
 
     const CONTRACT_TYPE_9_MONTHS = '9months';

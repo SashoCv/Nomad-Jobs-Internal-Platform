@@ -82,7 +82,7 @@ class SendEmailToCompany implements ShouldQueue
         } elseif($contractType == "90days") {
             return "90 дена";
         } elseif($contractType == "9months") {
-            return "9 месеци";
+            return "9 месеца";
         } else {
             return "Непознат тип на договор";
         }
