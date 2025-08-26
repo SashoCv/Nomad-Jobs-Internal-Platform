@@ -259,7 +259,7 @@ class AgentCandidateController extends Controller
         try {
             $companyId = $request->company_id;
             $name = $request->name;
-            $status = $request->status;
+            $status = $request->status_for_candidate_from_agent_id;
             $companyJobId = $request->company_job_id;
             $agentId = $request->agent_id;
 
