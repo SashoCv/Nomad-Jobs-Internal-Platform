@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\CompanyJob;
 use App\Models\CompanyRequest;
+use App\Models\ContractCandidate;
 use App\Models\User;
 use App\Models\UserOwner;
 use App\Models\Role;
@@ -75,7 +76,8 @@ class CompanyJobController extends Controller
             ->orderBy('company_jobs.created_at', 'desc');
 
         if ($contractType) {
-            $query->where('company_jobs.contract_type', $contractType);
+            $contractTypeName = ContractCandidate::where('id', $contractType)->value('name');
+            $query->where('company_jobs.contract_type', $contractTypeName);
         }
 
         switch ($roleId) {

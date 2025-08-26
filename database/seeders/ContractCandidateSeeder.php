@@ -19,8 +19,8 @@ class ContractCandidateSeeder extends Seeder
             ['name' => 'ЕРПР 1', 'slug' => 'indefinite'],
             ['name' => 'ЕРПР 2', 'slug' => 'indefinite'],
             ['name' => 'ЕРПР 3', 'slug' => 'indefinite'],
-            ['name' => '9 месеци', 'slug' => '9months'],
-            ['name' => '90 дена', 'slug' => '90days'],
+            ['name' => '9 месеца', 'slug' => '9months'],
+            ['name' => '90 дни', 'slug' => '90days'],
         ];
 
         foreach ($contracts as $contract) {
