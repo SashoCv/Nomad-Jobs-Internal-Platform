@@ -141,9 +141,8 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                     'phone_number' => $data['candidatePhone'],
                 ];
 
-                $notificationEmails = explode(',', env('NOMAD_NOTIFICATION_EMAILS', ''));
-                Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data, $notificationEmails) {
-                    $message->to($notificationEmails)
+                Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data) {
+                    $message->to(['sasocvetanoski@gmail.com', 'sasocvetanoski@iclooud.com'])
                         ->subject('Notification for Arrival ' . $data['candidateName']);
                 });
 
@@ -161,10 +160,9 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                     'description' => 'Status changed to ' . $statusName . ' on ' . $this->statusDate,
                 ];
 
-                $notificationEmails = explode(',', env('NOMAD_NOTIFICATION_EMAILS', ''));
-                Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data, $notificationEmails) {
-                    $message->to($notificationEmails)
-                        ->subject('Notification for Status Change ' . $data['candidateName']);
+                Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data) {
+                    $message->to(['sasocvetanoski@gmail.com', 'sasocvetanoski@iclooud.com'])
+                        ->subject('Notification for Arrival ' . $data['candidateName']);
                 });
             }
 
