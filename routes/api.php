@@ -15,6 +15,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MonthCompanyController;
 use App\Http\Controllers\ItemsForInvoicesController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\ArrivalPricingController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\ChangeLogController;
@@ -245,11 +246,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Company Invoice
     Route::post('storeCompanyInvoice', [InvoiceCompanyController::class, 'store']);
-//    Route::get('getCompanyInvoices', [InvoiceCompanyController::class, 'index']);
     Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyCandidateController::class, 'destroy']);
     Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
     Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
-//    Route::get('getCompanyInvoices/{id}', [InvoiceCompanyController::class, 'show']);
     Route::post('updateInvoice/{id}', [InvoiceCompanyController::class, 'update']);
     Route::get('invoiceCompanyCandidates', [InvoiceCompanyCandidateController::class, 'index']);
     Route::get('invoiceCompanyCandidates/{id}', [InvoiceCompanyCandidateController::class, 'show']);
@@ -261,7 +260,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'show']);
     Route::post('updateCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'update']);
     Route::delete('deleteCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'destroy']);
-//    Route::get('checkIfCandidateHasCashPayment/{id}', [CashPaymentForCandidatesController::class, 'checkIfCandidateHasCashPayment']); // need Functionality
     //Items For Invoice
     Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
     Route::post('updateItemForInvoice/{id}', [ItemInvoiceController::class, 'update']);
@@ -347,5 +345,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('approveChangeLog/{id}', [ChangeLogController::class, 'approveChangeLog']);
     Route::post('declineChangeLog/{id}', [ChangeLogController::class, 'rejectChangeLog']);
     Route::delete('deleteChangeLog/{id}', [ChangeLogController::class, 'destroy']);
+
+
+    // TRANSPORT FOR CANDIDATES
+    Route::get('getTransportForCandidates', [ArrivalCandidateController::class, 'getTransportForCandidates']);
+    Route::post('storePricingForArrival', [ArrivalPricingController::class, 'store']);
+    Route::post('storeInvoiceForArrivalCandidate', [ArrivalPricingController::class, 'storeInvoiceForArrivalCandidate']); // need implementation in finance, and after that here we need logic
+    Route::post('storeTransportCoverBy/{arrivalId}', [ArrivalPricingController::class, 'storeTransportCoverBy']);
+
+
 });
 

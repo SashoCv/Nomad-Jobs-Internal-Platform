@@ -49,7 +49,7 @@
 <div class="container">
     <h2>{{ $data['status'] }} Notification for {{ $data['candidateName'] }}</h2>
     <p>Hello,</p>
-    <p>The following candidate is scheduled to arrive soon:</p>
+    <p>The following candidate is with changed status</p>
 
     <div class="info">
         <p><strong>Candidate Name:</strong> {{ $data['candidateName'] }}</p>
