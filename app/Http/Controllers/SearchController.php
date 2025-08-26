@@ -763,10 +763,6 @@ class SearchController extends Controller
 
     public function searchCandidateNew(Request $request)
     {
-        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
-            return response()->json(['error' => 'Insufficient permissions'], 403);
-        }
-
         $searchEverything = $request->searchEverything;
 
         $query = Candidate::with([
@@ -787,7 +783,7 @@ class SearchController extends Controller
             $query->where('company_id', $user->company_id);
         }
 
-        if ($user->hasRole(Role::AGENT)) {
+        if ($user->role_id == Role::AGENT) {
             $searchName = $request->searchName;
             $searchCompanyJob = $request->searchCompanyJob;
             $searchAgentStatus = $request->searchAgentStatus;
@@ -827,7 +823,7 @@ class SearchController extends Controller
             return AgentCandidateResource::collection($candidates);
         }
 
-        if ($user->hasRole(Role::COMPANY_OWNER)) {
+        if ($user->role_id == Role::COMPANY_OWNER) {
             $companyOwner = UserOwner::where('user_id', $user->id)->get();
             $companyIds = $companyOwner->pluck('company_id');
 
