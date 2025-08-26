@@ -310,6 +310,8 @@ class CandidateController extends Controller
         } elseif ($user->hasRole(Role::AGENT)) {
             $candidateIds = AgentCandidate::where('user_id', $user->id)->pluck('candidate_id');
             $person = $query->whereIn('id', $candidateIds)->first();
+            $agent = AgentCandidate::where('candidate_id', $id)->first();
+            $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
         } else {
             $person = null;
         }
