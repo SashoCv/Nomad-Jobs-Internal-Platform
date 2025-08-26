@@ -128,6 +128,44 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 ->subject('Notification for ' . $data['candidateName']);
             });
 
+            if($this->statusId == 18){
+                $dataArrival = [
+                    'candidateName' => $data['candidateName'],
+                    'companyName' => $data['companyName'],
+                    'status' => 'Има билет за пристигане',
+                    'arrival_date' => $data['arrivalDate'],
+                    'arrival_time' => $data['arrivalTime'],
+                    'arrival_location' => Arrival::where('candidate_id', $this->candidateId)->value('arrival_location') ?? 'No Location Provided',
+                    'arrival_flight' => Arrival::where('candidate_id', $this->candidateId)->value('arrival_flight') ?? 'No Flight Info Provided',
+                    'where_to_stay' => Arrival::where('candidate_id', $this->candidateId)->value('where_to_stay') ?? 'No Accommodation Info Provided',
+                    'phone_number' => $data['candidatePhone'],
+                ];
+
+                Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data) {
+                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'iliana@nomadpartners.bg'])
+                        ->subject('Notification for Arrival ' . $data['candidateName']);
+                });
+
+            }
+
+            // For all other statuses that are not 18 or 5, send email to nomadOffice
+            if($this->statusId != 18) {
+                $statusName = Candidate::with('latestStatusHistory.status')->find($this->candidateId)->latestStatusHistory->status->nameOfStatus ?? 'Unknown Status';
+                $dataForAllStatuses = [
+                    'candidateName' => $data['candidateName'],
+                    'companyName' => $data['companyName'],
+                    'status' => $statusName,
+                    'changedStatusDate' => $this->statusDate,
+                    'phone_number' => $data['candidatePhone'],
+                    'description' => 'Status changed to ' . $statusName . ' on ' . $this->statusDate,
+                ];
+
+                Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data) {
+                    $message->to(['sasocvetanoski@gmail.com', 'sasocvetanoski@iclooud.com', 'sashko@nomadpartners.bg', 'iliana@nomadpartners.bg'])
+                        ->subject('Notification for Arrival ' . $data['candidateName']);
+                });
+            }
+
             // Log success
             Log::info("Email sent successfully to " . $data['candidateName']);
         } catch (\Exception $e) {

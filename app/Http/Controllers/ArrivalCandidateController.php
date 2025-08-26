@@ -205,11 +205,79 @@ class ArrivalCandidateController extends Controller
      * Display the specified resource.
      *
      * @param  \App\Models\ArrivalCandidate  $arrivalCandidate
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function show(ArrivalCandidate $arrivalCandidate)
+    public function getTransportForCandidates(Request $request)
     {
-        //
+        try {
+            $filters = [
+                'searchCompany' => $request->searchCompany,
+                'searchCandidate' => $request->searchCandidate,
+                'searchContract' => $request->searchContract,
+                'searchCoveredBy' => $request->searchCoveredBy,
+                'searchBilled' => $request->searchBilled,
+            ];
+
+            $transport = DB::table('arrivals')
+                ->join('candidates', 'arrivals.candidate_id', '=', 'candidates.id')
+                ->join('statushistories', 'candidates.id', '=', 'statushistories.candidate_id')
+                ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
+                ->join('companies', 'candidates.company_id', '=', 'companies.id')
+                ->leftJoin('company_service_contracts', 'candidates.company_id', '=', 'company_service_contracts.company_id')
+                ->leftJoin('arrival_pricings', 'arrivals.id', '=', 'arrival_pricings.arrival_id')
+                ->where('statuses.nameOfStatus', 'Пристигнал')
+                ->orderBy('arrivals.arrival_date', 'desc')
+                ->select(
+                    'arrivals.id as arrival_id',
+                    'candidates.id as candidate_id',
+                    'candidates.company_id as company_id',
+                    DB::raw('company_service_contracts.id as contract_id'),
+                    'statuses.id as status_id',
+                    'candidates.fullName',
+                    'candidates.fullNameCyrillic',
+                    'companies.nameOfCompany as companyName',
+                    DB::raw("DATE_FORMAT(arrivals.arrival_date, '%d.%m.%Y') as statusDate"),
+                    'statuses.nameOfStatus as statusName',
+                    DB::raw('company_service_contracts.contractNumber as contractNumber'),
+                    'arrivals.arrival_flight as arrivalType',
+                    'arrival_pricings.price as price',
+                    'arrival_pricings.margin as margin',
+                    'arrival_pricings.total as total',
+                    'arrival_pricings.billed as billed',
+                    'arrival_pricings.isTransportCoveredByNomad as isTransportCoveredByNomad'
+                );
+
+            // Apply filters
+            if ($filters['searchCompany']) {
+                $transport->where('companies.nameOfCompany', 'like', '%' . $filters['searchCompany'] . '%');
+            }
+
+            if ($filters['searchCandidate']) {
+                $transport->where(function ($query) use ($filters) {
+                    $query->where('candidates.fullName', 'like', '%' . $filters['searchCandidate'] . '%')
+                        ->orWhere('candidates.fullNameCyrillic', 'like', '%' . $filters['searchCandidate'] . '%');
+                });
+            }
+
+            if ($filters['searchContract']) {
+                $transport->where('company_service_contracts.contractNumber', 'like', '%' . $filters['searchContract'] . '%');
+            }
+
+            if (isset($filters['searchCoveredBy'])) {
+                $transport->whereNotNull('arrival_pricings.id')
+                    ->where('arrival_pricings.isTransportCoveredByNomad', $filters['searchCoveredBy']);
+            }
+
+            if ($filters['searchBilled']) {
+                $transport->where('arrival_pricings.billed', $filters['searchBilled']);
+            }
+
+            $transport = $transport->paginate();
+
+            return response()->json($transport);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
