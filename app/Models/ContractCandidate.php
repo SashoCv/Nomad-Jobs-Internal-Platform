@@ -12,5 +12,6 @@ class ContractCandidate extends Model
     protected $fillable = [
         'name',
         'slug',
+        'description',
     ];
 }

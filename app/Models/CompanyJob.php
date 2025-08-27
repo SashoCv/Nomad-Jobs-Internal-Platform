@@ -26,4 +26,9 @@ class CompanyJob extends Model
     {
         return $this->hasMany(ChangeLog::class, 'record_id')->where('tableName', 'company_jobs');
     }
+
+    public function position()
+    {
+        return $this->belongsTo(Position::class);
+    }
 }

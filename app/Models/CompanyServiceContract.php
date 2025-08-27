@@ -18,8 +18,8 @@ class CompanyServiceContract extends Model
     public const STATUS_EXPIRED = 'expired';
     public const STATUS_TERMINATED = 'terminated';
 
-    public const AGREEMENT_TYPE_STANDARD = 'standard';
-    // here i need more and base on this agreement type i need logic
+    public const AGREEMENT_TYPE_ERPR = 'erpr';
+    public const AGREEMENT_TYPE_90DAYS = '90days';
 
     protected $fillable = [
         'company_id',

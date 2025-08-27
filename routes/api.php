@@ -326,6 +326,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Contract Pricing
     Route::post('storeContractPricing', [ContractPricingController::class, 'store']);
+    Route::put('updateContractPricing/{id}', [ContractPricingController::class, 'update']);
     Route::get('getContractPricing/{id}', [ContractPricingController::class, 'show']);
     Route::delete('deleteContractPricing/{id}', [ContractPricingController::class, 'destroy']);
 

@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('company_service_contracts', function (Blueprint $table) {
             $table->id();
             $table->string('contractNumber')->nullable()->unique()->comment('Unique contract number');
-            $table->string('agreement_type')->default('standard')->comment('Type of the agreement, default is standard');
+            $table->string('agreement_type')->default('erpr')->comment('Type of the agreement, options: erpr, 90days');
             $table->foreignId('company_id')->constrained('companies')->onDelete('cascade')->comment('Foreign key to the companies table');
             $table->string('status')->default('active')->comment('Status of the contract (e.g.,pending, active, expired, terminated)');
             $table->date('startDate')->comment('Start date of the contract');
