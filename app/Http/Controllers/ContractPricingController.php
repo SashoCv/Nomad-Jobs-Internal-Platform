@@ -106,12 +106,36 @@ class ContractPricingController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ContractPricing  $contractPricing
-     * @return \Illuminate\Http\Response
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, ContractPricing $contractPricing)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $contractPricing = ContractPricing::findOrFail($id);
+            
+            $validator = Validator::make($request->all(), [
+                'contract_service_type_id' => 'required|exists:contract_service_types,id',
+                'price' => 'required|numeric|min:0',
+                'currency' => 'required|string|max:3',
+                'status_id' => 'required|exists:statuses,id',
+                'description' => 'nullable|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => 'Validation failed', 'details' => $validator->errors()], 422);
+            }
+
+            $contractPricing->update($request->all());
+
+            return response()->json([
+                'message' => 'Contract pricing updated successfully.',
+                'data' => $contractPricing->fresh(['contractServiceType', 'status'])
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update contract pricing: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
