@@ -141,7 +141,13 @@ class CompanyJobController extends Controller
             } else {
                 $companyJob->company_id = $request->company_id;
             }
-            $companyJob->job_title = $request->job_title;
+            // Set job_title from selected position
+            if ($request->position_id) {
+                $position = \App\Models\Position::find($request->position_id);
+                $companyJob->job_title = $position ? $position->jobPosition : $request->job_title;
+            } else {
+                $companyJob->job_title = $request->job_title;
+            }
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
             $companyJob->contract_type = $request->contract_type;
@@ -155,6 +161,7 @@ class CompanyJobController extends Controller
             $companyJob->food = $request->food;
             $companyJob->otherDescription = $request->otherDescription;
             $companyJob->countryOfOrigin = $request->countryOfOrigin; // Assuming this field is added in the migration
+            $companyJob->position_id = $request->position_id; // Job position selection
 
             if ($companyJob->save()) {
                 $companyName = Company::where('id', $companyJob->company_id)->first();
@@ -256,7 +263,15 @@ class CompanyJobController extends Controller
 
         if ($this->checkPermission(Permission::JOB_POSTINGS_UPDATE)) {
             $companyJob = CompanyJob::find($companyJobId);
-            $companyJob->job_title = $request->job_title;
+            
+            // Set job_title from selected position
+            if ($request->position_id) {
+                $position = \App\Models\Position::find($request->position_id);
+                $companyJob->job_title = $position ? $position->jobPosition : $request->job_title;
+            } else {
+                $companyJob->job_title = $request->job_title;
+            }
+            
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
             $companyJob->contract_type = $request->contract_type;
@@ -269,7 +284,8 @@ class CompanyJobController extends Controller
             $companyJob->rent = $request->rent;
             $companyJob->food = $request->food;
             $companyJob->otherDescription = $request->otherDescription;
-            $companyJob->countryOfOrigin = $request->countryOfOrigin; // Assuming this field is added in the migration
+            $companyJob->countryOfOrigin = $request->countryOfOrigin;
+            $companyJob->position_id = $request->position_id; // Job position selection
 
             $companyForThisJob = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
 
