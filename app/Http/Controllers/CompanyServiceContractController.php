@@ -87,8 +87,8 @@ class CompanyServiceContractController extends Controller
                 'company_id' => 'required|exists:companies,id',
                 'contractNumber' => 'required|string|max:255',
                 'agreement_type' => 'required|in:' . implode(',', [
-                        CompanyServiceContract::AGREEMENT_TYPE_STANDARD,
-                        // Add more agreement types here if needed
+                        CompanyServiceContract::AGREEMENT_TYPE_ERPR,
+                        CompanyServiceContract::AGREEMENT_TYPE_90DAYS,
                     ]),
                 'status' => 'required|in:' . implode(',', [
                         CompanyServiceContract::STATUS_PENDING,
@@ -224,8 +224,8 @@ class CompanyServiceContractController extends Controller
                 'company_id' => 'required|exists:companies,id',
                 'contractNumber' => 'required|string|max:255',
                 'agreement_type' => 'required|in:' . implode(',', [
-                        CompanyServiceContract::AGREEMENT_TYPE_STANDARD,
-                        // Add more agreement types here if needed
+                        CompanyServiceContract::AGREEMENT_TYPE_ERPR,
+                        CompanyServiceContract::AGREEMENT_TYPE_90DAYS,
                     ]),
                 'status' => 'required|in:' . implode(',', [
                         CompanyServiceContract::STATUS_PENDING,
