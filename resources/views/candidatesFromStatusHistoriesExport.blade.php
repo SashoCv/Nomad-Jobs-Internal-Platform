@@ -45,7 +45,7 @@
     @foreach ($allData as $index => $data)
         <tr>
             <td>{{ $data->candidate->fullName ?? "" }}</td>
-            <td>{{ $data->candidate->fullNameCyrillic }}</td>
+            <td>{{ $data->candidate->fullNameCyrillic ?? "" }}</td>
             <td>{{ $data->candidate->id }}</td>
             <td>{{ $data->candidate->nationality }}</td>
             <td>{{ $data->candidate->company->nameOfCompany ?? 'N/A' }}</td>
