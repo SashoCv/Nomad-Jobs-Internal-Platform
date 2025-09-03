@@ -224,6 +224,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Agents
     Route::post('agentAddCandidateForAssignedJob', [AgentCandidateController::class, 'agentAddCandidateForAssignedJob']);
+    Route::post('agentUpdateCandidate/{id}', [AgentCandidateController::class, 'updateCandidateAsAgent']);
     Route::get('getCandidatesForAssignedJob/{id}', [AgentCandidateController::class, 'getCandidatesForAssignedJob']);
     Route::get('getAllCandidatesFromAgents', [AgentCandidateController::class, 'getAllCandidatesFromAgents']);
     Route::get('statusForCandidateFromAgent', [StatusForCandidateFromAgentController::class, 'index']);
