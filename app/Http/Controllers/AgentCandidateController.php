@@ -362,16 +362,6 @@ class AgentCandidateController extends Controller
             if ($person->agent_id != Auth::user()->id) {
                 return response()->json(['message' => 'You can only update candidates you added'], 403);
             }
-
-            // Get company job if provided
-            if ($request->has('company_job_id')) {
-                $getCompanyJob = DB::table('company_jobs')->where('id', $request->company_job_id)->first();
-                if (!$getCompanyJob) {
-                    return response()->json(['message' => 'Job not found'], 404);
-                }
-                $person->company_id = $getCompanyJob->company_id;
-            }
-
             // Update basic fields
             $fieldsToUpdate = [
                 'gender', 'email', 'nationality', 'date', 'phoneNumber',
@@ -381,7 +371,7 @@ class AgentCandidateController extends Controller
                 'passportIssuedBy', 'passportIssuedOn', 'addressOfWork',
                 'nameOfFacility', 'education', 'specialty', 'qualification',
                 'contractExtensionPeriod', 'salary', 'workingTime', 'workingDays',
-                'martialStatus', 'contractPeriod', 'contractType', 'position_id',
+                'martialStatus', 'contractPeriod', 'contractType',
                 'dossierNumber', 'notes'
             ];
 
@@ -441,7 +431,18 @@ class AgentCandidateController extends Controller
                     Education::where('candidate_id', $id)->delete();
 
                     // Add new educations
-                    $educations = $request->educations ?? [];
+                    $educations = $request->educations;
+
+                    // If educations is a string, decode it as JSON
+                    if (is_string($educations)) {
+                        $educations = json_decode($educations, true) ?? [];
+                    }
+
+                    // Ensure it's an array
+                    if (!is_array($educations)) {
+                        $educations = [];
+                    }
+
                     foreach ($educations as $education) {
                         $newEducation = new Education();
                         $newEducation->candidate_id = $person->id;
@@ -460,7 +461,18 @@ class AgentCandidateController extends Controller
                     Experience::where('candidate_id', $id)->delete();
 
                     // Add new experiences
-                    $experiences = $request->experiences ?? [];
+                    $experiences = $request->experiences;
+
+                    // If experiences is a string, decode it as JSON
+                    if (is_string($experiences)) {
+                        $experiences = json_decode($experiences, true) ?? [];
+                    }
+
+                    // Ensure it's an array
+                    if (!is_array($experiences)) {
+                        $experiences = [];
+                    }
+
                     foreach ($experiences as $experience) {
                         $newExperience = new Experience();
                         $newExperience->candidate_id = $person->id;
@@ -472,14 +484,6 @@ class AgentCandidateController extends Controller
                     }
                 }
 
-                // Update agent_candidates table if company_job_id changed
-                if ($request->has('company_job_id')) {
-                    $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
-                    if ($agentCandidate) {
-                        $agentCandidate->company_job_id = $request->company_job_id;
-                        $agentCandidate->save();
-                    }
-                }
 
                 // Create notification
                 $notificationData = [
