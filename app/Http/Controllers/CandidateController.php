@@ -711,8 +711,10 @@ class CandidateController extends Controller
 
                 $statusName = Status::where('id', $statusId)->value('nameOfStatus');
 
-                $candidates = Statushistory::with(['candidate', 'candidate.company', 'candidate.position', 'status'])
+                $candidates = Statushistory::with(['candidate', 'candidate.company', 'candidate.position','candidate.agent', 'status'])
                     ->where('status_id', $statusId);
+
+
 
                 if ($dateFrom && $dateTo) {
                     $candidates->whereBetween('statusDate', [$dateFrom, $dateTo]);

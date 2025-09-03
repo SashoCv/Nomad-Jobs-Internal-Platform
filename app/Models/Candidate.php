@@ -99,6 +99,11 @@ class Candidate extends Model
         return $this->hasMany(AgentCandidate::class);
     }
 
+    public function agent()
+    {
+        return $this->belongsTo(User::class, 'agent_id');
+    }
+
     public function cases()
     {
         return $this->belongsTo(Cases::class, 'case_id');

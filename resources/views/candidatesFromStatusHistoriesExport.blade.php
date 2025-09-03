@@ -38,21 +38,31 @@
         <th>Тип Договор</th>
         <th>Статус</th>
         <th>Дата на Статус</th>
+        <th>Агент</th>
         <th>Бележки</th>
     </tr>
     </thead>
     <tbody>
     @foreach ($allData as $index => $data)
         <tr>
-            <td>{{ $data->candidate->fullName ?? "" }}</td>
-            <td>{{ $data->candidate->fullNameCyrillic ?? "" }}</td>
-            <td>{{ $data->candidate->id }}</td>
-            <td>{{ $data->candidate->nationality }}</td>
+            <td>{{ $data->candidate->fullName ?? '' }}</td>
+            <td>{{ $data->candidate->fullNameCyrillic ?? '' }}</td>
+            <td>{{ $data->candidate->id ?? '' }}</td>
+            <td>{{ $data->candidate->nationality ?? '' }}</td>
             <td>{{ $data->candidate->company->nameOfCompany ?? 'N/A' }}</td>
-            <td>{{ $data->candidate->contractType }} / {{ $data->candidate->contractPeriod }}</td>
-            <td>{{ $data->status->nameOfStatus }}</td>
-            <td>{{ $data->statusDate->format('d.m.Y') }}</td>
-            <td>{{ $data->description }}</td>
+            <td>
+                {{ $data->candidate->contractType ?? '' }}
+                @if(!empty($data->candidate->contractPeriod))
+                    / {{ $data->candidate->contractPeriod }}
+                @endif
+            </td>
+            <td>{{ $data->status->nameOfStatus ?? '' }}</td>
+            <td>{{ optional($data->statusDate)->format('d.m.Y') ?? '' }}</td>
+            <td>
+                {{ optional($data->agent)->firstName ?? '' }}
+                {{ optional($data->agent)->lastName ?? '' }}
+            </td>
+            <td>{{ $data->description ?? '' }}</td>
         </tr>
     @endforeach
     </tbody>

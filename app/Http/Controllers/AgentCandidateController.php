@@ -282,7 +282,7 @@ class AgentCandidateController extends Controller
             } else {
                 if ($user->hasRole(Role::GENERAL_MANAGER)) {
                     $query->where('nomad_office_id', null);
-                } else if ($user->hasRole(Role::MANAGER)){
+                } else if ($user->hasRole(Role::HR)){
                     $query->where('agent_candidates.nomad_office_id', $user_id);
                 } else if ($user->hasRole(Role::AGENT)) {
                     $query->where('agent_candidates.user_id', $user_id);
@@ -339,6 +339,167 @@ class AgentCandidateController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update candidate added by agent
+     */
+    public function updateCandidateAsAgent(Request $request, $id)
+    {
+        try {
+            if (!$this->checkPermission(Permission::AGENT_CANDIDATES_UPDATE)) {
+                return response()->json(['error' => 'Insufficient permissions'], 403);
+            }
+
+            // Find the candidate
+            $person = Candidate::find($id);
+            if (!$person) {
+                return response()->json(['message' => 'Candidate not found'], 404);
+            }
+
+            // Check if the agent is the one who added this candidate
+            if ($person->agent_id != Auth::user()->id) {
+                return response()->json(['message' => 'You can only update candidates you added'], 403);
+            }
+
+            // Get company job if provided
+            if ($request->has('company_job_id')) {
+                $getCompanyJob = DB::table('company_jobs')->where('id', $request->company_job_id)->first();
+                if (!$getCompanyJob) {
+                    return response()->json(['message' => 'Job not found'], 404);
+                }
+                $person->company_id = $getCompanyJob->company_id;
+            }
+
+            // Update basic fields
+            $fieldsToUpdate = [
+                'gender', 'email', 'nationality', 'date', 'phoneNumber',
+                'address', 'passport', 'fullName', 'fullNameCyrillic',
+                'birthday', 'placeOfBirth', 'country', 'area', 'areaOfResidence',
+                'addressOfResidence', 'periodOfResidence', 'passportValidUntil',
+                'passportIssuedBy', 'passportIssuedOn', 'addressOfWork',
+                'nameOfFacility', 'education', 'specialty', 'qualification',
+                'contractExtensionPeriod', 'salary', 'workingTime', 'workingDays',
+                'martialStatus', 'contractPeriod', 'contractType', 'position_id',
+                'dossierNumber', 'notes'
+            ];
+
+            foreach ($fieldsToUpdate as $field) {
+                if ($request->has($field)) {
+                    $person->$field = $request->$field;
+                }
+            }
+
+            // Handle passport file update
+            if ($request->hasFile('personPassport')) {
+                // Delete old passport file if exists
+                if ($person->passportPath) {
+                    Storage::disk('public')->delete($person->passportPath);
+                }
+
+                $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
+                $person->passportPath = $name;
+                $person->passportName = $request->file('personPassport')->getClientOriginalName();
+
+                // Update file in files table
+                $categoryForFiles = Category::where('candidate_id', $id)
+                    ->where('nameOfCategory', 'files from agent')
+                    ->first();
+
+                if ($categoryForFiles) {
+                    $passportFile = File::where('candidate_id', $id)
+                        ->where('category_id', $categoryForFiles->id)
+                        ->where('fileName', $person->passportName)
+                        ->first();
+
+                    if ($passportFile) {
+                        $passportFile->fileName = $person->passportName;
+                        $passportFile->filePath = $person->passportPath;
+                        $passportFile->save();
+                    }
+                }
+            }
+
+            // Handle picture file update
+            if ($request->hasFile('personPicture')) {
+                // Delete old picture file if exists
+                if ($person->personPicturePath) {
+                    Storage::disk('public')->delete($person->personPicturePath);
+                }
+
+                $name = Storage::disk('public')->put('personImages', $request->file('personPicture'));
+                $person->personPicturePath = $name;
+                $person->personPictureName = $request->file('personPicture')->getClientOriginalName();
+            }
+
+            // Save the person
+            if ($person->save()) {
+                // Handle educations update
+                if ($request->has('educations')) {
+                    // Delete existing educations
+                    Education::where('candidate_id', $id)->delete();
+
+                    // Add new educations
+                    $educations = $request->educations ?? [];
+                    foreach ($educations as $education) {
+                        $newEducation = new Education();
+                        $newEducation->candidate_id = $person->id;
+                        $newEducation->school_name = $education['school_name'];
+                        $newEducation->degree = $education['degree'];
+                        $newEducation->field_of_study = $education['field_of_study'];
+                        $newEducation->start_date = $education['start_date'];
+                        $newEducation->end_date = $education['end_date'];
+                        $newEducation->save();
+                    }
+                }
+
+                // Handle experiences update
+                if ($request->has('experiences')) {
+                    // Delete existing experiences
+                    Experience::where('candidate_id', $id)->delete();
+
+                    // Add new experiences
+                    $experiences = $request->experiences ?? [];
+                    foreach ($experiences as $experience) {
+                        $newExperience = new Experience();
+                        $newExperience->candidate_id = $person->id;
+                        $newExperience->company_name = $experience['company_name'];
+                        $newExperience->position = $experience['position'];
+                        $newExperience->start_date = $experience['start_date'];
+                        $newExperience->end_date = $experience['end_date'];
+                        $newExperience->save();
+                    }
+                }
+
+                // Update agent_candidates table if company_job_id changed
+                if ($request->has('company_job_id')) {
+                    $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
+                    if ($agentCandidate) {
+                        $agentCandidate->company_job_id = $request->company_job_id;
+                        $agentCandidate->save();
+                    }
+                }
+
+                // Create notification
+                $notificationData = [
+                    'message' => 'Agent ' . Auth::user()->firstName . ' updated candidate ' . $person->fullName,
+                    'type' => 'Agent updated candidate',
+                ];
+
+                $notification = NotificationRepository::createNotification($notificationData);
+                UsersNotificationRepository::createNotificationForUsers($notification);
+
+                return response()->json([
+                    'message' => 'Candidate updated successfully',
+                    'candidate' => $person,
+                ], 200);
+            } else {
+                return response()->json(['message' => 'Failed to update candidate'], 500);
+            }
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json(['message' => 'Failed to update candidate: ' . $e->getMessage()], 500);
         }
     }
 }
