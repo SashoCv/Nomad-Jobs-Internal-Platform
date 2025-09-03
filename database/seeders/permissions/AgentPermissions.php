@@ -16,6 +16,7 @@ class AgentPermissions
             Permission::AGENT_CANDIDATES_DELETE,
             Permission::DOCUMENTS_READ,
             Permission::DOCUMENTS_CREATE,
+            Permission::DOCUMENTS_UPLOAD,
             Permission::AGENT_COMPANIES_READ,
         ];
     }
