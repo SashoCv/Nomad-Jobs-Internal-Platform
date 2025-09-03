@@ -614,9 +614,6 @@ class CandidateController extends Controller
 
     protected function handleAgentDeletion(Candidate $candidate, int $id): JsonResponse
     {
-        if ($candidate->updated_at !== null) {
-            return $this->errorResponse('Cannot delete this candidate', 422);
-        }
 
         $agentCandidate = AgentCandidate::where('candidate_id', $id)
             ->where('user_id', Auth::id())
