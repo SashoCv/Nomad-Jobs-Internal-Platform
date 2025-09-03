@@ -282,7 +282,7 @@ class AgentCandidateController extends Controller
             } else {
                 if ($user->hasRole(Role::GENERAL_MANAGER)) {
                     $query->where('nomad_office_id', null);
-                } else if ($user->hasRole(Role::MANAGER)){
+                } else if ($user->hasRole(Role::HR)){
                     $query->where('agent_candidates.nomad_office_id', $user_id);
                 } else if ($user->hasRole(Role::AGENT)) {
                     $query->where('agent_candidates.user_id', $user_id);
@@ -374,7 +374,7 @@ class AgentCandidateController extends Controller
 
             // Update basic fields
             $fieldsToUpdate = [
-                'gender', 'email', 'nationality', 'date', 'phoneNumber', 
+                'gender', 'email', 'nationality', 'date', 'phoneNumber',
                 'address', 'passport', 'fullName', 'fullNameCyrillic',
                 'birthday', 'placeOfBirth', 'country', 'area', 'areaOfResidence',
                 'addressOfResidence', 'periodOfResidence', 'passportValidUntil',
@@ -397,7 +397,7 @@ class AgentCandidateController extends Controller
                 if ($person->passportPath) {
                     Storage::disk('public')->delete($person->passportPath);
                 }
-                
+
                 $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
                 $person->passportPath = $name;
                 $person->passportName = $request->file('personPassport')->getClientOriginalName();
@@ -406,13 +406,13 @@ class AgentCandidateController extends Controller
                 $categoryForFiles = Category::where('candidate_id', $id)
                     ->where('nameOfCategory', 'files from agent')
                     ->first();
-                
+
                 if ($categoryForFiles) {
                     $passportFile = File::where('candidate_id', $id)
                         ->where('category_id', $categoryForFiles->id)
                         ->where('fileName', $person->passportName)
                         ->first();
-                    
+
                     if ($passportFile) {
                         $passportFile->fileName = $person->passportName;
                         $passportFile->filePath = $person->passportPath;
@@ -427,7 +427,7 @@ class AgentCandidateController extends Controller
                 if ($person->personPicturePath) {
                     Storage::disk('public')->delete($person->personPicturePath);
                 }
-                
+
                 $name = Storage::disk('public')->put('personImages', $request->file('personPicture'));
                 $person->personPicturePath = $name;
                 $person->personPictureName = $request->file('personPicture')->getClientOriginalName();
@@ -439,7 +439,7 @@ class AgentCandidateController extends Controller
                 if ($request->has('educations')) {
                     // Delete existing educations
                     Education::where('candidate_id', $id)->delete();
-                    
+
                     // Add new educations
                     $educations = $request->educations ?? [];
                     foreach ($educations as $education) {
@@ -458,7 +458,7 @@ class AgentCandidateController extends Controller
                 if ($request->has('experiences')) {
                     // Delete existing experiences
                     Experience::where('candidate_id', $id)->delete();
-                    
+
                     // Add new experiences
                     $experiences = $request->experiences ?? [];
                     foreach ($experiences as $experience) {
