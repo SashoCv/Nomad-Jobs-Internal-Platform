@@ -289,7 +289,7 @@ class CandidateController extends Controller
     {
         $user = Auth::user();
 
-        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+        if (!$this->checkPermission(Permission::CANDIDATES_READ) && !$this->checkPermission(Permission::AGENT_CANDIDATES_READ)) {
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
@@ -352,7 +352,7 @@ class CandidateController extends Controller
     {
         $user = Auth::user();
 
-        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+        if (!$this->checkPermission(Permission::CANDIDATES_READ) && !$this->checkPermission(Permission::AGENT_CANDIDATES_READ)) {
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
@@ -395,7 +395,7 @@ class CandidateController extends Controller
     {
         $user = Auth::user();
 
-        if (!$this->checkPermission(Permission::CANDIDATES_READ)) {
+        if (!$this->checkPermission(Permission::CANDIDATES_READ) && !$this->checkPermission(Permission::AGENT_CANDIDATES_READ)) {
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
