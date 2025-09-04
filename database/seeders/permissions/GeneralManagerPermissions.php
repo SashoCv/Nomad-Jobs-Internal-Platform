@@ -1,7 +1,6 @@
 <?php
 
 namespace Database\Seeders\Permissions;
-
 use App\Models\Permission;
 
 class GeneralManagerPermissions
