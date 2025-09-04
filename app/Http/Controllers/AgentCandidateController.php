@@ -280,7 +280,7 @@ class AgentCandidateController extends Controller
                         ->where('company_job_id', $request->company_job_id);
                 }
             } else {
-                if ($user->hasRole(Role::GENERAL_MANAGER)) {
+                if ($user->hasRole(Role::GENERAL_MANAGER) || $user->hasRole(Role::MANAGER) || $user->hasRole(Role::OFFICE_MANAGER) || $user->hasRole(Role::RECRUITERS) || $user->hasRole(Role::FINANCE)) {
                     $query->where('nomad_office_id', null);
                 } else if ($user->hasRole(Role::HR)){
                     $query->where('agent_candidates.nomad_office_id', $user_id);
