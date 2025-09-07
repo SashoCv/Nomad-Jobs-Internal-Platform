@@ -232,7 +232,7 @@ class LoginController extends Controller
             }
 
             // Validate to store company user if they dont have contract
-             if($request->role_id === "3" && Auth::user()->role_id != 1){
+             if($request->role_id === Role::COMPANY_USER && Auth::user()->role_id != Role::GENERAL_MANAGER){
                 $haveAgreement = CompanyServiceContract::where('company_id', $request->company_id)->firstOrFail();
 
                 if(!$haveAgreement){
@@ -246,7 +246,7 @@ class LoginController extends Controller
              }
 
             if ($user->save()) {
-                if($user->role_id === "5"){
+                if($user->role_id === Role::COMPANY_OWNER){
                     $companiesIds = $request->companies;
                     $companiesArray = array_map('intval', explode(',', $companiesIds));
 
