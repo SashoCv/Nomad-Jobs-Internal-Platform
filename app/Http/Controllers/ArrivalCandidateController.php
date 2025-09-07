@@ -14,6 +14,7 @@ use App\Models\File;
 use App\Models\Statushistory;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
+use App\Services\InvoiceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -310,6 +311,10 @@ class ArrivalCandidateController extends Controller
             $sendEmail = $request->sendEmail ?? false;
             Log::info('sendEmail in nachelo', ['sendEmail' => $sendEmail]);
             if ($statusHistory->save()) {
+
+                // Call the InvoiceService to handle invoice creation
+                InvoiceService::saveInvoiceOnStatusChange($id, $request->status_id, $request->statusDate);
+
                 $notificationData = [
                     'message' => 'Status updated for candidate: ' . $statusHistory->candidate->fullName,
                     'type' => 'status_update',

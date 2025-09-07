@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
 use App\Jobs\SendEmailForArrivalStatusCandidates;
+use App\Services\InvoiceService;
 use App\Traits\HasRolePermissions;
 use App\Jobs\SendEmailToCompany;
 use App\Models\Arrival;
@@ -81,6 +82,8 @@ class ArrivalController extends Controller
                 'statusDate'   => $arrivalDate,
                 'description'  => 'Arrival Expected',
             ]);
+
+            InvoiceService::saveInvoiceOnStatusChange($candidateId, $statusId, $arrivalDate);
 
             // Ensure category exists
             Category::firstOrCreate(

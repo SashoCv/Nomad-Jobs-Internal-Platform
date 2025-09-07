@@ -11,7 +11,7 @@ class PermissionDefinitions
         return [
             // Dashboard
             ['name' => Permission::DASHBOARD_READ, 'slug' => 'dashboard:read', 'description' => 'Read dashboard'],
-            
+
             // Companies
             ['name' => Permission::COMPANIES_READ, 'slug' => 'companies:read', 'description' => 'Read companies'],
             ['name' => Permission::COMPANIES_CREATE, 'slug' => 'companies:create', 'description' => 'Create companies'],
@@ -125,6 +125,12 @@ class PermissionDefinitions
             ['name' => Permission::AGENT_CANDIDATES_UPDATE, 'slug' => 'agent:candidates:update', 'description' => 'Update agent candidates'],
             ['name' => Permission::AGENT_CANDIDATES_DELETE, 'slug' => 'agent:candidates:delete', 'description' => 'Delete agent candidates'],
             ['name' => Permission::AGENT_COMPANIES_READ, 'slug' => 'agent:companies:read', 'description' => 'View agent companies'],
+
+            // Transport
+            ['name' => Permission::TRANSPORT_READ, 'slug' => 'transport:read', 'description' => 'Read transport'],
+            ['name' => Permission::TRANSPORT_CREATE, 'slug' => 'transport:create', 'description' => 'Create transport'],
+            ['name' => Permission::TRANSPORT_COVERAGE, 'slug' => 'transport:coverage', 'description' => 'Manage transport coverage']
+
         ];
     }
 }
