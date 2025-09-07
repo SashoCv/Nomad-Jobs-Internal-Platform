@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\CompanyServiceContract;
 use App\Models\Role;
 use App\Traits\HasRolePermissions;
 use App\Models\User;
@@ -229,6 +230,20 @@ class LoginController extends Controller
                 $user->signaturePath = $name;
                 $user->signatureName = $request->file('signature')->getClientOriginalName();
             }
+
+            // Validate to store company user if they dont have contract
+             if($request->role_id === "3" && Auth::user()->role_id != 1){
+                $haveAgreement = CompanyServiceContract::where('company_id', $request->company_id)->firstOrFail();
+
+                if(!$haveAgreement){
+                    return response()->json([
+                        'success' => false,
+                        'status' => 500,
+                        'data' => [],
+                        'message' => 'This company dont have service contract, please contact with admin!'
+                    ]);
+                }
+             }
 
             if ($user->save()) {
                 if($user->role_id === "5"){
