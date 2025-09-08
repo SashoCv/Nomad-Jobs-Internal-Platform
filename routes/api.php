@@ -13,7 +13,6 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MonthCompanyController;
-use App\Http\Controllers\ItemsForInvoicesController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ArrivalPricingController;
 use App\Http\Controllers\SearchController;
@@ -24,11 +23,8 @@ use App\Http\Controllers\UserNotificationController;
 use App\Http\Controllers\ContractPricingController;
 use App\Http\Controllers\UserOwnerController;
 use App\Http\Controllers\AsignCandidateToNomadOfficeController;
-use App\Http\Controllers\InvoiceCompanyController;
 use App\Http\Controllers\CasesController;
 use App\Http\Controllers\ArrivalController;
-use App\Http\Controllers\ItemInvoiceController;
-use App\Http\Controllers\InvoiceCompanyCandidateController;
 use App\Http\Controllers\ArrivalCandidateController;
 use App\Http\Controllers\StatusArrivalController;
 use App\Http\Controllers\CashPaymentForCandidatesController;
@@ -245,15 +241,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
 
 
-    //Company Invoice (OLD Finance NEED TO BE DELETE AFTER NEW IMPLEMENTATION)
-    Route::post('storeCompanyInvoice', [InvoiceCompanyController::class, 'store']);
-    Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyCandidateController::class, 'destroy']);
-    Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
-    Route::get('downloadExcelForInvoices', [InvoiceCompanyController::class, 'downloadExcelForInvoices']);
-    Route::post('updateInvoice/{id}', [InvoiceCompanyController::class, 'update']);
-    Route::get('invoiceCompanyCandidates', [InvoiceCompanyCandidateController::class, 'index']);
-    Route::get('invoiceCompanyCandidates/{id}', [InvoiceCompanyCandidateController::class, 'show']);
-    Route::get('filterAutoCompleteCandidateThatHaveInvoice', [InvoiceCompanyCandidateController::class, 'filterAutoCompleteCandidateThatHaveInvoice']);
 
     // Cash Payment For Candidates
     Route::post('storeCashPaymentForCandidates', [CashPaymentForCandidatesController::class, 'store']);
@@ -261,10 +248,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'show']);
     Route::post('updateCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'update']);
     Route::delete('deleteCashPaymentForCandidates/{id}', [CashPaymentForCandidatesController::class, 'destroy']);
-    //Items For Invoice
-    Route::get('itemForInvoices', [ItemInvoiceController::class, 'index']);
-    Route::post('updateItemForInvoice/{id}', [ItemInvoiceController::class, 'update']);
-    Route::get('itemForCompanyInvoices', [ItemsForInvoicesController::class, 'index']);
 
 
     // INVOICES
