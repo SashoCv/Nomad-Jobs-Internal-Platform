@@ -245,7 +245,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getCvForCandidate', [CandidateController::class, 'generateCandidatePdf']);
 
 
-    //Company Invoice
+    //Company Invoice (OLD Finance NEED TO BE DELETE AFTER NEW IMPLEMENTATION)
     Route::post('storeCompanyInvoice', [InvoiceCompanyController::class, 'store']);
     Route::delete('deleteCompanyInvoice/{id}', [InvoiceCompanyCandidateController::class, 'destroy']);
     Route::post('invoicePaid/{id}', [InvoiceCompanyController::class, 'invoicePaid']);
@@ -266,6 +266,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('updateItemForInvoice/{id}', [ItemInvoiceController::class, 'update']);
     Route::get('itemForCompanyInvoices', [ItemsForInvoicesController::class, 'index']);
 
+
+    // INVOICES
+    Route::get('getInvoices', [\App\Http\Controllers\InvoiceController::class, 'index']);
+    Route::post('invoices/{id}/status', [\App\Http\Controllers\InvoiceController::class, 'store']);
+    Route::delete('invoices/{id}', [\App\Http\Controllers\InvoiceController::class, 'destroy']);
 
     // Arrivals
     Route::post('storeArrival', [ArrivalController::class, 'store']); // i need statushistories mail also here

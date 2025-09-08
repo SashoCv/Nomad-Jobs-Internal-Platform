@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
 use App\Jobs\SendEmailForArrivalStatusCandidates;
+use App\Models\Invoice;
+use App\Services\InvoiceService;
 use App\Traits\HasRolePermissions;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
@@ -115,6 +117,9 @@ class StatusController extends Controller
             $statusHistory->description = $description;
 
             if ($statusHistory->save()) {
+
+                InvoiceService::saveInvoiceOnStatusChange($candidate_id, $status_id, $statusDate);
+
                 if($sendEmail){
                     dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate));
                     Log::info("Email sent for candidate ID: {$candidate_id} with status ID: {$status_id} on date: {$statusDate}");

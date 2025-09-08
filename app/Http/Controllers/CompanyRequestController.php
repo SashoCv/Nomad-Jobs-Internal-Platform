@@ -36,17 +36,22 @@ class CompanyRequestController extends Controller
                 return response()->json(['error' => 'Insufficient permissions'], 403);
             }
 
-            $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user','companyJob.changeLogs'])->get();
+            $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user','companyJob.changeLogs'])
+                ->whereHas('companyJob', function ($query) {
+                    $query->whereNotNull('company_id')
+                          ->whereHas('company');
+                })
+                ->get();
 
             // Filter requests based on user role
             if ($user->hasRole(Role::COMPANY_USER)) {
                 $companyRequests = $companyRequests->filter(function ($request) use ($user) {
-                    return $request->companyJob->company_id == $user->company_id;
+                    return $request->companyJob && $request->companyJob->company && $request->companyJob->company_id == $user->company_id;
                 });
             } else if ($user->hasRole(Role::COMPANY_OWNER)) {
                 $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
                 $companyRequests = $companyRequests->filter(function ($request) use ($companyIds) {
-                    return $companyIds->contains($request->companyJob->company_id);
+                    return $request->companyJob && $request->companyJob->company && $companyIds->contains($request->companyJob->company_id);
                 });
             }
             // Staff can see all requests (no filtering needed)
