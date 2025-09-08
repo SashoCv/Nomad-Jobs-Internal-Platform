@@ -20,7 +20,7 @@ class InvoiceController extends Controller
      */
     public function index(Request $request)
     {
-        if (!$this->hasPermission(Permission::FINANCE_READ)) {
+        if (!$this->checkPermission(Permission::FINANCE_READ)) {
             return response()->json(['error' => 'Access denied', 'message' => 'You do not have permission to view invoices'], 403);
         }
 
@@ -91,7 +91,7 @@ class InvoiceController extends Controller
      */
     public function store(Request $request, $id)
     {
-        if (!$this->hasPermission(Permission::FINANCE_UPDATE)) {
+        if (!$this->checkPermission(Permission::FINANCE_UPDATE)) {
             return response()->json(['error' => 'Access denied', 'message' => 'You do not have permission to update invoices'], 403);
         }
 
@@ -154,7 +154,7 @@ class InvoiceController extends Controller
      */
     public function destroy($id)
     {
-        if (!$this->hasPermission(Permission::FINANCE_DELETE)) {
+        if (!$this->checkPermission(Permission::FINANCE_DELETE)) {
             return response()->json(['error' => 'Access denied', 'message' => 'You do not have permission to delete invoices'], 403);
         }
 
