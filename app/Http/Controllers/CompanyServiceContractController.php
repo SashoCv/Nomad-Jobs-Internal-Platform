@@ -96,12 +96,15 @@ class CompanyServiceContractController extends Controller
                         CompanyServiceContract::STATUS_EXPIRED,
                         CompanyServiceContract::STATUS_TERMINATED
                     ]),
-                'contractDate' => 'required|date',
             ]);
-
 
             $companyServiceContract = new CompanyServiceContract($request->all());
             $companyServiceContract->save();
+            
+            // If creating an active contract, use the helper method to handle deactivation
+            if ($request->status === CompanyServiceContract::STATUS_ACTIVE) {
+                $companyServiceContract->setAsActive();
+            }
 
             return response()->json($companyServiceContract, 201);
         } catch (\Exception $e) {
@@ -233,12 +236,19 @@ class CompanyServiceContractController extends Controller
                         CompanyServiceContract::STATUS_EXPIRED,
                         CompanyServiceContract::STATUS_TERMINATED
                     ]),
-                'contractDate' => 'required|date',
             ]);
 
             $companyServiceContract = CompanyServiceContract::findOrFail($id);
+            $previousStatus = $companyServiceContract->status;
+            
             $companyServiceContract->fill($request->all());
             $companyServiceContract->save();
+            
+            // If updating to active status, use the helper method to handle deactivation
+            if ($request->status === CompanyServiceContract::STATUS_ACTIVE && 
+                $previousStatus !== CompanyServiceContract::STATUS_ACTIVE) {
+                $companyServiceContract->setAsActive();
+            }
 
             return response()->json($companyServiceContract, 200);
 
