@@ -26,11 +26,6 @@ class CompanyServiceContract extends Model
         'contractNumber',
         'agreement_type',
         'status',
-        'contractDate',
-    ];
-
-    protected $casts = [
-        'contractDate' => 'date',
     ];
 
     public function company(): BelongsTo
@@ -41,5 +36,52 @@ class CompanyServiceContract extends Model
     public function contractPricing()
     {
         return $this->hasMany(ContractPricing::class, 'company_service_contract_id');
+    }
+
+    /**
+     * Scope to get only active contracts
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    /**
+     * Set this contract as active and deactivate others for the same company
+     */
+    public function setAsActive()
+    {
+        // First deactivate other active contracts for this company
+        self::where('company_id', $this->company_id)
+            ->where('id', '!=', $this->id)
+            ->where('status', self::STATUS_ACTIVE)
+            ->update(['status' => self::STATUS_EXPIRED]);
+
+        // Then set this contract as active
+        $this->update(['status' => self::STATUS_ACTIVE]);
+    }
+
+    /**
+     * Get the active contract for a company
+     * 
+     * @param int $companyId
+     * @return CompanyServiceContract|null
+     */
+    public static function getActiveContract($companyId)
+    {
+        return self::where('company_id', $companyId)
+            ->active()
+            ->orderBy('id', 'desc')
+            ->first();
+    }
+
+    /**
+     * Check if this is the active contract for the company
+     * 
+     * @return bool
+     */
+    public function isActive()
+    {
+        return $this->status === self::STATUS_ACTIVE;
     }
 }

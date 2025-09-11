@@ -20,7 +20,6 @@ class TransformCompanyServiceContract
                 'contractNumber' => $contract->contractNumber,
                 'agreementType' => $contract->agreement_type,
                 'status' => $contract->status,
-                'contractDate' => $contract->contractDate ? Carbon::parse($contract->contractDate)->format('d-m-Y') : null,
                 'company' => $contract->company ? [
                     'id' => $contract->company->id,
                     'name' => $contract->company->nameOfCompany,

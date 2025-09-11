@@ -24,10 +24,14 @@ class InvoiceService
         $formattedDate = self::formatDate($statusDate);
         
         $companyId = Candidate::where('id', $candidateId)->value('company_id');
-        $company_service_contract_id = CompanyServiceContract::where('company_id', $companyId)->value('id') ?? null;
+        
+        // Get the active contract for the company
+        $activeContract = CompanyServiceContract::getActiveContract($companyId);
+        $company_service_contract_id = $activeContract ? $activeContract->id : null;
 
         if (!$company_service_contract_id) {
-            return; // Nema dogovor za kompanijata
+            \Log::warning("No active contract found for company ID: {$companyId} when processing candidate ID: {$candidateId}");
+            return; // No active contract for the company
         }
 
         $contractPricing = ContractPricing::where('company_service_contract_id', $company_service_contract_id)
