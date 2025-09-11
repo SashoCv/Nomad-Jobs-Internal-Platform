@@ -50,7 +50,6 @@ class ContractPricingController extends Controller
                     'company_service_contract_id' => 'required|exists:company_service_contracts,id',
                     'contract_service_type_id' => 'required|exists:contract_service_types,id',
                     'price' => 'required|numeric|min:0',
-                    'currency' => 'required|string|max:3',
                     'status_id' => 'required|exists:statuses,id',
                     'description' => 'nullable|string|max:255',
                 ]);
@@ -117,7 +116,6 @@ class ContractPricingController extends Controller
             $validator = Validator::make($request->all(), [
                 'contract_service_type_id' => 'required|exists:contract_service_types,id',
                 'price' => 'required|numeric|min:0',
-                'currency' => 'required|string|max:3',
                 'status_id' => 'required|exists:statuses,id',
                 'description' => 'nullable|string|max:255',
             ]);

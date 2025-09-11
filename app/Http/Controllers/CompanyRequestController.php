@@ -39,7 +39,7 @@ class CompanyRequestController extends Controller
             $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user','companyJob.changeLogs'])
                 ->whereHas('companyJob', function ($query) {
                     $query->whereNotNull('company_id')
-                          ->whereHas('company');
+                    ->whereHas('company');
                 })
                 ->get();
 
@@ -176,7 +176,6 @@ class CompanyRequestController extends Controller
                 return [
                     'serviceType' => $pricing->contractServiceType->name,
                     'price' => $pricing->price,
-                    'currency' => $pricing->currency,
                     'statusId' => $pricing->status_id,
                     'status' => $pricing->status->nameOfStatus,
                     'totalForService' => number_format($totalForService, 2),
@@ -199,7 +198,6 @@ class CompanyRequestController extends Controller
                 'totalServices' => $services->count(),
                 'contractType' => $companyRequest->companyJob->contract_type,
                 'totalAmount' => number_format($totalAmount, 2),
-                'currency' => $pricingBaseOnContract->first()->currency ?? 'BGN',
             ];
 
             return response()->json([
