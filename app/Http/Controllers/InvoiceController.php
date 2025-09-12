@@ -6,9 +6,12 @@ use App\Models\Invoice;
 use App\Models\Permission;
 use App\Http\Transformers\TransformInvoice;
 use App\Traits\HasRolePermissions;
+use App\Exports\InvoicesExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class InvoiceController extends Controller
 {
@@ -168,6 +171,61 @@ class InvoiceController extends Controller
         } catch (\Exception $e) {
             Log::info('Error deleting invoice: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to delete invoice', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Export invoices to Excel.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function exportInvoices(Request $request)
+    {
+        if (!$this->checkPermission(Permission::FINANCE_READ)) {
+            return response()->json(['error' => 'Access denied', 'message' => 'You do not have permission to export invoices'], 403);
+        }
+
+        try {
+            $query = Invoice::with(['candidate', 'company', 'companyServiceContract', 'contractServiceType']);
+
+            // Apply the same filters as the index method
+            if ($request->filled('candidateName')) {
+                $query->whereHas('candidate', function ($q) use ($request) {
+                    $q->where(function ($subQuery) use ($request) {
+                        $subQuery->where('fullName', 'like', '%' . $request->candidateName . '%')
+                                 ->orWhere('fullNameCyrillic', 'like', '%' . $request->candidateName . '%');
+                    });
+                });
+            }
+
+            if ($request->filled('companyName')) {
+                $query->whereHas('company', function ($q) use ($request) {
+                    $q->where('nameOfCompany', 'like', '%' . $request->companyName . '%');
+                });
+            }
+
+            if ($request->filled('invoiceStatus')) {
+                $query->where('invoiceStatus', $request->invoiceStatus);
+            }
+
+            if ($request->filled('dateFrom')) {
+                $query->where('statusDate', '>=', $request->dateFrom);
+            }
+
+            if ($request->filled('dateTo')) {
+                $query->where('statusDate', '<=', $request->dateTo);
+            }
+
+            $invoices = $query->get();
+
+            $export = new InvoicesExport($invoices);
+            $currentDate = Carbon::now()->format('d-m-Y');
+            
+            return Excel::download($export, 'invoices_export_' . $currentDate . '.xlsx');
+        } catch (\Exception $e) {
+            Log::error('Error exporting invoices: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to export invoices', 'message' => $e->getMessage()], 500);
         }
     }
 }

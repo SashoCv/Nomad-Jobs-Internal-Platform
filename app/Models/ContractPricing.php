@@ -17,7 +17,6 @@ class ContractPricing extends Model
         'company_service_contract_id',
         'contract_service_type_id',
         'price',
-        'currency',
         'status_id',
         'description',
     ];

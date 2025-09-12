@@ -32,7 +32,6 @@ class TransformCompanyServiceContract
                             'id' => $pricing->contractServiceType ? $pricing->contractServiceType->id : null,
                             'name' => $pricing->contractServiceType ? $pricing->contractServiceType->name : null,
                         ],
-                        'currency' => $pricing->currency,
                         'status' => [
                             'id' => $pricing->status ? $pricing->status->id : null,
                             'nameOfStatus' => $pricing->status ? $pricing->status->nameOfStatus : null,

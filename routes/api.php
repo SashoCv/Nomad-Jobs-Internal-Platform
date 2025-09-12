@@ -254,6 +254,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('getInvoices', [\App\Http\Controllers\InvoiceController::class, 'index']);
     Route::post('invoices/{id}/status', [\App\Http\Controllers\InvoiceController::class, 'store']);
     Route::delete('invoices/{id}', [\App\Http\Controllers\InvoiceController::class, 'destroy']);
+    Route::get('exportInvoices', [\App\Http\Controllers\InvoiceController::class, 'exportInvoices']);
 
     // Arrivals
     Route::post('storeArrival', [ArrivalController::class, 'store']); // i need statushistories mail also here
