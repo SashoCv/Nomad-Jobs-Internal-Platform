@@ -22,11 +22,17 @@ class InvoiceService
     {
         // Convert date format if needed
         $formattedDate = self::formatDate($statusDate);
-        
+
         $companyId = Candidate::where('id', $candidateId)->value('company_id');
-        
+        $contractTypeCandidate = Candidate::where('id', $candidateId)->value('contractType');
+
+        if (!$companyId || !$contractTypeCandidate) {
+            return; // Candidate does not have a company or contract type assigned
+        }
+
+        $contractType = self::mapContractType($contractTypeCandidate);
         // Get the active contract for the company
-        $activeContract = CompanyServiceContract::getActiveContract($companyId);
+        $activeContract = CompanyServiceContract::getActiveContract($companyId, $contractType);
         $company_service_contract_id = $activeContract ? $activeContract->id : null;
 
         if (!$company_service_contract_id) {
@@ -58,8 +64,27 @@ class InvoiceService
     }
 
     /**
+     * Map candidate contract type to system contract type
+     *
+     * @param string $contractTypeCandidate
+     * @return string
+     */
+    private static function mapContractType($contractTypeCandidate)
+    {
+        if ($contractTypeCandidate == "ЕРПР 3" || $contractTypeCandidate == "ЕРПР 2" || $contractTypeCandidate == "ЕРПР 1") {
+            return "erpr";
+        } else if ($contractTypeCandidate == "9 месеца") {
+            return "9months";
+        } else if ($contractTypeCandidate == "90 дни") {
+            return "90days";
+        }
+        
+        return null;
+    }
+
+    /**
      * Format date to Y-m-d format for database storage
-     * 
+     *
      * @param string $date
      * @return string
      */
