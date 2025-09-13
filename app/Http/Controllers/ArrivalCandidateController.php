@@ -36,99 +36,110 @@ class ArrivalCandidateController extends Controller
             $fromDate = $request->from_date;
             $toDate = $request->to_date;
 
-            $query = Candidate::with(['latestStatusHistory.status', 'company'])
-                ->whereHas('latestStatusHistory.status', function ($q) {
-                    $q->where('showOnHomePage', 1);
-                });
+            // Pre-load all statuses once
+            $allStatuses = \App\Models\Status::all()->keyBy('id');
+            $statusesByOrder = $allStatuses->keyBy('order');
 
+            // Build optimized query with proper joins and eager loading
+            $query = Candidate::with(['company'])
+                ->join('statushistories as latest_sh', function ($join) {
+                    $join->on('candidates.id', '=', 'latest_sh.candidate_id')
+                         ->whereRaw('latest_sh.created_at = (
+                             SELECT MAX(created_at) 
+                             FROM statushistories 
+                             WHERE candidate_id = candidates.id
+                         )');
+                })
+                ->join('statuses', 'latest_sh.status_id', '=', 'statuses.id')
+                ->leftJoin('arrivals', function ($join) {
+                    $join->on('candidates.id', '=', 'arrivals.candidate_id')
+                         ->where('latest_sh.status_id', '=', 18);
+                })
+                ->where('statuses.showOnHomePage', 1)
+                ->select([
+                    'candidates.*',
+                    'latest_sh.id as latest_status_history_id',
+                    'latest_sh.description as latest_description',
+                    'latest_sh.status_id as latest_status_id',
+                    'latest_sh.statusDate as latest_status_date',
+                    'statuses.nameOfStatus as latest_status_name',
+                    'statuses.order as latest_status_order',
+                    'arrivals.arrival_date',
+                    'arrivals.arrival_flight',
+                    'arrivals.arrival_location'
+                ]);
+
+            // Apply status filter
             if ($statusId) {
-                $query->whereHas('latestStatusHistory', function ($q) use ($statusId) {
-                    $q->where('status_id', $statusId);
-                });
+                $query->where('latest_sh.status_id', $statusId);
             }
 
+            // Apply date filters
             if ($fromDate) {
                 $fromDate = Carbon::createFromFormat('m-d-Y', $fromDate)->format('Y-m-d');
+                $query->where('latest_sh.statusDate', '>=', $fromDate);
             }
 
             if ($toDate) {
                 $toDate = Carbon::createFromFormat('m-d-Y', $toDate)->format('Y-m-d');
+                $query->where('latest_sh.statusDate', '<=', $toDate);
             }
 
             if ($fromDate && $toDate) {
-                $query->whereHas('latestStatusHistory', function ($q) use ($fromDate, $toDate) {
-                    $q->whereBetween('statusDate', [$fromDate, $toDate]);
-                });
-            } elseif ($fromDate) {
-                $query->whereHas('latestStatusHistory', function ($q) use ($fromDate) {
-                    $q->where('statusDate', '>=', $fromDate);
-                });
-            } elseif ($toDate) {
-                $query->whereHas('latestStatusHistory', function ($q) use ($toDate) {
-                    $q->where('statusDate', '<=', $toDate);
-                });
+                $query->whereBetween('latest_sh.statusDate', [$fromDate, $toDate]);
             }
 
+            $query->orderBy('latest_sh.statusDate', 'desc');
 
-
-            // Join со statushistories за да можеме да сортираме по statusDate
-            $query->join('statushistories', function($join) {
-                $join->on('candidates.id', '=', 'statushistories.candidate_id')
-                     ->whereRaw('statushistories.id = (SELECT MAX(id) FROM statushistories WHERE candidate_id = candidates.id)');
-            })
-            ->orderBy('statushistories.statusDate', 'desc')
-            ->select('candidates.*');
+            // Get candidate IDs first for file existence check
+            $candidateIds = $query->pluck('candidates.id')->toArray();
+            $candidatesWithFiles = File::whereIn('candidate_id', $candidateIds)
+                ->distinct('candidate_id')
+                ->pluck('candidate_id')
+                ->keyBy(function ($id) { return $id; });
 
             $arrivalCandidates = $query->paginate();
 
-            // Get all statuses for availableStatuses calculation
-            $allStatuses = \App\Models\Status::all();
+            $arrivalCandidates->getCollection()->transform(function ($candidate) use ($allStatuses, $statusesByOrder, $candidatesWithFiles) {
+                $currentStatusId = $candidate->latest_status_id;
+                $currentStatusOrder = $candidate->latest_status_order;
 
-            $arrivalCandidates->getCollection()->transform(function ($candidate) use ($statusId, $allStatuses) {
-                $latestStatus = $candidate->latestStatusHistory;
-
-                $arrivalInfo = null;
-                if ($latestStatus && $latestStatus->status_id == 18) {
-                    $arrivalInfo = \DB::table('arrivals')
-                        ->where('candidate_id', $candidate->id)
-                        ->first();
-                }
-
-                // Calculate availableStatuses and addArrival using the same logic as searchCandidateNew
+                // Calculate availableStatuses efficiently
                 $availableStatuses = [];
                 $addArrival = false;
-                if($latestStatus){
-                    $currentStatusId = $latestStatus->status_id;
-                    $nextStatusOrder = $latestStatus->status->order + 1;
-                    $nextStatus = $allStatuses->firstWhere('order', $nextStatusOrder);
 
-                    if($nextStatus) {
-                        $status = $nextStatus->id;
-                        $availableStatuses = [$status, 11, 12, 13, 14];
-                        if($status === 18){
-                            $availableStatuses = [$status, 11, 12, 13, 14];
+                if ($currentStatusId) {
+                    $nextStatusOrder = $currentStatusOrder + 1;
+                    $nextStatus = $statusesByOrder->get($nextStatusOrder);
+
+                    if ($nextStatus) {
+                        $nextStatusId = $nextStatus->id;
+                        $availableStatuses = [$nextStatusId, 11, 12, 13, 14];
+                        
+                        if ($nextStatusId === 18) {
                             $addArrival = true;
-                        } else {
-                            $addArrival = false;
                         }
                     } else {
-                        // If no next status, check if candidate is at status 18 or beyond
-                        if($currentStatusId >= 18) {
-                            // For candidates at status 18 and beyond, allow transition to termination statuses and next sequential status
+                        if ($currentStatusId >= 18) {
                             $availableStatuses = [11, 12, 13, 14];
-                            // Add next sequential statuses if they exist
-                            $higherStatuses = $allStatuses->where('order', '>', $latestStatus->status->order)->pluck('id')->toArray();
-                            $availableStatuses = array_merge($availableStatuses, $higherStatuses);
-                            $availableStatuses = array_unique($availableStatuses);
+                            $higherStatuses = $allStatuses->where('order', '>', $currentStatusOrder)->pluck('id')->toArray();
+                            $availableStatuses = array_unique(array_merge($availableStatuses, $higherStatuses));
                         } else {
-                            // For other cases, show all available statuses
                             $availableStatuses = $allStatuses->pluck('id')->toArray();
                         }
-                        $addArrival = false;
                     }
                 } else {
                     $availableStatuses = $allStatuses->pluck('id')->toArray();
-                    $addArrival = false;
+                }
+
+                // Build arrival info if status is 18
+                $arrivalInfo = null;
+                if ($currentStatusId == 18 && $candidate->arrival_date) {
+                    $arrivalInfo = [
+                        'arrival_date' => $candidate->arrival_date,
+                        'arrival_flight' => $candidate->arrival_flight,
+                        'arrival_location' => $candidate->arrival_location,
+                    ];
                 }
 
                 return [
@@ -141,20 +152,20 @@ class ArrivalCandidateController extends Controller
                     'phoneNumber' => $candidate->phoneNumber,
                     'availableStatuses' => $availableStatuses,
                     'addArrival' => $addArrival,
-                    'has_files' => File::where('candidate_id', $candidate->id)->exists(),
-                    'statusHistories' => $latestStatus ? [
-                        'id' => $latestStatus->id,
-                        'description' => $latestStatus->description,
-                        'status_id' => $latestStatus->status_id,
-                        'statusName' => $latestStatus->status?->nameOfStatus,
-                        'statusDate' => \Carbon\Carbon::parse($latestStatus->statusDate)->format('d-m-Y'),
+                    'has_files' => $candidatesWithFiles->has($candidate->id),
+                    'statusHistories' => [
+                        'id' => $candidate->latest_status_history_id,
+                        'description' => $candidate->latest_description,
+                        'status_id' => $candidate->latest_status_id,
+                        'statusName' => $candidate->latest_status_name,
+                        'statusDate' => \Carbon\Carbon::parse($candidate->latest_status_date)->format('d-m-Y'),
                         'arrivalInfo' => $arrivalInfo,
-                    ] : null,
+                    ],
                 ];
             });
 
             return response()->json([
-                'arrivalCandidates' => $arrivalCandidates, // paginator with meta
+                'arrivalCandidates' => $arrivalCandidates,
             ]);
 
         } catch (\Exception $e) {
