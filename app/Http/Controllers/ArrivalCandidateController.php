@@ -66,7 +66,7 @@ class ArrivalCandidateController extends Controller
                     'statuses.order as latest_status_order',
                     'arrivals.arrival_date',
                     'arrivals.arrival_flight',
-                    'arrivals.arrival_type'
+                    'arrivals.arrival_location'
                 ]);
 
             // Apply status filter
@@ -138,7 +138,7 @@ class ArrivalCandidateController extends Controller
                     $arrivalInfo = [
                         'arrival_date' => $candidate->arrival_date,
                         'arrival_flight' => $candidate->arrival_flight,
-                        'arrival_type' => $candidate->arrival_type,
+                        'arrival_location' => $candidate->arrival_location,
                     ];
                 }
 
