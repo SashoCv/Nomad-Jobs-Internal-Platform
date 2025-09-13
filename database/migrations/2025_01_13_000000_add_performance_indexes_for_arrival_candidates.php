@@ -26,9 +26,7 @@ return new class extends Migration
 
         Schema::table('files', function (Blueprint $table) {
             // Index for candidate_id to speed up file existence checks
-            if (!Schema::hasIndex('files', 'idx_files_candidate_id')) {
-                $table->index('candidate_id', 'idx_files_candidate_id');
-            }
+            $table->index('candidate_id', 'idx_files_candidate_id');
         });
 
         Schema::table('statuses', function (Blueprint $table) {
