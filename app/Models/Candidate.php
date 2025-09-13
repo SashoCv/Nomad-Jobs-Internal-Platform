@@ -71,12 +71,12 @@ class Candidate extends Model
 
     public function statusHistories()
     {
-        return $this->hasMany(Statushistory::class);
+        return $this->hasMany(Statushistory::class)->orderBy('created_at', 'desc');
     }
 
     public function latestStatusHistory()
     {
-        return $this->hasOne(Statushistory::class)->latestOfMany('statusDate');
+        return $this->hasOne(Statushistory::class)->latestOfMany('created_at');
     }
 
     public function company()
