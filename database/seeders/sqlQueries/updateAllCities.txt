@@ -1,0 +1,74 @@
+-- София
+UPDATE company_adresses SET city = 'София'
+WHERE city IN ('Sofia', 'гр. София', 'гр.София', 'гр,София');
+
+-- Варна
+UPDATE company_adresses SET city = 'Варна'
+WHERE city IN ('гр. Варна', 'гр.Варна');
+
+-- Благоевград
+UPDATE company_adresses SET city = 'Благоевград'
+WHERE city IN ('гр. Благоевград');
+
+-- Велико Търново
+UPDATE company_adresses SET city = 'Велико Търново'
+WHERE city IN ('В. Търново');
+
+-- Асеновград
+UPDATE company_adresses SET city = 'Асеновград'
+WHERE city IN ('гр. Асеновград');
+
+-- Враца
+UPDATE company_adresses SET city = 'Враца'
+WHERE city IN ('гр. Враца');
+
+-- Китен
+UPDATE company_adresses SET city = 'Китен'
+WHERE city IN ('гр. Китен');
+
+-- Кърджали
+UPDATE company_adresses SET city = 'Кърджали'
+WHERE city IN ('гр. Кърджали');
+
+-- Перник
+UPDATE company_adresses SET city = 'Перник'
+WHERE city IN ('гр. Перник');
+
+-- Царево
+UPDATE company_adresses SET city = 'Царево'
+WHERE city IN ('гр. Царево');
+
+-- Ямбол
+UPDATE company_adresses SET city = 'Ямбол'
+WHERE city IN ('гр. Ямбол');
+
+-- Поморие
+UPDATE company_adresses SET city = 'Поморие'
+WHERE city IN ('гр.Поморие');
+
+-- Созопол
+UPDATE company_adresses SET city = 'Созопол'
+WHERE city IN ('гр.Созопол');
+
+-- Слънчев бряг
+UPDATE company_adresses SET city = 'Слънчев бряг'
+WHERE city IN ('к.к.Слънчев бряг', 'Сл. бряг');
+
+-- Синеморец
+UPDATE company_adresses SET city = 'Синеморец'
+WHERE city IN ('Село Синеморец');
+
+-- Калиманци
+UPDATE company_adresses SET city = 'с. Калиманци'
+WHERE city IN ('с.Калиманци');
+
+UPDATE company_adresses
+SET city = 'Кюстендил'
+WHERE city IN ('ул. ЦАР МИХАИЛ', 'ул. ЦАР МИХАИЛ № 1, ет. 2');
+
+-- хотел Меридиан Budva -> Будва (ако сакаш да го зачуваш како град)
+UPDATE company_adresses
+SET city = 'Банско'
+WHERE city = 'хотел Меридиан';
+
+

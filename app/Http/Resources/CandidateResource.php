@@ -62,6 +62,7 @@ class CandidateResource extends JsonResource
             'isSeasonalContract' => $this->isSeasonalContract(),
             'hasMedicalInsurance' => $this->has_medical_insurance,
             'hasArrival' => $this->has_arrival,
+            'company_adresses_id ' => $this->company_adresses_id,
             'createdAt' => $this->created_at?->format('Y-m-d H:i:s'),
             'updatedAt' => $this->updated_at?->format('Y-m-d H:i:s'),
 
