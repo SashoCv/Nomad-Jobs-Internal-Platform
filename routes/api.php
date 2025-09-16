@@ -345,5 +345,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('storeTransportCoverBy/{arrivalId}', [ArrivalPricingController::class, 'storeTransportCoverBy']);
 
 
+    // Cities
+    Route::get('cities', [\App\Http\Controllers\CityController::class, 'index']);
+    Route::post('cities', [\App\Http\Controllers\CityController::class, 'store']);
+    Route::get('cities/{id}', [\App\Http\Controllers\CityController::class, 'show']);
+    Route::post('cities/{id}', [\App\Http\Controllers\CityController::class, 'update']);
+
 });
 

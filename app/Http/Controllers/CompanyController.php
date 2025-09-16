@@ -60,7 +60,7 @@ class CompanyController extends Controller
      */
     private function getCompaniesForAdmin()
     {
-        return Company::with('company_addresses')->get();
+        return Company::with(['company_addresses','company_addresses.city'])->get();
     }
 
     /**
@@ -77,7 +77,7 @@ class CompanyController extends Controller
     private function getCompaniesForOwner($user)
     {
         $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
-        return Company::with('company_addresses')->whereIn('id', $companyIds)->get();
+        return Company::with(['company_addresses','company_addresses.city'])->whereIn('id', $companyIds)->get();
     }
 
 
@@ -127,9 +127,10 @@ class CompanyController extends Controller
             CompanyAdress::create([
                 'company_id' => $company->id,
                 'address' => $address['address'],
-                'city' => $address['city'],
+                'city' => $address['city'], // need delete this field in future
                 'state' => $address['state'],
-                'zip_code' => $address['zip_code']
+                'zip_code' => $address['zip_code'],
+                'city_id' => $address['city_id']
             ]);
         }
     }
@@ -220,13 +221,13 @@ class CompanyController extends Controller
 
         $company = match(true) {
             $this->isStaff()  || $this->checkPermission(Permission::AGENT_COMPANIES_READ) =>
-                Company::with(['industry', 'company_addresses'])->find($id),
+                Company::with(['industry', 'company_addresses.city'])->where('id', $id)->first(),
             $user->role_id === self::ROLE_COMPANY_USER =>
-                Company::with(['industry', 'company_addresses'])
+                Company::with(['industry', 'company_addresses.city'])
                     ->where('id', $user->company_id)
                     ->first(),
             $user->role_id === self::ROLE_OWNER =>
-                Company::with(['industry', 'company_addresses'])
+                Company::with(['industry', 'company_addresses.city'])
                     ->whereIn('id', UserOwner::where('user_id', $user->id)->pluck('company_id'))
                     ->where('id', $id)
                     ->first(),

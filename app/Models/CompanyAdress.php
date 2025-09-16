@@ -19,10 +19,16 @@ class CompanyAdress extends Model
         'city',
         'state',
         'zip_code',
+        'city_id'
     ];
 
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
     }
 }

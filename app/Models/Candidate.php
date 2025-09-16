@@ -23,7 +23,7 @@ class Candidate extends Model
         'workingTime', 'workingDays', 'martialStatus', 'contractPeriod', 'contractType',
         'dossierNumber', 'notes', 'addedBy', 'quartal', 'seasonal', 'contractPeriodDate',
         'contractPeriodNumber', 'startContractDate', 'endContractDate', 'passportPath',
-        'passportName', 'personPicturePath', 'personPictureName'
+        'passportName', 'personPicturePath', 'personPictureName', 'company_adresses_id'
     ];
 
     protected $casts = [
@@ -82,6 +82,11 @@ class Candidate extends Model
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public function companyAddress()
+    {
+        return $this->belongsTo(CompanyAdress::class, 'company_adresses_id');
     }
 
     public function categories()

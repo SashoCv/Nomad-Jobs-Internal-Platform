@@ -680,9 +680,10 @@ class SearchController extends Controller
         $status = $request->input('status_id');
         $contractType = $request->input('contractType');
         $companyId = $request->input('company_id');
+        $cityId = $request->city_id;
         $perPage = $request->input('perPage', 10);
 
-        $companiesQuery = Company::with(['industry', 'candidates','company_addresses']);
+        $companiesQuery = Company::with(['industry', 'candidates','company_addresses', 'company_addresses.city']);
         $user = Auth::user();
 
         if($user->hasRole(Role::COMPANY_USER)){
@@ -697,7 +698,7 @@ class SearchController extends Controller
         }
 
         if ($EIK) {
-            $companiesQuery->where('EIK', $EIK);
+            $companiesQuery->where('EIK', 'like', "$EIK%");
         }
 
         if ($companyId) {
@@ -717,6 +718,12 @@ class SearchController extends Controller
         if ($contractType) {
             $companiesQuery->whereHas('candidates', function ($query) use ($contractType) {
                 $query->where('contractType', $contractType);
+            });
+        }
+
+        if ($cityId) {
+            $companiesQuery->whereHas('company_addresses', function ($query) use ($cityId) {
+                $query->where('city_id', $cityId);
             });
         }
 
@@ -771,6 +778,7 @@ class SearchController extends Controller
             'user',
             'latestStatusHistory',
             'latestStatusHistory.status',
+            'company.company_addresses'
         ]);
 
         $user = Auth::user();
@@ -889,7 +897,13 @@ class SearchController extends Controller
                 })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
+                })->when($request->searchCity, function ($q) use ($request) {
+                    $cityId = (int) $request->searchCity;
+                    $q->whereHas('companyAddress', function ($query) use ($cityId) {
+                        $query->where('city_id', $cityId);
+                    });
                 });
+
 
             // Провери дали има orderBy параметар за азбучно сортирање
             if ($request->orderBy === 'name_asc') {

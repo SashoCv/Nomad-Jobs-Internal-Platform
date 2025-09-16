@@ -17,15 +17,22 @@ class StatisticController extends Controller
         $country = $request->country;
         $contractType = $request->contractType;
         $status = $request->status;
+        $cityId = $request->cityId;
 
         // Base query with necessary relationships
         $query = Candidate::query()
-            ->with(['company:id,nameOfCompany', 'latestStatusHistory.status:id,nameOfStatus', 'agentCandidates.user:id,firstName,lastName'])
+            ->with(['company:id,nameOfCompany','company.company_addresses', 'latestStatusHistory.status:id,nameOfStatus', 'agentCandidates.user:id,firstName,lastName'])
             ->whereBetween('created_at', [$dateFrom, $dateTo]);
 
         // Apply filters
         if ($companyId) {
             $query->where('company_id', $companyId);
+        }
+
+        if ($cityId) {
+            $query->whereHas('companyAddress', function ($query) use ($cityId) {
+                    $query->where('city_id', $cityId);
+                });
         }
 
         if ($agentId) {
