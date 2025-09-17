@@ -124,10 +124,20 @@ class CompanyController extends Controller
         }
 
         foreach ($addresses as $address) {
+            // Handle city field - if it's an array/object, extract name or use city_id
+            $cityValue = null;
+            if (isset($address['city'])) {
+                if (is_array($address['city']) && isset($address['city']['name'])) {
+                    $cityValue = $address['city']['name'];
+                } elseif (is_string($address['city'])) {
+                    $cityValue = $address['city'];
+                }
+            }
+
             CompanyAdress::create([
                 'company_id' => $company->id,
                 'address' => $address['address'],
-                'city' => $address['city'], // need delete this field in future
+                'city' => $cityValue, // need delete this field in future
                 'state' => $address['state'],
                 'zip_code' => $address['zip_code'],
                 'city_id' => $address['city_id']
