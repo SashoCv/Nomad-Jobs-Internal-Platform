@@ -68,7 +68,6 @@ class Company extends Model
         'logoName',
         'stampPath',
         'stampName',
-        'employedByMonths',
         'companyPhone',
         'companyEmail',
     ];
@@ -77,7 +76,6 @@ class Company extends Model
      * The attributes that should be cast.
      */
     protected $casts = [
-        'employedByMonths' => 'array',
         'commissionRate' => 'decimal:2'
     ];
 
