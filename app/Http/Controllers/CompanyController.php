@@ -272,7 +272,11 @@ class CompanyController extends Controller
         }
 
         try {
+            Log::info('Company update started for ID: ' . $id);
+            Log::info('Request data: ', $request->all());
+            
             $company = Company::findOrFail($id);
+            Log::info('Company found: ' . $company->nameOfCompany);
 
             DB::beginTransaction();
 
@@ -283,23 +287,37 @@ class CompanyController extends Controller
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
                 'director_date_of_issue_idCard', 'companyEmail', 'companyPhone'
             ]);
+            
+            Log::info('Update data after only(): ', $updateData);
 
             $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
+            Log::info('Commission rate processed: ' . ($updateData['commissionRate'] ?? 'null'));
 
-
+            Log::info('Before fill - company data: ', $company->toArray());
             $company->fill($updateData);
+            Log::info('After fill - company data: ', $company->toArray());
 
+            Log::info('Before file uploads');
             $this->handleFileUpload($request, $company, 'companyLogo', 'logoPath', 'logoName');
             $this->handleFileUpload($request, $company, 'companyStamp', 'stampPath', 'stampName');
+            Log::info('After file uploads');
 
+            Log::info('Before save - company data: ', $company->toArray());
             $company->save();
+            Log::info('Company saved successfully');
 
-            $companyAddresses = json_decode($request->company_addresses, true);
-            if ($companyAddresses) {
-                $this->handleCompanyAddresses($company, $companyAddresses, true);
+            if ($request->company_addresses) {
+                Log::info('Processing company addresses: ' . $request->company_addresses);
+                $companyAddresses = json_decode($request->company_addresses, true);
+                if ($companyAddresses) {
+                    Log::info('Company addresses decoded: ', $companyAddresses);
+                    $this->handleCompanyAddresses($company, $companyAddresses, true);
+                    Log::info('Company addresses processed');
+                }
             }
 
             DB::commit();
+            Log::info('Company update completed successfully');
 
             return response()->json([
                 'success' => true,
@@ -309,6 +327,9 @@ class CompanyController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating company: ' . $e->getMessage());
+            Log::error('Exception file: ' . $e->getFile());
+            Log::error('Exception line: ' . $e->getLine());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return response()->json([
                 'success' => false,
