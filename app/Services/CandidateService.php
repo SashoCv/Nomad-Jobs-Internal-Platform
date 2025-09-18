@@ -53,7 +53,7 @@ class CandidateService
             ];
 
             $candidate->statusHistories()->create($statusHistory);
-            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidate->id, Carbon::now()->toDateString()));
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidate->id, Carbon::now()->toDateString(), true));
 
             // Handle file uploads
             $this->handleFileUploads($candidate, $data);

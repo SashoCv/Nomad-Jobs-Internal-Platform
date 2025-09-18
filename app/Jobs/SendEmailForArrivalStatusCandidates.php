@@ -22,12 +22,14 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
     protected $statusId;
     protected $candidateId;
     protected $statusDate;
+    protected $sendEmail;
 
-    public function __construct($statusId, $candidateId, $statusDate)
+    public function __construct($statusId, $candidateId, $statusDate, $sendEmail)
     {
         $this->statusId = $statusId;
         $this->candidateId = $candidateId;
         $this->statusDate = $statusDate;
+        $this->sendEmail = $sendEmail;
         $this->onQueue('mail');
     }
 
@@ -123,10 +125,13 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 return;
             }
 
-            Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $company) {
-                $message->to($company->companyEmail)
-                ->subject('Notification for ' . $data['candidateName']);
-            });
+            if($this->sendEmail){
+                Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $company) {
+                    $message->to($company->companyEmail)
+                        ->subject('Notification for ' . $data['candidateName']);
+                });
+            }
+
 
             if($this->statusId == 18){
                 $dataArrival = [
@@ -142,7 +147,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 ];
 
                 Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data) {
-                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg'])
+                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
                         ->subject('Notification for Arrival ' . $data['candidateName']);
                 });
 
