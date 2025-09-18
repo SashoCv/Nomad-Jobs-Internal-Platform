@@ -97,10 +97,7 @@ class ArrivalController extends Controller
                 ]
             );
 
-            if($sendEmail){
-                dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate));
-                Log::info('send arrival information email for candidate ID: ' . $candidateId);
-            }
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, $sendEmail));
 
             DB::commit();
 
@@ -167,7 +164,7 @@ class ArrivalController extends Controller
                 ]
             );
 
-            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate));
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, false));
 
             DB::commit();
 

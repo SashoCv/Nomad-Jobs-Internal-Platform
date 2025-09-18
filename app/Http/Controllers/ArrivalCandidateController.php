@@ -45,8 +45,8 @@ class ArrivalCandidateController extends Controller
                 ->join('statushistories as latest_sh', function ($join) {
                     $join->on('candidates.id', '=', 'latest_sh.candidate_id')
                          ->whereRaw('latest_sh.created_at = (
-                             SELECT MAX(created_at) 
-                             FROM statushistories 
+                             SELECT MAX(created_at)
+                             FROM statushistories
                              WHERE candidate_id = candidates.id
                          )');
                 })
@@ -115,7 +115,7 @@ class ArrivalCandidateController extends Controller
                     if ($nextStatus) {
                         $nextStatusId = $nextStatus->id;
                         $availableStatuses = [$nextStatusId, 11, 12, 13, 14];
-                        
+
                         if ($nextStatusId === 18) {
                             $addArrival = true;
                         }
@@ -336,10 +336,7 @@ class ArrivalCandidateController extends Controller
                 Log::info('Notification created for status update: ' . json_encode($notificationData));
                 UsersNotificationRepository::createNotificationForUsers($notification);
 
-                if($sendEmail){
-                    dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate));
-                    Log::info('Email job dispatched for status update: ' . $request->status_id . ' for candidate ID: ' . $id);
-                }
+                dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate, $sendEmail));
             }
 
             return response()->json([
