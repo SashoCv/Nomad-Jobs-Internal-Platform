@@ -164,7 +164,7 @@ class ArrivalController extends Controller
                 ]
             );
 
-            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, true));
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, false));
 
             DB::commit();
 
