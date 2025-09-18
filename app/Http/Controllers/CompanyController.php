@@ -181,6 +181,12 @@ class CompanyController extends Controller
 
             $companyData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
 
+            if ($request->employedByMonths && $request->employedByMonths !== 'null') {
+                $companyData['employedByMonths'] = json_decode($request->employedByMonths, true);
+            } else {
+                $companyData['employedByMonths'] = null;
+            }
+
 
             $company = Company::create($companyData);
 
@@ -301,6 +307,13 @@ class CompanyController extends Controller
             Log::info('Update data after only(): ', $updateData);
 
             $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
+
+             if ($request->employedByMonths && $request->employedByMonths !== 'null') {
+                $updateData['employedByMonths'] = json_decode($request->employedByMonths, true);
+            } else {
+                $updateData['employedByMonths'] = null;
+            }
+            
             Log::info('Commission rate processed: ' . ($updateData['commissionRate'] ?? 'null'));
 
             Log::info('Before fill - company data: ', $company->toArray());
