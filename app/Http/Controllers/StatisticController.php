@@ -22,6 +22,7 @@ class StatisticController extends Controller
         // Base query with necessary relationships
         $query = Candidate::query()
             ->with(['company:id,nameOfCompany','company.company_addresses', 'latestStatusHistory.status:id,nameOfStatus', 'agentCandidates.user:id,firstName,lastName'])
+            ->whereHas('latestStatusHistory.status')
             ->whereBetween('created_at', [$dateFrom, $dateTo]);
 
         // Apply filters
