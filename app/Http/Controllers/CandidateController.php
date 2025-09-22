@@ -637,16 +637,25 @@ class CandidateController extends Controller
             }
 
             $filters = [
-                'status_id' => $request->status_id ?? null,
-                'company_id' => $request->company_id ?? null,
+                'status_id' => $request->searchStatus ?? null,
+                'company_id' => $request->searchCompany ?? null,
                 'searchDate' => $request->searchDate ?? null,
                 'searchAgent' => $request->searchAgent ?? null,
+                'searchContractType' => $request->searchContractType ?? null,
+                'searchQuartal' => $request->searchQuartal ?? null,
+                'searchSeasonal' => $request->searchSeasonal ?? null,
+                'searchCaseId' => $request->searchCaseId ?? null,
+                'searchAddedBy' => $request->searchAddedBy ?? null,
+                'nationality' => $request->nationality ?? null,
+                'searchCity' => $request->searchCity ?? null,
+                'searchName' => $request->searchName ?? null,
             ];
 
             $user = Auth::user();
 
             if ($this->isStaff()) {
                 $candidates = Candidate::with(['company', 'latestStatusHistory','latestStatusHistory.status', 'position']);
+
                 if ($filters['status_id']) {
                     $candidates->whereHas('statusHistories', function ($query) use ($filters) {
                         $query->where('status_id', $filters['status_id']);
@@ -666,6 +675,27 @@ class CandidateController extends Controller
                 if ($filters['searchAgent']) {
                     $candidates->where('addedBy', $filters['searchAgent']);
                 }
+
+                if ($filters['searchContractType']) {
+                    $candidates->where('contractType', $filters['searchContractType']);
+                }
+
+                if ($filters['searchQuartal']) {
+                    $candidates->where('quartal', $filters['searchQuartal']);
+                }
+
+                if ($filters['searchSeasonal']) {
+                    $candidates->where('seasonal', $filters['searchSeasonal']);
+                }
+
+                if ($filters['searchCaseId']) {
+                    $candidates->where('case_id', $filters['searchCaseId']);
+                }
+
+                if ($filters['searchAddedBy']) {
+                    $candidates->where('addedBy', $filters['searchAddedBy']);
+                }
+
             } else if ($user->hasRole(Role::COMPANY_USER)) {
                 $candidates = Candidate::with(['company', 'statusHistories', 'position'])
                     ->where('company_id', $user->company_id);
