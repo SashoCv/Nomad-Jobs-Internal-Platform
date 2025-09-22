@@ -146,10 +146,10 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                     'phone_number' => $data['candidatePhone'],
                 ];
 
-                Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data) {
-                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
-                        ->subject('Notification for Arrival ' . $data['candidateName']);
-                });
+//                Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data) {
+//                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
+//                        ->subject('Notification for Arrival ' . $data['candidateName']);
+//                });
 
             }
 
@@ -165,10 +165,10 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                     'description' => 'Status changed to ' . $statusName . ' on ' . $this->statusDate,
                 ];
 
-                Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data) {
-                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg'])
-                        ->subject('Notification for Arrival ' . $data['candidateName']);
-                });
+//                Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data) {
+//                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg'])
+//                        ->subject('Notification for Arrival ' . $data['candidateName']);
+//                });
             }
 
             // Log success

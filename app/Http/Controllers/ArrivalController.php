@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\SendEmailForArrivalCandidates;
 use App\Jobs\SendEmailForArrivalStatusCandidates;
+use App\Models\Status;
 use App\Services\InvoiceService;
 use App\Traits\HasRolePermissions;
 use App\Jobs\SendEmailToCompany;
@@ -76,14 +77,34 @@ class ArrivalController extends Controller
             $statusId = 18;
             $sendEmail = $request->sendEmail ?? false;
 
-            Statushistory::create([
-                'candidate_id' => $candidateId,
-                'status_id'    => $statusId,
-                'statusDate'   => $arrivalDate,
-                'description'  => 'Arrival Expected',
-            ]);
+            if (!in_array($statusId, [12, 13, 14, 19])) {
+                $allStatuses = Status::where('order', '<=', Status::find($statusId)->order)
+                    ->pluck('id')
+                    ->toArray();
+            } else {
+                $allStatuses = [$statusId];
+            }
 
-            InvoiceService::saveInvoiceOnStatusChange($candidateId, $statusId, $arrivalDate);
+
+            foreach ($allStatuses as $status) {
+                $existingStatus = Statushistory::where('candidate_id', $candidateId)
+                    ->where('status_id', $status)
+                    ->first();
+
+                if (!$existingStatus) {
+                    Statushistory::create([
+                        'candidate_id' => $candidateId,
+                        'status_id'    => $status,
+                        'statusDate'   => $arrivalDate,
+                        'description'  => 'Arrival Expected',
+                    ]);
+
+                    InvoiceService::saveInvoiceOnStatusChange($candidateId, $status, $arrivalDate);
+                }
+            }
+
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, $sendEmail));
+
 
             // Ensure category exists
             Category::firstOrCreate(
@@ -97,7 +118,6 @@ class ArrivalController extends Controller
                 ]
             );
 
-            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, $sendEmail));
 
             DB::commit();
 
