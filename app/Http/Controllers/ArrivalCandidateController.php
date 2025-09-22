@@ -11,6 +11,7 @@ use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\CompanyCategory;
 use App\Models\File;
+use App\Models\Status;
 use App\Models\Statushistory;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
@@ -313,35 +314,56 @@ class ArrivalCandidateController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $statusHistory = new Statushistory();
-            $statusHistory->candidate_id = $id;
-            $statusHistory->status_id = $request->status_id;
-            $statusHistory->statusDate = Carbon::createFromFormat('m-d-Y', $request->statusDate)->format('Y-m-d');
-            $statusHistory->description = $request->description;
-
+            // Check if the requested status already exists for this candidate
+            $status_id = $request->status_id;
             $sendEmail = $request->sendEmail ?? false;
-            Log::info('sendEmail in nachelo', ['sendEmail' => $sendEmail]);
-            if ($statusHistory->save()) {
+            $description = $request->description ?? null;
+            $statusDate = $request->statusDate ?? Carbon::now()->format('m-d-Y');
+            $candidate_id = $id;
 
-                // Call the InvoiceService to handle invoice creation
-                InvoiceService::saveInvoiceOnStatusChange($id, $request->status_id, $request->statusDate);
 
-                $notificationData = [
-                    'message' => 'Status updated for candidate: ' . $statusHistory->candidate->fullName,
-                    'type' => 'status_update',
-                ];
+            $existingRequestedStatus = Statushistory::where('candidate_id', $id)
+                ->where('status_id', $status_id)
+                ->first();
 
-                $notification = NotificationRepository::createNotification($notificationData);
-
-                Log::info('Notification created for status update: ' . json_encode($notificationData));
-                UsersNotificationRepository::createNotificationForUsers($notification);
-
-                dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $id, $request->statusDate, $sendEmail));
+            if ($existingRequestedStatus) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 422,
+                    'message' => 'This status already exists for the candidate.',
+                ], 422);
             }
+
+            if (!in_array($status_id, [12, 13, 14, 19])) {
+                $allStatuses = Status::where('order', '<=', Status::find($status_id)->order)
+                    ->pluck('id')
+                    ->toArray();
+            } else {
+                $allStatuses = [$status_id];
+            }
+
+            foreach ($allStatuses as $status) {
+                $existingStatus = Statushistory::where('candidate_id', $candidate_id)
+                    ->where('status_id', $status)
+                    ->first();
+
+                if (!$existingStatus) {
+                    $newStatus = new Statushistory();
+                    $newStatus->candidate_id = $candidate_id;
+                    $newStatus->status_id = $status;
+                    $newStatus->statusDate = Carbon::createFromFormat('m-d-Y', $statusDate)->format('Y-m-d');
+                    $newStatus->description = $description;
+                    $newStatus->save();
+
+                    InvoiceService::saveInvoiceOnStatusChange($candidate_id, $status, $statusDate);
+
+                }
+            }
+            dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate, $sendEmail));
+
 
             return response()->json([
                 'message' => 'Arrival Candidate updated successfully',
-                'arrivalCandidate' => $statusHistory,
             ]);
         } catch (\Exception $e) {
             Log::info('Error updating arrival candidate: ' . $e->getMessage());

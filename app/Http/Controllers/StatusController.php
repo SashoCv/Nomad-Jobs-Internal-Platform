@@ -110,26 +110,53 @@ class StatusController extends Controller
             $statusDate = $request->statusDate ?? Carbon::now()->format('Y-m-d');
             $sendEmail = $request->sendEmail ?? false;
 
-            $statusHistory = new Statushistory();
-            $statusHistory->candidate_id = $candidate_id;
-            $statusHistory->status_id = $status_id;
-            $statusHistory->statusDate = Carbon::createFromFormat('m-d-Y', $statusDate)->format('Y-m-d');
-            $statusHistory->description = $description;
+            // Check if the requested status already exists for this candidate
+            $existingRequestedStatus = Statushistory::where('candidate_id', $candidate_id)
+                ->where('status_id', $status_id)
+                ->first();
 
-            if ($statusHistory->save()) {
+            if ($existingRequestedStatus) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 422,
+                    'message' => 'This status already exists for the candidate.',
+                ], 422);
+            }
 
-                InvoiceService::saveInvoiceOnStatusChange($candidate_id, $status_id, $statusDate);
+            // Take all statuses before the current status
+            if (!in_array($status_id, [12, 13, 14, 19])) {
+                $allStatuses = Status::where('order', '<=', Status::find($status_id)->order)
+                    ->pluck('id')
+                    ->toArray();
+            } else {
+                $allStatuses = [$status_id];
+            }
 
+            foreach ($allStatuses as $status) {
+                $existingStatus = Statushistory::where('candidate_id', $candidate_id)
+                    ->where('status_id', $status)
+                    ->first();
 
+                if (!$existingStatus) {
+                    $newStatus = new Statushistory();
+                    $newStatus->candidate_id = $candidate_id;
+                    $newStatus->status_id = $status;
+                    $newStatus->statusDate = Carbon::createFromFormat('m-d-Y', $statusDate)->format('Y-m-d');
+                    $newStatus->description = $description;
+                    $newStatus->save();
+
+                    InvoiceService::saveInvoiceOnStatusChange($candidate_id, $status, $statusDate);
+
+                }
+            }
                 dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate, $sendEmail));
 
 
                 return response()->json([
                     'success' => true,
                     'status' => 200,
-                    'data' => $statusHistory,
+                    'data' => 'Candidate status updated successfully',
                 ]);
-            }
         }
     }
     /**
