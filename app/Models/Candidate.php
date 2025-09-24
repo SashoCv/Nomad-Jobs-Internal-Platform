@@ -73,7 +73,7 @@ class Candidate extends Model
     {
         return $this->hasMany(Statushistory::class)
             ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
-            ->orderBy('statuses.order');
+            ->orderBy('statuses.order', 'desc');
     }
 
     public function latestStatusHistory()
