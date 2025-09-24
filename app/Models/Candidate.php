@@ -71,7 +71,9 @@ class Candidate extends Model
 
     public function statusHistories()
     {
-        return $this->hasMany(Statushistory::class)->orderBy('created_at', 'desc');
+        return $this->hasMany(Statushistory::class)
+            ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
+            ->orderBy('statuses.order');
     }
 
     public function latestStatusHistory()
