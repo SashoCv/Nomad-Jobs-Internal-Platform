@@ -80,7 +80,7 @@ class ArrivalController extends Controller
             $statusId = self::ARRIVAL_EXPECTED_STATUS_ID;
             $sendEmail = $request->sendEmail ?? false;
 
-            if (!in_array($statusId, [12, 13, 14, 19])) {
+            if (!in_array($statusId, [11, 12, 13, 14, 19])) {
                 $allStatuses = Status::where('order', '<=', Status::find($statusId)->order)
                     ->pluck('id')
                     ->toArray();
