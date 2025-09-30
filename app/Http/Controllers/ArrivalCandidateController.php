@@ -110,6 +110,10 @@ class ArrivalCandidateController extends Controller
                 $addArrival = false;
 
                 if ($currentStatusId) {
+                    if ($currentStatusId === 18) {
+                        $addArrival = true;
+                    }
+
                     $nextStatusOrder = $currentStatusOrder + 1;
                     $nextStatus = $statusesByOrder->get($nextStatusOrder);
 
