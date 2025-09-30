@@ -183,35 +183,47 @@ class FixStatusHistoryDatesCommand extends Command
         // Sort statuses by order to check chronological sequence
         $sortedStatuses = $existingHistories->sortBy('order')->values();
         
-        for ($i = 1; $i < $sortedStatuses->count(); $i++) {
-            $prevStatus = $sortedStatuses[$i - 1];
-            $currentStatus = $sortedStatuses[$i];
+        // Multiple passes to ensure all dates are fixed
+        $maxPasses = 5;
+        for ($pass = 0; $pass < $maxPasses; $pass++) {
+            $changesInThisPass = false;
             
-            $prevDate = Carbon::parse($prevStatus->statusDate);
-            $currentDate = Carbon::parse($currentStatus->statusDate);
-            
-            // If current status (higher order) has earlier date than previous status (lower order)
-            // then fix the PREVIOUS status by giving it the earlier date from current status
-            if ($currentDate->lessThan($prevDate)) {
-                $targetDate = $currentDate->format('Y-m-d');
+            for ($i = 1; $i < $sortedStatuses->count(); $i++) {
+                $prevStatus = $sortedStatuses[$i - 1];
+                $currentStatus = $sortedStatuses[$i];
                 
-                $updates[] = [
-                    'action' => 'date_order_fix',
-                    'id' => $prevStatus->id,
-                    'status_name' => $prevStatus->nameOfStatus,
-                    'old_date' => $prevStatus->statusDate,
-                    'new_date' => $targetDate,
-                    'reason' => "Order {$prevStatus->order} had later date than order {$currentStatus->order}"
-                ];
+                $prevDate = Carbon::parse($prevStatus->statusDate);
+                $currentDate = Carbon::parse($currentStatus->statusDate);
+                
+                // If current status (higher order) has earlier date than previous status (lower order)
+                // then fix the PREVIOUS status by giving it the earlier date from current status
+                if ($currentDate->lessThan($prevDate)) {
+                    $targetDate = $currentDate->format('Y-m-d');
+                    
+                    $updates[] = [
+                        'action' => 'date_order_fix',
+                        'id' => $prevStatus->id,
+                        'status_name' => $prevStatus->nameOfStatus,
+                        'old_date' => $prevStatus->statusDate,
+                        'new_date' => $targetDate,
+                        'reason' => "Order {$prevStatus->order} had later date than order {$currentStatus->order}"
+                    ];
 
-                if (!$dryRun) {
-                    Statushistory::where('id', $prevStatus->id)
-                        ->update(['statusDate' => $targetDate]);
+                    if (!$dryRun) {
+                        Statushistory::where('id', $prevStatus->id)
+                            ->update(['statusDate' => $targetDate]);
+                    }
                     
                     // Update the collection for subsequent checks
                     $prevStatus->statusDate = $targetDate;
+                    $updated = true;
+                    $changesInThisPass = true;
                 }
-                $updated = true;
+            }
+            
+            // If no changes in this pass, we're done
+            if (!$changesInThisPass) {
+                break;
             }
         }
         
