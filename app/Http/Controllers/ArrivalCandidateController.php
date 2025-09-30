@@ -65,6 +65,7 @@ class ArrivalCandidateController extends Controller
                     'latest_sh.statusDate as latest_status_date',
                     'statuses.nameOfStatus as latest_status_name',
                     'statuses.order as latest_status_order',
+                    'arrivals.id as arrival_id',
                     'arrivals.arrival_date',
                     'arrivals.arrival_time',
                     'arrivals.arrival_flight',
@@ -144,6 +145,7 @@ class ArrivalCandidateController extends Controller
                 $arrivalInfo = null;
                 if ($currentStatusId == 18 && $candidate->arrival_date) {
                     $arrivalInfo = [
+                        'id' => $candidate->arrival_id,
                         'arrival_date' => $candidate->arrival_date,
                         'arrival_time' => $candidate->arrival_time,
                         'arrival_flight' => $candidate->arrival_flight,
