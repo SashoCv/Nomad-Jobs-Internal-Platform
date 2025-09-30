@@ -160,21 +160,6 @@ class ArrivalController extends Controller
                 'phone_number'     => $request->phone_number,
             ]);
 
-            // Status ID for "Arrival Expected"
-            $statusId = self::ARRIVAL_EXPECTED_STATUS_ID;
-
-            // Create or update status history
-            Statushistory::updateOrCreate(
-                [
-                    'candidate_id' => $candidateId,
-                    'status_id'    => $statusId,
-                    'statusDate'   => $arrivalDate,
-                ],
-                [
-                    'description' => 'Arrival Expected',
-                ]
-            );
-
             // Ensure category exists
             Category::updateOrCreate(
                 [
