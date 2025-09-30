@@ -45,18 +45,13 @@ class ArrivalCandidateController extends Controller
 
             // Build optimized query with proper joins and eager loading
             $query = Candidate::with(['company'])
-                ->join('latestStatusHistory as latest_sh', function ($join) {
+                ->leftJoin('statushistories as latest_sh', function ($join) {
                     $join->on('candidates.id', '=', 'latest_sh.candidate_id')
-                         ->whereRaw('latest_sh.created_at = (
-                             SELECT MAX(created_at)
-                             FROM statushistories
-                             WHERE candidate_id = candidates.id
-                         )');
+                         ->whereRaw('latest_sh.id = (SELECT MAX(id) FROM statushistories WHERE candidate_id = candidates.id)');
                 })
-                ->join('statuses', 'latest_sh.status_id', '=', 'statuses.id')
+                ->leftJoin('statuses', 'latest_sh.status_id', '=', 'statuses.id')
                 ->leftJoin('arrivals', function ($join) {
-                    $join->on('candidates.id', '=', 'arrivals.candidate_id')
-                         ->where('latest_sh.status_id', '=', 18);
+                    $join->on('candidates.id', '=', 'arrivals.candidate_id');
                 })
                 ->where('statuses.showOnHomePage', 1)
                 ->select([
