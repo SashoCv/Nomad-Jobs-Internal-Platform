@@ -654,16 +654,14 @@ class CandidateController extends Controller
             $user = Auth::user();
 
             if ($this->isStaff()) {
-                $candidates = Candidate::with(['company', 'latestStatusHistory','latestStatusHistory.status', 'position']);
+                $candidates = Candidate::with(['company', 'status', 'position']);
 
                 if ($filters['status_id']) {
-                    $candidates->whereHas('latestStatusHistory', function ($query) use ($filters) {
-                        $query->where('status_id', $filters['status_id']);
-                    });
+                    $candidates->where('status_id', $filters['status_id']);
                 }
 
                 if ($filters['searchDate']){
-                    $candidates->whereHas('latestStatusHistory', function ($query) use ($filters) {
+                    $candidates->whereHas('statusHistories', function ($query) use ($filters) {
                         $query->whereDate('statusDate', $filters['searchDate']);
                 });
                 }
@@ -697,13 +695,11 @@ class CandidateController extends Controller
                 }
 
             } else if ($user->hasRole(Role::COMPANY_USER)) {
-                $candidates = Candidate::with(['company', 'latestStatusHistory', 'latestStatusHistory.status', 'position'])
+                $candidates = Candidate::with(['company', 'status', 'position'])
                     ->where('company_id', $user->company_id);
 
                 if ($filters['status_id']) {
-                    $candidates->whereHas('latestStatusHistory', function ($query) use ($filters) {
-                        $query->where('status_id', $filters['status_id']);
-                    });
+                    $candidates->where('status_id', $filters['status_id']);
                 }
             } else {
                 return response()->json([

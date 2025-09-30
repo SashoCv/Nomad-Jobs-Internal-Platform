@@ -149,14 +149,22 @@ class StatusController extends Controller
 
                 }
             }
-                dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate, $sendEmail));
+
+            // Update the candidate's current status (simple and correct!)
+            $candidate = Candidate::find($candidate_id);
+            if ($candidate) {
+                $candidate->status_id = $status_id;
+                $candidate->save();
+            }
+
+            dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate, $sendEmail));
 
 
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => 'Candidate status updated successfully',
-                ]);
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => 'Candidate status updated successfully',
+            ]);
         }
     }
     /**

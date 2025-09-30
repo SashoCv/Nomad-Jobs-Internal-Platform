@@ -106,6 +106,13 @@ class ArrivalController extends Controller
                 }
             }
 
+            // Update the candidate's current status (CRITICAL FIX!)
+            $candidate = Candidate::find($candidateId);
+            if ($candidate) {
+                $candidate->status_id = $statusId;
+                $candidate->save();
+            }
+
             dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, $sendEmail));
 
 
