@@ -103,12 +103,18 @@ class StatushistoryController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Statushistory  $statushistory
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $statusHistory = Statushistory::findOrFail($id);
+        $candidateId = $request->input('candidate_id');
+
+        // Find the status history and verify it belongs to the specified candidate
+        $statusHistory = Statushistory::where('id', $id)
+            ->where('candidate_id', $candidateId)
+            ->firstOrFail();
 
         if ($statusHistory->delete()) {
             return response()->json([
