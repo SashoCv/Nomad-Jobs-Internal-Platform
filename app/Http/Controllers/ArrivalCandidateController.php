@@ -66,8 +66,11 @@ class ArrivalCandidateController extends Controller
                     'statuses.nameOfStatus as latest_status_name',
                     'statuses.order as latest_status_order',
                     'arrivals.arrival_date',
+                    'arrivals.arrival_time',
                     'arrivals.arrival_flight',
-                    'arrivals.arrival_location'
+                    'arrivals.arrival_location',
+                    'arrivals.where_to_stay',
+                    'arrivals.phone_number as arrival_phone_number'
                 ]);
 
             // Apply status filter
@@ -142,8 +145,11 @@ class ArrivalCandidateController extends Controller
                 if ($currentStatusId == 18 && $candidate->arrival_date) {
                     $arrivalInfo = [
                         'arrival_date' => $candidate->arrival_date,
+                        'arrival_time' => $candidate->arrival_time,
                         'arrival_flight' => $candidate->arrival_flight,
                         'arrival_location' => $candidate->arrival_location,
+                        'where_to_stay' => $candidate->where_to_stay,
+                        'phone_number' => $candidate->arrival_phone_number,
                     ];
                 }
 
