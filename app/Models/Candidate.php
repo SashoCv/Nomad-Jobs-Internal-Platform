@@ -73,16 +73,18 @@ class Candidate extends Model
     {
         return $this->hasMany(Statushistory::class)
             ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
-            ->orderBy('statuses.order', 'desc');
+            ->select('statushistories.*', 'statuses.order')
+            ->orderBy('statuses.order', 'desc')
+            ->orderBy('statushistories.created_at', 'desc');
     }
 
     public function latestStatusHistory()
     {
         return $this->hasOne(Statushistory::class)
             ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
-            ->orderBy('statushistories.statusDate', 'desc')
+            ->select('statushistories.*', 'statuses.order')
             ->orderBy('statuses.order', 'desc')
-            ->orderBy('statushistories.id', 'desc');
+            ->orderBy('statushistories.created_at', 'desc');
     }
 
     public function company()

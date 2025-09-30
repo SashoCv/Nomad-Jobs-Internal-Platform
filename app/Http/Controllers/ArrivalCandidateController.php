@@ -44,10 +44,18 @@ class ArrivalCandidateController extends Controller
             $statusesByOrder = $allStatuses->keyBy('order');
 
             // Build optimized query with proper joins and eager loading
+            // Use status.order as primary sort (business logic), then created_at as tiebreaker
             $query = Candidate::with(['company'])
                 ->leftJoin('statushistories as latest_sh', function ($join) {
                     $join->on('candidates.id', '=', 'latest_sh.candidate_id')
-                         ->whereRaw('latest_sh.id = (SELECT MAX(id) FROM statushistories WHERE candidate_id = candidates.id)');
+                         ->whereRaw('latest_sh.id = (
+                             SELECT sh.id
+                             FROM statushistories sh
+                             JOIN statuses st ON sh.status_id = st.id
+                             WHERE sh.candidate_id = candidates.id
+                             ORDER BY st.order DESC, sh.created_at DESC
+                             LIMIT 1
+                         )');
                 })
                 ->leftJoin('statuses', 'latest_sh.status_id', '=', 'statuses.id')
                 ->leftJoin('arrivals', function ($join) {
