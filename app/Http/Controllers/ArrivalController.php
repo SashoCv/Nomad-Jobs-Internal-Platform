@@ -163,6 +163,9 @@ class ArrivalController extends Controller
             // Status ID for "Arrival Expected" (needed for email dispatch)
             $statusId = self::ARRIVAL_EXPECTED_STATUS_ID;
 
+            // Get sendEmail flag from request (default to false if not provided)
+            $sendEmail = $request->sendEmail ?? false;
+
             // Note: We don't update status history when editing arrival info
             // This preserves the original status date when the status was first set
 
@@ -178,7 +181,8 @@ class ArrivalController extends Controller
                 ]
             );
 
-            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, false));
+            // Only send email if checkbox was checked
+            dispatch(new SendEmailForArrivalStatusCandidates($statusId, $candidateId, $arrivalDate, $sendEmail));
 
             DB::commit();
 
