@@ -160,6 +160,12 @@ class ArrivalController extends Controller
                 'phone_number'     => $request->phone_number,
             ]);
 
+            // Status ID for "Arrival Expected" (needed for email dispatch)
+            $statusId = self::ARRIVAL_EXPECTED_STATUS_ID;
+
+            // Note: We don't update status history when editing arrival info
+            // This preserves the original status date when the status was first set
+
             // Ensure category exists
             Category::updateOrCreate(
                 [
