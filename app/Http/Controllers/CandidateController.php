@@ -657,7 +657,7 @@ class CandidateController extends Controller
                 $candidates = Candidate::with(['company', 'latestStatusHistory','latestStatusHistory.status', 'position']);
 
                 if ($filters['status_id']) {
-                    $candidates->whereHas('statusHistories', function ($query) use ($filters) {
+                    $candidates->whereHas('latestStatusHistory', function ($query) use ($filters) {
                         $query->where('status_id', $filters['status_id']);
                     });
                 }
@@ -697,11 +697,11 @@ class CandidateController extends Controller
                 }
 
             } else if ($user->hasRole(Role::COMPANY_USER)) {
-                $candidates = Candidate::with(['company', 'statusHistories', 'position'])
+                $candidates = Candidate::with(['company', 'latestStatusHistory', 'latestStatusHistory.status', 'position'])
                     ->where('company_id', $user->company_id);
 
                 if ($filters['status_id']) {
-                    $candidates->whereHas('statusHistories', function ($query) use ($filters) {
+                    $candidates->whereHas('latestStatusHistory', function ($query) use ($filters) {
                         $query->where('status_id', $filters['status_id']);
                     });
                 }

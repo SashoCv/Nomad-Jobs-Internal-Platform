@@ -47,7 +47,12 @@ class ArrivalCandidateController extends Controller
             $query = Candidate::with(['company'])
                 ->leftJoin('statushistories as latest_sh', function ($join) {
                     $join->on('candidates.id', '=', 'latest_sh.candidate_id')
-                         ->whereRaw('latest_sh.id = (SELECT MAX(id) FROM statushistories WHERE candidate_id = candidates.id)');
+                         ->whereRaw('latest_sh.id = (
+                             SELECT id FROM statushistories
+                             WHERE candidate_id = candidates.id
+                             ORDER BY statusDate DESC, created_at DESC, id DESC
+                             LIMIT 1
+                         )');
                 })
                 ->leftJoin('statuses', 'latest_sh.status_id', '=', 'statuses.id')
                 ->leftJoin('arrivals', function ($join) {
