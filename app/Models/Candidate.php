@@ -80,7 +80,9 @@ class Candidate extends Model
     {
         return $this->hasOne(Statushistory::class)
             ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
-            ->orderBy('statuses.order', 'desc');
+            ->orderBy('statushistories.statusDate', 'desc')
+            ->orderBy('statuses.order', 'desc')
+            ->orderBy('statushistories.id', 'desc');
     }
 
     public function company()
