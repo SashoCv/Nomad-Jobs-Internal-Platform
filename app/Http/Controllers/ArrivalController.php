@@ -141,21 +141,28 @@ class ArrivalController extends Controller
         try {
             DB::beginTransaction();
 
-            $arrival = Arrival::findOrFail($id);
-            $candidateId = $arrival->candidate_id;
+            $arrival = Arrival::find($id);
+
+            if (!$arrival) {
+                // Create new arrival if it doesn't exist
+                $arrival = new Arrival();
+                $candidateId = $request->candidate_id; // Need candidate_id from request for new arrival
+            } else {
+                $candidateId = $arrival->candidate_id;
+            }
 
             $arrivalDate = Carbon::createFromFormat('m-d-Y', $request->arrival_date)->format('Y-m-d');
 
-            // Update Arrival fields
-            $arrival->update([
-                'company_id'       => $request->company_id,
-                'arrival_date'     => $arrivalDate,
-                'arrival_time'     => $request->arrival_time,
-                'arrival_location' => $request->arrival_location,
-                'arrival_flight'   => $request->arrival_flight,
-                'where_to_stay'    => $request->where_to_stay,
-                'phone_number'     => $request->phone_number,
-            ]);
+            // Update or create Arrival fields
+            $arrival->candidate_id = $candidateId;
+            $arrival->company_id = $request->company_id;
+            $arrival->arrival_date = $arrivalDate;
+            $arrival->arrival_time = $request->arrival_time;
+            $arrival->arrival_location = $request->arrival_location;
+            $arrival->arrival_flight = $request->arrival_flight;
+            $arrival->where_to_stay = $request->where_to_stay;
+            $arrival->phone_number = $request->phone_number;
+            $arrival->save();
 
             // Status ID for "Arrival Expected"
             $statusId = 18;
