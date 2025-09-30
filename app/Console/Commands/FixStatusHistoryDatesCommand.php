@@ -70,14 +70,14 @@ class FixStatusHistoryDatesCommand extends Command
             return ['processed' => false, 'updated' => false];
         }
 
-        // Check if candidate has any rejection/termination statuses - if so, skip processing
-        if ($this->hasRejectionStatus($existingHistories)) {
-            $this->line("  🚫 Candidate has rejection/termination status - skipping");
-            return ['processed' => true, 'updated' => false];
-        }
-
         // First, fix any date ordering issues in existing statuses
         $dateOrderingFixed = $this->fixDateOrdering($existingHistories, $dryRun);
+
+        // Check if candidate has any rejection/termination statuses
+        if ($this->hasRejectionStatus($existingHistories)) {
+            $this->line("  🚫 Candidate has rejection/termination status - only fixed date ordering, skipping new status creation");
+            return ['processed' => true, 'updated' => $dateOrderingFixed];
+        }
 
         // Find anchor statuses using a smarter approach
         $anchorStatuses = $this->findSmartAnchors($existingHistories);
