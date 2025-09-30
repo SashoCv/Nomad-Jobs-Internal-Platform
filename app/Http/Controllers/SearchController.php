@@ -854,9 +854,11 @@ class SearchController extends Controller
                     $q->where('company_id', '=', $request->searchCompany);
                 })
                 ->when($request->searchStatus, function ($q) use ($request) {
-                    $q->whereHas('latestStatusHistory', function ($query) use ($request) {
-                        $query->where('status_id', $request->searchStatus);
-                    });
+                    $q->leftJoin('statushistories as latest_sh', function ($join) {
+                        $join->on('candidates.id', '=', 'latest_sh.candidate_id')
+                            ->whereRaw('latest_sh.id = (SELECT MAX(id) FROM statushistories WHERE candidate_id = candidates.id)');
+                    })
+                    ->where('latest_sh.status_id', '=', $request->searchStatus);
                 })
                 ->when($request->searchDate, function ($q) use ($request) {
                     $q->whereHas('latestStatusHistory', function ($query) use ($request) {
