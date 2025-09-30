@@ -110,7 +110,7 @@ class ArrivalCandidateController extends Controller
                 $addArrival = false;
 
                 if ($currentStatusId) {
-                    if ($currentStatusId === 18) {
+                    if ($currentStatusId === 18 && !$candidate->arrival_date) {
                         $addArrival = true;
                     }
 
