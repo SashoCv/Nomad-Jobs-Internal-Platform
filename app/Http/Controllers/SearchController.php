@@ -776,8 +776,7 @@ class SearchController extends Controller
             'company',
             'position',
             'user',
-            'latestStatusHistory',
-            'latestStatusHistory.status',
+            'status',
             'company.company_addresses'
         ]);
 
@@ -854,12 +853,10 @@ class SearchController extends Controller
                     $q->where('company_id', '=', $request->searchCompany);
                 })
                 ->when($request->searchStatus, function ($q) use ($request) {
-                    $q->whereHas('latestStatusHistory', function ($query) use ($request) {
-                        $query->where('status_id', $request->searchStatus);
-                    });
+                    $q->where('status_id', $request->searchStatus);
                 })
                 ->when($request->searchDate, function ($q) use ($request) {
-                    $q->whereHas('latestStatusHistory', function ($query) use ($request) {
+                    $q->whereHas('statusHistories', function ($query) use ($request) {
                         $query->whereDate('statusDate', $request->searchDate);
                     });
                 })
@@ -916,8 +913,8 @@ class SearchController extends Controller
             $allStatuses = Status::all();
 
             foreach ($result as $candidate) {
-                if($candidate->latestStatusHistory){
-                    $currentStatusId = $candidate->latestStatusHistory->status_id;
+                if($candidate->status_id){
+                    $currentStatusId = $candidate->status_id;
 
                     $candidate->availableStatuses = $allStatuses->where('id', '!=', $currentStatusId)->pluck('id')->toArray();
                     $candidate->addArrival = ($currentStatusId == 18);
