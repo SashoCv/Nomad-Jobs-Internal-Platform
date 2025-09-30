@@ -36,13 +36,13 @@ class StatushistoryController extends Controller
      */
     public function store(Request $request)
     {
-       
+
         $statusHistory = new Statushistory();
 
        $statusHistory->candidate_id = $request->candidate_id;
        $statusHistory->status_id = $request->status_id;
        $statusHistory->statusDate = $request->statusDate;
-        
+
 
 
         if ($statusHistory->save()) {
@@ -105,15 +105,12 @@ class StatushistoryController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $candidateId = $request->input('candidate_id');
-
         // Find the status history and verify it belongs to the specified candidate
         $statusHistory = Statushistory::where('id', $id)
-            ->where('candidate_id', $candidateId)
             ->firstOrFail();
 
         if ($statusHistory->delete()) {
