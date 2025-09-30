@@ -43,33 +43,15 @@ class ArrivalCandidateController extends Controller
             $allStatuses = \App\Models\Status::all()->keyBy('id');
             $statusesByOrder = $allStatuses->keyBy('order');
 
-            // Build optimized query with proper joins and eager loading
-            // Use status.order as primary sort (business logic), then created_at as tiebreaker
-            $query = Candidate::with(['company'])
-                ->leftJoin('statushistories as latest_sh', function ($join) {
-                    $join->on('candidates.id', '=', 'latest_sh.candidate_id')
-                         ->whereRaw('latest_sh.id = (
-                             SELECT sh.id
-                             FROM statushistories sh
-                             JOIN statuses st ON sh.status_id = st.id
-                             WHERE sh.candidate_id = candidates.id
-                             ORDER BY st.order DESC, sh.created_at DESC
-                             LIMIT 1
-                         )');
-                })
-                ->leftJoin('statuses', 'latest_sh.status_id', '=', 'statuses.id')
-                ->leftJoin('arrivals', function ($join) {
-                    $join->on('candidates.id', '=', 'arrivals.candidate_id');
-                })
+            // SIMPLE query using candidates.status_id - no complex subqueries!
+            $query = Candidate::with(['company', 'status'])
+                ->join('statuses', 'candidates.status_id', '=', 'statuses.id')
+                ->leftJoin('arrivals', 'candidates.id', '=', 'arrivals.candidate_id')
                 ->where('statuses.showOnHomePage', 1)
                 ->select([
                     'candidates.*',
-                    'latest_sh.id as latest_status_history_id',
-                    'latest_sh.description as latest_description',
-                    'latest_sh.status_id as latest_status_id',
-                    'latest_sh.statusDate as latest_status_date',
-                    'statuses.nameOfStatus as latest_status_name',
-                    'statuses.order as latest_status_order',
+                    'statuses.nameOfStatus as status_name',
+                    'statuses.order as status_order',
                     'arrivals.id as arrival_id',
                     'arrivals.arrival_date',
                     'arrivals.arrival_time',
@@ -79,31 +61,34 @@ class ArrivalCandidateController extends Controller
                     'arrivals.phone_number as arrival_phone_number'
                 ]);
 
-            // Apply status filter
+            // Simple status filter!
             if ($statusId) {
-                $query->where('latest_sh.status_id', $statusId);
+                $query->where('candidates.status_id', $statusId);
             }
 
-            // Apply date filters
-            if ($fromDate) {
-                $fromDate = Carbon::createFromFormat('m-d-Y', $fromDate)->format('Y-m-d');
-                $query->where('latest_sh.statusDate', '>=', $fromDate);
+            // Date filters on status history
+            if ($fromDate || $toDate) {
+                $query->whereHas('statusHistories', function ($q) use ($fromDate, $toDate, $statusId) {
+                    if ($statusId) {
+                        $q->where('status_id', $statusId);
+                    }
+                    if ($fromDate) {
+                        $fromDate = Carbon::createFromFormat('m-d-Y', $fromDate)->format('Y-m-d');
+                        $q->where('statusDate', '>=', $fromDate);
+                    }
+                    if ($toDate) {
+                        $toDate = Carbon::createFromFormat('m-d-Y', $toDate)->format('Y-m-d');
+                        $q->where('statusDate', '<=', $toDate);
+                    }
+                });
             }
 
-            if ($toDate) {
-                $toDate = Carbon::createFromFormat('m-d-Y', $toDate)->format('Y-m-d');
-                $query->where('latest_sh.statusDate', '<=', $toDate);
-            }
-
-            if ($fromDate && $toDate) {
-                $query->whereBetween('latest_sh.statusDate', [$fromDate, $toDate]);
-            }
-
+            // Sorting
             if ($statusId == self::ARRIVAL_EXPECTED_STATUS_ID) {
                 $query->orderByRaw('arrivals.arrival_date IS NULL')
                     ->orderBy('arrivals.arrival_date', 'desc');
             } else {
-                $query->orderBy('latest_sh.statusDate', 'desc');
+                $query->orderBy('candidates.updated_at', 'desc');
             }
 
             // Get candidate IDs first for file existence check
@@ -116,8 +101,8 @@ class ArrivalCandidateController extends Controller
             $arrivalCandidates = $query->paginate();
 
             $arrivalCandidates->getCollection()->transform(function ($candidate) use ($allStatuses, $statusesByOrder, $candidatesWithFiles) {
-                $currentStatusId = $candidate->latest_status_id;
-                $currentStatusOrder = $candidate->latest_status_order;
+                $currentStatusId = $candidate->status_id;
+                $currentStatusOrder = $candidate->status_order;
 
                 // Calculate availableStatuses efficiently
                 $availableStatuses = [];
@@ -177,11 +162,9 @@ class ArrivalCandidateController extends Controller
                     'addArrival' => $addArrival,
                     'has_files' => $candidatesWithFiles->has($candidate->id),
                     'statusHistories' => [
-                        'id' => $candidate->latest_status_history_id,
-                        'description' => $candidate->latest_description,
-                        'status_id' => $candidate->latest_status_id,
-                        'statusName' => $candidate->latest_status_name,
-                        'statusDate' => $candidate->latest_status_date,
+                        'status_id' => $candidate->status_id,
+                        'statusName' => $candidate->status_name,
+                        'statusDate' => $candidate->updated_at ? $candidate->updated_at->format('Y-m-d') : null,
                         'arrivalInfo' => $arrivalInfo,
                     ],
                 ];
@@ -381,6 +364,14 @@ class ArrivalCandidateController extends Controller
 
                 }
             }
+
+            // Update the candidate's current status (CRITICAL FIX!)
+            $candidate = Candidate::find($candidate_id);
+            if ($candidate) {
+                $candidate->status_id = $status_id;
+                $candidate->save();
+            }
+
             dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate, $sendEmail));
 
 
