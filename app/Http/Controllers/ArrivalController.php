@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\Mail;
 class ArrivalController extends Controller
 {
     use HasRolePermissions;
+
+    const ARRIVAL_EXPECTED_STATUS_ID = 18; // "Има билет" status
+
     /**
      * Display a listing of the resource.
      *
@@ -61,7 +64,7 @@ class ArrivalController extends Controller
             $candidateId = $request->candidate_id;
 
             $arrival = Arrival::firstOrNew(['candidate_id' => $candidateId]);
-            $arrivalDate = Carbon::createFromFormat('m-d-Y', $request->arrival_date)->format('Y-m-d');
+            $arrivalDate = $request->arrival_date;
 
             $arrival->fill([
                 'company_id'       => $request->company_id,
@@ -74,7 +77,7 @@ class ArrivalController extends Controller
             ])->save();
 
             // Status ID for "Arrival Expected"
-            $statusId = 18;
+            $statusId = self::ARRIVAL_EXPECTED_STATUS_ID;
             $sendEmail = $request->sendEmail ?? false;
 
             if (!in_array($statusId, [12, 13, 14, 19])) {
@@ -144,7 +147,7 @@ class ArrivalController extends Controller
             $arrival = Arrival::findOrFail($id);
             $candidateId = $arrival->candidate_id;
 
-            $arrivalDate = Carbon::createFromFormat('m-d-Y', $request->arrival_date)->format('Y-m-d');
+            $arrivalDate = $request->arrival_date;
 
             // Update Arrival fields
             $arrival->update([
@@ -158,7 +161,7 @@ class ArrivalController extends Controller
             ]);
 
             // Status ID for "Arrival Expected"
-            $statusId = 18;
+            $statusId = self::ARRIVAL_EXPECTED_STATUS_ID;
 
             // Create or update status history
             Statushistory::updateOrCreate(

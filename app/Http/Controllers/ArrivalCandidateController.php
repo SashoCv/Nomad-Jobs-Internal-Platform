@@ -25,6 +25,8 @@ use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
 {
+    const ARRIVAL_EXPECTED_STATUS_ID = 18; // "Има билет" status
+
     /**
      * Display a listing of the resource.
      *
@@ -94,7 +96,12 @@ class ArrivalCandidateController extends Controller
                 $query->whereBetween('latest_sh.statusDate', [$fromDate, $toDate]);
             }
 
-            $query->orderBy('latest_sh.statusDate', 'desc');
+            if ($statusId == self::ARRIVAL_EXPECTED_STATUS_ID) {
+                $query->orderByRaw('arrivals.arrival_date IS NULL')
+                    ->orderBy('arrivals.arrival_date', 'desc');
+            } else {
+                $query->orderBy('latest_sh.statusDate', 'desc');
+            }
 
             // Get candidate IDs first for file existence check
             $candidateIds = $query->pluck('candidates.id')->toArray();
@@ -114,7 +121,7 @@ class ArrivalCandidateController extends Controller
                 $addArrival = false;
 
                 if ($currentStatusId) {
-                    if ($currentStatusId === 18 && !$candidate->arrival_date) {
+                    if ($currentStatusId === self::ARRIVAL_EXPECTED_STATUS_ID && !$candidate->arrival_date) {
                         $addArrival = true;
                     }
 
@@ -125,11 +132,11 @@ class ArrivalCandidateController extends Controller
                         $nextStatusId = $nextStatus->id;
                         $availableStatuses = [$nextStatusId, 11, 12, 13, 14];
 
-                        if ($nextStatusId === 18) {
+                        if ($nextStatusId === self::ARRIVAL_EXPECTED_STATUS_ID) {
                             $addArrival = true;
                         }
                     } else {
-                        if ($currentStatusId >= 18) {
+                        if ($currentStatusId >= self::ARRIVAL_EXPECTED_STATUS_ID) {
                             $availableStatuses = [11, 12, 13, 14];
                             $higherStatuses = $allStatuses->where('order', '>', $currentStatusOrder)->pluck('id')->toArray();
                             $availableStatuses = array_unique(array_merge($availableStatuses, $higherStatuses));
@@ -143,7 +150,7 @@ class ArrivalCandidateController extends Controller
 
                 // Build arrival info if status is 18
                 $arrivalInfo = null;
-                if ($currentStatusId == 18 && $candidate->arrival_date) {
+                if ($currentStatusId == self::ARRIVAL_EXPECTED_STATUS_ID && $candidate->arrival_date) {
                     $arrivalInfo = [
                         'id' => $candidate->arrival_id,
                         'arrival_date' => $candidate->arrival_date,
@@ -171,7 +178,7 @@ class ArrivalCandidateController extends Controller
                         'description' => $candidate->latest_description,
                         'status_id' => $candidate->latest_status_id,
                         'statusName' => $candidate->latest_status_name,
-                        'statusDate' => \Carbon\Carbon::parse($candidate->latest_status_date)->format('d-m-Y'),
+                        'statusDate' => $candidate->latest_status_date,
                         'arrivalInfo' => $arrivalInfo,
                     ],
                 ];
