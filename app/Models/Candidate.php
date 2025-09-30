@@ -73,6 +73,7 @@ class Candidate extends Model
     {
         return $this->hasMany(Statushistory::class)
             ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
+            ->select('statushistories.*', 'statuses.order')
             ->orderBy('statuses.order', 'desc');
     }
 
@@ -80,6 +81,7 @@ class Candidate extends Model
     {
         return $this->hasOne(Statushistory::class)
             ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
+            ->select('statushistories.*', 'statuses.order')
             ->orderBy('statushistories.statusDate', 'desc')
             ->orderBy('statuses.order', 'desc')
             ->orderBy('statushistories.id', 'desc');
