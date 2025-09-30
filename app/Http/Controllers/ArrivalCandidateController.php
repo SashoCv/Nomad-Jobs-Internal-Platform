@@ -339,7 +339,7 @@ class ArrivalCandidateController extends Controller
                 ], 422);
             }
 
-            if (!in_array($status_id, [12, 13, 14, 19])) {
+            if (!in_array($status_id, [11, 12, 13, 14, 19])) {
                 $allStatuses = Status::where('order', '<=', Status::find($status_id)->order)
                     ->pluck('id')
                     ->toArray();
