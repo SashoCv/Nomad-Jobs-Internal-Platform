@@ -124,7 +124,6 @@ class StatushistoryController extends Controller
                 $nextStatusHistory = Statushistory::where('candidate_id', $candidateId)
                     ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
                     ->orderBy('statuses.order', 'desc')
-                    ->orderBy('statushistories.created_at', 'desc')
                     ->select('statushistories.*')
                     ->first();
 
