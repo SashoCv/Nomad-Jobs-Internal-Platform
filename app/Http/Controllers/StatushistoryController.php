@@ -113,7 +113,27 @@ class StatushistoryController extends Controller
         $statusHistory = Statushistory::where('id', $id)
             ->firstOrFail();
 
+        $deletedStatusId = $statusHistory->status_id;
+
         if ($statusHistory->delete()) {
+            // Check if the deleted status was the active status
+            $candidate = Candidate::find($candidateId);
+
+            if ($candidate && $candidate->status_id == $deletedStatusId) {
+                // Find the next status to set as active (highest order remaining)
+                $nextStatusHistory = Statushistory::where('candidate_id', $candidateId)
+                    ->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
+                    ->orderBy('statuses.order', 'desc')
+                    ->orderBy('statushistories.created_at', 'desc')
+                    ->select('statushistories.*')
+                    ->first();
+
+                if ($nextStatusHistory) {
+                    $candidate->status_id = $nextStatusHistory->status_id;
+                    $candidate->save();
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
