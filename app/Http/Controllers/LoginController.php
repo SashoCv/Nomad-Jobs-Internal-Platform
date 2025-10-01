@@ -231,16 +231,16 @@ class LoginController extends Controller
                 $user->signatureName = $request->file('signature')->getClientOriginalName();
             }
 
-            // Validate to store company user if they dont have contract
-             if($request->role_id === Role::COMPANY_USER && Auth::user()->role_id != Role::GENERAL_MANAGER){
-                $haveAgreement = CompanyServiceContract::where('company_id', $request->company_id)->firstOrFail();
+            // Validate to store company user if they dont have a contract
+             if($request->role_id === Role::COMPANY_USER){
+                $haveAgreement = CompanyServiceContract::where('company_id', $request->company_id)->first();
 
                 if(!$haveAgreement){
                     return response()->json([
                         'success' => false,
                         'status' => 500,
                         'data' => [],
-                        'message' => 'This company dont have service contract, please contact with admin!'
+                        'message' => 'This company does not have a service contract. Please contact admin!'
                     ]);
                 }
              }
