@@ -147,7 +147,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 ];
 
                 Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data) {
-                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
+                    $message->to(['gabriela@nomadpartners.bg','snezhana@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
                         ->subject('Notification for Arrival ' . $data['candidateName']);
                 });
 
@@ -166,7 +166,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 ];
 
                 Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data) {
-                    $message->to(['gabriela@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
+                    $message->to(['gabriela@nomadpartners.bg','snezhana@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
                         ->subject('Notification for Arrival ' . $data['candidateName']);
                 });
             }
