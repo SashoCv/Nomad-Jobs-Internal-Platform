@@ -104,7 +104,7 @@ class ArrivalCandidateController extends Controller
                 $availableStatuses = [];
                 $addArrival = false;
 
-                $arrival = $candidate->arrivals->first();
+                $arrival = $candidate->arrival;
 
                 if ($currentStatusId) {
                     if ($currentStatusId === self::ARRIVAL_EXPECTED_STATUS_ID && (!$arrival || !$arrival->arrival_date)) {
