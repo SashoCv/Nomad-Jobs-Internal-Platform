@@ -72,7 +72,7 @@ class ArrivalCandidateController extends Controller
             }
 
             // Load arrivals relationship for all candidates
-            $query->with('arrivals');
+            $query->with('arrival');
 
             // Sorting - for arrival expected status, we'll sort using a subquery
             if ($statusId == self::ARRIVAL_EXPECTED_STATUS_ID) {
