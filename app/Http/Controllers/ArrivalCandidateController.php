@@ -43,27 +43,15 @@ class ArrivalCandidateController extends Controller
             $allStatuses = \App\Models\Status::all()->keyBy('id');
             $statusesByOrder = $allStatuses->keyBy('order');
 
-            // SIMPLE query using candidates.status_id - no complex subqueries!
+            // Use relationships instead of joins to avoid duplicates
             $query = Candidate::with(['company', 'status'])
-                ->join('statuses', 'candidates.status_id', '=', 'statuses.id')
-                ->leftJoin('arrivals', 'candidates.id', '=', 'arrivals.candidate_id')
-                ->where('statuses.showOnHomePage', 1)
-                ->select([
-                    'candidates.*',
-                    'statuses.nameOfStatus as status_name',
-                    'statuses.order as status_order',
-                    'arrivals.id as arrival_id',
-                    'arrivals.arrival_date',
-                    'arrivals.arrival_time',
-                    'arrivals.arrival_flight',
-                    'arrivals.arrival_location',
-                    'arrivals.where_to_stay',
-                    'arrivals.phone_number as arrival_phone_number'
-                ]);
+                ->whereHas('status', function ($q) {
+                    $q->where('showOnHomePage', 1);
+                });
 
             // Simple status filter!
             if ($statusId) {
-                $query->where('candidates.status_id', $statusId);
+                $query->where('status_id', $statusId);
             }
 
             // Date filters on status history
@@ -83,33 +71,43 @@ class ArrivalCandidateController extends Controller
                 });
             }
 
-            // Sorting
+            // Load arrivals relationship for all candidates
+            $query->with('arrivals');
+
+            // Sorting - for arrival expected status, we'll sort using a subquery
             if ($statusId == self::ARRIVAL_EXPECTED_STATUS_ID) {
-                $query->orderByRaw('arrivals.arrival_date IS NULL')
+                $query->leftJoin('arrivals', 'candidates.id', '=', 'arrivals.candidate_id')
+                    ->select('candidates.*')
+                    ->distinct()
+                    ->orderByRaw('arrivals.arrival_date IS NULL')
                     ->orderBy('arrivals.arrival_date', 'desc');
             } else {
-                $query->orderBy('candidates.updated_at', 'desc');
+                $query->orderBy('updated_at', 'desc');
             }
 
-            // Get candidate IDs first for file existence check
-            $candidateIds = $query->pluck('candidates.id')->toArray();
+            // Get paginated results first
+            $arrivalCandidates = $query->paginate();
+
+            // Get candidate IDs for file existence check
+            $candidateIds = $arrivalCandidates->pluck('id')->toArray();
             $candidatesWithFiles = File::whereIn('candidate_id', $candidateIds)
                 ->distinct('candidate_id')
                 ->pluck('candidate_id')
                 ->keyBy(function ($id) { return $id; });
 
-            $arrivalCandidates = $query->paginate();
-
             $arrivalCandidates->getCollection()->transform(function ($candidate) use ($allStatuses, $statusesByOrder, $candidatesWithFiles) {
                 $currentStatusId = $candidate->status_id;
-                $currentStatusOrder = $candidate->status_order;
+                $currentStatus = $candidate->status;
+                $currentStatusOrder = $currentStatus ? $currentStatus->order : null;
 
                 // Calculate availableStatuses efficiently
                 $availableStatuses = [];
                 $addArrival = false;
 
+                $arrival = $candidate->arrivals->first();
+
                 if ($currentStatusId) {
-                    if ($currentStatusId === self::ARRIVAL_EXPECTED_STATUS_ID && !$candidate->arrival_date) {
+                    if ($currentStatusId === self::ARRIVAL_EXPECTED_STATUS_ID && (!$arrival || !$arrival->arrival_date)) {
                         $addArrival = true;
                     }
 
@@ -138,15 +136,15 @@ class ArrivalCandidateController extends Controller
 
                 // Build arrival info if status is 18
                 $arrivalInfo = null;
-                if ($currentStatusId == self::ARRIVAL_EXPECTED_STATUS_ID && $candidate->arrival_date) {
+                if ($currentStatusId == self::ARRIVAL_EXPECTED_STATUS_ID && $arrival && $arrival->arrival_date) {
                     $arrivalInfo = [
-                        'id' => $candidate->arrival_id,
-                        'arrival_date' => $candidate->arrival_date,
-                        'arrival_time' => $candidate->arrival_time,
-                        'arrival_flight' => $candidate->arrival_flight,
-                        'arrival_location' => $candidate->arrival_location,
-                        'where_to_stay' => $candidate->where_to_stay,
-                        'phone_number' => $candidate->arrival_phone_number,
+                        'id' => $arrival->id,
+                        'arrival_date' => $arrival->arrival_date,
+                        'arrival_time' => $arrival->arrival_time,
+                        'arrival_flight' => $arrival->arrival_flight,
+                        'arrival_location' => $arrival->arrival_location,
+                        'where_to_stay' => $arrival->where_to_stay,
+                        'phone_number' => $arrival->phone_number,
                     ];
                 }
 
@@ -163,7 +161,7 @@ class ArrivalCandidateController extends Controller
                     'has_files' => $candidatesWithFiles->has($candidate->id),
                     'statusHistories' => [
                         'status_id' => $candidate->status_id,
-                        'statusName' => $candidate->status_name,
+                        'statusName' => $currentStatus ? $currentStatus->nameOfStatus : null,
                         'statusDate' => $candidate->updated_at ? $candidate->updated_at->format('Y-m-d') : null,
                         'arrivalInfo' => $arrivalInfo,
                     ],
