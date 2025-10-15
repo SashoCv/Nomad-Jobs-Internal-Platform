@@ -56,6 +56,9 @@ class RecruitersPermissions
             Permission::HOME_FILTER,
             Permission::HOME_ARRIVALS,
             Permission::HOME_CHANGE_STATUS,
+            Permission::TRANSPORT_READ,
+            Permission::TRANSPORT_CREATE,
+            Permission::TRANSPORT_COVERAGE,
         ];
     }
 }
