@@ -162,7 +162,7 @@ class ArrivalCandidateController extends Controller
                     'statusHistories' => [
                         'status_id' => $candidate->status_id,
                         'statusName' => $currentStatus ? $currentStatus->nameOfStatus : null,
-                        'statusDate' => $candidate->updated_at ? $candidate->updated_at->format('Y-m-d') : null,
+                        'statusDate' => $candidate->statusDate,
                         'arrivalInfo' => $arrivalInfo,
                     ],
                 ];

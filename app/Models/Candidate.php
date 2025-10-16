@@ -317,4 +317,19 @@ class Candidate extends Model
     {
         return $this->arrival()->exists();
     }
+
+    public function getStatusDateAttribute()
+    {
+        if (!$this->status_id) {
+            return null;
+        }
+
+        $statusHistory = $this->statusHistories()
+            ->where('candidate_id', $this->id)
+            ->where('status_id', $this->status_id)
+            ->orderBy('statusDate', 'desc')
+            ->first();
+
+        return $statusHistory ? $statusHistory->statusDate : null;
+    }
 }

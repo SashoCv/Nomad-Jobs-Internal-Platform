@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AgentCandidateResource;
+use App\Models\Statushistory;
 use App\Traits\HasRolePermissions;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
@@ -922,6 +923,7 @@ class SearchController extends Controller
                     $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
                     $candidate->addArrival = false;
                 }
+                $candidate->statusDate = $candidate->statusDate; // This will trigger the accessor
             }
         }
 
