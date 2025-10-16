@@ -112,7 +112,7 @@ class StatushistoryController extends Controller
         // Find the status history and verify it belongs to the specified candidate
         $statusHistory = Statushistory::where('id', $id)
             ->firstOrFail();
-
+        $candidateId = $statusHistory->candidate_id;
         $deletedStatusId = $statusHistory->status_id;
 
         if ($statusHistory->delete()) {
