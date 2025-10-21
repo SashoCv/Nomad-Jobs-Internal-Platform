@@ -9,8 +9,8 @@ class AgentCandidateResource extends JsonResource
 {
     public function toArray($request)
     {
-        $addedById = $this->candidate->addedBy;
-        $agent = User::where('id', $addedById)->first();
+        $addedById = $this->candidate?->addedBy;
+        $agent = $addedById ? User::where('id', $addedById)->first() : null;
 
         return [
             'id' => $this->id,
@@ -28,7 +28,7 @@ class AgentCandidateResource extends JsonResource
                 'salary' => $this->companyJob->salary,
                 'contract_type' => $this->companyJob->contract_type,
             ] : null,  // Return null if companyJob is not available
-            'candidate' => [
+            'candidate' => $this->candidate ? [
                 'id' => $this->candidate->id,
                 'fullName' => $this->candidate->fullName,
                 'fullNameCyrillic' => $this->candidate->fullNameCyrillic,
@@ -36,17 +36,17 @@ class AgentCandidateResource extends JsonResource
                 'phoneNumber' => $this->candidate->phoneNumber,
                 'nationality' => $this->candidate->nationality,
                 'birthday' => $this->candidate->birthday,
-            ],
-            'status_for_candidate_from_agent' => [
+            ] : null,
+            'status_for_candidate_from_agent' => $this->statusForCandidateFromAgent ? [
                 'id' => $this->statusForCandidateFromAgent->id,
                 'name' => $this->statusForCandidateFromAgent->name,
-            ],
-            'Agent' => [
+            ] : null,
+            'Agent' => $agent ? [
                 'id' => $agent->id,
                 'firstName' => $agent->firstName,
                 'lastName' => $agent->lastName,
                 'email' => $agent->email,
-            ],
+            ] : null,
         ];
     }
 }

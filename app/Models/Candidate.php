@@ -13,6 +13,19 @@ class Candidate extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted()
+    {
+        // When a candidate is soft-deleted, also soft-delete all related agent_candidates
+        static::deleting(function ($candidate) {
+            $candidate->agentCandidates()->delete();
+        });
+
+        // When a candidate is restored, also restore all related agent_candidates
+        static::restoring(function ($candidate) {
+            $candidate->agentCandidates()->withTrashed()->restore();
+        });
+    }
+
     protected $fillable = [
         'status_id', 'type_id', 'company_id', 'position_id', 'user_id', 'case_id', 'agent_id',
         'gender', 'email', 'nationality', 'date', 'phoneNumber', 'address', 'passport',
