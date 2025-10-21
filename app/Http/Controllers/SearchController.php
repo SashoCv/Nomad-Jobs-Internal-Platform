@@ -828,7 +828,8 @@ class SearchController extends Controller
                 });
             }
 
-            $candidates = $candidatesQuery->paginate(20);
+            $perPage = $request->per_page ?? 20;
+            $candidates = $candidatesQuery->paginate($perPage);
             return AgentCandidateResource::collection($candidates);
         }
 
