@@ -800,7 +800,8 @@ class SearchController extends Controller
 
             $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
-                ->where('agent_candidates.user_id', $user->id);
+                ->where('agent_candidates.user_id', $user->id)
+                ->where('agent_candidates.deleted_at', null);
 
             $candidatesQuery->when($searchName, function ($q) use ($searchName) {
                 $q->whereHas('candidate', function ($subquery) use ($searchName) {
