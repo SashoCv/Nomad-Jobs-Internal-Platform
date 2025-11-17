@@ -11,6 +11,7 @@ class CompanyJob extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected $guarded = [];
 
     public function company()
     {
@@ -30,5 +31,10 @@ class CompanyJob extends Model
     public function position()
     {
         return $this->belongsTo(Position::class);
+    }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
     }
 }

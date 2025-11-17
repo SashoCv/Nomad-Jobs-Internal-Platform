@@ -17,11 +17,10 @@ class PositionController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index()
     {
-        if ($this->isStaff()) {
 
             $allPositions = Position::all();
 
@@ -30,13 +29,6 @@ class PositionController extends Controller
                 'status' => 200,
                 'data' => $allPositions,
             ]);
-        } else {
-            return response()->json([
-                'success' => true,
-                'status' => 402,
-                'data' => [],
-            ]);
-        }
     }
 
     /**
@@ -63,8 +55,8 @@ class PositionController extends Controller
 
             $jobPosition->NKDP = $request->NKDP;
             $jobPosition->jobPosition = $request->jobPosition;
-            
-            
+
+
             if ($request->hasFile('positionDocument')) {
                 $name = Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
                 $jobPosition->positionPath = $name;
@@ -131,7 +123,7 @@ class PositionController extends Controller
 
             $jobPosition->NKDP = $request->NKDP;
             $jobPosition->jobPosition = $request->jobPosition;
-            
+
             if ($request->hasFile('positionDocument')) {
                 $name = Storage::disk('public')->put('jopPosition', $request->file('positionDocument'));
                 $jobPosition->positionPath = $name;
@@ -140,11 +132,11 @@ class PositionController extends Controller
 
 
             if ($jobPosition->save()) {
-                
+
             $candidateWithThisJob = Candidate::where('position_id', '=', $jobPosition->id)->get();
-            
+
                 foreach ($candidateWithThisJob as $candidate) {
-                    
+
                     $file = new File();
                     $file->candidate_id = $candidate->id;
                     $file->category_id = 8;
@@ -156,7 +148,7 @@ class PositionController extends Controller
 
                     $file->save();
                 }
-                
+
                 return response()->json([
                     'success' => true,
                     'status' => 200,
@@ -177,14 +169,14 @@ class PositionController extends Controller
             ]);
         }
     }
-    
+
 
     public function destroyDocumentForPosition($id)
     {
         if ($this->isStaff()) {
 
             $fileDelete = Position::findOrFail($id);
-            
+
            $candidateWithThisJobPosition = Candidate::where('position_id', '=', $id)->get();
 
             foreach ($candidateWithThisJobPosition as $candidate) {
@@ -194,9 +186,9 @@ class PositionController extends Controller
                     $file->delete();
                 }
             }
-            
-        
-            
+
+
+
             $fileDelete->positionName = Null;
             $fileDelete->positionPath = Null;
 
@@ -215,7 +207,7 @@ class PositionController extends Controller
             ]);
         }
     }
-    
+
 
     public function destroy($id)
     {
@@ -235,5 +227,30 @@ class PositionController extends Controller
                 'status' => 403
             ]);
         }
+    }
+
+    /**
+     * Get documents for a specific position
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function getDocuments($id)
+    {
+        $position = Position::with('documents')->find($id);
+
+        if (!$position) {
+            return response()->json([
+                'success' => false,
+                'status' => 404,
+                'message' => 'Position not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $position->documents
+        ]);
     }
 }

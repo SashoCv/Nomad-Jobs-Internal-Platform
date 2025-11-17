@@ -227,6 +227,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('updateStatusForCandidateFromAgent/{id}', [StatusForCandidateFromAgentController::class, 'update']);
     Route::delete('deleteCandidateFromAgent/{id}', [AgentCandidateController::class, 'destroy']);
 
+    // Agent Candidate Details
+    Route::get('agentCandidateDetails/{agentCandidateId}', [AgentCandidateController::class, 'getDetails']);
+    Route::post('agentCandidateDetails/{agentCandidateId}', [AgentCandidateController::class, 'upsertDetails']);
+
     Route::post('assignToAnotherJobPosting', [AssignedJobController::class, 'assignToAnotherJobPosting']); // New Route
 
 
@@ -351,5 +355,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('cities/{id}', [\App\Http\Controllers\CityController::class, 'show']);
     Route::post('cities/{id}', [\App\Http\Controllers\CityController::class, 'update']);
 
+    // Countries
+    Route::get('countries', [\App\Http\Controllers\CountryController::class, 'index']);
+
+    // Position Documents
+    Route::get('positions/{id}/documents', [\App\Http\Controllers\PositionController::class, 'getDocuments']);
+
+
+    // HR - RECRUTERS
+    Route::get('getHRStatistics', [CandidateController::class, 'getHRStatistics']);
+    Route::get('getApprovedCandidates', [CandidateController::class, 'getApprovedCandidates']);
+
+
+    // Statistic for companies
+    Route::get('statisticForCompanies', [StatisticController::class, 'statisticForCompanies']);
 });
+
 

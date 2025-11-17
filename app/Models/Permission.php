@@ -17,6 +17,7 @@ class Permission extends Model
     }
 
     const DASHBOARD_READ = 'dashboard:read';
+    const COMPANY_DASHBOARD_READ = 'company_dashboard:read';
     const HOME_READ = 'home:read';
     const HOME_FILTER = 'home:filter';
     const HOME_ARRIVALS = 'home:arrivals';

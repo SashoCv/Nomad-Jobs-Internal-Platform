@@ -36,5 +36,15 @@ class AgentCandidate extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function hrPerson()
+    {
+        return $this->belongsTo(User::class, 'nomad_office_id');
+    }
+
+    public function details()
+    {
+        return $this->hasOne(AgentCandidateDetail::class);
+    }
 }
 

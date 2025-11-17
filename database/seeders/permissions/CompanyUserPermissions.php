@@ -9,6 +9,7 @@ class CompanyUserPermissions
     public static function getPermissions(): array
     {
         return [
+            Permission::COMPANY_DASHBOARD_READ,
             Permission::COMPANIES_READ,
             Permission::COMPANIES_CONTRACTS_READ,
             Permission::COMPANIES_UPDATE,

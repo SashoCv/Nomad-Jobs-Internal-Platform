@@ -841,4 +841,193 @@ class CandidateController extends Controller
             'message' => 'Not found',
         ], 404);
     }
+
+    public function getApprovedCandidates(Request $request): JsonResponse
+    {
+        $dateFrom = $request->dateFrom
+            ?? Carbon::now()->startOfYear()->format('Y-m-d');
+
+        $query = AgentCandidate::with(['candidate', 'candidate.company','candidate.companyAddress', 'companyJob','user', 'statusForCandidateFromAgent','hrPerson'])
+            ->where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('agent_candidates.deleted_at');
+
+        if ($dateFrom) {
+            $query->where('agent_candidates.created_at', '>=', $dateFrom);
+        }
+
+        if ($request->dateTo) {
+            $query->where('agent_candidates.created_at', '<=', $request->dateTo);
+        }
+
+        // Filter by company name
+        if ($request->searchCompany) {
+            $query->whereHas('candidate.company', function ($q) use ($request) {
+                $q->where('nameOfCompany', 'like', '%' . $request->searchCompany . '%');
+            });
+        }
+
+        // Filter by HR employee name
+        if ($request->searchHREmployee) {
+            $query->whereHas('hrPerson', function ($q) use ($request) {
+                $q->where(function ($subQ) use ($request) {
+                    $subQ->where('firstName', 'like', '%' . $request->searchHREmployee . '%')
+                         ->orWhere('lastName', 'like', '%' . $request->searchHREmployee . '%')
+                         ->orWhereRaw("CONCAT(firstName, ' ', lastName) like ?", ['%' . $request->searchHREmployee . '%']);
+                });
+            });
+        }
+
+        // Filter by candidates without HR employee
+        if ($request->withoutHR == '1') {
+            $query->whereNull('agent_candidates.nomad_office_id');
+        }
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $query->paginate(),
+        ]);
+    }
+
+    public function getHRStatistics(Request $request): JsonResponse
+    {
+        // Prepare date filters
+        $dateFrom = $request->dateFrom
+            ? Carbon::parse($request->dateFrom)->startOfDay()
+            : Carbon::now()->startOfYear();
+
+        $dateTo = $request->dateTo
+            ? Carbon::parse($request->dateTo)->endOfDay()
+            : Carbon::now()->endOfYear();
+
+        Log::info('DATE FILTERS', ['dateFrom' => $dateFrom, 'dateTo' => $dateTo]);
+
+        // Base query (all statistics MUST use the same filters)
+        $baseQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('agent_candidates.deleted_at')
+            ->whereBetween('agent_candidates.created_at', [$dateFrom, $dateTo]);
+
+        // 1. Total approved candidates
+        $totalApprovedCandidates = (clone $baseQuery)->count();
+
+        // 2. Total companies with candidates
+        $totalCompanies = (clone $baseQuery)
+            ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
+            ->distinct('company_jobs.company_id')
+            ->count('company_jobs.company_id');
+
+        // 3. Total HR employees with assigned candidates
+        $totalHREmployees = (clone $baseQuery)
+            ->whereNotNull('agent_candidates.nomad_office_id')
+            ->distinct('agent_candidates.nomad_office_id')
+            ->count('agent_candidates.nomad_office_id');
+
+        // 4. Candidates created this month
+        $candidatesThisMonth = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('deleted_at')
+            ->whereYear('created_at', Carbon::now()->year)
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->count();
+
+        // 5. Candidates with process started (имаат status_id во candidates табела)
+        $candidatesWithProcess = (clone $baseQuery)
+            ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
+            ->whereNotNull('candidates.status_id')
+            ->count();
+
+        // 6. Candidates by company (avoid duplicates)
+        $candidatesByCompany = (clone $baseQuery)
+            ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
+            ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+            ->select('companies.nameOfCompany as name', DB::raw('COUNT(DISTINCT agent_candidates.id) as count'))
+            ->groupBy('companies.id', 'companies.nameOfCompany')
+            ->orderByDesc('count')
+            ->get()
+            ->map(function ($item) use ($totalApprovedCandidates) {
+                $item->percentage = $totalApprovedCandidates > 0
+                    ? round(($item->count / $totalApprovedCandidates) * 100, 2)
+                    : 0;
+                return $item;
+            });
+
+        // 7. Candidates by HR
+        $candidatesByHR = (clone $baseQuery)
+            ->whereNotNull('agent_candidates.nomad_office_id')
+            ->join('users', 'agent_candidates.nomad_office_id', '=', 'users.id')
+            ->select(
+                DB::raw("CONCAT(users.firstName, ' ', users.lastName) as name"),
+                DB::raw('COUNT(*) as count')
+            )
+            ->groupBy('users.id', 'users.firstName', 'users.lastName')
+            ->orderByDesc('count')
+            ->get()
+            ->map(function ($item) use ($totalApprovedCandidates) {
+                $item->percentage = $totalApprovedCandidates > 0
+                    ? round(($item->count / $totalApprovedCandidates) * 100, 2)
+                    : 0;
+                return $item;
+            });
+
+        // 8. Candidates with process by HR Employee
+        $candidatesByHRWithProcess = (clone $baseQuery)
+            ->whereNotNull('agent_candidates.nomad_office_id')
+            ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
+            ->whereNotNull('candidates.status_id')
+            ->join('users', 'agent_candidates.nomad_office_id', '=', 'users.id')
+            ->select(
+                DB::raw("CONCAT(users.firstName, ' ', users.lastName) as name"),
+                DB::raw('COUNT(DISTINCT agent_candidates.id) as count')
+            )
+            ->groupBy('users.id', 'users.firstName', 'users.lastName')
+            ->orderByDesc('count')
+            ->get()
+            ->map(function ($item) use ($candidatesWithProcess) {
+                $item->percentage = $candidatesWithProcess > 0
+                    ? round(($item->count / $candidatesWithProcess) * 100, 2)
+                    : 0;
+                return $item;
+            });
+
+        // 9. Candidates by month
+        $candidatesByMonth = (clone $baseQuery)
+            ->select(
+                DB::raw('MONTH(agent_candidates.created_at) as month_number'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->groupBy('month_number')
+            ->orderBy('month_number')
+            ->get()
+            ->map(function ($item) {
+                $months = [
+                    1 => 'Јануари', 2 => 'Февруари', 3 => 'Март', 4 => 'Април',
+                    5 => 'Мај', 6 => 'Јуни', 7 => 'Јули', 8 => 'Август',
+                    9 => 'Септември', 10 => 'Октомври', 11 => 'Ноември', 12 => 'Декември'
+                ];
+                return [
+                    'month' => $months[$item->month_number] ?? '',
+                    'count' => $item->count
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => [
+                'kpi' => [
+                    'totalApprovedCandidates' => $totalApprovedCandidates,
+                    'totalCompanies' => $totalCompanies,
+                    'totalHREmployees' => $totalHREmployees,
+                    'candidatesThisMonth' => $candidatesThisMonth,
+                    'candidatesWithProcess' => $candidatesWithProcess,
+                ],
+                'candidatesByCompany' => $candidatesByCompany,
+                'candidatesByHR' => $candidatesByHR,
+                'candidatesByHRWithProcess' => $candidatesByHRWithProcess,
+                'candidatesByMonth' => $candidatesByMonth,
+            ],
+        ]);
+    }
+
+
+
 }

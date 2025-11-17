@@ -11,6 +11,7 @@ class PermissionDefinitions
         return [
             // Dashboard
             ['name' => Permission::DASHBOARD_READ, 'slug' => 'dashboard:read', 'description' => 'Read dashboard'],
+            ['name' => Permission::COMPANY_DASHBOARD_READ, 'slug' => 'company_dashboard:read', 'description' => 'Access company dashboard view'],
 
             // Companies
             ['name' => Permission::COMPANIES_READ, 'slug' => 'companies:read', 'description' => 'Read companies'],
