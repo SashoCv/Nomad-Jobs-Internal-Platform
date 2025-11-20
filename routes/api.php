@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AgentCandidateController;
 use App\Http\Controllers\AssignedJobController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyCategoryController;
@@ -49,24 +50,41 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+/*
+|--------------------------------------------------------------------------
+| Public Routes - No Authentication Required
+|--------------------------------------------------------------------------
+*/
+
+// Sanctum CSRF cookie route
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['message' => 'CSRF cookie set']);
 });
 
+// Login route (public)
+Route::post('login', [AuthController::class, 'login'])
+    ->middleware('throttle:10,1')
+    ->name('login');
 
-//Login
+/*
+|--------------------------------------------------------------------------
+| Protected Routes - Require Sanctum Authentication
+|--------------------------------------------------------------------------
+*/
 
-Route::post('login', [LoginController::class, 'login']);
-Route::get('test', [CompanyController::class, 'test']);
-Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
-Route::get('downloadDocumentsForArrivalCandidate/{candidateId}', [ArrivalCandidateController::class, 'downloadDocumentsForArrivalCandidates']);
-Route::get('downloadDocumentsForCandidatesFromAgent/{candidateId}', [AgentCandidateController::class, 'downloadDocumentsForCandidatesFromAgent']);
+Route::middleware(['auth:sanctum'])->group(function () {
 
+    // Authentication endpoints
+    Route::get('user', [AuthController::class, 'user']);
+    Route::post('logout', [AuthController::class, 'logout']);
 
-Route::middleware('auth:sanctum')->group(function () {
+    // Public routes (moved to protected)
+    Route::get('test', [CompanyController::class, 'test']);
+    Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
+    Route::get('downloadDocumentsForArrivalCandidate/{candidateId}', [ArrivalCandidateController::class, 'downloadDocumentsForArrivalCandidates']);
+    Route::get('downloadDocumentsForCandidatesFromAgent/{candidateId}', [AgentCandidateController::class, 'downloadDocumentsForCandidatesFromAgent']);
 
-
-    Route::get('user', [LoginController::class, 'user'])->name('user');
+    // User management
     Route::get('roles', [LoginController::class, 'roles']);
     Route::get('rolesIdAndName', [LoginController::class, 'rolesIdAndName']);
     Route::get('admins', [LoginController::class, 'admins']);
@@ -93,7 +111,6 @@ Route::middleware('auth:sanctum')->group(function () {
     //User
 
     Route::post('storeUser', [LoginController::class, 'store']);
-    Route::post('logout', [LoginController::class, 'logout']);
     Route::get('users', [LoginController::class, 'index']);
     Route::get('user/{id}', [LoginController::class, 'show']);
     Route::post('userUpdate/{id}', [LoginController::class, 'update']);

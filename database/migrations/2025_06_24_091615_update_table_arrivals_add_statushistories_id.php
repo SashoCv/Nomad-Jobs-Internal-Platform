@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('arrivals', function (Blueprint $table) {
-            $table->foreignId('statushistories_id')->nullable()->constrained('statushistories')->onDelete('cascade')->after('candidate_id');
+            if (!Schema::hasColumn('arrivals', 'statushistories_id')) {
+                $table->foreignId('statushistories_id')->nullable()->constrained('statushistories')->onDelete('cascade')->after('candidate_id');
+            }
         });
     }
 
