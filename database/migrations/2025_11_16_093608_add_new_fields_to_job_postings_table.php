@@ -27,48 +27,32 @@ return new class extends Migration
             }
         });
 
-        // Додади foreign keys во посебен блок (само ако колоните постојат)
-        Schema::table('company_jobs', function (Blueprint $table) {
-            if (Schema::hasColumn('company_jobs', 'administrative_position_id')) {
-                // Провери дали foreign key веќе постои
-                $sm = Schema::getConnection()->getDoctrineSchemaManager();
-                $foreignKeys = $sm->listTableForeignKeys('company_jobs');
-                $fkExists = false;
-                foreach ($foreignKeys as $foreignKey) {
-                    if ($foreignKey->getName() === 'company_jobs_admin_pos_fk') {
-                        $fkExists = true;
-                        break;
-                    }
-                }
-
-                if (!$fkExists) {
+        // Додади foreign keys во посебен блок - користи try/catch за да се справиме со веќе постоечки FK
+        try {
+            Schema::table('company_jobs', function (Blueprint $table) {
+                if (Schema::hasColumn('company_jobs', 'administrative_position_id')) {
                     $table->foreign('administrative_position_id', 'company_jobs_admin_pos_fk')
                           ->references('id')
                           ->on('administrative_positions')
                           ->onDelete('set null');
                 }
-            }
+            });
+        } catch (\Exception $e) {
+            // Foreign key веќе постои, продолжи
+        }
 
-            if (Schema::hasColumn('company_jobs', 'country_id')) {
-                // Провери дали foreign key веќе постои
-                $sm = Schema::getConnection()->getDoctrineSchemaManager();
-                $foreignKeys = $sm->listTableForeignKeys('company_jobs');
-                $fkExists = false;
-                foreach ($foreignKeys as $foreignKey) {
-                    if ($foreignKey->getName() === 'company_jobs_country_fk') {
-                        $fkExists = true;
-                        break;
-                    }
-                }
-
-                if (!$fkExists) {
+        try {
+            Schema::table('company_jobs', function (Blueprint $table) {
+                if (Schema::hasColumn('company_jobs', 'country_id')) {
                     $table->foreign('country_id', 'company_jobs_country_fk')
                           ->references('id')
                           ->on('countries')
                           ->onDelete('set null');
                 }
-            }
-        });
+            });
+        } catch (\Exception $e) {
+            // Foreign key веќе постои, продолжи
+        }
     }
 
     /**
@@ -79,17 +63,17 @@ return new class extends Migration
     public function down()
     {
         Schema::table('company_jobs', function (Blueprint $table) {
-            // Провери и избриши foreign keys
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $foreignKeys = $sm->listTableForeignKeys('company_jobs');
+            // Избриши foreign keys - користи try/catch за безбедност
+            try {
+                $table->dropForeign('company_jobs_admin_pos_fk');
+            } catch (\Exception $e) {
+                // Foreign key не постои, продолжи
+            }
 
-            foreach ($foreignKeys as $foreignKey) {
-                if ($foreignKey->getName() === 'company_jobs_admin_pos_fk') {
-                    $table->dropForeign('company_jobs_admin_pos_fk');
-                }
-                if ($foreignKey->getName() === 'company_jobs_country_fk') {
-                    $table->dropForeign('company_jobs_country_fk');
-                }
+            try {
+                $table->dropForeign('company_jobs_country_fk');
+            } catch (\Exception $e) {
+                // Foreign key не постои, продолжи
             }
 
             // Провери и избриши колони
