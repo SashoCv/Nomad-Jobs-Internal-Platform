@@ -844,19 +844,34 @@ class CandidateController extends Controller
 
     public function getApprovedCandidates(Request $request): JsonResponse
     {
-        $dateFrom = $request->dateFrom
-            ?? Carbon::now()->startOfYear()->format('Y-m-d');
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+        $user = Auth::user();
 
-        $query = AgentCandidate::with(['candidate', 'candidate.company','candidate.companyAddress', 'companyJob','user', 'statusForCandidateFromAgent','hrPerson'])
+        $query = AgentCandidate::with(['candidate', 'candidate.company','candidate.companyAddress', 'companyJob','user', 'statusForCandidateFromAgent','hrPerson', 'hrAssignment.admin'])
             ->where('status_for_candidate_from_agent_id', 3)
-            ->whereNull('agent_candidates.deleted_at');
+            ->whereNull('agent_candidates.deleted_at')
+            ->whereHas('candidate'); // Само кандидати кои имаат candidate relation
 
-        if ($dateFrom) {
-            $query->where('agent_candidates.created_at', '>=', $dateFrom);
+        // Ако корисникот е HR, покажувај само кандидати доделени нему
+        if ($user->hasRole(Role::HR)) {
+            $query->whereHas('hrAssignment', function ($q) use ($user) {
+                $q->where('nomad_office_id', $user->id);
+            });
         }
 
-        if ($request->dateTo) {
-            $query->where('agent_candidates.created_at', '<=', $request->dateTo);
+        // Filter po datum
+        if ($dateFrom && $dateTo) {
+            $query->whereBetween('agent_candidates.created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
+        } elseif ($dateFrom) {
+            // Samo dateFrom: od toj datum do denes
+            $query->where('agent_candidates.created_at', '>=', $dateFrom.' 00:00:00');
+        } elseif ($dateTo) {
+            // Samo dateTo: do toj datum
+            $query->where('agent_candidates.created_at', '<=', $dateTo.' 23:59:59');
+        } else {
+            // default: tekovnata godina
+            $query->whereYear('agent_candidates.created_at', date('Y'));
         }
 
         // Filter by company name
@@ -879,13 +894,13 @@ class CandidateController extends Controller
 
         // Filter by candidates without HR employee
         if ($request->withoutHR == '1') {
-            $query->whereNull('agent_candidates.nomad_office_id');
+            $query->whereDoesntHave('hrAssignment');
         }
 
         return response()->json([
             'success' => true,
             'status' => 200,
-            'data' => $query->paginate(),
+            'data' => $query->paginate(20),
         ]);
     }
 
@@ -900,12 +915,21 @@ class CandidateController extends Controller
             ? Carbon::parse($request->dateTo)->endOfDay()
             : Carbon::now()->endOfYear();
 
+        $user = Auth::user();
+
         Log::info('DATE FILTERS', ['dateFrom' => $dateFrom, 'dateTo' => $dateTo]);
 
         // Base query (all statistics MUST use the same filters)
         $baseQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
             ->whereNull('agent_candidates.deleted_at')
-            ->whereBetween('agent_candidates.created_at', [$dateFrom, $dateTo]);
+            ->whereBetween('agent_candidates.created_at', [$dateFrom, $dateTo])
+            ->whereHas('candidate'); // Само кандидати кои имаат валиден candidate
+
+        // Ако корисникот е HR, филтрирај само негови кандидати
+        if ($user->hasRole(Role::HR)) {
+            $baseQuery->join('asign_candidate_to_nomad_offices', 'agent_candidates.candidate_id', '=', 'asign_candidate_to_nomad_offices.candidate_id')
+                ->where('asign_candidate_to_nomad_offices.nomad_office_id', $user->id);
+        }
 
         // 1. Total approved candidates
         $totalApprovedCandidates = (clone $baseQuery)->count();
@@ -917,28 +941,63 @@ class CandidateController extends Controller
             ->count('company_jobs.company_id');
 
         // 3. Total HR employees with assigned candidates
-        $totalHREmployees = (clone $baseQuery)
-            ->whereNotNull('agent_candidates.nomad_office_id')
-            ->distinct('agent_candidates.nomad_office_id')
-            ->count('agent_candidates.nomad_office_id');
+        $totalHREmployeesQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('agent_candidates.deleted_at')
+            ->whereBetween('agent_candidates.created_at', [$dateFrom, $dateTo])
+            ->whereHas('candidate')
+            ->join('asign_candidate_to_nomad_offices', 'agent_candidates.candidate_id', '=', 'asign_candidate_to_nomad_offices.candidate_id')
+            ->distinct('asign_candidate_to_nomad_offices.nomad_office_id');
+
+        if ($user->hasRole(Role::HR)) {
+            $totalHREmployeesQuery->where('asign_candidate_to_nomad_offices.nomad_office_id', $user->id);
+        }
+
+        $totalHREmployees = $totalHREmployeesQuery->count('asign_candidate_to_nomad_offices.nomad_office_id');
 
         // 4. Candidates created this month
-        $candidatesThisMonth = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
+        $candidatesThisMonthQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
             ->whereNull('deleted_at')
             ->whereYear('created_at', Carbon::now()->year)
             ->whereMonth('created_at', Carbon::now()->month)
-            ->count();
+            ->whereHas('candidate');
+
+        // Ако корисникот е HR, филтрирај само негови кандидати
+        if ($user->hasRole(Role::HR)) {
+            $candidatesThisMonthQuery->join('asign_candidate_to_nomad_offices as acno', 'agent_candidates.candidate_id', '=', 'acno.candidate_id')
+                ->where('acno.nomad_office_id', $user->id);
+        }
+
+        $candidatesThisMonth = $candidatesThisMonthQuery->count();
 
         // 5. Candidates with process started (имаат status_id во candidates табела)
-        $candidatesWithProcess = (clone $baseQuery)
+        $candidatesWithProcessQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('agent_candidates.deleted_at')
+            ->whereBetween('agent_candidates.created_at', [$dateFrom, $dateTo])
+            ->whereHas('candidate')
             ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
-            ->whereNotNull('candidates.status_id')
-            ->count();
+            ->whereNotNull('candidates.status_id');
+
+        if ($user->hasRole(Role::HR)) {
+            $candidatesWithProcessQuery->join('asign_candidate_to_nomad_offices as acno2', 'agent_candidates.candidate_id', '=', 'acno2.candidate_id')
+                ->where('acno2.nomad_office_id', $user->id);
+        }
+
+        $candidatesWithProcess = $candidatesWithProcessQuery->distinct('agent_candidates.id')->count('agent_candidates.id');
 
         // 6. Candidates by company (avoid duplicates)
-        $candidatesByCompany = (clone $baseQuery)
+        $candidatesByCompanyQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('agent_candidates.deleted_at')
+            ->whereBetween('agent_candidates.created_at', [$dateFrom, $dateTo])
+            ->whereHas('candidate')
             ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
-            ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+            ->join('companies', 'company_jobs.company_id', '=', 'companies.id');
+
+        if ($user->hasRole(Role::HR)) {
+            $candidatesByCompanyQuery->join('asign_candidate_to_nomad_offices as acno3', 'agent_candidates.candidate_id', '=', 'acno3.candidate_id')
+                ->where('acno3.nomad_office_id', $user->id);
+        }
+
+        $candidatesByCompany = $candidatesByCompanyQuery
             ->select('companies.nameOfCompany as name', DB::raw('COUNT(DISTINCT agent_candidates.id) as count'))
             ->groupBy('companies.id', 'companies.nameOfCompany')
             ->orderByDesc('count')
@@ -951,12 +1010,21 @@ class CandidateController extends Controller
             });
 
         // 7. Candidates by HR
-        $candidatesByHR = (clone $baseQuery)
-            ->whereNotNull('agent_candidates.nomad_office_id')
-            ->join('users', 'agent_candidates.nomad_office_id', '=', 'users.id')
+        $candidatesByHRQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('agent_candidates.deleted_at')
+            ->whereBetween('agent_candidates.created_at', [$dateFrom, $dateTo])
+            ->whereHas('candidate')
+            ->join('asign_candidate_to_nomad_offices', 'agent_candidates.candidate_id', '=', 'asign_candidate_to_nomad_offices.candidate_id')
+            ->join('users', 'asign_candidate_to_nomad_offices.nomad_office_id', '=', 'users.id');
+
+        if ($user->hasRole(Role::HR)) {
+            $candidatesByHRQuery->where('asign_candidate_to_nomad_offices.nomad_office_id', $user->id);
+        }
+
+        $candidatesByHR = $candidatesByHRQuery
             ->select(
                 DB::raw("CONCAT(users.firstName, ' ', users.lastName) as name"),
-                DB::raw('COUNT(*) as count')
+                DB::raw('COUNT(DISTINCT agent_candidates.id) as count')
             )
             ->groupBy('users.id', 'users.firstName', 'users.lastName')
             ->orderByDesc('count')
@@ -969,11 +1037,20 @@ class CandidateController extends Controller
             });
 
         // 8. Candidates with process by HR Employee
-        $candidatesByHRWithProcess = (clone $baseQuery)
-            ->whereNotNull('agent_candidates.nomad_office_id')
+        $candidatesByHRWithProcessQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('agent_candidates.deleted_at')
+            ->whereBetween('agent_candidates.created_at', [$dateFrom, $dateTo])
+            ->whereHas('candidate')
+            ->join('asign_candidate_to_nomad_offices', 'agent_candidates.candidate_id', '=', 'asign_candidate_to_nomad_offices.candidate_id')
             ->join('candidates', 'agent_candidates.candidate_id', '=', 'candidates.id')
             ->whereNotNull('candidates.status_id')
-            ->join('users', 'agent_candidates.nomad_office_id', '=', 'users.id')
+            ->join('users', 'asign_candidate_to_nomad_offices.nomad_office_id', '=', 'users.id');
+
+        if ($user->hasRole(Role::HR)) {
+            $candidatesByHRWithProcessQuery->where('asign_candidate_to_nomad_offices.nomad_office_id', $user->id);
+        }
+
+        $candidatesByHRWithProcess = $candidatesByHRWithProcessQuery
             ->select(
                 DB::raw("CONCAT(users.firstName, ' ', users.lastName) as name"),
                 DB::raw('COUNT(DISTINCT agent_candidates.id) as count')

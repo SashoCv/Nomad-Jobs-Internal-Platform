@@ -22,7 +22,7 @@ class PositionController extends Controller
     public function index()
     {
 
-            $allPositions = Position::all();
+            $allPositions = Position::with(['documents', 'files'])->get();
 
             return response()->json([
                 'success' => true,
@@ -252,5 +252,107 @@ class PositionController extends Controller
             'status' => 200,
             'data' => $position->documents
         ]);
+    }
+
+    // ========== REQUIRED DOCUMENTS (position_documents) ==========
+
+    /**
+     * Add required document name
+     */
+    public function addRequiredDocument(Request $request, $id)
+    {
+        if (!$this->isStaff()) {
+            return response()->json(['success' => false, 'status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        $position = Position::find($id);
+        if (!$position) {
+            return response()->json(['success' => false, 'status' => 404, 'message' => 'Position not found'], 404);
+        }
+
+        $document = $position->documents()->create([
+            'name' => $request->name,
+        ]);
+
+        return response()->json(['success' => true, 'status' => 200, 'data' => $document]);
+    }
+
+    /**
+     * Delete required document
+     */
+    public function deleteRequiredDocument($positionId, $documentId)
+    {
+        if (!$this->isStaff()) {
+            return response()->json(['success' => false, 'status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        $document = \App\Models\PositionDocument::where('id', $documentId)
+            ->where('position_id', $positionId)
+            ->first();
+
+        if (!$document) {
+            return response()->json(['success' => false, 'status' => 404, 'message' => 'Document not found'], 404);
+        }
+
+        $document->delete();
+        return response()->json(['success' => true, 'status' => 200, 'message' => 'Document deleted']);
+    }
+
+    // ========== FILES (position_files) ==========
+
+    /**
+     * Upload file for position
+     */
+    public function uploadFile(Request $request, $id)
+    {
+        if (!$this->isStaff()) {
+            return response()->json(['success' => false, 'status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        $position = Position::find($id);
+        if (!$position) {
+            return response()->json(['success' => false, 'status' => 404, 'message' => 'Position not found'], 404);
+        }
+
+        if (!$request->hasFile('file')) {
+            return response()->json(['success' => false, 'status' => 400, 'message' => 'No file provided'], 400);
+        }
+
+        $file = $request->file('file');
+        $fileName = $file->getClientOriginalName();
+        $filePath = Storage::disk('public')->put('position_files', $file);
+
+        $positionFile = $position->files()->create([
+            'file_name' => $fileName,
+            'file_path' => $filePath,
+        ]);
+
+        return response()->json(['success' => true, 'status' => 200, 'data' => $positionFile]);
+    }
+
+    /**
+     * Delete file
+     */
+    public function deleteFile($positionId, $fileId)
+    {
+        if (!$this->isStaff()) {
+            return response()->json(['success' => false, 'status' => 403, 'message' => 'Unauthorized'], 403);
+        }
+
+        $file = \App\Models\PositionFile::where('id', $fileId)
+            ->where('position_id', $positionId)
+            ->first();
+
+        if (!$file) {
+            return response()->json(['success' => false, 'status' => 404, 'message' => 'File not found'], 404);
+        }
+
+        // Delete from storage
+        if (Storage::disk('public')->exists($file->file_path)) {
+            Storage::disk('public')->delete($file->file_path);
+        }
+
+        $file->delete();
+        return response()->json(['success' => true, 'status' => 200, 'message' => 'File deleted']);
     }
 }

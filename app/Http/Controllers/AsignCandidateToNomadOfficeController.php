@@ -137,6 +137,51 @@ class AsignCandidateToNomadOfficeController extends Controller
     }
 
     /**
+     * Assign HR employee to approved candidate.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id (candidate_from_agent_id)
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateHRData(Request $request, $id)
+    {
+        try {
+            $agentCandidate = AgentCandidate::with('candidate')->findOrFail($id);
+            $candidateId = $agentCandidate->candidate_id;
+            $nomadOfficeId = $request->input('hr_employee_id');
+            $adminId = Auth::id();
+
+            // Check if assignment already exists
+            $existingAssignment = AsignCandidateToNomadOffice::where('candidate_id', $candidateId)->first();
+
+            if ($existingAssignment) {
+                // Update existing assignment
+                $existingAssignment->nomad_office_id = $nomadOfficeId;
+                $existingAssignment->admin_id = $adminId;
+                $existingAssignment->save();
+                $assignment = $existingAssignment;
+            } else {
+                // Create new assignment
+                $assignment = AsignCandidateToNomadOffice::create([
+                    'admin_id' => $adminId,
+                    'nomad_office_id' => $nomadOfficeId,
+                    'candidate_id' => $candidateId,
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'HR employee assigned successfully',
+                'data' => $assignment
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to assign HR employee',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\AsignCandidateToNomadOffice  $asignCandidateToNomadOffice

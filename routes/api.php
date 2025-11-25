@@ -237,6 +237,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
     Route::get('getCandidateFromAgent', [AsignCandidateToNomadOfficeController::class, 'index']);
+    Route::put('updateApprovedCandidateHRData/{id}', [AsignCandidateToNomadOfficeController::class, 'updateHRData']);
 
     // Cases
     Route::get('getCases', [CasesController::class, 'index']);
@@ -358,8 +359,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Countries
     Route::get('countries', [\App\Http\Controllers\CountryController::class, 'index']);
 
-    // Position Documents
+    // Position Documents (Required Document Names)
     Route::get('positions/{id}/documents', [\App\Http\Controllers\PositionController::class, 'getDocuments']);
+    Route::post('positions/{id}/required-documents', [\App\Http\Controllers\PositionController::class, 'addRequiredDocument']);
+    Route::delete('positions/{positionId}/required-documents/{documentId}', [\App\Http\Controllers\PositionController::class, 'deleteRequiredDocument']);
+
+    // Position Files (Actual File Uploads)
+    Route::post('positions/{id}/files', [\App\Http\Controllers\PositionController::class, 'uploadFile']);
+    Route::delete('positions/{positionId}/files/{fileId}', [\App\Http\Controllers\PositionController::class, 'deleteFile']);
 
 
     // HR - RECRUTERS

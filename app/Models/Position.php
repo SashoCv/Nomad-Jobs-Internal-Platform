@@ -16,4 +16,9 @@ class Position extends Model
     {
         return $this->hasMany(PositionDocument::class);
     }
+
+    public function files()
+    {
+        return $this->hasMany(PositionFile::class);
+    }
 }

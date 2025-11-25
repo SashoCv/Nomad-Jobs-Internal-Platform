@@ -11,7 +11,7 @@ class PositionDocument extends Model
 
     protected $fillable = [
         'position_id',
-        'document_name',
+        'name',
     ];
 
     public function position()

@@ -22,6 +22,8 @@ class Permission extends Model
     const HOME_FILTER = 'home:filter';
     const HOME_ARRIVALS = 'home:arrivals';
     const HOME_CHANGE_STATUS = 'home:change_status';
+    const APPROVED_CANDIDATES_READ = 'approved_candidates:read';
+    const HR_REPORTS_READ = 'hr_reports:read';
 
     const COMPANIES_READ = 'companies:read';
     const COMPANIES_CREATE = 'companies:create';

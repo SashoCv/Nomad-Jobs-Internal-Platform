@@ -276,7 +276,8 @@ class AgentCandidateController extends Controller
                 'statusForCandidateFromAgent',
                 'user'
             ])
-                ->whereNull('agent_candidates.deleted_at');
+                ->whereNull('agent_candidates.deleted_at')
+                ->whereHas('candidate'); // Само кандидати кои имаат candidate relation
 
             // Filter po company_job_id i role
             if ($companyJobId != null) {
@@ -319,21 +320,22 @@ class AgentCandidateController extends Controller
                 $query->where('user_id', $agentId);
             }
 
-            // Filter po datum (tekovnata godina ili custom)
+            // Filter po datum
             if ($dateFrom && $dateTo) {
                 $query->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
+            } elseif ($dateFrom) {
+                // Samo dateFrom: od toj datum do denes
+                $query->where('created_at', '>=', $dateFrom.' 00:00:00');
+            } elseif ($dateTo) {
+                // Samo dateTo: do toj datum
+                $query->where('created_at', '<=', $dateTo.' 23:59:59');
             } else {
                 // default: tekovnata godina
                 $query->whereYear('created_at', date('Y'));
             }
 
-            // Order po company_id preko relacija
-            $query->orderBy(
-                CompanyJob::select('company_id')
-                    ->whereColumn('company_jobs.id', 'agent_candidates.company_job_id')
-                    ->limit(1),
-                'desc'
-            );
+            // Order po id (najnovi prvo)
+            $query->orderBy('agent_candidates.id', 'desc');
 
             $candidates = $query->paginate(20);
 
