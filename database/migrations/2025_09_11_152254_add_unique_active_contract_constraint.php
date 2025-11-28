@@ -56,15 +56,28 @@ return new class extends Migration
 
         if (empty($columnExists)) {
             // Create a computed column that is only populated for active contracts
-            DB::statement("
-                ALTER TABLE company_service_contracts 
-                ADD COLUMN active_company_constraint VARCHAR(255) GENERATED ALWAYS AS (
-                    CASE 
-                        WHEN status = 'active' AND deleted_at IS NULL THEN CONCAT('active_', company_id)
-                        ELSE NULL 
-                    END
-                ) STORED
-            ");
+            try {
+                DB::statement("
+                    ALTER TABLE company_service_contracts
+                    ADD COLUMN active_company_constraint VARCHAR(255) GENERATED ALWAYS AS (
+                        CASE
+                            WHEN status = 'active' AND deleted_at IS NULL THEN CONCAT('active_', company_id)
+                            ELSE NULL
+                        END
+                    ) STORED
+                ");
+            } catch (\Exception $e) {
+                // If the generated column syntax fails, try with VIRTUAL instead of STORED
+                DB::statement("
+                    ALTER TABLE company_service_contracts
+                    ADD COLUMN active_company_constraint VARCHAR(255) AS (
+                        CASE
+                            WHEN status = 'active' AND deleted_at IS NULL THEN CONCAT('active_', company_id)
+                            ELSE NULL
+                        END
+                    ) VIRTUAL
+                ");
+            }
         }
         
         // Check if the index already exists, if not create it
