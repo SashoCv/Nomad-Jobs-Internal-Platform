@@ -77,6 +77,8 @@ class GeneralManagerPermissions
             Permission::HOME_FILTER,
             Permission::HOME_ARRIVALS,
             Permission::HOME_CHANGE_STATUS,
+            Permission::APPROVED_CANDIDATES_READ,
+            Permission::HR_REPORTS_READ,
             Permission::TRANSPORT_READ,
             Permission::TRANSPORT_CREATE,
             Permission::TRANSPORT_COVERAGE,

@@ -162,6 +162,8 @@ class CompanyJobController extends Controller
             $companyJob->otherDescription = $request->otherDescription;
             $companyJob->countryOfOrigin = $request->countryOfOrigin; // Assuming this field is added in the migration
             $companyJob->position_id = $request->position_id; // Job position selection
+            $companyJob->real_position = $request->real_position; // Real position text
+            $companyJob->country_id = $request->country_id; // Country foreign key
 
             if ($companyJob->save()) {
                 $companyName = Company::where('id', $companyJob->company_id)->first();
@@ -286,6 +288,8 @@ class CompanyJobController extends Controller
             $companyJob->otherDescription = $request->otherDescription;
             $companyJob->countryOfOrigin = $request->countryOfOrigin;
             $companyJob->position_id = $request->position_id; // Job position selection
+            $companyJob->real_position = $request->real_position; // Real position text
+            $companyJob->country_id = $request->country_id; // Country foreign key
 
             $companyForThisJob = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
 

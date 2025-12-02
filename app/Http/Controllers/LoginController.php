@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendWelcomeSetPasswordEmailJob;
 use App\Models\Company;
 use App\Models\CompanyServiceContract;
 use App\Models\Role;
@@ -12,10 +13,11 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 
 class LoginController extends Controller
@@ -194,26 +196,146 @@ class LoginController extends Controller
 
     public function store(Request $request)
     {
-         $request->validate(
+        try {
+            $request->validate(
                 [
                     'firstName' => 'required',
                     'email' => 'required|email',
-                    'password' => 'required',
                 ],
                 [
-                    'firstName' => 'You must to enter a name!',
-                    'email' => 'You must to enter a email!',
-                    'password' => 'You must to enter a password!',
+                    'firstName.required' => 'Name is required!',
+                    'email.required' => 'Email is required!',
+                    'email.email' => 'Please enter a valid email address!',
                 ]
             );
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 422,
+                'message' => $e->validator->errors()->first(),
+                'errors' => $e->validator->errors()->toArray(),
+            ], 422);
+        }
+
+            // Check if an active (non-deleted) user with this email already exists
+            $existingActiveUser = User::where('email', $request->email)->first();
+            if ($existingActiveUser) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 422,
+                    'message' => 'A user with this email already exists!',
+                ], 422);
+            }
+
+            // Check if a soft-deleted user with this email exists - restore and update instead of creating new
+            $softDeletedUser = User::withTrashed()->where('email', $request->email)->whereNotNull('deleted_at')->first();
+            if ($softDeletedUser) {
+                // Restore the soft-deleted user and update their information
+                $softDeletedUser->restore();
+
+                $softDeletedUser->firstName = $request->firstName;
+                $softDeletedUser->lastName = $request->lastName;
+                $softDeletedUser->password = bcrypt(Str::random(32));
+                $softDeletedUser->role_id = $request->role_id;
+                $softDeletedUser->company_id = $request->company_id;
+
+                if ($request->hasFile('userPicture')) {
+                    Storage::disk('public')->put('userImages', $request->file('userPicture'));
+                    $name = Storage::disk('public')->put('userImages', $request->file('userPicture'));
+                    $softDeletedUser->userPicturePath = $name;
+                    $softDeletedUser->userPictureName = $request->file('userPicture')->getClientOriginalName();
+                }
+
+                if ($request->hasFile('signature')) {
+                    Storage::disk('public')->put('adminSignatures', $request->file('signature'));
+                    $name = Storage::disk('public')->put('adminSignatures', $request->file('signature'));
+                    $softDeletedUser->signaturePath = $name;
+                    $softDeletedUser->signatureName = $request->file('signature')->getClientOriginalName();
+                }
+
+                // Validate company user contract requirement
+                if ($request->role_id === Role::COMPANY_USER) {
+                    $haveAgreement = CompanyServiceContract::where('company_id', $request->company_id)->first();
+                    if (!$haveAgreement) {
+                        // Re-delete the user since validation failed
+                        $softDeletedUser->delete();
+                        return response()->json([
+                            'success' => false,
+                            'status' => 500,
+                            'data' => [],
+                            'message' => 'This company does not have a service contract. Please contact admin!'
+                        ]);
+                    }
+                }
+
+                if ($softDeletedUser->save()) {
+                    // Handle company owner associations
+                    if ($softDeletedUser->role_id === Role::COMPANY_OWNER) {
+                        // Clear old associations first
+                        $oldUserOwners = UserOwner::where('user_id', $softDeletedUser->id)->get();
+                        foreach ($oldUserOwners as $oldUserOwner) {
+                            $company = Company::find($oldUserOwner->company_id);
+                            if ($company) {
+                                $company->has_owner = false;
+                                $company->save();
+                            }
+                            $oldUserOwner->delete();
+                        }
+
+                        // Create new associations
+                        $companiesIds = $request->companies;
+                        $companiesArray = array_map('intval', explode(',', $companiesIds));
+                        foreach ($companiesArray as $companyId) {
+                            $company = Company::find($companyId);
+                            if ($company) {
+                                $company->has_owner = true;
+                                $company->save();
+
+                                $userOwner = new UserOwner();
+                                $userOwner->user_id = $softDeletedUser->id;
+                                $userOwner->company_id = $companyId;
+                                $userOwner->save();
+                            }
+                        }
+                    }
+
+                    // Generate token for password setup
+                    $token = Str::random(64);
+                    DB::table('password_resets')->where('email', $softDeletedUser->email)->delete();
+                    DB::table('password_resets')->insert([
+                        'email' => $softDeletedUser->email,
+                        'token' => Hash::make($token),
+                        'created_at' => Carbon::now(),
+                    ]);
+
+                    $setPasswordUrl = config('app.frontend_url', 'https://nomadjobs.cloud') . '/set-password?token=' . $token . '&email=' . urlencode($softDeletedUser->email);
+
+                    SendWelcomeSetPasswordEmailJob::dispatch(
+                        $softDeletedUser->email,
+                        $setPasswordUrl,
+                        $softDeletedUser->firstName
+                    );
+
+                    Log::info('Restored soft-deleted user and sent welcome email', [
+                        'user_id' => $softDeletedUser->id,
+                        'email' => $softDeletedUser->email,
+                    ]);
+
+                    return response()->json([
+                        'success' => true,
+                        'status' => 200,
+                        'data' => $softDeletedUser,
+                    ]);
+                }
+            }
 
             $user = new User();
 
             $user->firstName = $request->firstName;
             $user->lastName = $request->lastName;
             $user->email = $request->email;
-            $user->password = bcrypt($request->password);
-            $user->passwordShow = $request->password;
+            // Set a temporary random password - user will set their own via email link
+            $user->password = bcrypt(Str::random(32));
             $user->role_id = $request->role_id;
             $user->company_id = $request->company_id;
 
@@ -262,24 +384,33 @@ class LoginController extends Controller
                     }
                 }
 
-                $user = User::where('email', $request->email)->first();
-                if ($user) {
+                // Generate a secure token for the user to set their password
+                $token = Str::random(64);
 
-                    $domain = URL::to('https://www.nomadjobs.cloud/');
-                    $url = $domain;
+                // Delete any existing tokens for this email
+                DB::table('password_resets')->where('email', $user->email)->delete();
 
-                    $data['url'] = $url;
-                    $data['firstName'] = $request->firstName;
-                    $data['lastName'] = $request->lastName;
-                    $data['email'] = $request->email;
-                    $data['password'] = $request->password;
-                    $data['title'] = 'Login credentials for Nomad Cloud';
-                    $data['body'] = "Please click on below link";
+                // Store the hashed token
+                DB::table('password_resets')->insert([
+                    'email' => $user->email,
+                    'token' => Hash::make($token),
+                    'created_at' => Carbon::now(),
+                ]);
 
-                    Mail::send('loginLink', ['data' => $data], function ($message) use ($data) {
-                        $message->to($data['email'])->subject($data['title']);
-                    });
-                }
+                // Build the set password URL
+                $setPasswordUrl = config('app.frontend_url', 'https://nomadjobs.cloud') . '/set-password?token=' . $token . '&email=' . urlencode($user->email);
+
+                // Dispatch the welcome email job
+                SendWelcomeSetPasswordEmailJob::dispatch(
+                    $user->email,
+                    $setPasswordUrl,
+                    $user->firstName
+                );
+
+                Log::info('Welcome set-password email dispatched for new user', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
 
                 return response()->json([
                     'success' => true,
@@ -332,11 +463,29 @@ class LoginController extends Controller
     public function changePasswordForUser(Request $request)
     {
         try {
+            $request->validate([
+                'id' => 'required|integer',
+                'password' => 'required|string|min:8',
+            ]);
+
             $user = User::where('id', '=', $request->id)->first();
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 404,
+                    'message' => 'User not found',
+                ]);
+            }
+
             $user->password = bcrypt($request->password);
-            $user->passwordShow = $request->password;
 
             if ($user->save()) {
+                Log::info('Password changed for user by admin', [
+                    'user_id' => $user->id,
+                    'changed_by' => Auth::id(),
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'status' => 200,
@@ -350,6 +499,10 @@ class LoginController extends Controller
                 ]);
             }
         } catch (Exception $e) {
+            Log::error('Error changing password for user', [
+                'error' => $e->getMessage(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'status' => 500,

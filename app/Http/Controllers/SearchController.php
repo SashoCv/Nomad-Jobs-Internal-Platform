@@ -779,7 +779,8 @@ class SearchController extends Controller
             'user',
             'status',
             'company.company_addresses'
-        ]);
+        ])
+            ->whereNotNull('status_id');
 
         $user = Auth::user();
 

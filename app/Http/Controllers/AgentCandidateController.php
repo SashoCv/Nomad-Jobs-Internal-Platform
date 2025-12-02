@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AgentCandidateResource;
+use App\Models\CompanyJob;
 use App\Traits\HasRolePermissions;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
@@ -262,56 +263,79 @@ class AgentCandidateController extends Controller
             $status = $request->status_for_candidate_from_agent_id;
             $companyJobId = $request->company_job_id;
             $agentId = $request->agent_id;
-
-
-
-            $user_id = Auth::user()->id;
-            $query = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
-                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
-                ->orderBy('company_jobs.company_id', 'desc');
+            $dateFrom = $request->date_from; // očekuvame 'Y-m-d'
+            $dateTo = $request->date_to;     // očekuvame 'Y-m-d'
 
             $user = Auth::user();
+            $user_id = $user->id;
 
-            if ($request->company_job_id != null) {
+            $query = AgentCandidate::with([
+                'candidate',
+                'companyJob',
+                'companyJob.company',
+                'statusForCandidateFromAgent',
+                'user'
+            ])
+                ->whereNull('agent_candidates.deleted_at')
+                ->whereHas('candidate'); // Само кандидати кои имаат candidate relation
+
+            // Filter po company_job_id i role
+            if ($companyJobId != null) {
                 if ($this->isStaff() || $user->hasRole(Role::COMPANY_USER) || $user->hasRole(Role::COMPANY_OWNER)) {
-                    $query->where('company_job_id', $request->company_job_id);
+                    $query->where('company_job_id', $companyJobId);
                 } else if ($user->hasRole(Role::AGENT)) {
-                    $query->where('agent_candidates.user_id', $user_id)
-                        ->where('company_job_id', $request->company_job_id);
+                    $query->where('user_id', $user_id)
+                        ->where('company_job_id', $companyJobId);
                 }
             } else {
-                if ($user->hasRole(Role::GENERAL_MANAGER) || $user->hasRole(Role::MANAGER) || $user->hasRole(Role::OFFICE_MANAGER) || $user->hasRole(Role::RECRUITERS) || $user->hasRole(Role::FINANCE)) {
-                    $query->where('nomad_office_id', null);
-                } else if ($user->hasRole(Role::HR)){
-                    $query->where('agent_candidates.nomad_office_id', $user_id);
+                if ($user->hasRole(Role::HR)) {
+                    $query->where('nomad_office_id', $user_id);
                 } else if ($user->hasRole(Role::AGENT)) {
-                    $query->where('agent_candidates.user_id', $user_id);
+                    $query->where('user_id', $user_id);
                 }
             }
 
-            if($companyId){
-                $query->where('company_jobs.company_id', $companyId);
+            // Filter po company_id preko relacija
+            if ($companyId) {
+                $query->whereHas('companyJob', function ($q) use ($companyId) {
+                    $q->where('company_id', $companyId);
+                });
             }
 
-            if($name){
+            // Filter po ime
+            if ($name) {
                 $query->whereHas('candidate', function ($subquery) use ($name) {
                     $subquery->where('fullName', 'LIKE', '%' . $name . '%')
                         ->orWhere('fullNameCyrillic', 'LIKE', '%' . $name . '%');
                 });
             }
 
-            if($status){
+            // Filter po status
+            if ($status) {
                 $query->where('status_for_candidate_from_agent_id', $status);
             }
 
-            if($companyJobId){
-                $query->where('company_job_id', $companyJobId);
+            // Filter po agent
+            if ($agentId) {
+                $query->where('user_id', $agentId);
             }
 
-            if($agentId){
-                $query->where('agent_candidates.user_id', $agentId);
+            // Filter po datum
+            if ($dateFrom && $dateTo) {
+                $query->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
+            } elseif ($dateFrom) {
+                // Samo dateFrom: od toj datum do denes
+                $query->where('created_at', '>=', $dateFrom.' 00:00:00');
+            } elseif ($dateTo) {
+                // Samo dateTo: do toj datum
+                $query->where('created_at', '<=', $dateTo.' 23:59:59');
+            } else {
+                // default: tekovnata godina
+                $query->whereYear('created_at', date('Y'));
             }
 
+            // Order po id (najnovi prvo)
+            $query->orderBy('agent_candidates.id', 'desc');
 
             $candidates = $query->paginate(20);
 
@@ -322,6 +346,7 @@ class AgentCandidateController extends Controller
             return response()->json(['message' => 'Failed to get candidates'], 500);
         }
     }
+
 
     public function destroy($id)
     {
@@ -504,6 +529,58 @@ class AgentCandidateController extends Controller
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Failed to update candidate: ' . $e->getMessage()], 500);
+        }
+    }
+
+    // Get details for agent candidate
+    public function getDetails($agentCandidateId)
+    {
+        try {
+            $agentCandidate = AgentCandidate::findOrFail($agentCandidateId);
+            $details = $agentCandidate->details;
+
+            return response()->json([
+                'success' => true,
+                'data' => $details,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get details: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Create or update details for agent candidate
+    public function upsertDetails(Request $request, $agentCandidateId)
+    {
+        try {
+            $agentCandidate = AgentCandidate::findOrFail($agentCandidateId);
+
+            $data = $request->validate([
+                'powerOfAttorney' => 'nullable|boolean',
+                'personnelReferences' => 'nullable|boolean',
+                'accommodationAddress' => 'nullable|boolean',
+                'notes' => 'nullable|string',
+            ]);
+
+            $details = $agentCandidate->details()->updateOrCreate(
+                ['agent_candidate_id' => $agentCandidateId],
+                $data
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => $details,
+                'message' => 'Details saved successfully',
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save details: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

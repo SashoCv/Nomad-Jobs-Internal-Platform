@@ -9,8 +9,8 @@ class AgentCandidateResource extends JsonResource
 {
     public function toArray($request)
     {
-        $addedById = $this->candidate->addedBy;
-        $agent = User::where('id', $addedById)->first();
+        $addedById = $this->candidate->addedBy ?? null;
+        $agent = $addedById ? User::where('id', $addedById)->first() : null;
 
         return [
             'id' => $this->id,
@@ -21,13 +21,13 @@ class AgentCandidateResource extends JsonResource
             'company' => $this->companyJob && $this->companyJob->company ? [
                 'id' => $this->companyJob->company->id,
                 'name' => $this->companyJob->company->nameOfCompany,
-            ] : null,  // Return null if companyJob or company is not available
+            ] : null,
             'company_job' => $this->companyJob ? [
                 'id' => $this->companyJob->id,
                 'job_title' => $this->companyJob->job_title,
                 'salary' => $this->companyJob->salary,
                 'contract_type' => $this->companyJob->contract_type,
-            ] : null,  // Return null if companyJob is not available
+            ] : null,
             'candidate' => [
                 'id' => $this->candidate->id,
                 'fullName' => $this->candidate->fullName,
@@ -37,16 +37,16 @@ class AgentCandidateResource extends JsonResource
                 'nationality' => $this->candidate->nationality,
                 'birthday' => $this->candidate->birthday,
             ],
-            'status_for_candidate_from_agent' => [
+            'status_for_candidate_from_agent' => $this->statusForCandidateFromAgent ? [
                 'id' => $this->statusForCandidateFromAgent->id,
                 'name' => $this->statusForCandidateFromAgent->name,
-            ],
-            'Agent' => [
+            ] : null,
+            'Agent' => $agent ? [
                 'id' => $agent->id,
                 'firstName' => $agent->firstName,
                 'lastName' => $agent->lastName,
                 'email' => $agent->email,
-            ],
+            ] : null,
         ];
     }
 }

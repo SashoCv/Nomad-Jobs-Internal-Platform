@@ -11,6 +11,7 @@ class PermissionDefinitions
         return [
             // Dashboard
             ['name' => Permission::DASHBOARD_READ, 'slug' => 'dashboard:read', 'description' => 'Read dashboard'],
+            ['name' => Permission::COMPANY_DASHBOARD_READ, 'slug' => 'company_dashboard:read', 'description' => 'Access company dashboard view'],
 
             // Companies
             ['name' => Permission::COMPANIES_READ, 'slug' => 'companies:read', 'description' => 'Read companies'],
@@ -91,6 +92,8 @@ class PermissionDefinitions
             ['name' => Permission::HOME_FILTER, 'slug' => 'home:filter', 'description' => 'Filter home page data'],
             ['name' => Permission::HOME_ARRIVALS, 'slug' => 'home:arrivals', 'description' => 'Access arrivals on home page'],
             ['name' => Permission::HOME_CHANGE_STATUS, 'slug' => 'home:change_status', 'description' => 'Change status on home page'],
+            ['name' => Permission::APPROVED_CANDIDATES_READ, 'slug' => 'approved_candidates:read', 'description' => 'Access approved candidates page'],
+            ['name' => Permission::HR_REPORTS_READ, 'slug' => 'hr_reports:read', 'description' => 'Access HR reports page'],
 
             // Expired Items
             ['name' => Permission::EXPIRED_CONTRACTS_READ, 'slug' => 'expired_contracts:read', 'description' => 'Read expired contracts'],

@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  app:
+    image: nomad-cloud/api-nomad-cloud:dev
+    container_name: api-nomad-cloud-app-1
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/app
+      - ./.env:/app/.env
+    depends_on:
+      - mysql
+      - redis
+      - mailpit
+    networks:
+      - nomad-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: api-nomad-cloud-mysql-1
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: nomad_cloud
+      MYSQL_USER: nomad
+      MYSQL_PASSWORD: nomad123
+      MYSQL_ROOT_PASSWORD: root123
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - nomad-network
+
+  redis:
+    image: redis:6.2.13
+    container_name: api-nomad-cloud-redis-1
+    ports:
+      - "6379:6379"
+    networks:
+      - nomad-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: api-nomad-cloud-phpmyadmin-1
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root123
+    depends_on:
+      - mysql
+    networks:
+      - nomad-network
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: api-nomad-cloud-mailpit-1
+    ports:
+      - "8025:8025"   # Web UI
+      - "1025:1025"   # SMTP
+    networks:
+      - nomad-network
+
+networks:
+  nomad-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

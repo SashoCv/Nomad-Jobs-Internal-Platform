@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AgentCandidateController;
 use App\Http\Controllers\AssignedJobController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyCategoryController;
@@ -49,24 +51,54 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+/*
+|--------------------------------------------------------------------------
+| Public Routes - No Authentication Required
+|--------------------------------------------------------------------------
+*/
+
+// Sanctum CSRF cookie route
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['message' => 'CSRF cookie set']);
 });
 
+// Login route (public)
+Route::post('login', [AuthController::class, 'login'])
+    ->middleware('throttle:10,1')
+    ->name('login');
 
-//Login
+// Password Reset Routes (Public)
+Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword'])
+    ->middleware('throttle:5,1')
+    ->name('password.forgot');
 
-Route::post('login', [LoginController::class, 'login']);
-Route::get('test', [CompanyController::class, 'test']);
-Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
-Route::get('downloadDocumentsForArrivalCandidate/{candidateId}', [ArrivalCandidateController::class, 'downloadDocumentsForArrivalCandidates']);
-Route::get('downloadDocumentsForCandidatesFromAgent/{candidateId}', [AgentCandidateController::class, 'downloadDocumentsForCandidatesFromAgent']);
+Route::post('reset-password', [PasswordResetController::class, 'resetPassword'])
+    ->middleware('throttle:5,1')
+    ->name('password.reset');
 
+Route::get('validate-reset-token', [PasswordResetController::class, 'validateToken'])
+    ->middleware('throttle:10,1')
+    ->name('password.validate-token');
 
-Route::middleware('auth:sanctum')->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Protected Routes - Require Sanctum Authentication
+|--------------------------------------------------------------------------
+*/
 
+Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::get('user', [LoginController::class, 'user'])->name('user');
+    // Authentication endpoints
+    Route::get('user', [AuthController::class, 'user']);
+    Route::post('logout', [AuthController::class, 'logout']);
+
+    // Public routes (moved to protected)
+    Route::get('test', [CompanyController::class, 'test']);
+    Route::get('downloadAllFile/{id}', [FileController::class, 'downloadAllFile']);
+    Route::get('downloadDocumentsForArrivalCandidate/{candidateId}', [ArrivalCandidateController::class, 'downloadDocumentsForArrivalCandidates']);
+    Route::get('downloadDocumentsForCandidatesFromAgent/{candidateId}', [AgentCandidateController::class, 'downloadDocumentsForCandidatesFromAgent']);
+
+    // User management
     Route::get('roles', [LoginController::class, 'roles']);
     Route::get('rolesIdAndName', [LoginController::class, 'rolesIdAndName']);
     Route::get('admins', [LoginController::class, 'admins']);
@@ -93,7 +125,6 @@ Route::middleware('auth:sanctum')->group(function () {
     //User
 
     Route::post('storeUser', [LoginController::class, 'store']);
-    Route::post('logout', [LoginController::class, 'logout']);
     Route::get('users', [LoginController::class, 'index']);
     Route::get('user/{id}', [LoginController::class, 'show']);
     Route::post('userUpdate/{id}', [LoginController::class, 'update']);
@@ -227,12 +258,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('updateStatusForCandidateFromAgent/{id}', [StatusForCandidateFromAgentController::class, 'update']);
     Route::delete('deleteCandidateFromAgent/{id}', [AgentCandidateController::class, 'destroy']);
 
+    // Agent Candidate Details
+    Route::get('agentCandidateDetails/{agentCandidateId}', [AgentCandidateController::class, 'getDetails']);
+    Route::post('agentCandidateDetails/{agentCandidateId}', [AgentCandidateController::class, 'upsertDetails']);
+
     Route::post('assignToAnotherJobPosting', [AssignedJobController::class, 'assignToAnotherJobPosting']); // New Route
 
 
     // Assign Candidates From agents to Nomad Offices for preparing documents
     Route::post('assignCandidateToNomadOffice', [AsignCandidateToNomadOfficeController::class, 'assignCandidateToNomadOffice']);
     Route::get('getCandidateFromAgent', [AsignCandidateToNomadOfficeController::class, 'index']);
+    Route::put('updateApprovedCandidateHRData/{id}', [AsignCandidateToNomadOfficeController::class, 'updateHRData']);
 
     // Cases
     Route::get('getCases', [CasesController::class, 'index']);
@@ -351,5 +387,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('cities/{id}', [\App\Http\Controllers\CityController::class, 'show']);
     Route::post('cities/{id}', [\App\Http\Controllers\CityController::class, 'update']);
 
+    // Countries
+    Route::get('countries', [\App\Http\Controllers\CountryController::class, 'index']);
+
+    // Position Documents (Required Document Names)
+    Route::get('positions/{id}/documents', [\App\Http\Controllers\PositionController::class, 'getDocuments']);
+    Route::post('positions/{id}/required-documents', [\App\Http\Controllers\PositionController::class, 'addRequiredDocument']);
+    Route::delete('positions/{positionId}/required-documents/{documentId}', [\App\Http\Controllers\PositionController::class, 'deleteRequiredDocument']);
+
+    // Position Files (Actual File Uploads)
+    Route::post('positions/{id}/files', [\App\Http\Controllers\PositionController::class, 'uploadFile']);
+    Route::delete('positions/{positionId}/files/{fileId}', [\App\Http\Controllers\PositionController::class, 'deleteFile']);
+
+
+    // HR - RECRUTERS
+    Route::get('getHRStatistics', [CandidateController::class, 'getHRStatistics']);
+    Route::get('getApprovedCandidates', [CandidateController::class, 'getApprovedCandidates']);
+
+
+    // Statistic for companies
+    Route::get('statisticForCompanies', [StatisticController::class, 'statisticForCompanies']);
 });
+
 

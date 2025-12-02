@@ -9,4 +9,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Position extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected $fillable = ['jobPosition'];
+
+    public function documents()
+    {
+        return $this->hasMany(PositionDocument::class);
+    }
+
+    public function files()
+    {
+        return $this->hasMany(PositionFile::class);
+    }
 }
