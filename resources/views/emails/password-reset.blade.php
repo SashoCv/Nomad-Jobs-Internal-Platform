@@ -22,7 +22,7 @@
                     </tr>
                     <tr>
                         <td style="text-align: center;">
-                            <img src="/public/images/Logo.webp" title="logo" alt="logo" style="height: 100px; width: 100%">
+                            <img src="{{ config('app.url') }}/images/Logo.webp" title="Nomad Cloud" alt="Nomad Cloud Logo" style="height: 80px; width: auto;">
                         </td>
                     </tr>
                     <tr>
@@ -39,10 +39,10 @@
                                         <h1 style="color: #1e1e2d; font-weight: 500; margin: 0; font-size: 32px;">Password Reset Request</h1>
                                         <p style="color: #455056; font-size: 16px; line-height: 24px; margin-top: 20px;">Dear {{ $userName }},</p>
                                         <p style="color: #455056; font-size: 16px; line-height: 24px;">We received a request to reset your password for your Nomad Cloud account. Click the button below to set a new password:</p>
-                                        <a href="{{ $resetUrl }}" style="display: inline-block; margin-top: 20px; padding: 14px 32px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Reset Password</a>
+                                        <a href="{{ $resetUrl }}" style="display: inline-block; margin-top: 20px; padding: 14px 32px; background-color: #039ee1; color: white; text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: 500;">Reset Password</a>
                                         <p style="color: #455056; font-size: 14px; line-height: 24px; margin-top: 30px;">This link will expire in <strong>24 hours</strong>.</p>
                                         <p style="color: #455056; font-size: 14px; line-height: 24px;">If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
-                                        <p style="color: #999; font-size: 12px; line-height: 20px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">If the button above doesn't work, copy and paste this link into your browser:<br><a href="{{ $resetUrl }}" style="color: #4CAF50;">{{ $resetUrl }}</a></p>
+                                        <p style="color: #999; font-size: 12px; line-height: 20px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">If the button above doesn't work, copy and paste this link into your browser:<br><a href="{{ $resetUrl }}" style="color: #039ee1;">{{ $resetUrl }}</a></p>
                                     </td>
                                 </tr>
                                 <tr>
@@ -56,8 +56,8 @@
                     </tr>
                     <tr>
                         <td style="text-align: center;">
-                            <p style="font-size: 14px; color: rgba(69, 80, 86, 0.74); line-height: 18px; margin: 0;">&copy; <strong>www.nomadjobs.kg</strong></p>
-                            <p style="font-size: 14px; color: rgba(69, 80, 86, 0.74); line-height: 18px; margin: 0;">&copy; <strong>https://www.nomadjobs.cloud/</strong></p>
+                            <p style="font-size: 14px; color: rgba(69, 80, 86, 0.74); line-height: 18px; margin: 0;">&copy; {{ date('Y') }} <strong>Nomad Cloud</strong></p>
+                            <p style="font-size: 12px; color: rgba(69, 80, 86, 0.5); line-height: 18px; margin: 5px 0 0 0;">{{ config('app.frontend_url') }}</p>
                         </td>
                     </tr>
                     <tr>
