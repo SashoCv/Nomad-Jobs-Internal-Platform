@@ -3,6 +3,7 @@
 use App\Http\Controllers\AgentCandidateController;
 use App\Http\Controllers\AssignedJobController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyCategoryController;
@@ -65,6 +66,19 @@ Route::get('/sanctum/csrf-cookie', function () {
 Route::post('login', [AuthController::class, 'login'])
     ->middleware('throttle:10,1')
     ->name('login');
+
+// Password Reset Routes (Public)
+Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword'])
+    ->middleware('throttle:5,1')
+    ->name('password.forgot');
+
+Route::post('reset-password', [PasswordResetController::class, 'resetPassword'])
+    ->middleware('throttle:5,1')
+    ->name('password.reset');
+
+Route::get('validate-reset-token', [PasswordResetController::class, 'validateToken'])
+    ->middleware('throttle:10,1')
+    ->name('password.validate-token');
 
 /*
 |--------------------------------------------------------------------------

@@ -60,6 +60,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used for generating links in emails that point to the
+    | frontend application (password reset, welcome emails, etc.)
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'https://nomadjobs.cloud'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
