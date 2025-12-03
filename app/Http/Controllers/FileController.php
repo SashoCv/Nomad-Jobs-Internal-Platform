@@ -126,7 +126,15 @@ class FileController extends Controller
     public function downloadFile(File $file)
     {
         $pathToFile = public_path('storage/' . $file->filePath);
-        return response()->download($pathToFile, $file->fileName);
+        $extension = pathinfo($file->filePath, PATHINFO_EXTENSION);
+        $fileName = $file->fileName;
+
+        // Add extension if not already present
+        if ($extension && !str_ends_with(strtolower($fileName), '.' . strtolower($extension))) {
+            $fileName .= '.' . $extension;
+        }
+
+        return response()->download($pathToFile, $fileName);
     }
 
     /**
