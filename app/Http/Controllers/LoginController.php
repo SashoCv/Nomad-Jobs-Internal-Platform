@@ -123,6 +123,8 @@ class LoginController extends Controller
         } else if ($this->isStaff()){
             $users = User::with(['company', 'role'])
                 ->where('id','!=','22')->get();
+        } else if ($role_id == 3 || $role_id == 5){
+            $users = [];
         }
 
         if ($users && $users->count() > 0) {
