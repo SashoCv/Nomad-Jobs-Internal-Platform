@@ -957,8 +957,8 @@ class CandidateController extends Controller
         // 4. Candidates created this month
         $candidatesThisMonthQuery = AgentCandidate::where('status_for_candidate_from_agent_id', 3)
             ->whereNull('deleted_at')
-            ->whereYear('created_at', Carbon::now()->year)
-            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('agent_candidates.created_at', Carbon::now()->year)
+            ->whereMonth('agent_candidates.created_at', Carbon::now()->month)
             ->whereHas('candidate');
 
         // Ако корисникот е HR, филтрирај само негови кандидати
