@@ -137,7 +137,7 @@ class LoginController extends Controller
             return response()->json([
                 'success' => false,
                 'status' => 401,
-                'data' => [],
+                'data' => $users,
             ]);
         }
     }
