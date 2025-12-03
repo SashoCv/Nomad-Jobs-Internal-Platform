@@ -15,6 +15,7 @@ use App\Models\Role;
 use App\Models\Permission;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
+use App\Services\CvGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -287,13 +288,9 @@ class AgentCandidateController extends Controller
                     $query->where('user_id', $user_id)
                         ->where('company_job_id', $companyJobId);
                 }
-            } else {
-                if ($user->hasRole(Role::HR)) {
-                    $query->where('nomad_office_id', $user_id);
-                } else if ($user->hasRole(Role::AGENT)) {
-                    $query->where('user_id', $user_id);
-                }
-            }
+            } else if ($user->hasRole(Role::AGENT)) {
+               $query->where('user_id', $user_id);
+           }
 
             // Filter po company_id preko relacija
             if ($companyId) {
@@ -580,6 +577,40 @@ class AgentCandidateController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to save details: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate and download CV for an agent candidate
+     */
+    public function generateCv($agentCandidateId)
+    {
+        try {
+            // Find agent candidate with all relations
+            $agentCandidate = AgentCandidate::with(['candidate'])->findOrFail($agentCandidateId);
+
+            // Generate CV using service
+            $cvService = new CvGeneratorService();
+            $pdf = $cvService->generateCv($agentCandidateId);
+
+            // Get candidate name for filename
+            $candidateName = $agentCandidate->candidate->fullName ??
+                           $agentCandidate->candidate->fullNameCyrillic ??
+                           'candidate';
+
+            // Clean filename - remove special characters
+            $candidateName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $candidateName);
+            $filename = 'CV_' . $candidateName . '_' . date('Y-m-d') . '.pdf';
+
+            // Return PDF as download
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            Log::error('CV Generation Error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to generate CV',
+                'message' => $e->getMessage()
             ], 500);
         }
     }
