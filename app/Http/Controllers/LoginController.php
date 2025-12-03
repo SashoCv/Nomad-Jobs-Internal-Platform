@@ -127,7 +127,7 @@ class LoginController extends Controller
             $users = [];
         }
 
-        if ($users && $users->count() > 0) {
+        if ($users) {
             return response()->json([
                 'success' => true,
                 'status' => 200,
