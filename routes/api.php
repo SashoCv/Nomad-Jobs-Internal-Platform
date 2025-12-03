@@ -169,7 +169,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Company Category
 
     Route::post('companyCategoryStore', [CompanyCategoryController::class, 'store']);
-    Route::post('deleteCompanyCategory', [CompanyCategoryController::class, 'destroy']);
+    Route::delete('deleteCompanyCategory', [CompanyCategoryController::class, 'destroy']);
 
 
 
