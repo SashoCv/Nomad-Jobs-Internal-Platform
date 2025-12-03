@@ -153,7 +153,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Files
     Route::post('file', [FileController::class, 'store']);
-    Route::get('downloadFile/{file}', [FileController::class, 'download']);
+    Route::get('downloadFile/{file}', [FileController::class, 'downloadFile']);
     Route::get('filesForPerson/{id}', [FileController::class, 'show']);
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
 
