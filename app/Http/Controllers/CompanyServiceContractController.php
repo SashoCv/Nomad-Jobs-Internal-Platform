@@ -106,8 +106,10 @@ class CompanyServiceContractController extends Controller
                     ->first();
 
                 if ($existingActiveContract) {
-                    // Deactivate the existing active contract before creating the new one
-                    $existingActiveContract->update(['status' => CompanyServiceContract::STATUS_EXPIRED]);
+                    // Return error - don't allow creating new active contract
+                    return response()->json([
+                        'error' => 'Тази компания вече има активен договор от този тип (№' . $existingActiveContract->contractNumber . '). Моля, първо деактивирайте съществуващия договор.'
+                    ], 422);
                 }
             }
 
