@@ -186,7 +186,7 @@ class StatisticController extends Controller
 
         // Group by status
         $statusCounts = $candidates
-            ->groupBy(fn($c) => optional(optional($c->latestStatusHistory)->status)->nameOfStatus ?? 'Unknown')
+            ->groupBy(fn($c) => optional(optional($c->latestStatusHistory)->status)->nameOfStatus ?? 'В изчакване')
             ->map(function ($group, $key) {
                 $statusId = $group->first()->latestStatusHistory->status->id ?? null;
                 return [
@@ -198,7 +198,7 @@ class StatisticController extends Controller
 
         // Group by contract type
         $contractTypeCounts = $candidates
-            ->groupBy(fn($c) => $c->contractType ?? 'Unknown')
+            ->groupBy(fn($c) => $c->contractType ?? 'Без договор')
             ->map(function ($group, $key) {
                 return [
                     'label' => $key,
