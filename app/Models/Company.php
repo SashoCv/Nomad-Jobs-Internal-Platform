@@ -165,4 +165,12 @@ class Company extends Model
     {
         return $this->hasMany(CompanyFile::class, 'company_id');
     }
+
+    /**
+     * Get the company jobs for the company.
+     */
+    public function companyJobs(): HasMany
+    {
+        return $this->hasMany(CompanyJob::class, 'company_id');
+    }
 }

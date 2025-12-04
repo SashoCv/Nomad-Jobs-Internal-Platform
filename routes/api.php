@@ -10,6 +10,7 @@ use App\Http\Controllers\CompanyCategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyFileController;
 use App\Http\Controllers\CompanyJobController;
+use App\Http\Controllers\JobPostingsOverviewController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IndustryController;
@@ -231,6 +232,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('deleteJobPosting/{id}', [CompanyJobController::class, 'destroy']); // need Function
 
     Route::delete('hardDeleteJobPosting/{id}', [CompanyJobController::class, 'hardDelete']); // suggested for next version
+
+    // Job Postings Overview
+    Route::get('job-postings-overview', [JobPostingsOverviewController::class, 'index']);
+    Route::get('job-postings-overview/{companyId}', [JobPostingsOverviewController::class, 'show']);
 
     // Notifications
 

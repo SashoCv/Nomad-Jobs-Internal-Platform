@@ -37,4 +37,9 @@ class CompanyJob extends Model
     {
         return $this->belongsTo(Country::class);
     }
+
+    public function agentCandidates()
+    {
+        return $this->hasMany(AgentCandidate::class, 'company_job_id');
+    }
 }
