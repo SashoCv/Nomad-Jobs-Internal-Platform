@@ -243,8 +243,8 @@ class StatisticController extends Controller
                     'candidateName' => $candidate->fullNameCyrillic ?? $candidate->fullName,
                     'jobPosition' => optional($candidate->position)->jobPosition ?? 'Unknown',
                     'arrivalDate' => $candidate->startContractDate ?? now()->addDays(rand(1, 30))->format('Y-m-d'),
-                    'status' => optional(optional($candidate->latestStatusHistory)->status)->nameOfStatus ?? 'Unknown',
-                    'contractType' => $candidate->contractType ?? 'Unknown'
+                    'status' => optional(optional($candidate->latestStatusHistory)->status)->nameOfStatus ?? 'В изчакване',
+                    'contractType' => $candidate->contractType ?? 'Без договор'
                 ];
             })
             ->values()
