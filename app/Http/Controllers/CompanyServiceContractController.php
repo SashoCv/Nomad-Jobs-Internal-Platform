@@ -98,15 +98,31 @@ class CompanyServiceContractController extends Controller
                     ]),
             ]);
 
-            $companyServiceContract = new CompanyServiceContract($request->all());
-            $companyServiceContract->save();
-            
-            // If creating an active contract, use the helper method to handle deactivation
+            // If creating an active contract, first check if one already exists
             if ($request->status === CompanyServiceContract::STATUS_ACTIVE) {
-                $companyServiceContract->setAsActive();
+                $existingActiveContract = CompanyServiceContract::where('company_id', $request->company_id)
+                    ->where('agreement_type', $request->agreement_type)
+                    ->where('status', CompanyServiceContract::STATUS_ACTIVE)
+                    ->first();
+
+                if ($existingActiveContract) {
+                    // Deactivate the existing active contract before creating the new one
+                    $existingActiveContract->update(['status' => CompanyServiceContract::STATUS_EXPIRED]);
+                }
             }
 
+            $companyServiceContract = new CompanyServiceContract($request->all());
+            $companyServiceContract->save();
+
             return response()->json($companyServiceContract, 201);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle database constraint violations
+            if ($e->getCode() === '23000') {
+                return response()->json([
+                    'error' => 'Оваа компанија веќе има активен договор од овој тип. Ве молиме прво деактивирајте го постоечкиот договор.'
+                ], 422);
+            }
+            return response()->json(['error' => 'Failed to create contract: ' . $e->getMessage()], 400);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to create contract: ' . $e->getMessage()], 400);
         }
