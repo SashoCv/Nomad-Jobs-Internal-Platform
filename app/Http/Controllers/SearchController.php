@@ -784,10 +784,6 @@ class SearchController extends Controller
 
         $user = Auth::user();
 
-        if ($this->isStaff()) {
-            $query->where('type_id', '!=', 3);
-        }
-
         if ($user->hasRole(Role::COMPANY_USER)) {
             $query->where('company_id', $user->company_id);
         }
