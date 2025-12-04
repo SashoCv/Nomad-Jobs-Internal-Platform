@@ -119,7 +119,7 @@ class CompanyServiceContractController extends Controller
             // Handle database constraint violations
             if ($e->getCode() === '23000') {
                 return response()->json([
-                    'error' => 'Оваа компанија веќе има активен договор од овој тип. Ве молиме прво деактивирајте го постоечкиот договор.'
+                    'error' => 'Тази компания вече има активен договор от този тип. Моля, първо деактивирайте съществуващия договор.'
                 ], 422);
             }
             return response()->json(['error' => 'Failed to create contract: ' . $e->getMessage()], 400);
