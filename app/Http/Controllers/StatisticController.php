@@ -175,20 +175,21 @@ class StatisticController extends Controller
 
         // Get all candidates for these companies
         $candidates = Candidate::with([
-            'latestStatusHistory.status:id,nameOfStatus',
+            'status',
             'position:id,jobPosition',
             'companyAddress'
         ])
             ->whereIn('company_id', $companyIds)
+            ->whereNotNull('status_id')
             ->get();
 
         $totalCandidates = $candidates->count();
 
         // Group by status
         $statusCounts = $candidates
-            ->groupBy(fn($c) => optional(optional($c->latestStatusHistory)->status)->nameOfStatus ?? 'В изчакване')
+            ->groupBy(fn($c) => optional($c->status)->nameOfStatus ?? 'В изчакване')
             ->map(function ($group, $key) {
-                $statusId = $group->first()->latestStatusHistory->status->id ?? null;
+                $statusId = $group->first()->status->id ?? null;
                 return [
                     'label' => $key,
                     'value' => $group->count(),
@@ -222,7 +223,7 @@ class StatisticController extends Controller
 
             return [
                 'id' => $job->id,
-                'title' => $job->position->jobPosition ?? 'Unknown Position',
+                'title' => $job->job_title ?? 'Unknown Position',
                 'candidatesCount' => $candidatesForJob,
                 'status' => $job->showJob ? 'Активна' : 'Неактивна'
             ];
@@ -233,7 +234,7 @@ class StatisticController extends Controller
             ->filter(function ($candidate) {
                 // Check if candidate has an arrival date in the future
                 // Adjust the status check based on your business logic
-                $statusName = optional(optional($candidate->latestStatusHistory)->status)->nameOfStatus;
+                $statusName = optional($candidate->status)->nameOfStatus;
                 return in_array($statusName, ['Одобрен', 'В процес', 'Очаква документи']);
             })
             ->take(10) // Limit to 10 upcoming arrivals
@@ -243,7 +244,7 @@ class StatisticController extends Controller
                     'candidateName' => $candidate->fullNameCyrillic ?? $candidate->fullName,
                     'jobPosition' => optional($candidate->position)->jobPosition ?? 'Unknown',
                     'arrivalDate' => $candidate->startContractDate ?? now()->addDays(rand(1, 30))->format('Y-m-d'),
-                    'status' => optional(optional($candidate->latestStatusHistory)->status)->nameOfStatus ?? 'В изчакване',
+                    'status' => optional($candidate->status)->nameOfStatus ?? 'В изчакване',
                     'contractType' => $candidate->contractType ?? 'Без договор'
                 ];
             })
