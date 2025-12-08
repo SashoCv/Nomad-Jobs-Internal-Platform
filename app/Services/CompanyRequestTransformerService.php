@@ -10,7 +10,7 @@ class CompanyRequestTransformerService
     {
         return $companyRequests->map(function ($request) {
             return $this->transformSingleRequest($request);
-        })->toArray();
+        })->values()->toArray();
     }
 
     public function transformSingleRequest($request): array
@@ -63,7 +63,7 @@ class CompanyRequestTransformerService
                     'is_applied' => $changeLog->isApplied,
                     'created_at' => $changeLog->created_at,
                 ];
-            })->toArray()
+            })->values()->toArray()
         ];
     }
 }

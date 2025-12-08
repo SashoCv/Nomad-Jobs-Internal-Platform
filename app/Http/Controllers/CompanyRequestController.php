@@ -56,7 +56,8 @@ class CompanyRequestController extends Controller
             }
             // Staff can see all requests (no filtering needed)
 
-            $transformedData = $this->transformerService->transformCompanyRequests($companyRequests);
+            // Reset array keys after filtering to ensure JSON returns an array, not an object
+            $transformedData = $this->transformerService->transformCompanyRequests($companyRequests->values());
 
             return response()->json([
                 "status" => "success",
@@ -180,7 +181,7 @@ class CompanyRequestController extends Controller
                     'status' => $pricing->status->nameOfStatus,
                     'totalForService' => number_format($totalForService, 2),
                 ];
-            });
+            })->values();
 
             $totalAmount = $services->sum(function ($service) {
                 return (float) str_replace(',', '', $service['totalForService']);
