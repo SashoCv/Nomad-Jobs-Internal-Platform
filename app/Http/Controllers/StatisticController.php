@@ -185,6 +185,11 @@ class StatisticController extends Controller
 
         $totalCandidates = $candidates->count();
 
+        // Get applicants (candidates without status)
+        $totalApplicants = Candidate::whereIn('company_id', $companyIds)
+            ->whereNull('status_id')
+            ->count();
+
         // Group by status
         $statusCounts = $candidates
             ->groupBy(fn($c) => optional($c->status)->nameOfStatus ?? 'В изчакване')
@@ -235,7 +240,7 @@ class StatisticController extends Controller
                 // Check if candidate has an arrival date in the future
                 // Adjust the status check based on your business logic
                 $statusName = optional($candidate->status)->nameOfStatus;
-                return in_array($statusName, ['Одобрен', 'В процес', 'Очаква документи']);
+                return in_array($statusName, ['Има билет']);
             })
             ->take(10) // Limit to 10 upcoming arrivals
             ->map(function ($candidate) {
@@ -269,6 +274,7 @@ class StatisticController extends Controller
                 ];
             })->toArray(),
             'totalCandidates' => $totalCandidates,
+            'totalApplicants' => $totalApplicants,
             'totalJobPostings' => $totalJobPostings,
             'activeJobPostings' => $activeJobPostings,
             'statusCounts' => $statusCounts,

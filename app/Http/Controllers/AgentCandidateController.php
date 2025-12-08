@@ -13,6 +13,7 @@ use App\Models\Experience;
 use App\Models\File;
 use App\Models\Role;
 use App\Models\Permission;
+use App\Models\UserOwner;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use App\Services\CvGeneratorService;
@@ -280,17 +281,41 @@ class AgentCandidateController extends Controller
                 ->whereNull('agent_candidates.deleted_at')
                 ->whereHas('candidate'); // Само кандидати кои имаат candidate relation
 
+            // Get user's company IDs for Company User/Owner
+            $userCompanyIds = [];
+            if ($user->hasRole(Role::COMPANY_USER) && $user->company_id) {
+                $userCompanyIds = [$user->company_id];
+            } elseif ($user->hasRole(Role::COMPANY_OWNER)) {
+                $companyOwner = UserOwner::where('user_id', $user->id)->get();
+                $userCompanyIds = $companyOwner->pluck('company_id')->toArray();
+            }
+
             // Filter po company_job_id i role
             if ($companyJobId != null) {
-                if ($this->isStaff() || $user->hasRole(Role::COMPANY_USER) || $user->hasRole(Role::COMPANY_OWNER)) {
+                if ($this->isStaff()) {
+                    // Staff can see all candidates for this job
                     $query->where('company_job_id', $companyJobId);
-                } else if ($user->hasRole(Role::AGENT)) {
+                } elseif ($user->hasRole(Role::COMPANY_USER) || $user->hasRole(Role::COMPANY_OWNER)) {
+                    // Company users can only see candidates for jobs from their companies
+                    $query->where('company_job_id', $companyJobId)
+                        ->whereHas('companyJob', function ($q) use ($userCompanyIds) {
+                            $q->whereIn('company_id', $userCompanyIds);
+                        });
+                } elseif ($user->hasRole(Role::AGENT)) {
                     $query->where('user_id', $user_id)
                         ->where('company_job_id', $companyJobId);
                 }
-            } else if ($user->hasRole(Role::AGENT)) {
-               $query->where('user_id', $user_id);
-           }
+            } else {
+                // No specific job filter
+                if ($user->hasRole(Role::AGENT)) {
+                    $query->where('user_id', $user_id);
+                } elseif ($user->hasRole(Role::COMPANY_USER) || $user->hasRole(Role::COMPANY_OWNER)) {
+                    // Filter by user's companies
+                    $query->whereHas('companyJob', function ($q) use ($userCompanyIds) {
+                        $q->whereIn('company_id', $userCompanyIds);
+                    });
+                }
+            }
 
             // Filter po company_id preko relacija
             if ($companyId) {
@@ -326,10 +351,8 @@ class AgentCandidateController extends Controller
             } elseif ($dateTo) {
                 // Samo dateTo: do toj datum
                 $query->where('created_at', '<=', $dateTo.' 23:59:59');
-            } else {
-                // default: tekovnata godina
-                $query->whereYear('created_at', date('Y'));
             }
+            // Note: No default year filter - show all candidates if no date filter is provided
 
             // Order po id (najnovi prvo)
             $query->orderBy('agent_candidates.id', 'desc');

@@ -56,7 +56,7 @@ class CompanyRequestTransformerService
                 return [
                     'id' => $changeLog->id,
                     'field_name' => $changeLog->fieldName,
-                    'full_name' =>  $changeLog->user->firstName . ' ' . $changeLog->user->lastName,
+                    'full_name' => $changeLog->user ? ($changeLog->user->firstName . ' ' . $changeLog->user->lastName) : 'Unknown User',
                     'old_value' => $changeLog->oldValue,
                     'new_value' => $changeLog->newValue,
                     'status' => $changeLog->status,
