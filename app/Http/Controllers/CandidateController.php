@@ -1141,6 +1141,7 @@ class CandidateController extends Controller
             // Get applicants (candidates without status) for these companies
             $query = Candidate::whereIn('company_id', $companyIds)
                 ->whereNull('status_id')
+                ->whereHas('agentCandidates') // додадено - проверува дали постои во agent_candidates
                 ->with([
                     'company',
                     'position',

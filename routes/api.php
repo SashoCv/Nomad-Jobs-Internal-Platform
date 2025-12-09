@@ -413,6 +413,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Statistic for companies
     Route::get('statisticForCompanies', [StatisticController::class, 'statisticForCompanies']);
 
+    // Statistic for agents
+    Route::get('statisticForAgents', [StatisticController::class, 'statisticForAgents']);
+
     // Applicants (Candidates without status)
     Route::get('applicants', [CandidateController::class, 'getApplicants']);
 });
