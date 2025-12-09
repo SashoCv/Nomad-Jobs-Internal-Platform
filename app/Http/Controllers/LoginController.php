@@ -115,6 +115,16 @@ class LoginController extends Controller
     public function index(Request $request)
     {
         $role_id = $request->role_id;
+        $user = Auth::user();
+
+        // Company users should not fetch users list
+        if ($user && ($user->hasRole(Role::COMPANY_USER) || $user->hasRole(Role::COMPANY_OWNER))) {
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [],
+            ]);
+        }
 
         if($role_id){
             $users = User::with(['company', 'role'])
@@ -123,7 +133,8 @@ class LoginController extends Controller
         } else if ($this->isStaff()){
             $users = User::with(['company', 'role'])
                 ->where('id','!=','22')->get();
-        } else if ($role_id == 3 || $role_id == 5){
+        } else {
+            // Default case for any other scenario
             $users = [];
         }
 

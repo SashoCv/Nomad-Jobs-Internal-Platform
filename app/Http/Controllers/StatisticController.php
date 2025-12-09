@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
+use App\Models\AssignedJob;
 use App\Models\Candidate;
 use Illuminate\Http\Request;
 
@@ -185,6 +186,32 @@ class StatisticController extends Controller
 
         $totalCandidates = $candidates->count();
 
+        // Get applicants (candidates without status) with their agent statuses
+        $applicants = Candidate::whereIn('company_id', $companyIds)
+            ->whereNull('status_id')
+            ->whereHas('agentCandidates')
+            ->with('agentCandidates.statusForCandidateFromAgent')
+            ->get();
+
+        $totalApplicants = $applicants->count();
+
+        // Group applicants by agent status (from agent_candidates table)
+        $applicantStatusCounts = $applicants
+            ->flatMap(function ($applicant) {
+                return $applicant->agentCandidates;
+            })
+            ->groupBy('status_for_candidate_from_agent_id')
+            ->map(function ($group, $statusId) {
+                $statusName = optional($group->first()->statusForCandidateFromAgent)->name ?? 'Unknown';
+                return [
+                    'label' => $statusName,
+                    'value' => $group->count(),
+                    'statusId' => $statusId
+                ];
+            })
+            ->values()
+            ->toArray();
+
         // Group by status
         $statusCounts = $candidates
             ->groupBy(fn($c) => optional($c->status)->nameOfStatus ?? 'В изчакване')
@@ -217,8 +244,7 @@ class StatisticController extends Controller
         $activeJobPostings = $jobPostings->where('showJob', 1)->count();
 
         $jobPostingsList = $jobPostings->map(function ($job) use ($candidates) {
-            $candidatesForJob = AgentCandidate::whereIn('candidate_id', $candidates->pluck('id'))
-                ->where('company_job_id', $job->id)
+            $candidatesForJob = AgentCandidate::where('company_job_id', $job->id)
                 ->count();
 
             return [
@@ -235,7 +261,7 @@ class StatisticController extends Controller
                 // Check if candidate has an arrival date in the future
                 // Adjust the status check based on your business logic
                 $statusName = optional($candidate->status)->nameOfStatus;
-                return in_array($statusName, ['Одобрен', 'В процес', 'Очаква документи']);
+                return in_array($statusName, ['Има билет']);
             })
             ->take(10) // Limit to 10 upcoming arrivals
             ->map(function ($candidate) {
@@ -269,12 +295,141 @@ class StatisticController extends Controller
                 ];
             })->toArray(),
             'totalCandidates' => $totalCandidates,
+            'totalApplicants' => $totalApplicants,
             'totalJobPostings' => $totalJobPostings,
             'activeJobPostings' => $activeJobPostings,
             'statusCounts' => $statusCounts,
+            'applicantStatusCounts' => $applicantStatusCounts,
             'contractTypeCounts' => $contractTypeCounts,
             'jobPostings' => $jobPostingsList,
             'upcomingArrivals' => $upcomingArrivals,
+        ], 200);
+    }
+
+    public function statisticForAgents(Request $request)
+    {
+        $user = $request->user();
+
+        // Only agents can access this endpoint
+        if ($user->role_id != \App\Models\Role::AGENT) {
+            return response()->json(['error' => 'Access denied. Only agents can access this endpoint.'], 403);
+        }
+
+        // Get all agent candidates added by this agent
+        $agentCandidates = AgentCandidate::with([
+            'candidate.status',
+            'candidate.position:id,jobPosition',
+            'candidate.arrival',
+            'companyJob:id,job_title,showJob',
+            'statusForCandidateFromAgent:id,name'
+        ])
+            ->where('user_id', $user->id)
+            ->whereNull('deleted_at')
+            ->whereHas('candidate') // Only include if candidate exists
+            ->get();
+
+        $totalCandidatesAdded = $agentCandidates->count();
+
+        // Status mapping based on status_for_candidate_from_agent_id
+        // 1: Добавен (pending), 2: За интервю (pending), 3: Одобрен (approved)
+        // 4: Неподходящ (rejected), 5: Резерва (pending), 6: Отказан (rejected)
+        $approvedCandidates = $agentCandidates->whereIn('status_for_candidate_from_agent_id', [3])->count();
+        $pendingApproval = $agentCandidates->whereIn('status_for_candidate_from_agent_id', [1, 2, 5])->count();
+
+        // Group by agent candidate status
+        $statusCounts = $agentCandidates
+            ->groupBy('status_for_candidate_from_agent_id')
+            ->map(function ($group, $statusId) {
+                $statusName = optional($group->first()->statusForCandidateFromAgent)->name ?? 'Unknown';
+                return [
+                    'label' => $statusName,
+                    'value' => $group->count()
+                ];
+            })->values()->toArray();
+
+        // Get assigned jobs for this agent from assigned_jobs table
+        // Only get jobs that are not deleted (CompanyJob uses SoftDeletes)
+        $assignedJobs = AssignedJob::with('companyJob:id,job_title,showJob')
+            ->where('user_id', $user->id)
+            ->whereHas('companyJob') // Only include if companyJob exists and is not deleted
+            ->get();
+
+        $totalJobPostings = $assignedJobs->count();
+        $activeJobPostings = $assignedJobs->filter(function ($assignedJob) {
+            return $assignedJob->companyJob && $assignedJob->companyJob->showJob == 1;
+        })->count();
+
+        // Build job postings data with candidates count
+        $jobPostingsData = $assignedJobs->map(function ($assignedJob) use ($agentCandidates) {
+            $companyJob = $assignedJob->companyJob;
+            $candidatesCount = $agentCandidates->where('company_job_id', $assignedJob->company_job_id)->count();
+
+            return [
+                'id' => $assignedJob->company_job_id,
+                'title' => $companyJob ? $companyJob->job_title : 'Unknown Position',
+                'candidatesCount' => $candidatesCount,
+                'status' => ($companyJob && $companyJob->showJob) ? 'Активна' : 'Неактивна'
+            ];
+        })->values()->toArray();
+
+        // Get upcoming arrivals - candidates who are approved and have arrival records
+        $upcomingArrivals = $agentCandidates
+            ->where('status_for_candidate_from_agent_id', 3) // Approved by Nomad
+            ->filter(function ($agentCandidate) {
+                $candidate = $agentCandidate->candidate;
+
+                // Check if candidate exists
+                if (!$candidate) {
+                    return false;
+                }
+
+                $arrival = $candidate->arrival;
+
+                // Must have arrival record with future date
+                if (!$arrival || !$arrival->arrival_date) {
+                    return false;
+                }
+
+                // Only include future arrivals
+                $arrivalDate = \Carbon\Carbon::parse($arrival->arrival_date);
+                return $arrivalDate->isFuture() || $arrivalDate->isToday();
+            })
+            ->sortBy(function ($agentCandidate) {
+                $candidate = $agentCandidate->candidate;
+                if (!$candidate || !$candidate->arrival) {
+                    return '9999-12-31';
+                }
+                return $candidate->arrival->arrival_date;
+            })
+            ->take(10)
+            ->map(function ($agentCandidate) {
+                $candidate = $agentCandidate->candidate;
+                $arrival = $candidate->arrival;
+
+                return [
+                    'candidateId' => $candidate->id,
+                    'candidateName' => $candidate->fullNameCyrillic ?? $candidate->fullName,
+                    'jobPosition' => optional($candidate->position)->jobPosition ?? 'Unknown',
+                    'arrivalDate' => $arrival->arrival_date,
+                    'arrivalTime' => $arrival->arrival_time ?? null,
+                    'arrivalLocation' => $arrival->arrival_location ?? null,
+                    'status' => optional($candidate->status)->nameOfStatus ?? 'Одобрен',
+                    'contractType' => $candidate->contractType ?? 'Без договор'
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'totalCandidatesAdded' => $totalCandidatesAdded,
+            'approvedCandidates' => $approvedCandidates,
+            'pendingApproval' => $pendingApproval,
+            'totalJobPostings' => $totalJobPostings,
+            'activeJobPostings' => $activeJobPostings,
+            'upcomingArrivals' => count($upcomingArrivals),
+            'statusCounts' => $statusCounts,
+            'jobPostings' => $jobPostingsData,
+            'upcomingArrivalsList' => $upcomingArrivals,
         ], 200);
     }
 }

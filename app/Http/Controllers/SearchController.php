@@ -796,7 +796,6 @@ class SearchController extends Controller
             $searchCreatedAt = $request->searchCreatedAt;
 
             $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
-                ->join('company_jobs', 'agent_candidates.company_job_id', '=', 'company_jobs.id')
                 ->where('agent_candidates.user_id', $user->id)
                 ->where('agent_candidates.deleted_at', null)
                 ->whereHas('candidate', function ($query) {
@@ -815,7 +814,7 @@ class SearchController extends Controller
             }
 
             if($searchCompanyJob){
-                $candidatesQuery->where('company_jobs.id', '=', $searchCompanyJob);
+                $candidatesQuery->where('agent_candidates.company_job_id', '=', $searchCompanyJob);
             }
 
             if($searchAgentStatus){
@@ -828,7 +827,8 @@ class SearchController extends Controller
                 });
             }
 
-            $candidates = $candidatesQuery->paginate(20);
+            $perPage = $request->per_page ?? 20;
+            $candidates = $candidatesQuery->paginate($perPage);
             return AgentCandidateResource::collection($candidates);
         }
 

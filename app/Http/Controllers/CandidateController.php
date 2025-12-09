@@ -6,6 +6,7 @@ use App\Exports\CandidatesExport;
 use App\Exports\CandidatesFromStatusHistoriesExport;
 use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
+use App\Http\Resources\ApplicantResource;
 use App\Http\Resources\CandidateResource;
 use App\Models\AgentCandidate;
 use App\Models\Arrival;
@@ -1105,6 +1106,93 @@ class CandidateController extends Controller
         ]);
     }
 
+    /**
+     * Get applicants (candidates without status) for company users only
+     */
+    public function getApplicants(Request $request): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+            $companyIds = [];
+
+            // Check if user is Company User
+            if ($user->role_id == Role::COMPANY_USER && $user->company_id) {
+                $companyIds = [$user->company_id];
+            }
+            // Check if user is Company Owner
+            elseif ($user->role_id == Role::COMPANY_OWNER) {
+                $companyOwner = UserOwner::where('user_id', $user->id)->get();
+                $companyIds = $companyOwner->pluck('company_id')->toArray();
+            }
+            else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Само фирмени потребители и собственици имат достъп до апликанти',
+                ], 403);
+            }
+
+            if (empty($companyIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Потребителят не е свързан с никоя компания',
+                ], 403);
+            }
+
+            // Get applicants (candidates without status) for these companies
+            $query = Candidate::whereIn('company_id', $companyIds)
+                ->whereNull('status_id')
+                ->whereHas('agentCandidates') // додадено - проверува дали постои во agent_candidates
+                ->with([
+                    'company',
+                    'position',
+                    'categories',
+                    'agentCandidates.companyJob',
+                    'agentCandidates.statusForCandidateFromAgent'
+                ]);
+
+            // Apply filters
+            if ($request->searchName) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('fullName', 'like', '%' . $request->searchName . '%')
+                      ->orWhere('fullNameCyrillic', 'like', '%' . $request->searchName . '%');
+                });
+            }
+
+            if ($request->searchCompany) {
+                $query->whereHas('company', function ($q) use ($request) {
+                    $q->where('nameOfCompany', 'like', '%' . $request->searchCompany . '%');
+                });
+            }
+
+            if ($request->searchContractType) {
+                $query->where('contractType', $request->searchContractType);
+            }
+
+            if ($request->nationality) {
+                $query->where('nationality', 'like', '%' . $request->nationality . '%');
+            }
+
+            if ($request->searchAddedBy) {
+                $query->where('addedBy', $request->searchAddedBy);
+            }
+
+            if ($request->searchAgent) {
+                $query->where('agent_id', $request->searchAgent);
+            }
+
+            if ($request->searchDate) {
+                $query->whereDate('created_at', $request->searchDate);
+            }
+
+            $perPage = $request->per_page ?? 25;
+            $applicants = $query->orderBy('id', 'desc')->paginate($perPage);
+
+            return $this->successResponse(ApplicantResource::collection($applicants)->response()->getData());
+        } catch (\Exception $e) {
+            Log::error('Error fetching applicants: ' . $e->getMessage());
+            return $this->errorResponse('Failed to fetch applicants');
+        }
+    }
 
 
 }

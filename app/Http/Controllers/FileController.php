@@ -55,19 +55,41 @@ class FileController extends Controller
             ->where('category_id', '=', 8)
             ->get(["filePath", "fileName"]);
 
+        // Check if there are no files
+        if ($files->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Няма документи за този кандидат'
+            ], 404);
+        }
+
+        // Check if any files actually exist on disk
+        $existingFiles = [];
+        foreach ($files as $file) {
+            $filePath = public_path('storage/' . $file->filePath);
+            if (file_exists($filePath)) {
+                $existingFiles[] = $file;
+            }
+        }
+
+        if (empty($existingFiles)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Няма документи за този кандидат'
+            ], 404);
+        }
+
         $zip = new ZipArchive;
         $zipFileName = $candidate->fullName . '_documents.zip';
         $zipFilePath = storage_path('app/' . $zipFileName);
 
         if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            foreach ($files as $file) {
+            foreach ($existingFiles as $file) {
                 $filePath = public_path('storage/' . $file->filePath);
-                if (file_exists($filePath)) {
-                    $fileName = $file->fileName;
-                    $fileExtension = substr(strrchr($filePath, '.'), 1);
-                    $fileName .= '.' . $fileExtension;
-                    $zip->addFile($filePath, $fileName);
-                }
+                $fileName = $file->fileName;
+                $fileExtension = substr(strrchr($filePath, '.'), 1);
+                $fileName .= '.' . $fileExtension;
+                $zip->addFile($filePath, $fileName);
             }
             $zip->close();
 
