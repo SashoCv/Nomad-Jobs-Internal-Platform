@@ -55,13 +55,6 @@ class FileController extends Controller
         $files = File::where('candidate_id', $candidate_id)
             ->get(["filePath", "fileName"]);
 
-        if (Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
-            $files = File::with('category')
-                ->whereHas('category', function ($q) {
-                    $q->whereNotIn('role_id', [1, 2]);
-                })
-                ->get(["filePath", "fileName"]);
-        }
         // Check if there are no files
         if ($files->isEmpty()) {
             return response()->json([
