@@ -187,13 +187,13 @@ class FileController extends Controller
 
         if ($userRoleId == 3 || $userRoleId == 5) {
             $filesQuery->where(function($query) {
-                $query->where('company_restriction', 0)
-                    ->orWhereHas('category', function($q) {
-                        $q->where('role_id', 3);
-                    });
+                $query->orWhereHas('category', function($q) {
+                    $q->where('role_id', '!=', 1)
+                      ->orWhere('role_id', '!=', 2);
+                });
             });
         }
-
+        
         if($userRoleId == 4) {
             $filesQuery = File::where('candidate_id', $id)
                 ->whereIn('category_id', $categoriesIds);
