@@ -18,6 +18,8 @@ class CompanyUserPermissions
             Permission::JOB_POSTINGS_CREATE,
             Permission::COMPANY_JOB_REQUESTS_READ,
             Permission::CHANGE_LOGS_READ,
+            Permission::DOCUMENTS_READ,
+            Permission::DOCUMENTS_DOWNLOAD
         ];
     }
 }

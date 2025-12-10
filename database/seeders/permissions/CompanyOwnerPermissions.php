@@ -22,6 +22,8 @@ class CompanyOwnerPermissions
             Permission::JOB_POSTINGS_UPDATE,
             Permission::COMPANY_JOB_REQUESTS_READ,
             Permission::CHANGE_LOGS_READ,
+            Permission::DOCUMENTS_READ,
+            Permission::DOCUMENTS_DOWNLOAD
         ];
     }
 }
