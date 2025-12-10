@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * @property int $id
  * @property string $nameOfCompany
+ * @property string $nameOfCompanyLatin
  * @property string $address
  * @property string $email
  * @property string $companyEmail
@@ -46,6 +47,7 @@ class Company extends Model
      */
     protected $fillable = [
         'nameOfCompany',
+        'nameOfCompanyLatin',
         'address',
         'email',
         'companyEmail',
