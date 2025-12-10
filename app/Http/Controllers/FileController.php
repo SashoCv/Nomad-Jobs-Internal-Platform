@@ -6,6 +6,7 @@ use App\Models\Candidate;
 use App\Traits\HasRolePermissions;
 use App\Models\Category;
 use App\Models\File;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -35,8 +36,8 @@ class FileController extends Controller
 
         foreach ($documentsThatCanBeViewedByCompany as $document) {
             DB::table('files')
-            ->where('id', $document->id)
-            ->update(['company_restriction' => 0]);
+                ->where('id', $document->id)
+                ->update(['company_restriction' => 0]);
         }
 
         return response()->json([
@@ -52,9 +53,15 @@ class FileController extends Controller
         $candidate = Candidate::where('id', $candidate_id)->first();
 
         $files = File::where('candidate_id', $candidate_id)
-            ->where('category_id', '=', 8)
             ->get(["filePath", "fileName"]);
 
+        if (Auth::user()->role_id == 3 || Auth::user()->role_id == 5) {
+            $files = File::with('category')
+                ->whereHas('category', function ($q) {
+                    $q->whereNotIn('role_id', [1, 2]);
+                })
+                ->get(["filePath", "fileName"]);
+        }
         // Check if there are no files
         if ($files->isEmpty()) {
             return response()->json([
@@ -186,15 +193,15 @@ class FileController extends Controller
         $filesQuery = File::with('category')->where('candidate_id', $id);
 
         if ($userRoleId == 3 || $userRoleId == 5) {
-            $filesQuery->where(function($query) {
-                $query->orWhereHas('category', function($q) {
+            $filesQuery->where(function ($query) {
+                $query->orWhereHas('category', function ($q) {
                     $q->where('role_id', '!=', 1)
-                      ->orWhere('role_id', '!=', 2);
+                        ->orWhere('role_id', '!=', 2);
                 });
             });
         }
-        
-        if($userRoleId == 4) {
+
+        if ($userRoleId == 4) {
             $filesQuery = File::where('candidate_id', $id)
                 ->whereIn('category_id', $categoriesIds);
         }
