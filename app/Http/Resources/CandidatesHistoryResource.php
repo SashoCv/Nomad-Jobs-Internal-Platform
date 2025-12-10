@@ -17,11 +17,11 @@ class CandidatesHistoryResource extends JsonResource
         return [
             'statusHistoryId' => $this->id,
             'status' => [
-                'id' => $this->status->id,
-                'name' => $this->status->nameOfStatus,
+                'id' => $this->status?->id,
+                'name' => $this->status?->nameOfStatus,
             ],
             'statusDate' => $this->statusDate,
-            'candidate' => [
+            'candidate' => $this->candidate ? [
                 'id' => $this->candidate->id,
                 'name' => $this->candidate->fullNameCyrillic,
                 'email' => $this->candidate->email,
@@ -38,7 +38,7 @@ class CandidatesHistoryResource extends JsonResource
                     'arrivalFlight' => $this->candidate->arrival->arrival_flight ?? null,
                     'whereToStay' => $this->candidate->arrival->where_to_stay ?? null,
                 ],
-            ],
+            ] : null,
         ];
     }
 }

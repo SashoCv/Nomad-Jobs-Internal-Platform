@@ -445,6 +445,7 @@ class ArrivalCandidateController extends Controller
             $statusId = $request->statusId ?? 1;
 
             $candidatesWithStatuses = Statushistory::with(['candidate', 'status', 'candidate.arrival','candidate.company'])
+                ->whereHas('candidate')
                 ->whereHas('status', function ($query) use ($statusId) {
                     $query->where('id', $statusId);
                 });
