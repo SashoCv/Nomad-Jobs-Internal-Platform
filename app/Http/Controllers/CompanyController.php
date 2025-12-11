@@ -172,7 +172,7 @@ class CompanyController extends Controller
             DB::beginTransaction();
 
             $companyData = $request->only([
-                'nameOfCompany', 'address', 'email', 'companyEmail', 'website',
+                'nameOfCompany', 'nameOfCompanyLatin', 'address', 'email', 'companyEmail', 'website',
                 'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
                 'companyCity', 'industry_id', 'foreignersLC12', 'description',
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
@@ -297,7 +297,7 @@ class CompanyController extends Controller
             DB::beginTransaction();
 
             $updateData = $request->only([
-                'nameOfCompany', 'address', 'email', 'companyEmail', 'website',
+                'nameOfCompany', 'nameOfCompanyLatin', 'address', 'email', 'companyEmail', 'website',
                 'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
                 'companyCity', 'industry_id', 'foreignersLC12', 'description',
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
