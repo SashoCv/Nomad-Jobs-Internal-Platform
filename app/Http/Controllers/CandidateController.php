@@ -445,6 +445,16 @@ class CandidateController extends Controller
             $data = $request->all();
 
             $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data);
+            
+            if($candidate->status_id == NULL){
+                $candidate->status_id = 16;
+                $candidate->save();
+
+                $statusHistory = new Statushistory();
+                $statusHistory->status_id = 16;
+                $statusHistory->candidate_id = $id;
+                $statusHistory->save();
+            }
 
             return $this->successResponse(new CandidateResource($updatedCandidate), 'Candidate updated successfully');
         } catch (\Exception $e) {
