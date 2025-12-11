@@ -445,7 +445,7 @@ class CandidateController extends Controller
             $data = $request->all();
 
             $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data);
-            
+
             if($candidate->status_id == NULL){
                 $candidate->status_id = 16;
                 $candidate->save();
@@ -453,6 +453,7 @@ class CandidateController extends Controller
                 $statusHistory = new Statushistory();
                 $statusHistory->status_id = 16;
                 $statusHistory->candidate_id = $id;
+                $statusHistory->statusDate = Carbon::today(); 
                 $statusHistory->save();
             }
 
