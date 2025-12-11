@@ -453,8 +453,10 @@ class CandidateController extends Controller
                 $statusHistory = new Statushistory();
                 $statusHistory->status_id = 16;
                 $statusHistory->candidate_id = $id;
-                $statusHistory->statusDate = Carbon::today(); 
+                $statusHistory->statusDate = Carbon::now(); 
                 $statusHistory->save();
+
+                Log::info('statusHistories', [$statusHistory]);
             }
 
             return $this->successResponse(new CandidateResource($updatedCandidate), 'Candidate updated successfully');
