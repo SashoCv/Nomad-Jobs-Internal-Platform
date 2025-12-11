@@ -642,7 +642,7 @@ class CandidateController extends Controller
                 'company_id' => $request->searchCompany ?? null,
                 'searchDate' => $request->searchDate ?? null,
                 'searchAgent' => $request->searchAgent ?? null,
-                'searchContractType' => $request->searchContractType ?? null,
+                'searchContractType' => $request->searchContractType ?? $request->contractType ?? null,
                 'searchQuartal' => $request->searchQuartal ?? null,
                 'searchSeasonal' => $request->searchSeasonal ?? null,
                 'searchCaseId' => $request->searchCaseId ?? null,
@@ -650,6 +650,8 @@ class CandidateController extends Controller
                 'nationality' => $request->nationality ?? null,
                 'searchCity' => $request->searchCity ?? null,
                 'searchName' => $request->searchName ?? null,
+                'dossierNumber' => $request->dossierNumber ?? null,
+                'user_id' => $request->user_id ?? null,
             ];
 
             $user = Auth::user();
@@ -676,7 +678,16 @@ class CandidateController extends Controller
                 }
 
                 if ($filters['searchContractType']) {
-                    $candidates->where('contractType', $filters['searchContractType']);
+                    $contractType = $filters['searchContractType'];
+                    $map = [
+                        'ЕРПР 1' => 'ЕРПР 1',
+                        'ЕРПР 2' => 'ЕРПР 2',
+                        'ЕРПР 3' => 'ЕРПР 3',
+                        '90 дни' => '90 дни',
+                        '9 месеца' => '9 месеца',
+                    ];
+                    $contractTypeLatin = $map[$contractType] ?? $contractType;
+                    $candidates->where('contractType', $contractTypeLatin);
                 }
 
                 if ($filters['searchQuartal']) {
@@ -692,7 +703,37 @@ class CandidateController extends Controller
                 }
 
                 if ($filters['searchAddedBy']) {
-                    $candidates->where('addedBy', $filters['searchAddedBy']);
+                    if ($filters['searchAddedBy'] === 'notDefined') {
+                        $candidates->whereNull('addedBy');
+                    } else {
+                        $candidates->where('addedBy', $filters['searchAddedBy']);
+                    }
+                }
+
+                if ($filters['nationality']) {
+                    $candidates->where('nationality', 'like', '%' . $filters['nationality'] . '%');
+                }
+
+                if ($filters['searchCity']) {
+                    $cityId = (int) $filters['searchCity'];
+                    $candidates->whereHas('companyAddress', function ($query) use ($cityId) {
+                        $query->where('city_id', $cityId);
+                    });
+                }
+
+                if ($filters['searchName']) {
+                    $candidates->where(function ($query) use ($filters) {
+                        $query->where('fullName', 'like', '%' . $filters['searchName'] . '%')
+                              ->orWhere('fullNameCyrillic', 'like', '%' . $filters['searchName'] . '%');
+                    });
+                }
+
+                if ($filters['dossierNumber']) {
+                    $candidates->where('dossierNumber', $filters['dossierNumber']);
+                }
+
+                if ($filters['user_id']) {
+                    $candidates->where('user_id', $filters['user_id']);
                 }
 
             } else if ($user->hasRole(Role::COMPANY_USER)) {
