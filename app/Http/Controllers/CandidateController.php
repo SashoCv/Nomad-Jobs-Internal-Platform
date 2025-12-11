@@ -638,14 +638,14 @@ class CandidateController extends Controller
             }
 
             $filters = [
-                'status_id' => $request->searchStatus ?? null,
-                'company_id' => $request->searchCompany ?? null,
+                'status_id' => $request->searchStatus ?? $request->status_id ?? null,
+                'company_id' => $request->searchCompany ?? $request->company_id ?? null,
                 'searchDate' => $request->searchDate ?? null,
                 'searchAgent' => $request->searchAgent ?? null,
                 'searchContractType' => $request->searchContractType ?? $request->contractType ?? null,
                 'searchQuartal' => $request->searchQuartal ?? null,
                 'searchSeasonal' => $request->searchSeasonal ?? null,
-                'searchCaseId' => $request->searchCaseId ?? null,
+                'searchCaseId' => $request->searchCaseId ?? $request->case_id ?? null,
                 'searchAddedBy' => $request->searchAddedBy ?? null,
                 'nationality' => $request->nationality ?? null,
                 'searchCity' => $request->searchCity ?? null,
