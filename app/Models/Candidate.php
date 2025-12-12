@@ -16,7 +16,7 @@ class Candidate extends Model
     protected $fillable = [
         'status_id', 'type_id', 'company_id', 'position_id', 'user_id', 'case_id', 'agent_id',
         'gender', 'email', 'nationality', 'date', 'phoneNumber', 'address', 'passport',
-        'fullName', 'fullNameCyrillic', 'birthday', 'placeOfBirth', 'country', 'area',
+        'fullName', 'fullNameCyrillic', 'birthday', 'placeOfBirth', 'country_id', 'area',
         'areaOfResidence', 'addressOfResidence', 'periodOfResidence', 'passportValidUntil',
         'passportIssuedBy', 'passportIssuedOn', 'addressOfWork', 'nameOfFacility',
         'education', 'specialty', 'qualification', 'contractExtensionPeriod', 'salary',
@@ -88,6 +88,11 @@ class Candidate extends Model
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id');
     }
 
     public function companyAddress()

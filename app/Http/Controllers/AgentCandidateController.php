@@ -411,7 +411,7 @@ class AgentCandidateController extends Controller
             $fieldsToUpdate = [
                 'gender', 'email', 'nationality', 'date', 'phoneNumber',
                 'address', 'passport', 'fullName', 'fullNameCyrillic',
-                'birthday', 'placeOfBirth', 'country', 'area', 'areaOfResidence',
+                'birthday', 'placeOfBirth', 'country_id', 'area', 'areaOfResidence',
                 'addressOfResidence', 'periodOfResidence', 'passportValidUntil',
                 'passportIssuedBy', 'passportIssuedOn', 'addressOfWork',
                 'nameOfFacility', 'education', 'specialty', 'qualification',

@@ -23,7 +23,7 @@ class StatisticController extends Controller
 
         // Base query with necessary relationships
         $query = Candidate::query()
-            ->with(['company:id,nameOfCompany','company.company_addresses', 'latestStatusHistory.status:id,nameOfStatus', 'agentCandidates.user:id,firstName,lastName'])
+            ->with(['company:id,nameOfCompany','company.company_addresses', 'country:id,name', 'latestStatusHistory.status:id,nameOfStatus', 'agentCandidates.user:id,firstName,lastName'])
             ->whereHas('latestStatusHistory.status')
             ->whereBetween('created_at', [$dateFrom, $dateTo]);
 
@@ -45,7 +45,8 @@ class StatisticController extends Controller
         }
 
         if ($country) {
-            $query->where('country', $country);
+            // Use country_id for filtering
+            $query->where('country_id', $country);
         }
 
         if ($contractType) {
@@ -69,6 +70,9 @@ class StatisticController extends Controller
 
         $candidates = $query->get();
 
+        // Load all countries for lookup
+        $countries = \App\Models\Country::all()->keyBy('id');
+
         // Transform counts into arrays of {label, value} objects
         $statusCounts = $candidates->groupBy(fn($c) => optional(optional($c->latestStatusHistory)->status)->nameOfStatus ?? 'Unknown')
             ->map(function ($group, $key) {
@@ -80,10 +84,23 @@ class StatisticController extends Controller
                 return ['label' => $key, 'value' => $group->count()];
             })->values()->toArray();
 
-        $countryCounts = $candidates->groupBy(fn($c) => $c->country ?? 'Unknown')
-            ->map(function ($group, $key) {
-                return ['label' => $key, 'value' => $group->count()];
-            })->values()->toArray();
+        // Group by country_id and get country names from lookup
+        $countryCounts = $candidates->groupBy('country_id')
+            ->map(function ($group, $countryId) use ($countries) {
+                if ($countryId && isset($countries[$countryId])) {
+                    $countryName = $countries[$countryId]->name;
+                } else {
+                    $countryName = 'Unknown';
+                }
+
+                return [
+                    'label' => $countryName,
+                    'value' => $group->count()
+                ];
+            })
+            ->sortByDesc('value')
+            ->values()
+            ->toArray();
 
         $typeCounts = $candidates->groupBy(fn($c) => $c->contractType ?? 'Unknown')
             ->map(function ($group, $key) {

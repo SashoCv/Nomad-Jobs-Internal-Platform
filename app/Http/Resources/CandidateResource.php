@@ -22,7 +22,7 @@ class CandidateResource extends JsonResource
             'address' => $this->address,
             'birthday' => $this->birthday,
             'placeOfBirth' => $this->placeOfBirth,
-            'country' => $this->country,
+            'country_id' => $this->country_id,
             'area' => $this->area,
             'areaOfResidence' => $this->areaOfResidence,
             'addressOfResidence' => $this->addressOfResidence,
@@ -68,6 +68,7 @@ class CandidateResource extends JsonResource
 
             // Relationships
             'company' => $this->whenLoaded('company'),
+            'country' => $this->whenLoaded('country'),
             'status' => $this->whenLoaded('status'),
             'position' => $this->whenLoaded('position'),
             'user' => $this->whenLoaded('user'),

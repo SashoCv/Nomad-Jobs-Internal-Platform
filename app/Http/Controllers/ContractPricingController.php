@@ -52,6 +52,7 @@ class ContractPricingController extends Controller
                     'price' => 'required|numeric|min:0',
                     'status_id' => 'required|exists:statuses,id',
                     'description' => 'nullable|string|max:255',
+                    'country_scope' => 'nullable|in:all_countries,india_nepal_only,except_india_nepal',
                 ]);
 
                 if ($validator->fails()) {
@@ -118,6 +119,7 @@ class ContractPricingController extends Controller
                 'price' => 'required|numeric|min:0',
                 'status_id' => 'required|exists:statuses,id',
                 'description' => 'nullable|string|max:255',
+                'country_scope' => 'nullable|in:all_countries,india_nepal_only,except_india_nepal',
             ]);
 
             if ($validator->fails()) {

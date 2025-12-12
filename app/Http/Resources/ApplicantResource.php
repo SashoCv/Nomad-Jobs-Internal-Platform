@@ -21,10 +21,11 @@ class ApplicantResource extends JsonResource
             'contractType' => $this->contractType,
             'personPicturePath' => $this->personPicturePath,
             'personPictureName' => $this->personPictureName,
-            'country' => $this->country,
+            'country_id' => $this->country_id,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
 
             // Relationships
+            'country' => $this->whenLoaded('country'),
             'company' => $this->whenLoaded('company', function () {
                 return [
                     'id' => $this->company->id,

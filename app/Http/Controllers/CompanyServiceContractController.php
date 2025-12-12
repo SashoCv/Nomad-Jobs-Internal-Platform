@@ -34,7 +34,7 @@ class CompanyServiceContractController extends Controller
                 return response()->json(['error' => 'Insufficient permissions'], 403);
             }
 
-            $query = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','company.companyFiles']);
+            $query = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','contractPricing.contractServiceType','company.companyFiles']);
 
             if ($this->isStaff()) {
                 // Staff can see all contracts
