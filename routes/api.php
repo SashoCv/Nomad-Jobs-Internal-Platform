@@ -246,6 +246,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Assigned Jobs
     Route::post('assignJobToAgent', [AssignedJobController::class, 'store']);
+    Route::post('bulkAssignJobsToAgent', [AssignedJobController::class, 'bulkAssign']);
+    Route::post('assignMultipleAgentsToJob', [AssignedJobController::class, 'assignMultipleAgentsToJob']);
+    Route::post('removeAgentFromJob', [AssignedJobController::class, 'removeAgentFromJob']);
     Route::get('getAgents', [AssignedJobController::class, 'getAgents']);
     Route::get('getAssignedJobs', [AssignedJobController::class, 'getAssignedJobs']);
     Route::delete('deleteAssignedJob/{id}', [AssignedJobController::class, 'deleteAssignedJob']);
@@ -341,6 +344,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Statistics DASHBOARD
     Route::get('statistics', [StatisticController::class, 'statistics']);
+    Route::get('agents-statistics', [StatisticController::class, 'agentsStatistics']);
 
 
     // Company Service Contract
@@ -415,6 +419,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Statistic for agents
     Route::get('statisticForAgents', [StatisticController::class, 'statisticForAgents']);
+
+    // Agents job assignments overview
+    Route::get('agents-job-assignments', [StatisticController::class, 'agentsJobAssignments']);
 
     // Applicants (Candidates without status)
     Route::get('applicants', [CandidateController::class, 'getApplicants']);

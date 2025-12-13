@@ -252,8 +252,9 @@ class StatisticController extends Controller
                 ];
             })->values()->toArray();
 
-        // Get job postings for these companies
+        // Get job postings for these companies (excluding soft-deleted)
         $jobPostings = \App\Models\CompanyJob::whereIn('company_id', $companyIds)
+            ->whereNull('deleted_at')
             ->with('position:id,jobPosition')
             ->get();
 
@@ -447,6 +448,219 @@ class StatisticController extends Controller
             'statusCounts' => $statusCounts,
             'jobPostings' => $jobPostingsData,
             'upcomingArrivalsList' => $upcomingArrivals,
+        ], 200);
+    }
+
+    public function agentsJobAssignments(Request $request)
+    {
+        // Get all agents with their assigned jobs
+        $agents = \App\Models\User::where('role_id', \App\Models\Role::AGENT)
+            ->select('id', 'firstName', 'lastName', 'email')
+            ->orderBy('firstName')
+            ->get();
+
+        $agentsWithJobs = $agents->map(function ($agent) {
+            // Get unique assigned jobs for this agent (only active company_jobs)
+            $assignedJobs = AssignedJob::with('companyJob.company:id,nameOfCompany', 'companyJob.position:id,jobPosition')
+                ->where('user_id', $agent->id)
+                ->whereHas('companyJob') // Only active jobs
+                ->get()
+                ->unique('company_job_id'); // Remove duplicates by company_job_id
+
+            $jobsList = $assignedJobs->map(function ($assignedJob) {
+                $job = $assignedJob->companyJob;
+                return [
+                    'id' => $job->id,
+                    'jobTitle' => $job->job_title,
+                    'company' => $job->company->nameOfCompany ?? 'Unknown',
+                    'position' => $job->job_title ?? 'Unknown',
+                    'status' => $job->showJob ? 'Активна' : 'Неактивна',
+                    'createdAt' => $job->created_at->format('d.m.Y'),
+                ];
+            })->values()->toArray();
+
+            return [
+                'agentId' => $agent->id,
+                'agentName' => $agent->firstName . ' ' . $agent->lastName,
+                'agentEmail' => $agent->email,
+                'totalAssignedJobs' => count($jobsList),
+                'jobs' => $jobsList,
+            ];
+        });
+
+        // Get unassigned jobs (active company_jobs not in assigned_jobs)
+        $assignedJobIds = AssignedJob::whereHas('companyJob')
+            ->pluck('company_job_id')
+            ->unique()
+            ->toArray();
+
+        $unassignedJobs = \App\Models\CompanyJob::with('company:id,nameOfCompany', 'position:id,jobPosition')
+            ->whereNull('deleted_at')
+            ->whereNotIn('id', $assignedJobIds)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($job) {
+                return [
+                    'id' => $job->id,
+                    'jobTitle' => $job->job_title,
+                    'company' => $job->company->nameOfCompany ?? 'Unknown',
+                    'position' => $job->position->jobPosition ?? 'Unknown',
+                    'status' => $job->showJob ? 'Активна' : 'Неактивна',
+                    'createdAt' => $job->created_at->format('d.m.Y'),
+                ];
+            })
+            ->toArray();
+
+        // Get all assigned jobs with their agents
+        $assignedJobsWithAgents = \App\Models\CompanyJob::with('company:id,nameOfCompany', 'position:id,jobPosition')
+            ->whereNull('deleted_at')
+            ->whereIn('id', $assignedJobIds)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($job) {
+                // Get all agents assigned to this job
+                $assignedAgents = AssignedJob::with('user:id,firstName,lastName,email')
+                    ->where('company_job_id', $job->id)
+                    ->get()
+                    ->map(function ($assignment) {
+                        return [
+                            'agentId' => $assignment->user->id,
+                            'agentName' => $assignment->user->firstName . ' ' . $assignment->user->lastName,
+                            'agentEmail' => $assignment->user->email,
+                        ];
+                    })
+                    ->toArray();
+
+                return [
+                    'id' => $job->id,
+                    'jobTitle' => $job->job_title,
+                    'company' => $job->company->nameOfCompany ?? 'Unknown',
+                    'position' => $job->position->jobPosition ?? 'Unknown',
+                    'status' => $job->showJob ? 'Активна' : 'Неактивна',
+                    'createdAt' => $job->created_at->format('d.m.Y'),
+                    'assignedAgents' => $assignedAgents,
+                    'agentsCount' => count($assignedAgents),
+                ];
+            })
+            ->toArray();
+
+        return response()->json([
+            'agentsWithJobs' => $agentsWithJobs,
+            'unassignedJobs' => $unassignedJobs,
+            'assignedJobs' => $assignedJobsWithAgents,
+            'totalAgents' => $agents->count(),
+            'totalUnassignedJobs' => count($unassignedJobs),
+            'totalAssignedJobs' => count($assignedJobsWithAgents),
+        ], 200);
+    }
+
+    public function agentsStatistics(Request $request)
+    {
+        $agentId = $request->agent_id; // Filter by specific agent if provided
+
+        // Get all agents (users with role_id = 4)
+        $agentsQuery = \App\Models\User::where('role_id', \App\Models\Role::AGENT);
+
+        if ($agentId) {
+            $agentsQuery->where('id', $agentId);
+        }
+
+        $agents = $agentsQuery->get();
+        $totalAgents = $agents->count();
+
+        // Get agent candidates - filter by agent if specified
+        $agentCandidatesQuery = AgentCandidate::with([
+            'candidate.status',
+            'candidate.position:id,jobPosition',
+            'companyJob:id,job_title,showJob',
+            'statusForCandidateFromAgent:id,name',
+            'user:id,firstName,lastName'
+        ])
+            ->whereNull('deleted_at')
+            ->whereHas('candidate'); // Only include if candidate exists
+
+        if ($agentId) {
+            $agentCandidatesQuery->where('user_id', $agentId);
+        }
+
+        $agentCandidates = $agentCandidatesQuery->get();
+        $totalCandidatesAdded = $agentCandidates->count();
+
+        // Count candidates by agent
+        $candidatesByAgent = $agentCandidates
+            ->groupBy('user_id')
+            ->map(function ($group) {
+                $user = $group->first()->user;
+                return [
+                    'agentId' => $user->id,
+                    'agentName' => $user->firstName . ' ' . $user->lastName,
+                    'count' => $group->count()
+                ];
+            })->values()->toArray();
+
+        // Group by status_for_candidate_from_agent_id
+        $statusCounts = $agentCandidates
+            ->groupBy('status_for_candidate_from_agent_id')
+            ->map(function ($group, $statusId) {
+                $statusName = optional($group->first()->statusForCandidateFromAgent)->name ?? 'Unknown';
+                return [
+                    'label' => $statusName,
+                    'value' => $group->count(),
+                    'statusId' => $statusId
+                ];
+            })->values()->toArray();
+
+        // Get total active job postings (not soft-deleted)
+        $totalJobPostings = \App\Models\CompanyJob::whereNull('deleted_at')->count();
+
+        // Get job postings assigned to agents (count unique company_jobs only)
+        $assignedJobsQuery = AssignedJob::whereHas('companyJob'); // Only include if companyJob exists and not soft-deleted
+
+        if ($agentId) {
+            $assignedJobsQuery->where('user_id', $agentId);
+        }
+
+        // Count distinct company_job_id instead of total assigned_jobs records
+        $jobPostingsAssigned = $assignedJobsQuery->distinct('company_job_id')->count('company_job_id');
+
+        // Get full assigned jobs data for later use
+        $assignedJobs = AssignedJob::with('companyJob:id,job_title,showJob')
+            ->whereHas('companyJob')
+            ->when($agentId, function($query) use ($agentId) {
+                return $query->where('user_id', $agentId);
+            })
+            ->get();
+
+        // TODO: Contract statistics will be added later when finance tables are created
+        $contractsWithAgents = 0; // Placeholder for future implementation
+
+        // Build agent details list (for all agents or filtered agent)
+        $agentsList = [];
+        foreach ($agents as $agent) {
+            $agentCandidatesCount = $agentCandidates->where('user_id', $agent->id)->count();
+            $agentJobsCount = $assignedJobs->where('user_id', $agent->id)->count();
+
+            $agentsList[] = [
+                'id' => $agent->id,
+                'name' => $agent->firstName . ' ' . $agent->lastName,
+                'email' => $agent->email,
+                'candidatesCount' => $agentCandidatesCount,
+                'jobsCount' => $agentJobsCount,
+            ];
+        }
+
+        return response()->json([
+            'totalAgents' => $totalAgents,
+            'totalCandidatesAdded' => $totalCandidatesAdded,
+            'totalInvoiced' => 0, // Placeholder - will be calculated when finance tables are ready
+            'totalPaid' => 0, // Placeholder - will be calculated when finance tables are ready
+            'remainingToInvoice' => 0, // Placeholder - will be calculated when finance tables are ready
+            'totalJobPostings' => $totalJobPostings, // Total active job postings in system
+            'jobPostingsAssigned' => $jobPostingsAssigned,
+            'contractsWithAgents' => $contractsWithAgents,
+            'statusCounts' => $statusCounts,
+            'candidatesByAgent' => $candidatesByAgent,
+            'agentsList' => $agentsList,
         ], 200);
     }
 }
