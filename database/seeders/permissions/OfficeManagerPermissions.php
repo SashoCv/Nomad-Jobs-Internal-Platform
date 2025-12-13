@@ -73,6 +73,12 @@ class OfficeManagerPermissions
             Permission::TRANSPORT_READ,
             Permission::TRANSPORT_CREATE,
             Permission::TRANSPORT_COVERAGE,
+            Permission::AGENTS_DASHBOARD_READ,
+            Permission::AGENTS_JOB_ASSIGNMENTS_READ,
+            Permission::AGENTS_CONTRACTS_READ,
+            Permission::AGENTS_CONTRACTS_CREATE,
+            Permission::AGENTS_CONTRACTS_UPDATE,
+            Permission::AGENTS_CONTRACTS_DELETE,
         ];
     }
 }

@@ -2,34 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ContractServiceType;
+use App\Models\AgentServiceType;
 use Illuminate\Http\Request;
 
-class ContractServiceTypeController extends Controller
+class AgentServiceTypeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function index()
     {
         try {
-            $contractServiceTypes = ContractServiceType::all('id', 'name');
-            return response()->json($contractServiceTypes);
+            $serviceTypes = AgentServiceType::all();
+            return response()->json($serviceTypes);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to retrieve contract service types: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to retrieve service types: ' . $e->getMessage()], 500);
         }
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     public function store(Request $request)
@@ -39,10 +24,10 @@ class ContractServiceTypeController extends Controller
                 'name' => 'required|string|max:255',
             ]);
 
-            $serviceType = ContractServiceType::create($validated);
+            $serviceType = AgentServiceType::create($validated);
 
             return response()->json([
-                'message' => 'Contract service type created successfully',
+                'message' => 'Agent service type created successfully',
                 'serviceType' => $serviceType,
             ], 201);
         } catch (\Exception $e) {
@@ -53,7 +38,7 @@ class ContractServiceTypeController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $serviceType = ContractServiceType::findOrFail($id);
+            $serviceType = AgentServiceType::findOrFail($id);
 
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -62,7 +47,7 @@ class ContractServiceTypeController extends Controller
             $serviceType->update($validated);
 
             return response()->json([
-                'message' => 'Contract service type updated successfully',
+                'message' => 'Agent service type updated successfully',
                 'serviceType' => $serviceType,
             ]);
         } catch (\Exception $e) {
@@ -73,22 +58,22 @@ class ContractServiceTypeController extends Controller
     public function destroy($id)
     {
         try {
-            $serviceType = ContractServiceType::findOrFail($id);
+            $serviceType = AgentServiceType::findOrFail($id);
 
-            // Check if service type is used in invoices
-            $isUsed = \App\Models\Invoice::where('contract_service_type_id', $id)->exists();
+            // Check if service type is used in agent_contract_pricing
+            $isUsed = \App\Models\AgentContractPricing::where('agent_service_type_id', $id)->exists();
 
             if ($isUsed) {
                 return response()->json([
                     'error' => 'Cannot delete service type',
-                    'message' => 'This service type is being used in invoices and cannot be deleted. You can only edit the name.',
+                    'message' => 'This service type is being used in agent contract pricing and cannot be deleted. You can only edit the name.',
                 ], 422);
             }
 
             $serviceType->delete();
 
             return response()->json([
-                'message' => 'Contract service type deleted successfully',
+                'message' => 'Agent service type deleted successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to delete service type: ' . $e->getMessage()], 500);

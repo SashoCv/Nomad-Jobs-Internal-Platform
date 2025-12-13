@@ -19,6 +19,7 @@ class AgentPermissions
             Permission::DOCUMENTS_UPLOAD,
             Permission::DOCUMENTS_DELETE,
             Permission::AGENT_COMPANIES_READ,
+            Permission::AGENTS_CONTRACTS_READ,
         ];
     }
 }

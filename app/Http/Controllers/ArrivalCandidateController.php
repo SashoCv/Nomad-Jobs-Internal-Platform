@@ -16,6 +16,7 @@ use App\Models\Statushistory;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use App\Services\InvoiceService;
+use App\Services\AgentInvoiceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -359,6 +360,7 @@ class ArrivalCandidateController extends Controller
                     $newStatus->save();
 
                     InvoiceService::saveInvoiceOnStatusChange($candidate_id, $status, $statusDate);
+                    AgentInvoiceService::saveAgentInvoiceOnStatusChange($candidate_id, $status, $statusDate);
 
                 }
             }

@@ -6,6 +6,7 @@ use App\Jobs\SendEmailForArrivalCandidates;
 use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
+use App\Services\AgentInvoiceService;
 use App\Traits\HasRolePermissions;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
@@ -145,6 +146,7 @@ class StatusController extends Controller
                     $newStatus->save();
 
                     InvoiceService::saveInvoiceOnStatusChange($candidate_id, $status, $statusDate);
+                    AgentInvoiceService::saveAgentInvoiceOnStatusChange($candidate_id, $status, $statusDate);
 
                 }
             }

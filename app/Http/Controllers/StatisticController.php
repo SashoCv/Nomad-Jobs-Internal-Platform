@@ -631,8 +631,29 @@ class StatisticController extends Controller
             })
             ->get();
 
-        // TODO: Contract statistics will be added later when finance tables are created
-        $contractsWithAgents = 0; // Placeholder for future implementation
+        // Get contracts with agents
+        $contractsQuery = \App\Models\AgentServiceContract::whereNull('deleted_at');
+
+        if ($agentId) {
+            $contractsQuery->where('agent_id', $agentId);
+        }
+
+        $contractsWithAgents = $contractsQuery->count();
+
+        // Get financial statistics from agent_invoices
+        $agentInvoicesQuery = \App\Models\AgentInvoice::whereNull('deleted_at');
+
+        if ($agentId) {
+            $agentInvoicesQuery->where('agent_id', $agentId);
+        }
+
+        $agentInvoices = $agentInvoicesQuery->get();
+        $totalInvoiced = $agentInvoices->where('invoiceStatus', \App\Models\AgentInvoice::INVOICE_STATUS_INVOICED)->sum('price');
+        $totalNotInvoiced = $agentInvoices->where('invoiceStatus', \App\Models\AgentInvoice::INVOICE_STATUS_NOT_INVOICED)->sum('price');
+        $totalPaid = $agentInvoices->where('invoiceStatus', \App\Models\AgentInvoice::INVOICE_STATUS_PAID)->sum('price');
+
+        // For payment: sum of not_invoiced + invoiced (excluding paid and rejected)
+        $remainingToInvoice = $totalNotInvoiced + $totalInvoiced;
 
         // Build agent details list (for all agents or filtered agent)
         $agentsList = [];
@@ -652,9 +673,9 @@ class StatisticController extends Controller
         return response()->json([
             'totalAgents' => $totalAgents,
             'totalCandidatesAdded' => $totalCandidatesAdded,
-            'totalInvoiced' => 0, // Placeholder - will be calculated when finance tables are ready
-            'totalPaid' => 0, // Placeholder - will be calculated when finance tables are ready
-            'remainingToInvoice' => 0, // Placeholder - will be calculated when finance tables are ready
+            'totalInvoiced' => $totalInvoiced,
+            'totalPaid' => $totalPaid,
+            'remainingToInvoice' => $remainingToInvoice,
             'totalJobPostings' => $totalJobPostings, // Total active job postings in system
             'jobPostingsAssigned' => $jobPostingsAssigned,
             'contractsWithAgents' => $contractsWithAgents,
