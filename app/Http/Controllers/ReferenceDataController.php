@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\StatusArrival;
+use App\Models\StatusForCandidateFromAgent;
 use App\Models\Status;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -10,82 +10,80 @@ use Illuminate\Support\Facades\Log;
 class ReferenceDataController extends Controller
 {
     /**
-     * Get all status arrivals for reference data management
+     * Get all agent candidate statuses for reference data management
      */
-    public function getStatusArrivals()
+    public function getAgentCandidateStatuses()
     {
         try {
-            $statusArrivals = StatusArrival::orderBy('order_statuses')->orderBy('statusName')->get();
-            return response()->json($statusArrivals);
+            $statuses = StatusForCandidateFromAgent::orderBy('name')->get();
+            return response()->json($statuses);
         } catch (\Exception $e) {
-            Log::error('Error retrieving status arrivals: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to retrieve status arrivals', 'message' => $e->getMessage()], 500);
+            Log::error('Error retrieving agent candidate statuses: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to retrieve agent candidate statuses', 'message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Store a new status arrival
+     * Store a new agent candidate status
      */
-    public function storeStatusArrival(Request $request)
+    public function storeAgentCandidateStatus(Request $request)
     {
         try {
             $validated = $request->validate([
-                'statusName' => 'required|string|max:255',
-                'order_statuses' => 'nullable|integer',
+                'name' => 'required|string|max:255',
             ]);
 
-            $statusArrival = StatusArrival::create($validated);
+            $status = StatusForCandidateFromAgent::create($validated);
 
             return response()->json([
-                'message' => 'Status arrival created successfully',
-                'statusArrival' => $statusArrival,
+                'message' => 'Agent candidate status created successfully',
+                'status' => $status,
             ], 201);
         } catch (\Exception $e) {
-            Log::error('Error creating status arrival: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to create status arrival', 'message' => $e->getMessage()], 500);
+            Log::error('Error creating agent candidate status: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to create agent candidate status', 'message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Update a status arrival
+     * Update an agent candidate status
      */
-    public function updateStatusArrival(Request $request, $id)
+    public function updateAgentCandidateStatus(Request $request, $id)
     {
         try {
-            $statusArrival = StatusArrival::findOrFail($id);
+            $status = StatusForCandidateFromAgent::findOrFail($id);
 
             $validated = $request->validate([
-                'statusName' => 'required|string|max:255',
-                'order_statuses' => 'nullable|integer',
+                'name' => 'required|string|max:255',
             ]);
 
-            $statusArrival->update($validated);
+            $status->update($validated);
 
             return response()->json([
-                'message' => 'Status arrival updated successfully',
-                'statusArrival' => $statusArrival,
+                'message' => 'Agent candidate status updated successfully',
+                'status' => $status,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error updating status arrival: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to update status arrival', 'message' => $e->getMessage()], 500);
+            Log::error('Error updating agent candidate status: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to update agent candidate status', 'message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Delete a status arrival
+     * Delete an agent candidate status
      */
-    public function deleteStatusArrival($id)
+    public function deleteAgentCandidateStatus($id)
     {
         try {
-            $statusArrival = StatusArrival::findOrFail($id);
-            $statusArrival->delete();
+            $status = StatusForCandidateFromAgent::findOrFail($id);
+            $status->delete();
 
             return response()->json([
-                'message' => 'Status arrival deleted successfully',
+                'message' => 'Agent candidate status deleted successfully',
             ]);
         } catch (\Exception $e) {
-            Log::error('Error deleting status arrival: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to delete status arrival', 'message' => $e->getMessage()], 500);
+            Log::error('Error deleting agent candidate status: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to delete agent candidate status', 'message' => $e->getMessage()], 500);
         }
     }
 

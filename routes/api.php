@@ -321,11 +321,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('contract-service-types/{id}', [\App\Http\Controllers\ContractServiceTypeController::class, 'update']);
     Route::delete('contract-service-types/{id}', [\App\Http\Controllers\ContractServiceTypeController::class, 'destroy']);
 
-    // STATUS ARRIVALS (Reference Data)
-    Route::get('reference-data/status-arrivals', [ReferenceDataController::class, 'getStatusArrivals']);
-    Route::post('reference-data/status-arrivals', [ReferenceDataController::class, 'storeStatusArrival']);
-    Route::put('reference-data/status-arrivals/{id}', [ReferenceDataController::class, 'updateStatusArrival']);
-    Route::delete('reference-data/status-arrivals/{id}', [ReferenceDataController::class, 'deleteStatusArrival']);
+    // AGENT CANDIDATE STATUSES (Reference Data)
+    Route::get('reference-data/agent-candidate-statuses', [ReferenceDataController::class, 'getAgentCandidateStatuses']);
+    Route::post('reference-data/agent-candidate-statuses', [ReferenceDataController::class, 'storeAgentCandidateStatus']);
+    Route::put('reference-data/agent-candidate-statuses/{id}', [ReferenceDataController::class, 'updateAgentCandidateStatus']);
+    Route::delete('reference-data/agent-candidate-statuses/{id}', [ReferenceDataController::class, 'deleteAgentCandidateStatus']);
 
     // CANDIDATE STATUSES (Reference Data)
     Route::get('reference-data/candidate-statuses', [ReferenceDataController::class, 'getCandidateStatuses']);
