@@ -61,12 +61,11 @@ class AgentServiceTypeController extends Controller
             $serviceType = AgentServiceType::findOrFail($id);
 
             // Check if service type is used in agent_contract_pricing
-            $isUsed = \App\Models\AgentContractPricing::where('agent_service_type_id', $id)->exists();
+            $isUsed = \App\Models\AgentContractPricing::where('agent_service_type_id', $id)->count();
 
-            if ($isUsed) {
+            if ($isUsed > 0) {
                 return response()->json([
-                    'error' => 'Cannot delete service type',
-                    'message' => 'This service type is being used in agent contract pricing and cannot be deleted. You can only edit the name.',
+                    'error' => 'Не може да се изтрие този тип услуга, защото се използва в ценообразуване на договори за агенти.',
                 ], 422);
             }
 

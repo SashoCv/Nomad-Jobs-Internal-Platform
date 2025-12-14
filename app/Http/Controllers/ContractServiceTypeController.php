@@ -76,12 +76,20 @@ class ContractServiceTypeController extends Controller
             $serviceType = ContractServiceType::findOrFail($id);
 
             // Check if service type is used in invoices
-            $isUsed = \App\Models\Invoice::where('contract_service_type_id', $id)->exists();
+            $isUsedInInvoices = \App\Models\Invoice::where('contract_service_type_id', $id)->exists();
 
-            if ($isUsed) {
+            if ($isUsedInInvoices) {
                 return response()->json([
-                    'error' => 'Cannot delete service type',
-                    'message' => 'This service type is being used in invoices and cannot be deleted. You can only edit the name.',
+                    'error' => 'Не може да се изтрие този тип услуга, защото се използва във фактури.',
+                ], 422);
+            }
+
+            // Check if service type is used in contract pricings
+            $isUsedInPricings = \App\Models\ContractPricing::where('contract_service_type_id', $id)->count();
+
+            if ($isUsedInPricings > 0) {
+                return response()->json([
+                    'error' => 'Не може да се изтрие този тип услуга, защото се използва в ценообразуване на договори.',
                 ], 422);
             }
 
