@@ -327,6 +327,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('reference-data/status-arrivals/{id}', [ReferenceDataController::class, 'updateStatusArrival']);
     Route::delete('reference-data/status-arrivals/{id}', [ReferenceDataController::class, 'deleteStatusArrival']);
 
+    // CANDIDATE STATUSES (Reference Data)
+    Route::get('reference-data/candidate-statuses', [ReferenceDataController::class, 'getCandidateStatuses']);
+    Route::post('reference-data/candidate-statuses', [ReferenceDataController::class, 'storeCandidateStatus']);
+    Route::put('reference-data/candidate-statuses/{id}', [ReferenceDataController::class, 'updateCandidateStatus']);
+    Route::delete('reference-data/candidate-statuses/{id}', [ReferenceDataController::class, 'deleteCandidateStatus']);
+
     // Arrivals
     Route::post('storeArrival', [ArrivalController::class, 'store']); // i need statushistories mail also here
     Route::post('updateArrival/{id}', [ArrivalController::class, 'update']);

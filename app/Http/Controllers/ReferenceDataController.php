@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StatusArrival;
+use App\Models\Status;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -85,6 +86,88 @@ class ReferenceDataController extends Controller
         } catch (\Exception $e) {
             Log::error('Error deleting status arrival: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to delete status arrival', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get all candidate statuses for reference data management
+     */
+    public function getCandidateStatuses()
+    {
+        try {
+            $statuses = Status::orderBy('order')->orderBy('nameOfStatus')->get();
+            return response()->json($statuses);
+        } catch (\Exception $e) {
+            Log::error('Error retrieving candidate statuses: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to retrieve candidate statuses', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Store a new candidate status
+     */
+    public function storeCandidateStatus(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'nameOfStatus' => 'required|string|max:255',
+                'order' => 'nullable|integer',
+                'showOnHomePage' => 'nullable|boolean',
+            ]);
+
+            $status = Status::create($validated);
+
+            return response()->json([
+                'message' => 'Candidate status created successfully',
+                'status' => $status,
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Error creating candidate status: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to create candidate status', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Update a candidate status
+     */
+    public function updateCandidateStatus(Request $request, $id)
+    {
+        try {
+            $status = Status::findOrFail($id);
+
+            $validated = $request->validate([
+                'nameOfStatus' => 'required|string|max:255',
+                'order' => 'nullable|integer',
+                'showOnHomePage' => 'nullable|boolean',
+            ]);
+
+            $status->update($validated);
+
+            return response()->json([
+                'message' => 'Candidate status updated successfully',
+                'status' => $status,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating candidate status: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to update candidate status', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Delete a candidate status
+     */
+    public function deleteCandidateStatus($id)
+    {
+        try {
+            $status = Status::findOrFail($id);
+            $status->delete();
+
+            return response()->json([
+                'message' => 'Candidate status deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting candidate status: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to delete candidate status', 'message' => $e->getMessage()], 500);
         }
     }
 }
