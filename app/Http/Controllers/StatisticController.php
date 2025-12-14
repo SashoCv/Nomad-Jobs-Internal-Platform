@@ -27,6 +27,8 @@ class StatisticController extends Controller
             ->whereHas('latestStatusHistory.status')
             ->whereBetween('created_at', [$dateFrom, $dateTo]);
 
+        // Also Here i need how many contracts are signed with copmanies (company_service_contracts)    
+
         // Apply filters
         if ($companyId) {
             $query->where('company_id', $companyId);
@@ -69,6 +71,17 @@ class StatisticController extends Controller
         }
 
         $candidates = $query->get();
+
+        // Get count of companies with active contracts (endDate >= today)
+        $companiesWithContractsQuery = \App\Models\CompanyServiceContract::query()
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->when($companyId, function ($query) use ($companyId) {
+                $query->where('company_id', $companyId);
+            })
+            ->distinct('company_id')
+            ->pluck('company_id');
+
+        $companiesWithActiveContracts = $companiesWithContractsQuery->count();
 
         // Load all countries for lookup
         $countries = \App\Models\Country::all()->keyBy('id');
@@ -127,6 +140,7 @@ class StatisticController extends Controller
             'countryCounts' => $countryCounts,
             'typeCounts' => $typeCounts,
             'agentCounts' => $agentCounts,
+            'companiesWithActiveContracts' => $companiesWithActiveContracts,
         ], 200, ['Content-Type' => 'application/json']);
     }
 
