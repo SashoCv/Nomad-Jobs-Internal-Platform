@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class StatusArrival extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'statusName',
+        'order',
+    ];
 }

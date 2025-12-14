@@ -41,6 +41,7 @@ use App\Http\Controllers\AgentContractPricingController;
 use App\Http\Controllers\AgentServiceTypeController;
 use App\Http\Controllers\CompanyRequestController;
 use App\Http\Controllers\StatisticController;
+use App\Http\Controllers\ReferenceDataController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -319,6 +320,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('contract-service-types', [\App\Http\Controllers\ContractServiceTypeController::class, 'store']);
     Route::put('contract-service-types/{id}', [\App\Http\Controllers\ContractServiceTypeController::class, 'update']);
     Route::delete('contract-service-types/{id}', [\App\Http\Controllers\ContractServiceTypeController::class, 'destroy']);
+
+    // STATUS ARRIVALS (Reference Data)
+    Route::get('reference-data/status-arrivals', [ReferenceDataController::class, 'getStatusArrivals']);
+    Route::post('reference-data/status-arrivals', [ReferenceDataController::class, 'storeStatusArrival']);
+    Route::put('reference-data/status-arrivals/{id}', [ReferenceDataController::class, 'updateStatusArrival']);
+    Route::delete('reference-data/status-arrivals/{id}', [ReferenceDataController::class, 'deleteStatusArrival']);
 
     // Arrivals
     Route::post('storeArrival', [ArrivalController::class, 'store']); // i need statushistories mail also here
