@@ -76,6 +76,16 @@ class ReferenceDataController extends Controller
     {
         try {
             $status = StatusForCandidateFromAgent::findOrFail($id);
+
+            // Check if any agent candidates are using this status
+            $candidatesCount = \App\Models\AgentCandidate::where('status_for_candidate_from_agent_id', $id)->count();
+
+            if ($candidatesCount > 0) {
+                return response()->json([
+                    'error' => 'Не може да се изтрие този статус, защото съществуват кандидати с този статус.'
+                ], 422);
+            }
+
             $status->delete();
 
             return response()->json([
@@ -158,6 +168,16 @@ class ReferenceDataController extends Controller
     {
         try {
             $status = Status::findOrFail($id);
+
+            // Check if any status histories are using this status
+            $historiesCount = \App\Models\Statushistory::where('status_id', $id)->count();
+
+            if ($historiesCount > 0) {
+                return response()->json([
+                    'error' => 'Не може да се изтрие този статус, защото съществуват записи в историята на статусите.'
+                ], 422);
+            }
+
             $status->delete();
 
             return response()->json([
