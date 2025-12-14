@@ -11,6 +11,6 @@ class StatusArrival extends Model
 
     protected $fillable = [
         'statusName',
-        'order',
+        'order_statuses',
     ];
 }

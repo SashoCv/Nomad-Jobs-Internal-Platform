@@ -30,7 +30,7 @@ class ReferenceDataController extends Controller
         try {
             $validated = $request->validate([
                 'statusName' => 'required|string|max:255',
-                'order' => 'nullable|integer',
+                'order_statuses' => 'nullable|integer',
             ]);
 
             $statusArrival = StatusArrival::create($validated);
@@ -55,7 +55,7 @@ class ReferenceDataController extends Controller
 
             $validated = $request->validate([
                 'statusName' => 'required|string|max:255',
-                'order' => 'nullable|integer',
+                'order_statuses' => 'nullable|integer',
             ]);
 
             $statusArrival->update($validated);
