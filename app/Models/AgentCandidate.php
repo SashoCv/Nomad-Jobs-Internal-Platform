@@ -15,6 +15,8 @@ class AgentCandidate extends Model
         'user_id',
         'company_job_id',
         'candidate_id',
+        'status_for_candidate_from_agent_id',
+        'nomad_office_id',
         'hr_employee_id',
         'company_admin_contact',
         'power_of_attorney',

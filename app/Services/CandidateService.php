@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\SendEmailForArrivalStatusCandidates;
+use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\File;
@@ -65,6 +66,17 @@ class CandidateService
 
             $this->createDefaultCategory($candidate);
 
+            // Create agent_candidates record if agent_id and company_job_id are provided
+            if (!empty($data['agent_id']) && !empty($data['company_job_id'])) {
+                AgentCandidate::create([
+                    'user_id' => $data['agent_id'],
+                    'company_job_id' => $data['company_job_id'],
+                    'candidate_id' => $candidate->id,
+                    'status_for_candidate_from_agent_id' => 3, // Approved status
+                    'nomad_office_id' => Auth::user()->id ?? null, // Can be set based on your business logic
+                ]);
+            }
+
             return $candidate;
         });
     }
@@ -99,6 +111,33 @@ class CandidateService
 
             // Handle file uploads
             $this->handleFileUploads($candidate, $data);
+
+            // Handle agent_candidates record
+            $existingAgentCandidate = AgentCandidate::where('candidate_id', $candidate->id)->first();
+
+            if (!empty($data['agent_id']) && !empty($data['company_job_id'])) {
+                // If both agent_id and company_job_id are provided, create or update the record
+                if ($existingAgentCandidate) {
+                    // Update existing record
+                    $existingAgentCandidate->update([
+                        'user_id' => $data['agent_id'],
+                        'company_job_id' => $data['company_job_id'],
+                        'status_for_candidate_from_agent_id' => 3, // Keep approved status
+                    ]);
+                } else {
+                    // Create new record
+                    AgentCandidate::create([
+                        'user_id' => $data['agent_id'],
+                        'company_job_id' => $data['company_job_id'],
+                        'candidate_id' => $candidate->id,
+                        'status_for_candidate_from_agent_id' => 3, // Approved status
+                        'nomad_office_id' => Auth::user()->id ?? null,
+                    ]);
+                }
+            } elseif ($existingAgentCandidate) {
+                // If agent_id or company_job_id is not provided, delete the existing record
+                $existingAgentCandidate->delete();
+            }
 
             return $candidate->load('position');
         });
