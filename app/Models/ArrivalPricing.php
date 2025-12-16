@@ -24,7 +24,7 @@ class ArrivalPricing extends Model
         'margin' => 'decimal:2',
         'total' => 'float',
         'billed' => 'boolean',
-        'isTransportCoveredByNomad' => 'boolean',
+        'isTransportCoveredByNomad' => 'integer',
     ];
 
 

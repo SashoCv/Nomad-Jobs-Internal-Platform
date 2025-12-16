@@ -119,7 +119,7 @@ class ArrivalPricingController extends Controller
             $arrival = Arrival::with('arrivalPricing')->where('id', $arrivalId)->firstOrFail();
 
             $data = $request->validate([
-                'isTransportCoveredByNomad' => 'required|boolean',
+                'isTransportCoveredByNomad' => 'required|integer|in:0,1,2,3',
             ]);
 
             $data['arrival_id'] = $arrival->id;
