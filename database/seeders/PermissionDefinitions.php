@@ -87,6 +87,17 @@ class PermissionDefinitions
             ['name' => Permission::COMPANIES_CONTRACTS_UPDATE, 'slug' => 'companies_contracts:update', 'description' => 'Edit company contracts'],
             ['name' => Permission::COMPANIES_CONTRACTS_DELETE, 'slug' => 'companies_contracts:delete', 'description' => 'Delete company contracts'],
 
+            // Agent Contracts
+            ['name' => Permission::AGENTS_CONTRACTS_READ, 'slug' => 'agents_contracts:read', 'description' => 'Read agent contracts'],
+            ['name' => Permission::AGENTS_CONTRACTS_CREATE, 'slug' => 'agents_contracts:create', 'description' => 'Create agent contracts'],
+            ['name' => Permission::AGENTS_CONTRACTS_UPDATE, 'slug' => 'agents_contracts:update', 'description' => 'Edit agent contracts'],
+            ['name' => Permission::AGENTS_CONTRACTS_DELETE, 'slug' => 'agents_contracts:delete', 'description' => 'Delete agent contracts'],
+
+            // Agents Dashboard & Management
+            ['name' => Permission::AGENTS_DASHBOARD_READ, 'slug' => 'agents_dashboard:read', 'description' => 'Access agents dashboard'],
+            ['name' => Permission::AGENTS_JOB_ASSIGNMENTS_READ, 'slug' => 'agents_job_assignments:read', 'description' => 'Read agent job assignments'],
+            ['name' => Permission::AGENT_INVOICES_READ, 'slug' => 'agent_invoices:read', 'description' => 'Read agent invoices'],
+
             // Home
             ['name' => Permission::HOME_READ, 'slug' => 'home:read', 'description' => 'Access home page'],
             ['name' => Permission::HOME_FILTER, 'slug' => 'home:filter', 'description' => 'Filter home page data'],

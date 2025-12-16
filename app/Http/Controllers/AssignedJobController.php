@@ -82,6 +82,46 @@ class AssignedJobController extends Controller
         }
     }
 
+    public function removeAgentFromJob(Request $request)
+    {
+        try {
+            // Validate request
+            $request->validate([
+                'company_job_id' => 'required|integer|exists:company_jobs,id',
+                'user_id' => 'required|integer|exists:users,id',
+            ]);
+
+            $companyJobId = $request->company_job_id;
+            $userId = $request->user_id;
+
+            // Find and delete the assignment
+            $assignment = AssignedJob::where('company_job_id', $companyJobId)
+                ->where('user_id', $userId)
+                ->first();
+
+            if (!$assignment) {
+                return response()->json([
+                    'message' => 'Assignment not found',
+                ], 404);
+            }
+
+            $assignment->delete();
+
+            return response()->json([
+                'message' => 'Agent removed from job successfully',
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Remove agent from job failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to remove agent'], 500);
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -101,6 +141,124 @@ class AssignedJobController extends Controller
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Job assigned failed'], 500);
+        }
+    }
+
+    public function bulkAssign(Request $request)
+    {
+        try {
+            // Validate request
+            $request->validate([
+                'user_id' => 'required|integer|exists:users,id',
+                'company_job_ids' => 'required|array',
+                'company_job_ids.*' => 'integer|exists:company_jobs,id',
+            ]);
+
+            $userId = $request->user_id;
+            $companyJobIds = $request->company_job_ids;
+
+            // Get existing assignments for this user to avoid duplicates
+            $existingAssignments = AssignedJob::where('user_id', $userId)
+                ->whereIn('company_job_id', $companyJobIds)
+                ->pluck('company_job_id')
+                ->toArray();
+
+            // Filter out jobs that are already assigned to this user
+            $newJobIds = array_diff($companyJobIds, $existingAssignments);
+
+            if (empty($newJobIds)) {
+                return response()->json([
+                    'message' => 'All selected jobs are already assigned to this agent',
+                    'assigned_count' => 0,
+                    'skipped_count' => count($existingAssignments),
+                ], 200);
+            }
+
+            // Bulk insert new assignments
+            $assignmentsData = array_map(function ($jobId) use ($userId) {
+                return [
+                    'user_id' => $userId,
+                    'company_job_id' => $jobId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }, $newJobIds);
+
+            AssignedJob::insert($assignmentsData);
+
+            return response()->json([
+                'message' => 'Jobs assigned successfully',
+                'assigned_count' => count($newJobIds),
+                'skipped_count' => count($existingAssignments),
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Bulk assign failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Bulk assignment failed'], 500);
+        }
+    }
+
+    public function assignMultipleAgentsToJob(Request $request)
+    {
+        try {
+            // Validate request
+            $request->validate([
+                'company_job_id' => 'required|integer|exists:company_jobs,id',
+                'user_ids' => 'required|array',
+                'user_ids.*' => 'integer|exists:users,id',
+            ]);
+
+            $companyJobId = $request->company_job_id;
+            $userIds = $request->user_ids;
+
+            // Get existing assignments for this job to avoid duplicates
+            $existingAssignments = AssignedJob::where('company_job_id', $companyJobId)
+                ->whereIn('user_id', $userIds)
+                ->pluck('user_id')
+                ->toArray();
+
+            // Filter out agents that are already assigned to this job
+            $newUserIds = array_diff($userIds, $existingAssignments);
+
+            if (empty($newUserIds)) {
+                return response()->json([
+                    'message' => 'All selected agents are already assigned to this job',
+                    'assigned_count' => 0,
+                    'skipped_count' => count($existingAssignments),
+                ], 200);
+            }
+
+            // Bulk insert new assignments
+            $assignmentsData = array_map(function ($userId) use ($companyJobId) {
+                return [
+                    'user_id' => $userId,
+                    'company_job_id' => $companyJobId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }, $newUserIds);
+
+            AssignedJob::insert($assignmentsData);
+
+            return response()->json([
+                'message' => 'Agents assigned successfully',
+                'assigned_count' => count($newUserIds),
+                'skipped_count' => count($existingAssignments),
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Assign multiple agents failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Assignment failed'], 500);
         }
     }
 

@@ -36,6 +36,15 @@ class Permission extends Model
     const COMPANIES_CONTRACTS_UPDATE = 'companies_contracts:update';
     const COMPANIES_CONTRACTS_DELETE = 'companies_contracts:delete';
 
+    const AGENTS_CONTRACTS_READ = 'agents_contracts:read';
+    const AGENTS_CONTRACTS_CREATE = 'agents_contracts:create';
+    const AGENTS_CONTRACTS_UPDATE = 'agents_contracts:update';
+    const AGENTS_CONTRACTS_DELETE = 'agents_contracts:delete';
+
+    const AGENTS_DASHBOARD_READ = 'agents_dashboard:read';
+    const AGENTS_JOB_ASSIGNMENTS_READ = 'agents_job_assignments:read';
+    const AGENT_INVOICES_READ = 'agent_invoices:read';
+
     const INDUSTRIES_READ = 'industries:read';
     const INDUSTRIES_CREATE = 'industries:create';
     const INDUSTRIES_UPDATE = 'industries:update';

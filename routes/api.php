@@ -36,8 +36,12 @@ use App\Http\Controllers\StatusForCandidateFromAgentController;
 use App\Http\Controllers\MedicalInsuranceController;
 use App\Http\Controllers\CompanyServiceContractController;
 use App\Http\Controllers\ContractServiceTypeController;
+use App\Http\Controllers\AgentServiceContractController;
+use App\Http\Controllers\AgentContractPricingController;
+use App\Http\Controllers\AgentServiceTypeController;
 use App\Http\Controllers\CompanyRequestController;
 use App\Http\Controllers\StatisticController;
+use App\Http\Controllers\ReferenceDataController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -246,6 +250,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Assigned Jobs
     Route::post('assignJobToAgent', [AssignedJobController::class, 'store']);
+    Route::post('bulkAssignJobsToAgent', [AssignedJobController::class, 'bulkAssign']);
+    Route::post('assignMultipleAgentsToJob', [AssignedJobController::class, 'assignMultipleAgentsToJob']);
+    Route::post('removeAgentFromJob', [AssignedJobController::class, 'removeAgentFromJob']);
     Route::get('getAgents', [AssignedJobController::class, 'getAgents']);
     Route::get('getAssignedJobs', [AssignedJobController::class, 'getAssignedJobs']);
     Route::delete('deleteAssignedJob/{id}', [AssignedJobController::class, 'deleteAssignedJob']);
@@ -297,6 +304,35 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('invoices/{id}', [\App\Http\Controllers\InvoiceController::class, 'destroy']);
     Route::get('exportInvoices', [\App\Http\Controllers\InvoiceController::class, 'exportInvoices']);
 
+    // AGENT INVOICES
+    Route::get('agent-invoices', [\App\Http\Controllers\AgentInvoiceController::class, 'index']);
+    Route::put('agent-invoices/{id}', [\App\Http\Controllers\AgentInvoiceController::class, 'update']);
+    Route::delete('agent-invoices/{id}', [\App\Http\Controllers\AgentInvoiceController::class, 'destroy']);
+
+    // AGENT SERVICE TYPES (Reference Data)
+    Route::get('agent-service-types', [\App\Http\Controllers\AgentServiceTypeController::class, 'index']);
+    Route::post('agent-service-types', [\App\Http\Controllers\AgentServiceTypeController::class, 'store']);
+    Route::put('agent-service-types/{id}', [\App\Http\Controllers\AgentServiceTypeController::class, 'update']);
+    Route::delete('agent-service-types/{id}', [\App\Http\Controllers\AgentServiceTypeController::class, 'destroy']);
+
+    // CONTRACT SERVICE TYPES (Reference Data)
+    Route::get('contract-service-types', [\App\Http\Controllers\ContractServiceTypeController::class, 'index']);
+    Route::post('contract-service-types', [\App\Http\Controllers\ContractServiceTypeController::class, 'store']);
+    Route::put('contract-service-types/{id}', [\App\Http\Controllers\ContractServiceTypeController::class, 'update']);
+    Route::delete('contract-service-types/{id}', [\App\Http\Controllers\ContractServiceTypeController::class, 'destroy']);
+
+    // AGENT CANDIDATE STATUSES (Reference Data)
+    Route::get('reference-data/agent-candidate-statuses', [ReferenceDataController::class, 'getAgentCandidateStatuses']);
+    Route::post('reference-data/agent-candidate-statuses', [ReferenceDataController::class, 'storeAgentCandidateStatus']);
+    Route::put('reference-data/agent-candidate-statuses/{id}', [ReferenceDataController::class, 'updateAgentCandidateStatus']);
+    Route::delete('reference-data/agent-candidate-statuses/{id}', [ReferenceDataController::class, 'deleteAgentCandidateStatus']);
+
+    // CANDIDATE STATUSES (Reference Data)
+    Route::get('reference-data/candidate-statuses', [ReferenceDataController::class, 'getCandidateStatuses']);
+    Route::post('reference-data/candidate-statuses', [ReferenceDataController::class, 'storeCandidateStatus']);
+    Route::put('reference-data/candidate-statuses/{id}', [ReferenceDataController::class, 'updateCandidateStatus']);
+    Route::delete('reference-data/candidate-statuses/{id}', [ReferenceDataController::class, 'deleteCandidateStatus']);
+
     // Arrivals
     Route::post('storeArrival', [ArrivalController::class, 'store']); // i need statushistories mail also here
     Route::post('updateArrival/{id}', [ArrivalController::class, 'update']);
@@ -341,6 +377,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Statistics DASHBOARD
     Route::get('statistics', [StatisticController::class, 'statistics']);
+    Route::get('agents-statistics', [StatisticController::class, 'agentsStatistics']);
 
 
     // Company Service Contract
@@ -354,6 +391,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('deleteContractFile/{id}', [CompanyServiceContractController::class, 'deleteContractFile']);
     // Contract Service Types
     Route::get('getContractServiceTypes', [ContractServiceTypeController::class, 'index']);
+
+    // Agent Service Contract
+    Route::get('getAgentServiceContracts', [AgentServiceContractController::class, 'index']);
+    Route::get('getAgentServiceContract/{id}', [AgentServiceContractController::class, 'show']);
+    Route::post('storeAgentServiceContract', [AgentServiceContractController::class, 'store']);
+    Route::post('updateAgentServiceContract/{id}', [AgentServiceContractController::class, 'update']);
+    Route::delete('deleteAgentServiceContract/{id}', [AgentServiceContractController::class, 'destroy']);
+    Route::post('storeContractFileForAgent', [AgentServiceContractController::class, 'storeContractFileForAgent']);
+    Route::get('downloadAgentContractFile/{contractId}', [AgentServiceContractController::class, 'downloadContractFile']);
+    Route::delete('deleteAgentContractFile/{contractId}', [AgentServiceContractController::class, 'deleteContractFile']);
+
+    // Agent Service Types
+    Route::get('getAgentServiceTypes', [AgentServiceTypeController::class, 'index']);
+
+    // Agent Contract Pricing
+    Route::get('getAgentContractPricings', [AgentContractPricingController::class, 'index']);
+    Route::get('getAgentContractPricing/{id}', [AgentContractPricingController::class, 'show']);
+    Route::get('getAgentContractPricingByContract/{contractId}', [AgentContractPricingController::class, 'getByContract']);
+    Route::post('storeAgentContractPricing', [AgentContractPricingController::class, 'store']);
+    Route::post('updateAgentContractPricing/{id}', [AgentContractPricingController::class, 'update']);
+    Route::delete('deleteAgentContractPricing/{id}', [AgentContractPricingController::class, 'destroy']);
 
     // Contract Pricing
     Route::post('storeContractPricing', [ContractPricingController::class, 'store']);
@@ -415,6 +473,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Statistic for agents
     Route::get('statisticForAgents', [StatisticController::class, 'statisticForAgents']);
+
+    // Agents job assignments overview
+    Route::get('agents-job-assignments', [StatisticController::class, 'agentsJobAssignments']);
 
     // Applicants (Candidates without status)
     Route::get('applicants', [CandidateController::class, 'getApplicants']);

@@ -7,6 +7,7 @@ use App\Models\CompanyServiceContract;
 use App\Models\ContractPricing;
 use App\Models\Invoice;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceService
 {
@@ -23,12 +24,15 @@ class InvoiceService
         // Convert date format if needed
         $formattedDate = self::formatDate($statusDate);
 
-        $companyId = Candidate::where('id', $candidateId)->value('company_id');
-        $contractTypeCandidate = Candidate::where('id', $candidateId)->value('contractType');
+        $candidate = Candidate::find($candidateId);
 
-        if (!$companyId || !$contractTypeCandidate) {
+        if (!$candidate || !$candidate->company_id || !$candidate->contractType) {
             return; // Candidate does not have a company or contract type assigned
         }
+
+        $companyId = $candidate->company_id;
+        $contractTypeCandidate = $candidate->contractType;
+        $candidateCountryId = $candidate->country_id;
 
         $contractType = self::mapContractType($contractTypeCandidate);
         // Get the active contract for the company
@@ -40,15 +44,39 @@ class InvoiceService
             return; // No active contract for the company
         }
 
-        $contractPricing = ContractPricing::where('company_service_contract_id', $company_service_contract_id)
-            ->where('status_id', $statusId)
-            ->get() ?? []; // Mozhe da ima povekje fakturi za eden status
+        // Define India and Nepal country IDs
+        $indiaNepalCountryIds = [73, 117]; // India=73, Nepal=117
+        $isFromIndiaNepol = in_array($candidateCountryId, $indiaNepalCountryIds);
 
-        if ($contractPricing->isEmpty()) {
+        // Get all pricing for the status
+        $allContractPricing = ContractPricing::where('company_service_contract_id', $company_service_contract_id)
+            ->where('status_id', $statusId)
+            ->get();
+
+        if ($allContractPricing->isEmpty()) {
             return; // Nema cena za daden status
         }
 
+        // Filter pricing based on country_scope
+        $contractPricing = $allContractPricing->filter(function($item) use ($isFromIndiaNepol) {
+            switch ($item->country_scope) {
+                case 'india_nepal_only':
+                    return $isFromIndiaNepol;
+                case 'except_india_nepal':
+                    return !$isFromIndiaNepol;
+                case 'all_countries':
+                default:
+                    return true;
+            }
+        });
+
+        if ($contractPricing->isEmpty()) {
+            \Log::info("No applicable pricing found for candidate ID: {$candidateId} with country_id: {$candidateCountryId} and status_id: {$statusId}");
+            return;
+        }
+
         foreach ($contractPricing as $item){
+
             $invoice = new Invoice();
             $invoice->candidate_id = $candidateId;
             $invoice->company_id = $companyId;

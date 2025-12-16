@@ -294,25 +294,31 @@ class CandidateController extends Controller
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
-        $query = Candidate::with(['categories', 'company', 'position','statusHistories','statusHistories.status'])->where('id', $id);
+        $query = Candidate::with(['categories', 'company', 'position','statusHistories','statusHistories.status', 'country'])->where('id', $id);
 
         if ($this->isStaff()) {
             $person = $query->first();
 
             $agent = AgentCandidate::where('candidate_id', $id)->first();
             $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
+            $person->company_job_id = $agent ? $agent->company_job_id : null;
         } elseif ($user->hasRole(Role::COMPANY_USER)) {
             $person = $query->where('company_id', $user->company_id)->first();
             $person->phoneNumber = null;
+            $agent = AgentCandidate::where('candidate_id', $id)->first();
+            $person->company_job_id = $agent ? $agent->company_job_id : null;
         } elseif ($user->hasRole(Role::COMPANY_OWNER)) {
             $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
             $person = $query->whereIn('company_id', $companyIds)->first();
             $person->phoneNumber = null;
+            $agent = AgentCandidate::where('candidate_id', $id)->first();
+            $person->company_job_id = $agent ? $agent->company_job_id : null;
         } elseif ($user->hasRole(Role::AGENT)) {
             $candidateIds = AgentCandidate::where('user_id', $user->id)->pluck('candidate_id');
             $person = $query->whereIn('id', $candidateIds)->first();
             $agent = AgentCandidate::where('candidate_id', $id)->first();
             $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
+            $person->company_job_id = $agent ? $agent->company_job_id : null;
         } else {
             $person = null;
         }
@@ -376,6 +382,11 @@ class CandidateController extends Controller
 
         if (isset($person)) {
             $person->date = $person->date ? Carbon::parse($person->date)->format('Y-m-d') : null;
+
+            // Get company_job_id from agent_candidates if exists
+            $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
+            $person->company_job_id = $agentCandidate ? $agentCandidate->company_job_id : null;
+
             return response()->json([
                 'success' => true,
                 'status' => 200,

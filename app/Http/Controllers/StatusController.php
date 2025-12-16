@@ -6,6 +6,7 @@ use App\Jobs\SendEmailForArrivalCandidates;
 use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
+use App\Services\AgentInvoiceService;
 use App\Traits\HasRolePermissions;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
@@ -101,14 +102,13 @@ class StatusController extends Controller
      */
     public function updateStatusForCandidate(Request $request)
     {
-
-        if ($this->isStaff()) {
-
+        if ($this->isStaff() || $this->isAdminOrManager()) {
             $candidate_id = $request->candidate_id;
             $status_id = $request->status_id;
             $description = $request->description ?? null;
-            $statusDate = $request->statusDate ?? Carbon::now()->format('Y-m-d');
+            $statusDate = $request->statusDate ?? Carbon::now()->format('m-d-Y');
             $sendEmail = $request->sendEmail ?? false;
+
 
             // Check if the requested status already exists for this candidate
             $existingRequestedStatus = Statushistory::where('candidate_id', $candidate_id)
@@ -146,6 +146,7 @@ class StatusController extends Controller
                     $newStatus->save();
 
                     InvoiceService::saveInvoiceOnStatusChange($candidate_id, $status, $statusDate);
+                    AgentInvoiceService::saveAgentInvoiceOnStatusChange($candidate_id, $status, $statusDate);
 
                 }
             }

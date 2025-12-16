@@ -32,59 +32,74 @@ class ContractServiceTypeController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
+
+            $serviceType = ContractServiceType::create($validated);
+
+            return response()->json([
+                'message' => 'Contract service type created successfully',
+                'serviceType' => $serviceType,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create service type: ' . $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\ContractServiceType  $contractServiceType
-     * @return \Illuminate\Http\Response
-     */
-    public function show(ContractServiceType $contractServiceType)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            $serviceType = ContractServiceType::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
+
+            $serviceType->update($validated);
+
+            return response()->json([
+                'message' => 'Contract service type updated successfully',
+                'serviceType' => $serviceType,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update service type: ' . $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\ContractServiceType  $contractServiceType
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(ContractServiceType $contractServiceType)
+    public function destroy($id)
     {
-        //
-    }
+        try {
+            $serviceType = ContractServiceType::findOrFail($id);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ContractServiceType  $contractServiceType
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, ContractServiceType $contractServiceType)
-    {
-        //
-    }
+            // Check if service type is used in invoices
+            $isUsedInInvoices = \App\Models\Invoice::where('contract_service_type_id', $id)->exists();
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\ContractServiceType  $contractServiceType
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(ContractServiceType $contractServiceType)
-    {
-        //
+            if ($isUsedInInvoices) {
+                return response()->json([
+                    'error' => 'Не може да се изтрие този тип услуга, защото се използва във фактури.',
+                ], 422);
+            }
+
+            // Check if service type is used in contract pricings
+            $isUsedInPricings = \App\Models\ContractPricing::where('contract_service_type_id', $id)->count();
+
+            if ($isUsedInPricings > 0) {
+                return response()->json([
+                    'error' => 'Не може да се изтрие този тип услуга, защото се използва в ценообразуване на договори.',
+                ], 422);
+            }
+
+            $serviceType->delete();
+
+            return response()->json([
+                'message' => 'Contract service type deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete service type: ' . $e->getMessage()], 500);
+        }
     }
 }
