@@ -1212,7 +1212,8 @@ class CandidateController extends Controller
                     'position',
                     'categories',
                     'agentCandidates.companyJob',
-                    'agentCandidates.statusForCandidateFromAgent'
+                    'agentCandidates.statusForCandidateFromAgent',
+                    'country'
                 ]);
 
             // Apply filters
