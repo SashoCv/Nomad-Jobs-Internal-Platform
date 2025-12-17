@@ -76,10 +76,6 @@ class CompanyRequestController extends Controller
     public function approveCompanyRequest(Request $request, $companyRequestId)
     {
         try {
-            if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_APPROVE)) {
-                return response()->json(['error' => 'Insufficient permissions'], 403);
-            }
-
             $companyRequest = CompanyRequest::findOrFail($companyRequestId);
             $companyRequest->approved = true;
             $companyRequest->description = $request->input('description', "Approved by " . auth()->user()->firstName . " " . auth()->user()->lastName);
