@@ -15,7 +15,7 @@ class ReferenceDataController extends Controller
     public function getAgentCandidateStatuses()
     {
         try {
-            $statuses = StatusForCandidateFromAgent::orderBy('name')->get();
+            $statuses = StatusForCandidateFromAgent::orderBy('order')->orderBy('name')->get();
             return response()->json($statuses);
         } catch (\Exception $e) {
             Log::error('Error retrieving agent candidate statuses: ' . $e->getMessage());
@@ -31,7 +31,20 @@ class ReferenceDataController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'order' => 'nullable|integer',
+                'show_for_companies' => 'nullable|boolean',
             ]);
+
+            // If order is not provided, automatically set it to the highest order + 1
+            if (!isset($validated['order'])) {
+                $maxOrder = StatusForCandidateFromAgent::max('order') ?? -1;
+                $validated['order'] = $maxOrder + 1;
+            }
+
+            // If show_for_companies is not provided, default to false
+            if (!isset($validated['show_for_companies'])) {
+                $validated['show_for_companies'] = false;
+            }
 
             $status = StatusForCandidateFromAgent::create($validated);
 
@@ -55,6 +68,8 @@ class ReferenceDataController extends Controller
 
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'order' => 'nullable|integer',
+                'show_for_companies' => 'nullable|boolean',
             ]);
 
             $status->update($validated);

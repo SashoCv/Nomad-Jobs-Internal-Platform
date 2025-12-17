@@ -12,5 +12,11 @@ class StatusForCandidateFromAgent extends Model
 
     protected $fillable = [
         'name',
+        'order',
+        'show_for_companies',
+    ];
+
+    protected $casts = [
+        'show_for_companies' => 'boolean',
     ];
 }
