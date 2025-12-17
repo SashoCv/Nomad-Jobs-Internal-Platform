@@ -41,8 +41,6 @@ class HRPermissions
             Permission::JOB_POSITIONS_CREATE,
             Permission::JOB_POSITIONS_UPDATE,
             Permission::JOB_POSITIONS_DELETE,
-            Permission::FINANCE_READ,
-            Permission::FINANCE_EXPORT,
             Permission::INSURANCE_READ,
             Permission::INSURANCE_CREATE,
             Permission::INSURANCE_UPDATE,
