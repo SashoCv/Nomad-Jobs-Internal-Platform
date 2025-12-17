@@ -185,10 +185,7 @@ class StatisticController extends Controller
 
         foreach ($companies as $comp) {
             if ($comp->serviceContracts) {
-                $activeContract = $comp->serviceContracts
-                    ->where('endDate', '>=', now())
-                    ->sortByDesc('endDate')
-                    ->first();
+                $activeContract = $comp->serviceContracts->first();
 
                 if ($activeContract) {
                     $hasActiveContract = true;
