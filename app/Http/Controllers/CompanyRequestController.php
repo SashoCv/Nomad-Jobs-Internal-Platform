@@ -142,10 +142,6 @@ class CompanyRequestController extends Controller
     public function showPriceBasedOnRequest($companyRequestId)
     {
         try {
-            if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_READ)) {
-                return response()->json(['error' => 'Insufficient permissions'], 403);
-            }
-
             $companyRequest = CompanyRequest::with([
                 'companyJob',
                 'companyJob.company',
