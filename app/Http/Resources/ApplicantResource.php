@@ -47,7 +47,7 @@ class ApplicantResource extends JsonResource
                 if ($agentCandidate && $agentCandidate->statusForCandidateFromAgent) {
                     return [
                         'id' => $agentCandidate->statusForCandidateFromAgent->id,
-                        'name' => $agentCandidate->statusForCandidateFromAgent->name,
+                        'name' => $agentCandidate->statusForCandidateFromAgent->name ?? "",
                     ];
                 }
                 return null;
