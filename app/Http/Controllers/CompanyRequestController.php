@@ -32,10 +32,6 @@ class CompanyRequestController extends Controller
         try {
             $user = Auth::user();
 
-            if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_READ)) {
-                return response()->json(['error' => 'Insufficient permissions'], 403);
-            }
-
             $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user','companyJob.changeLogs.user'])
                 ->whereHas('companyJob', function ($query) {
                     $query->whereNotNull('company_id')
