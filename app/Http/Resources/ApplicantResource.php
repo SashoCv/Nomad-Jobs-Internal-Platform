@@ -25,7 +25,9 @@ class ApplicantResource extends JsonResource
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
 
             // Relationships
-            'country' => $this->country()->first()->name,
+            'country' => $this->whenLoaded('country', function () {
+                return $this->country?->name;
+            }),
             'company' => $this->whenLoaded('company', function () {
                 return [
                     'id' => $this->company->id,
