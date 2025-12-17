@@ -17,8 +17,8 @@ class ApplicantResource extends JsonResource
     {
         Log::info('ApplicantResource - Start', [
             'candidate_id' => $this->id,
-            'has_country_relation' => isset($this->country),
             'country_id' => $this->country_id,
+            'country_relation_loaded' => $this->relationLoaded('country'),
         ]);
 
         return [
@@ -33,12 +33,14 @@ class ApplicantResource extends JsonResource
 
             // Relationships
             'country' => $this->whenLoaded('country', function () {
+                // Use getRelation to avoid conflict with 'country' string column
+                $countryRelation = $this->getRelation('country');
                 Log::info('ApplicantResource - Country loaded', [
                     'candidate_id' => $this->id,
-                    'country' => $this->country,
-                    'country_name' => $this->country?->name,
+                    'country_relation' => $countryRelation,
+                    'country_name' => $countryRelation?->name ?? null,
                 ]);
-                return $this->country?->name;
+                return $countryRelation?->name;
             }),
             'company' => $this->whenLoaded('company', function () {
                 return [
