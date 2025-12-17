@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Log;
 
 class ApplicantResource extends JsonResource
 {
@@ -14,6 +15,12 @@ class ApplicantResource extends JsonResource
      */
     public function toArray($request): array
     {
+        Log::info('ApplicantResource - Start', [
+            'candidate_id' => $this->id,
+            'has_country_relation' => isset($this->country),
+            'country_id' => $this->country_id,
+        ]);
+
         return [
             'id' => $this->id,
             'fullName' => $this->fullName,
@@ -26,6 +33,11 @@ class ApplicantResource extends JsonResource
 
             // Relationships
             'country' => $this->whenLoaded('country', function () {
+                Log::info('ApplicantResource - Country loaded', [
+                    'candidate_id' => $this->id,
+                    'country' => $this->country,
+                    'country_name' => $this->country?->name,
+                ]);
                 return $this->country?->name;
             }),
             'company' => $this->whenLoaded('company', function () {
@@ -35,7 +47,13 @@ class ApplicantResource extends JsonResource
                 ];
             }),
             'position' => $this->whenLoaded('agentCandidates', function () {
+                Log::info('ApplicantResource - Processing position', ['candidate_id' => $this->id]);
                 $agentCandidate = $this->agentCandidates->first();
+                Log::info('ApplicantResource - AgentCandidate', [
+                    'candidate_id' => $this->id,
+                    'has_agent_candidate' => !is_null($agentCandidate),
+                    'has_company_job' => $agentCandidate ? !is_null($agentCandidate->companyJob) : false,
+                ]);
                 if ($agentCandidate && $agentCandidate->companyJob) {
                     return [
                         'id' => $agentCandidate->companyJob->id,
@@ -45,7 +63,14 @@ class ApplicantResource extends JsonResource
                 return null;
             }),
             'agentStatus' => $this->whenLoaded('agentCandidates', function () {
+                Log::info('ApplicantResource - Processing agentStatus', ['candidate_id' => $this->id]);
                 $agentCandidate = $this->agentCandidates->first();
+                Log::info('ApplicantResource - AgentStatus check', [
+                    'candidate_id' => $this->id,
+                    'has_agent_candidate' => !is_null($agentCandidate),
+                    'has_status' => $agentCandidate ? !is_null($agentCandidate->statusForCandidateFromAgent) : false,
+                    'status_data' => $agentCandidate && $agentCandidate->statusForCandidateFromAgent ? $agentCandidate->statusForCandidateFromAgent : null,
+                ]);
                 if ($agentCandidate && $agentCandidate->statusForCandidateFromAgent) {
                     return [
                         'id' => $agentCandidate->statusForCandidateFromAgent->id,

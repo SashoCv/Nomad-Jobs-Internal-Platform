@@ -1180,6 +1180,12 @@ class CandidateController extends Controller
             $user = Auth::user();
             $companyIds = [];
 
+            Log::info('getApplicants - Start', [
+                'user_id' => $user->id,
+                'role_id' => $user->role_id,
+                'company_id' => $user->company_id ?? null,
+            ]);
+
             // Check if user is Company User
             if ($user->role_id == Role::COMPANY_USER && $user->company_id) {
                 $companyIds = [$user->company_id];
@@ -1253,9 +1259,26 @@ class CandidateController extends Controller
             $perPage = $request->per_page ?? 25;
             $applicants = $query->orderBy('id', 'desc')->paginate($perPage);
 
-            return $this->successResponse(ApplicantResource::collection($applicants)->response()->getData());
+            Log::info('getApplicants - Query executed', [
+                'total' => $applicants->total(),
+                'per_page' => $perPage,
+                'current_page' => $applicants->currentPage(),
+            ]);
+
+            Log::info('getApplicants - Before resource transformation');
+
+            $result = $this->successResponse(ApplicantResource::collection($applicants)->response()->getData());
+
+            Log::info('getApplicants - Success');
+
+            return $result;
         } catch (\Exception $e) {
-            Log::error('Error fetching applicants: ' . $e->getMessage());
+            Log::error('Error fetching applicants: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return $this->errorResponse('Failed to fetch applicants');
         }
     }
