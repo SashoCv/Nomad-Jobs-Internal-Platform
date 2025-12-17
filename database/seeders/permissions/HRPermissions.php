@@ -59,6 +59,8 @@ class HRPermissions
             Permission::DOCUMENTS_PREPARATION,
             Permission::CHANGE_LOGS_READ,
             Permission::CHANGE_LOGS_CREATE,
+            Permission::CHANGE_LOGS_APPROVE,
+            Permission::AGENT_INVOICES_READ,
             Permission::HOME_READ,
             Permission::HOME_FILTER,
             Permission::HOME_ARRIVALS,
