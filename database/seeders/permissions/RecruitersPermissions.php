@@ -67,6 +67,9 @@ class RecruitersPermissions
             Permission::AGENTS_CONTRACTS_CREATE,
             Permission::AGENTS_CONTRACTS_UPDATE,
             Permission::AGENTS_CONTRACTS_DELETE,
+            Permission::COMPANY_JOB_REQUESTS_READ,
+            Permission::COMPANY_JOB_REQUESTS_APPROVE,
+            Permission::COMPANY_JOB_REQUESTS_DELETE,
         ];
     }
 }
