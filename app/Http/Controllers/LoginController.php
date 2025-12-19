@@ -473,57 +473,6 @@ class LoginController extends Controller
         }
     }
 
-    public function changePasswordForUser(Request $request)
-    {
-        try {
-            $request->validate([
-                'id' => 'required|integer',
-                'password' => 'required|string|min:8',
-            ]);
-
-            $user = User::where('id', '=', $request->id)->first();
-
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'status' => 404,
-                    'message' => 'User not found',
-                ]);
-            }
-
-            $user->password = bcrypt($request->password);
-
-            if ($user->save()) {
-                Log::info('Password changed for user by admin', [
-                    'user_id' => $user->id,
-                    'changed_by' => Auth::id(),
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $user,
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'data' => []
-                ]);
-            }
-        } catch (Exception $e) {
-            Log::error('Error changing password for user', [
-                'error' => $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'status' => 500,
-                'data' => []
-            ]);
-        }
-    }
-
     /**
      * Update the specified resource in storage.
      *
@@ -640,6 +589,60 @@ class LoginController extends Controller
                 'status' => 401,
                 'data' => ''
             ]);
+        }
+    }
+
+    /**
+     * Resend invitation email to user with new set-password token.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function resendInvitation($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            // Generate new token for password setup
+            $token = Str::random(64);
+
+            // Delete any existing tokens for this email
+            DB::table('password_resets')->where('email', $user->email)->delete();
+
+            // Insert new token
+            DB::table('password_resets')->insert([
+                'email' => $user->email,
+                'token' => Hash::make($token),
+                'created_at' => Carbon::now(),
+            ]);
+
+            // Build set-password URL
+            $setPasswordUrl = config('app.frontend_url', 'https://nomadjobs.cloud') . '/set-password?token=' . $token . '&email=' . urlencode($user->email);
+
+            // Dispatch welcome email job
+            SendWelcomeSetPasswordEmailJob::dispatch(
+                $user->email,
+                $setPasswordUrl,
+                $user->firstName
+            );
+
+            Log::info('Resent invitation email to user', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'message' => 'Invitation email has been resent successfully!',
+            ]);
+        } catch (Exception $e) {
+            Log::error('Failed to resend invitation email: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Failed to resend invitation email.',
+            ], 500);
         }
     }
 }

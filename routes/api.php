@@ -107,7 +107,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('roles', [LoginController::class, 'roles']);
     Route::get('rolesIdAndName', [LoginController::class, 'rolesIdAndName']);
     Route::get('admins', [LoginController::class, 'admins']);
-    Route::post('changePasswordForUser', [LoginController::class, 'changePasswordForUser']);
 
 
 
@@ -134,6 +133,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('user/{id}', [LoginController::class, 'show']);
     Route::post('userUpdate/{id}', [LoginController::class, 'update']);
     Route::delete('userDelete/{id}', [LoginController::class, 'destroy']);
+    Route::post('resendInvitation/{id}', [LoginController::class, 'resendInvitation']);
 
 
 
