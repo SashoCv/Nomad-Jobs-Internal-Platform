@@ -15,6 +15,7 @@ use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SearchController extends Controller
 {
@@ -892,7 +893,8 @@ class SearchController extends Controller
                     $q->where('nationality', 'LIKE', '%' . $request->nationality . '%');
                 })
                 ->when($request->searchAgent, function ($q) use ($request) {
-                    $q->where('agent_id', '=', $request->searchAgent);
+                    $q->where('agent_id', $request->searchAgent);
+                    Log::info("here", [$request->searchAgent]);
                 })
                 ->when($request->user_id, function ($q) use ($request) {
                     $q->where('user_id', '=', $request->user_id);
