@@ -59,6 +59,10 @@ class ArrivalController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$this->isStaff()) {
+            return response()->json(['error' => 'You are not authorized to create an arrival'], 403);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -146,7 +150,7 @@ class ArrivalController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!in_array(Auth::user()->role_id, [1, 2])) {
+        if (!$this->isStaff()) {
             return response()->json(['error' => 'You are not authorized to update an arrival'], 403);
         }
 
