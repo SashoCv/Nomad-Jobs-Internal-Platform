@@ -122,14 +122,25 @@ class CompanyFileController extends Controller
         }
 
         $companyFile = CompanyFile::findOrFail($id);
+        $fileName = $companyFile->fileName;
+
         if ($companyFile->delete()) {
-            unlink(storage_path() . '/app/public/' . $companyFile->filePath);
+            $filePath = storage_path() . '/app/public/' . $companyFile->filePath;
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
 
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'message' => 'Proof! Your file has been deleted!',
+                'message' => "Файлът \"{$fileName}\" беше изтрит успешно",
             ]);
         }
+
+        return response()->json([
+            'success' => false,
+            'status' => 500,
+            'message' => 'Грешка при изтриване на файла',
+        ], 500);
     }
 }

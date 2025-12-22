@@ -7,6 +7,7 @@ use App\Traits\HasRolePermissions;
 use App\Models\Category;
 use App\Models\File;
 use App\Models\Role;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -233,25 +234,49 @@ class FileController extends Controller
      */
     public function destroy($id)
     {
-        if ($this->isStaff()) {
+        $user = Auth::user();
+        $fileDelete = File::findOrFail($id);
 
-            $fileDelete = File::findOrFail($id);
+        // Staff with DOCUMENTS_DELETE permission can delete any document
+        if ($this->checkPermission(Permission::DOCUMENTS_DELETE)) {
+            return $this->deleteFile($fileDelete);
+        }
 
-            if ($fileDelete->delete()) {
-                unlink(storage_path() . '/app/public/' . $fileDelete->filePath);
-
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'message' => 'Proof! Your file has been deleted!',
-                ]);
+        // Agents can only delete documents for their own candidates
+        if ($user->hasRole(Role::AGENT)) {
+            $candidate = Candidate::find($fileDelete->candidate_id);
+            if ($candidate && $candidate->agent_id === $user->id) {
+                return $this->deleteFile($fileDelete);
             }
-        } else {
+        }
+
+        return response()->json(['error' => 'Insufficient permissions'], 403);
+    }
+
+    /**
+     * Helper method to delete file and remove from storage
+     */
+    private function deleteFile(File $file)
+    {
+        $fileName = $file->fileName;
+
+        if ($file->delete()) {
+            $filePath = storage_path() . '/app/public/' . $file->filePath;
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+
             return response()->json([
                 'success' => true,
-                'status' => 401,
-                'message' => 'You dont have access',
+                'status' => 200,
+                'message' => "Файлът \"{$fileName}\" беше изтрит успешно",
             ]);
         }
+
+        return response()->json([
+            'success' => false,
+            'status' => 500,
+            'message' => 'Грешка при изтриване на файла',
+        ], 500);
     }
 }
