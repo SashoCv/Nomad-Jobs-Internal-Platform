@@ -56,14 +56,16 @@ class CompanyFileController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 200,
+                'message' => "Файлът \"{$companyFile->fileName}\" беше качен успешно",
                 'data' => $companyFile
             ]);
         } else {
             return response()->json([
                 'success' => false,
                 'status' => 500,
+                'message' => 'Грешка при качване на файла',
                 'data' => $companyFile->errors()
-            ]);
+            ], 500);
         }
     }
 

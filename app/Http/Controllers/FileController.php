@@ -129,14 +129,16 @@ class FileController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 200,
+                'message' => "Файлът \"{$file->fileName}\" беше качен успешно",
                 'data' => $file
             ]);
         } else {
             return response()->json([
                 'success' => false,
                 'status' => 500,
+                'message' => 'Грешка при качване на файла',
                 'data' => $file->errors()
-            ]);
+            ], 500);
         }
     }
 
