@@ -132,6 +132,12 @@ class AuthController extends Controller
      */
     public function user(Request $request): JsonResponse
     {
+        // Check impersonation status
+        $isImpersonating = $request->session()->has('impersonating');
+        $originalUserData = $isImpersonating
+            ? $request->session()->get('original_user_data')
+            : null;
+
         // First, check if user data exists in session (Redis - very fast!)
         $userData = $request->session()->get('user_data');
 
@@ -140,6 +146,8 @@ class AuthController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $userData,
+                'isImpersonating' => $isImpersonating,
+                'originalUser' => $originalUserData,
             ]);
         }
 
@@ -170,6 +178,8 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => $userData,
+            'isImpersonating' => $isImpersonating,
+            'originalUser' => $originalUserData,
         ]);
     }
 

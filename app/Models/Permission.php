@@ -79,6 +79,7 @@ class Permission extends Model
     const USERS_UPDATE = 'users:update';
     const USERS_DELETE = 'users:delete';
     const USERS_PASSWORD_RESET = 'users:password_reset';
+    const USERS_IMPERSONATE = 'users:impersonate';
 
     const JOB_POSTINGS_READ = 'job_postings:read';
     const JOB_POSTINGS_CREATE = 'job_postings:create';

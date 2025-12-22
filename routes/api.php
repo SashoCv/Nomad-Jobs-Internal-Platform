@@ -42,6 +42,7 @@ use App\Http\Controllers\AgentServiceTypeController;
 use App\Http\Controllers\CompanyRequestController;
 use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\ReferenceDataController;
+use App\Http\Controllers\ImpersonationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -96,6 +97,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Authentication endpoints
     Route::get('user', [AuthController::class, 'user']);
     Route::post('logout', [AuthController::class, 'logout']);
+
+    // Impersonation endpoints (specific routes must come before dynamic {user} route)
+    Route::post('impersonate/stop', [ImpersonationController::class, 'stop']);
+    Route::get('impersonate/status', [ImpersonationController::class, 'status']);
+    Route::post('impersonate/{user}', [ImpersonationController::class, 'start']);
 
     // Public routes (moved to protected)
     Route::get('test', [CompanyController::class, 'test']);
