@@ -49,6 +49,7 @@ class CompanyJobController extends Controller
                 'companies.companyCity',
                 'company_jobs.company_id',
                 'company_jobs.job_title',
+                'company_jobs.real_position',
                 'company_jobs.number_of_positions',
                 'company_jobs.contract_type',
                 'company_jobs.job_description',
@@ -65,6 +66,7 @@ class CompanyJobController extends Controller
                 'companies.companyCity',
                 'company_jobs.company_id',
                 'company_jobs.job_title',
+                'company_jobs.real_position',
                 'company_jobs.number_of_positions',
                 'company_jobs.contract_type',
                 'company_jobs.job_description',
@@ -235,6 +237,12 @@ class CompanyJobController extends Controller
             $companyJob->companyImage = $company->logoPath;
             $companyJob->companyCity = $company->companyCity;
             $companyJob->companyName = $company->nameOfCompany;
+
+            // Get position NKDP if position_id exists
+            if ($companyJob->position_id) {
+                $position = \App\Models\Position::find($companyJob->position_id);
+                $companyJob->position_nkdp = $position ? $position->NKDP : null;
+            }
 
             if ($this->isStaff()) {
                 $assignedJobs = AssignedJob::where('company_job_id', $id)->get();
