@@ -138,13 +138,18 @@ class ArrivalController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'Arrival created successfully',
+                'success' => true,
+                'message' => 'Информацията за пристигане беше запазена успешно',
                 'arrival' => $arrival,
             ], 201);
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Грешка при запазване на информацията за пристигане',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
