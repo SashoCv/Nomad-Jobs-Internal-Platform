@@ -152,8 +152,8 @@ class CompanyJobController extends Controller
             ->get()
             ->groupBy('record_id');
 
-        // Get user info for created_by
-        $companyJobs = CompanyJob::whereIn('id', $jobIds)->with('user')->get()->keyBy('id');
+        // Get user info for created_by and approved_by
+        $companyJobs = CompanyJob::whereIn('id', $jobIds)->with(['user', 'approvedBy'])->get()->keyBy('id');
 
         // Transform the data to include request info
         $transformedData = collect($allJobPostings->items())->map(function ($job) use ($requests, $changeLogs, $companyJobs) {
@@ -192,6 +192,13 @@ class CompanyJobController extends Controller
                 'id' => $companyJob->user->id,
                 'full_name' => trim($companyJob->user->firstName . ' ' . $companyJob->user->lastName),
                 'email' => $companyJob->user->email,
+            ] : null;
+
+            // Add approved_by from the user who approved the job posting
+            $jobObj->approved_by = $companyJob && $companyJob->approvedBy ? [
+                'id' => $companyJob->approvedBy->id,
+                'full_name' => trim($companyJob->approvedBy->firstName . ' ' . $companyJob->approvedBy->lastName),
+                'email' => $companyJob->approvedBy->email,
             ] : null;
 
             // Decode pending_revision JSON (since it comes from raw query, not Eloquent)
