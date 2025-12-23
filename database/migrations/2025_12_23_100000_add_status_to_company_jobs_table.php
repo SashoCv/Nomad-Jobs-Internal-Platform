@@ -26,15 +26,28 @@ return new class extends Migration
                 ->onDelete('set null');
         });
 
-        // Migrate existing data based on showJob boolean
-        // showJob = true → status = 'active'
-        // showJob = false → status = 'inactive' (existing jobs are already approved)
+        // Migrate existing data based on company_requests.approved and showJob
+
+        // Step 1: Job postings with unapproved requests → status = 'pending'
+        DB::table('company_jobs')
+            ->whereIn('id', function ($query) {
+                $query->select('company_job_id')
+                    ->from('company_requests')
+                    ->where('approved', false)
+                    ->whereNull('deleted_at');
+            })
+            ->update(['status' => 'pending']);
+
+        // Step 2: Job postings with showJob = true AND (approved request OR no request) → status = 'active'
         DB::table('company_jobs')
             ->where('showJob', true)
+            ->where('status', 'pending') // Only update those still pending (not caught by step 1)
             ->update(['status' => 'active']);
 
+        // Step 3: Job postings with showJob = false AND (approved request OR no request) → status = 'inactive'
         DB::table('company_jobs')
             ->where('showJob', false)
+            ->where('status', 'pending') // Only update those still pending
             ->update(['status' => 'inactive']);
     }
 
