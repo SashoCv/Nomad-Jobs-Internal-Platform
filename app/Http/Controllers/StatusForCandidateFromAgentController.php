@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
+use App\Models\CompanyJob;
 use App\Models\Education;
 use App\Models\StatusForCandidateFromAgent;
 use Illuminate\Http\Request;
@@ -105,6 +106,12 @@ class StatusForCandidateFromAgentController extends Controller
                     $updateTypeOfCandidate->save();
                 }
                 $candidateFromAgent->save();
+
+                // Check if job posting should be marked as "filled"
+                if ($request->status_for_candidate_from_agent_id == 3 && $candidateFromAgent->company_job_id) {
+                    $this->checkAndUpdateJobFilledStatus($candidateFromAgent->company_job_id);
+                }
+
                 return response()->json(['message' => 'Status updated successfully'], 200);
               } else {
                 return response()->json(['message' => 'Candidate not found'], 404);
@@ -123,5 +130,32 @@ class StatusForCandidateFromAgentController extends Controller
     public function destroy(StatusForCandidateFromAgent $statusForCandidateFromAgent)
     {
         //
+    }
+
+    /**
+     * Check if a job posting should be marked as "filled" based on approved candidates count.
+     *
+     * @param int $companyJobId
+     * @return void
+     */
+    private function checkAndUpdateJobFilledStatus(int $companyJobId): void
+    {
+        $companyJob = CompanyJob::find($companyJobId);
+
+        if (!$companyJob || !in_array($companyJob->status, ['active', 'inactive'])) {
+            return;
+        }
+
+        // Count approved candidates (status_for_candidate_from_agent_id = 3)
+        $approvedCount = AgentCandidate::where('company_job_id', $companyJobId)
+            ->where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('deleted_at')
+            ->count();
+
+        // If approved candidates reach or exceed the number of positions, mark as filled
+        if ($approvedCount >= $companyJob->number_of_positions) {
+            $companyJob->status = 'filled';
+            $companyJob->save();
+        }
     }
 }

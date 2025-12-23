@@ -6,6 +6,7 @@ use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
+use App\Models\CompanyJob;
 use App\Models\File;
 use App\Models\Position;
 use App\Models\Statushistory;
@@ -75,6 +76,9 @@ class CandidateService
                     'status_for_candidate_from_agent_id' => 3, // Approved status
                     'nomad_office_id' => Auth::user()->id ?? null, // Can be set based on your business logic
                 ]);
+
+                // Check if job posting should be marked as "filled"
+                $this->checkAndUpdateJobFilledStatus($data['company_job_id']);
             }
 
             return $candidate;
@@ -134,6 +138,9 @@ class CandidateService
                         'nomad_office_id' => Auth::user()->id ?? null,
                     ]);
                 }
+
+                // Check if job posting should be marked as "filled"
+                $this->checkAndUpdateJobFilledStatus($data['company_job_id']);
             } elseif ($existingAgentCandidate) {
                 // If agent_id or company_job_id is not provided, delete the existing record
                 $existingAgentCandidate->delete();
@@ -326,6 +333,30 @@ class CandidateService
                 Storage::disk('public')->delete($file->filePath);
             }
             $file->delete();
+        }
+    }
+
+    /**
+     * Check if a job posting should be marked as "filled" based on approved candidates count.
+     */
+    protected function checkAndUpdateJobFilledStatus(int $companyJobId): void
+    {
+        $companyJob = CompanyJob::find($companyJobId);
+
+        if (!$companyJob || !in_array($companyJob->status, ['active', 'inactive'])) {
+            return;
+        }
+
+        // Count approved candidates (status_for_candidate_from_agent_id = 3)
+        $approvedCount = AgentCandidate::where('company_job_id', $companyJobId)
+            ->where('status_for_candidate_from_agent_id', 3)
+            ->whereNull('deleted_at')
+            ->count();
+
+        // If approved candidates reach or exceed the number of positions, mark as filled
+        if ($approvedCount >= $companyJob->number_of_positions) {
+            $companyJob->status = 'filled';
+            $companyJob->save();
         }
     }
 }
