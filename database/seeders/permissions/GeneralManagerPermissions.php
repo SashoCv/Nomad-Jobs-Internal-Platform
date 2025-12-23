@@ -43,6 +43,7 @@ class GeneralManagerPermissions
             Permission::USERS_UPDATE,
             Permission::USERS_DELETE,
             Permission::USERS_PASSWORD_RESET,
+            Permission::USERS_IMPERSONATE,
             Permission::JOB_POSTINGS_READ,
             Permission::JOB_POSTINGS_CREATE,
             Permission::JOB_POSTINGS_UPDATE,

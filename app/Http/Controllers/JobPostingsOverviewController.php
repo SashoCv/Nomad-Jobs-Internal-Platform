@@ -60,8 +60,8 @@ class JobPostingsOverviewController extends Controller
                         'company_jobs.employment_type as type',
                         'company_jobs.number_of_positions as positions',
                         'company_jobs.contract_type',
-                        DB::raw('DATE_FORMAT(company_jobs.created_at, "%Y-%m-%d") as startDate'),
-                        DB::raw('(CASE WHEN company_jobs.showJob = 1 THEN "active" ELSE "inactive" END) as status')
+                        'company_jobs.status',
+                        DB::raw('DATE_FORMAT(company_jobs.created_at, "%Y-%m-%d") as startDate')
                     )
                     ->whereNull('deleted_at');
 
@@ -188,8 +188,8 @@ class JobPostingsOverviewController extends Controller
                         'company_jobs.employment_type as type',
                         'company_jobs.number_of_positions as positions',
                         'company_jobs.contract_type',
-                        DB::raw('DATE_FORMAT(company_jobs.created_at, "%Y-%m-%d") as startDate'),
-                        DB::raw('(CASE WHEN company_jobs.showJob = 1 THEN "active" ELSE "inactive" END) as status')
+                        'company_jobs.status',
+                        DB::raw('DATE_FORMAT(company_jobs.created_at, "%Y-%m-%d") as startDate')
                     )
                     ->whereNull('deleted_at');
 

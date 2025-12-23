@@ -242,6 +242,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('deleteJobPosting/{id}', [CompanyJobController::class, 'destroy']); // need Function
 
     Route::delete('hardDeleteJobPosting/{id}', [CompanyJobController::class, 'hardDelete']); // suggested for next version
+    Route::patch('job-postings/{id}/status', [CompanyJobController::class, 'updateStatus']);
+
+    // Job Posting Revisions
+    Route::get('job-postings/{id}/revision', [CompanyJobController::class, 'getRevision']);
+    Route::post('job-postings/{id}/revision/approve', [CompanyJobController::class, 'approveRevision']);
+    Route::post('job-postings/{id}/revision/reject', [CompanyJobController::class, 'rejectRevision']);
 
     // Job Postings Overview
     Route::get('job-postings-overview', [JobPostingsOverviewController::class, 'index']);

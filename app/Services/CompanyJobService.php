@@ -99,7 +99,6 @@ class CompanyJobService
         $companyJob->rent = !empty($data['rent']) ? $data['rent'] : null;
         $companyJob->food = !empty($data['food']) ? $data['food'] : null;
         $companyJob->otherDescription = !empty($data['otherDescription']) ? $data['otherDescription'] : null;
-        $companyJob->showJob = $data['showJob'] ?? false;
     }
 
     private function assignAgentsToJob(CompanyJob $companyJob, array $agentIds): void

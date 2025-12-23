@@ -82,7 +82,10 @@ class CompanyRequestController extends Controller
 
             if($companyRequest->save()){
                 $companyJob = $companyRequest->companyJob;
-                $companyJob->showJob = true;
+                $companyJob->status = 'active';
+                $companyJob->approved_at = now();
+                $companyJob->approved_by = auth()->id();
+                $companyJob->published_at = $companyJob->published_at ?? now();
                 $companyJob->save();
             }
 
@@ -114,7 +117,7 @@ class CompanyRequestController extends Controller
 
             if($companyRequest->save()){
                 $companyJob = $companyRequest->companyJob;
-                $companyJob->showJob = false;
+                $companyJob->status = 'rejected';
                 $companyJob->save();
             }
 

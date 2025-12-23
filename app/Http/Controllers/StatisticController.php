@@ -270,7 +270,7 @@ class StatisticController extends Controller
             ->get();
 
         $totalJobPostings = $jobPostings->count();
-        $activeJobPostings = $jobPostings->where('showJob', 1)->count();
+        $activeJobPostings = $jobPostings->where('status', 'active')->count();
 
         $jobPostingsList = $jobPostings->map(function ($job) use ($candidates) {
             $candidatesForJob = AgentCandidate::where('company_job_id', $job->id)
@@ -280,7 +280,7 @@ class StatisticController extends Controller
                 'id' => $job->id,
                 'title' => $job->job_title ?? 'Unknown Position',
                 'candidatesCount' => $candidatesForJob,
-                'status' => $job->showJob ? 'Активна' : 'Неактивна'
+                'status' => $job->status === 'active' ? 'Активна' : 'Неактивна'
             ];
         })->toArray();
 
@@ -349,7 +349,7 @@ class StatisticController extends Controller
             'candidate.status',
             'candidate.position:id,jobPosition',
             'candidate.arrival',
-            'companyJob:id,job_title,showJob',
+            'companyJob:id,job_title,status',
             'statusForCandidateFromAgent:id,name'
         ])
             ->where('user_id', $user->id)
@@ -378,14 +378,14 @@ class StatisticController extends Controller
 
         // Get assigned jobs for this agent from assigned_jobs table
         // Only get jobs that are not deleted (CompanyJob uses SoftDeletes)
-        $assignedJobs = AssignedJob::with('companyJob:id,job_title,showJob')
+        $assignedJobs = AssignedJob::with('companyJob:id,job_title,status')
             ->where('user_id', $user->id)
             ->whereHas('companyJob') // Only include if companyJob exists and is not deleted
             ->get();
 
         $totalJobPostings = $assignedJobs->count();
         $activeJobPostings = $assignedJobs->filter(function ($assignedJob) {
-            return $assignedJob->companyJob && $assignedJob->companyJob->showJob == 1;
+            return $assignedJob->companyJob && $assignedJob->companyJob->status === 'active';
         })->count();
 
         // Build job postings data with candidates count
@@ -397,7 +397,7 @@ class StatisticController extends Controller
                 'id' => $assignedJob->company_job_id,
                 'title' => $companyJob ? $companyJob->job_title : 'Unknown Position',
                 'candidatesCount' => $candidatesCount,
-                'status' => ($companyJob && $companyJob->showJob) ? 'Активна' : 'Неактивна'
+                'status' => ($companyJob && $companyJob->status === 'active') ? 'Активна' : 'Неактивна'
             ];
         })->values()->toArray();
 
@@ -485,7 +485,7 @@ class StatisticController extends Controller
                     'jobTitle' => $job->job_title,
                     'company' => $job->company->nameOfCompany ?? 'Unknown',
                     'position' => $job->job_title ?? 'Unknown',
-                    'status' => $job->showJob ? 'Активна' : 'Неактивна',
+                    'status' => $job->status === 'active' ? 'Активна' : 'Неактивна',
                     'createdAt' => $job->created_at->format('d.m.Y'),
                 ];
             })->values()->toArray();
@@ -516,7 +516,7 @@ class StatisticController extends Controller
                     'jobTitle' => $job->job_title,
                     'company' => $job->company->nameOfCompany ?? 'Unknown',
                     'position' => $job->position->jobPosition ?? 'Unknown',
-                    'status' => $job->showJob ? 'Активна' : 'Неактивна',
+                    'status' => $job->status === 'active' ? 'Активна' : 'Неактивна',
                     'createdAt' => $job->created_at->format('d.m.Y'),
                 ];
             })
@@ -547,7 +547,7 @@ class StatisticController extends Controller
                     'jobTitle' => $job->job_title,
                     'company' => $job->company->nameOfCompany ?? 'Unknown',
                     'position' => $job->position->jobPosition ?? 'Unknown',
-                    'status' => $job->showJob ? 'Активна' : 'Неактивна',
+                    'status' => $job->status === 'active' ? 'Активна' : 'Неактивна',
                     'createdAt' => $job->created_at->format('d.m.Y'),
                     'assignedAgents' => $assignedAgents,
                     'agentsCount' => count($assignedAgents),
@@ -583,7 +583,7 @@ class StatisticController extends Controller
         $agentCandidatesQuery = AgentCandidate::with([
             'candidate.status',
             'candidate.position:id,jobPosition',
-            'companyJob:id,job_title,showJob',
+            'companyJob:id,job_title,status',
             'statusForCandidateFromAgent:id,name',
             'user:id,firstName,lastName'
         ])
@@ -635,7 +635,7 @@ class StatisticController extends Controller
         $jobPostingsAssigned = $assignedJobsQuery->distinct('company_job_id')->count('company_job_id');
 
         // Get full assigned jobs data for later use
-        $assignedJobs = AssignedJob::with('companyJob:id,job_title,showJob')
+        $assignedJobs = AssignedJob::with('companyJob:id,job_title,status')
             ->whereHas('companyJob')
             ->when($agentId, function($query) use ($agentId) {
                 return $query->where('user_id', $agentId);
