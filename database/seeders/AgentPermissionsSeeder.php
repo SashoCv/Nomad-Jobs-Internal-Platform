@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Permission;
 use App\Models\Role;
+use Database\Seeders\Permissions\AgentPermissions;
 
 class AgentPermissionsSeeder extends Seeder
 {
@@ -14,18 +15,9 @@ class AgentPermissionsSeeder extends Seeder
      */
     public function run(): void
     {
-        // Agent permissions - limited access
-        // Allowed to VIEW job postings and specific agent candidate operations
-        $allowedPermissions = [
-            Permission::JOB_POSTINGS_READ,
-            Permission::CANDIDATES_READ,
-            Permission::AGENT_CANDIDATES_READ,
-            Permission::AGENT_CANDIDATES_CREATE,
-            Permission::AGENT_CANDIDATES_UPDATE,
-            Permission::AGENT_CANDIDATES_DELETE,
-        ];
+        $allowedPermissions = AgentPermissions::getPermissions();
 
-        $permissionIds = Permission::whereIn('name', $allowedPermissions)
+        $permissionIds = Permission::whereIn('slug', $allowedPermissions)
             ->pluck('id')->toArray();
 
         // Assign permissions to Agent role (role_id = 4)
@@ -35,10 +27,9 @@ class AgentPermissionsSeeder extends Seeder
 
             echo "Agent permissions assigned successfully!\n";
             echo "Agent has access to " . count($permissionIds) . " permissions:\n";
-            echo "- Job Postings: READ only\n";
-            echo "- Candidates: READ only\n";
-            echo "- Agent Candidates: CREATE, CHANGE_STATUS, DELETE\n";
-            echo "Agent has NO access to other modules (uses existing role-based logic).\n";
+            foreach ($allowedPermissions as $perm) {
+                echo "- $perm\n";
+            }
         } else {
             echo "Agent role not found!\n";
         }

@@ -20,6 +20,7 @@ class AgentPermissions
             Permission::DOCUMENTS_DELETE,
             Permission::AGENT_COMPANIES_READ,
             Permission::AGENTS_CONTRACTS_READ,
+            Permission::COMPANIES_READ,
         ];
     }
 }

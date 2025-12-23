@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssignedJob;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\CompanyAdress;
 use App\Models\File;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOwner;
 use App\Traits\HasRolePermissions;
@@ -46,6 +48,7 @@ class CompanyController extends Controller
             $this->isStaff() => $this->getCompaniesForAdmin(),
             $user->role_id === self::ROLE_COMPANY_USER => $this->getCompaniesForCompanyUser($user),
             $user->role_id === self::ROLE_OWNER => $this->getCompaniesForOwner($user),
+            $user->role_id === Role::AGENT => $this->getCompaniesForAgent($user),
             default => collect([])
         };
 
@@ -80,6 +83,19 @@ class CompanyController extends Controller
         return Company::with(['company_addresses','company_addresses.city'])->whereIn('id', $companyIds)->get();
     }
 
+    /**
+     * Get companies for agent users (only companies from their assigned job postings)
+     */
+    private function getCompaniesForAgent($user)
+    {
+        $companyIds = AssignedJob::where('assigned_jobs.user_id', $user->id)
+            ->join('company_jobs', 'assigned_jobs.company_job_id', '=', 'company_jobs.id')
+            ->whereNull('company_jobs.deleted_at')
+            ->pluck('company_jobs.company_id')
+            ->unique();
+
+        return Company::whereIn('id', $companyIds)->get(['id', 'nameOfCompany']);
+    }
 
     /**
      * Validate if company exists by EIK
