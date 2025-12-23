@@ -48,6 +48,7 @@ class FinancePermissions
             Permission::JOB_POSTINGS_CREATE,
             Permission::JOB_POSTINGS_UPDATE,
             Permission::JOB_POSTINGS_DELETE,
+            Permission::JOB_POSTINGS_REVISIONS_MANAGE,
             Permission::JOB_POSITIONS_READ,
             Permission::JOB_POSITIONS_CREATE,
             Permission::JOB_POSITIONS_UPDATE,

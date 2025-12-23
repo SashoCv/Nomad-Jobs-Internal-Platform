@@ -757,7 +757,7 @@ class CompanyJobController extends Controller
     {
         $user = Auth::user();
 
-        if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_APPROVE)) {
+        if (!$this->checkPermission(Permission::JOB_POSTINGS_REVISIONS_MANAGE)) {
             return response()->json([
                 "status" => "error",
                 "message" => "Unauthorized access",
@@ -811,7 +811,7 @@ class CompanyJobController extends Controller
     {
         $user = Auth::user();
 
-        if (!$this->checkPermission(Permission::COMPANY_JOB_REQUESTS_APPROVE)) {
+        if (!$this->checkPermission(Permission::JOB_POSTINGS_REVISIONS_MANAGE)) {
             return response()->json([
                 "status" => "error",
                 "message" => "Unauthorized access",

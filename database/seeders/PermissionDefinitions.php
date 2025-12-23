@@ -68,6 +68,7 @@ class PermissionDefinitions
             ['name' => Permission::JOB_POSTINGS_CREATE, 'slug' => 'job_postings:create', 'description' => 'Create job postings'],
             ['name' => Permission::JOB_POSTINGS_UPDATE, 'slug' => 'job_postings:update', 'description' => 'Edit job postings'],
             ['name' => Permission::JOB_POSTINGS_DELETE, 'slug' => 'job_postings:delete', 'description' => 'Delete job postings'],
+            ['name' => Permission::JOB_POSTINGS_REVISIONS_MANAGE, 'slug' => 'job_postings:revisions:manage', 'description' => 'Manage job posting revisions'],
 
             // Job Positions
             ['name' => Permission::JOB_POSITIONS_READ, 'slug' => 'job_positions:read', 'description' => 'Read job positions'],
