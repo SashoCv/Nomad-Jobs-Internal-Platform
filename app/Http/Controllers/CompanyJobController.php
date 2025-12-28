@@ -584,7 +584,15 @@ class CompanyJobController extends Controller
             UsersNotificationRepository::createNotificationForUsers($notification);
 
             if ($this->isStaff() && $request->has('agentsIds')) {
-                foreach ($request->agentsIds as $agentId) {
+                $agentIds = $request->agentsIds ?? [];
+
+                // Delete agents that are no longer in the list
+                AssignedJob::where('company_job_id', $companyJob->id)
+                    ->whereNotIn('user_id', $agentIds)
+                    ->delete();
+
+                // Add new agents
+                foreach ($agentIds as $agentId) {
                     AssignedJob::firstOrCreate([
                         'user_id' => $agentId,
                         'company_job_id' => $companyJob->id,
