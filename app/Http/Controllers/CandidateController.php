@@ -299,9 +299,14 @@ class CandidateController extends Controller
         if ($this->isStaff()) {
             $person = $query->first();
 
-            $agent = AgentCandidate::where('candidate_id', $id)->first();
-            $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
-            $person->company_job_id = $agent ? $agent->company_job_id : null;
+            if ($person->agent_id) {
+                $agent = User::find($person->agent_id);
+                $person->agentFullName = $agent ? $agent->firstName . ' ' . $agent->lastName : null;
+            } else {
+                $person->agentFullName = null;
+            }
+            $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
+            $person->company_job_id = $agentCandidate ? $agentCandidate->company_job_id : null;
         } elseif ($user->hasRole(Role::COMPANY_USER)) {
             $person = $query->where('company_id', $user->company_id)->first();
             $person->phoneNumber = null;
@@ -316,9 +321,14 @@ class CandidateController extends Controller
         } elseif ($user->hasRole(Role::AGENT)) {
             $candidateIds = AgentCandidate::where('user_id', $user->id)->pluck('candidate_id');
             $person = $query->whereIn('id', $candidateIds)->first();
-            $agent = AgentCandidate::where('candidate_id', $id)->first();
-            $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
-            $person->company_job_id = $agent ? $agent->company_job_id : null;
+            if ($person->agent_id) {
+                $agent = User::find($person->agent_id);
+                $person->agentFullName = $agent ? $agent->firstName . ' ' . $agent->lastName : null;
+            } else {
+                $person->agentFullName = null;
+            }
+            $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
+            $person->company_job_id = $agentCandidate ? $agentCandidate->company_job_id : null;
         } else {
             $person = null;
         }
