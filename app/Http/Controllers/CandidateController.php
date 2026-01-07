@@ -298,8 +298,8 @@ class CandidateController extends Controller
 
         if ($this->isStaff()) {
             $person = $query->first();
-
-            $agent = AgentCandidate::where('candidate_id', $id)->first();
+            
+            $agent = User::where('id','=',$person->agent_id)->first();
             $person->agentFullName = $agent ? User::find($agent->user_id)->firstName . ' ' . User::find($agent->user_id)->lastName : null;
             $person->company_job_id = $agent ? $agent->company_job_id : null;
         } elseif ($user->hasRole(Role::COMPANY_USER)) {
