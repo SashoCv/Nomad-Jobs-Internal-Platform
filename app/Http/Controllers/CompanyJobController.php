@@ -547,6 +547,11 @@ class CompanyJobController extends Controller
      */
     private function performDirectUpdate(Request $request, CompanyJob $companyJob, $user)
     {
+        \Log::info('=== CompanyJob Update Debug ===');
+        \Log::info('Request company_id: ' . $request->company_id);
+        \Log::info('Current company_id: ' . $companyJob->company_id);
+        \Log::info('All request data:', $request->all());
+
         // Set job_title from selected position
         if ($request->position_id) {
             $position = \App\Models\Position::find($request->position_id);
@@ -573,9 +578,12 @@ class CompanyJobController extends Controller
         $companyJob->country_id = $request->country_id;
         $companyJob->company_id = $request->company_id;
 
+        \Log::info('company_id after assignment: ' . $companyJob->company_id);
+
         $companyForThisJob = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
 
         if ($companyJob->save()) {
+            \Log::info('company_id after save: ' . $companyJob->company_id);
             $notificationData = [
                 'message' => $companyForThisJob . ' updated job posting: ' . $request->job_title,
                 'type' => 'job_posting_updated'
