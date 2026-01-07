@@ -571,6 +571,7 @@ class CompanyJobController extends Controller
         $companyJob->position_id = $request->position_id;
         $companyJob->real_position = $request->real_position;
         $companyJob->country_id = $request->country_id;
+        $companyJob->company_id = $request->company_id;
 
         $companyForThisJob = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
 
