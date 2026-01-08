@@ -843,8 +843,10 @@ class SearchController extends Controller
 
         if (!$searchEverything) {
             $query->when($request->searchName, function ($q) use ($request) {
-                $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                    ->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%');
+                $q->where(function ($query) use ($request) {
+                    $query->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%');
+                });
             })
                 ->when($request->searchQuartal, function ($q) use ($request) {
                     $q->where('quartal', '=', $request->searchQuartal);
