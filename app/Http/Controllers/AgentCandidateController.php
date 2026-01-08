@@ -327,8 +327,10 @@ class AgentCandidateController extends Controller
             // Filter po ime
             if ($name) {
                 $query->whereHas('candidate', function ($subquery) use ($name) {
-                    $subquery->where('fullName', 'LIKE', '%' . $name . '%')
-                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $name . '%');
+                    $subquery->where(function ($q) use ($name) {
+                        $q->where('fullName', 'LIKE', '%' . $name . '%')
+                          ->orWhere('fullNameCyrillic', 'LIKE', '%' . $name . '%');
+                    });
                 });
             }
 
