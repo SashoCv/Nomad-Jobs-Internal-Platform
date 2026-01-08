@@ -841,11 +841,16 @@ class SearchController extends Controller
         }
 
 
+        \DB::enableQueryLog();
+
         if (!$searchEverything) {
-            $query->when($request->searchName, function ($q) use ($request) {
-                $q->where(function ($query) use ($request) {
-                    $query->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%');
+            $searchName = $request->searchName;
+
+            $query->when($searchName, function ($q) use ($searchName) {
+                \Log::info('searchName: ' , [$searchName]);
+                $q->where(function ($query) use ($searchName) {
+                    $query->where('fullName', 'LIKE', '%' . $searchName . '%')
+                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $searchName . '%');
                 });
             })
                 ->when($request->searchQuartal, function ($q) use ($request) {
@@ -916,6 +921,7 @@ class SearchController extends Controller
             } else {
                 $result = $query->orderBy('id', 'DESC')->paginate(20);
             }
+            \Log::info('SQL Query:', \DB::getQueryLog());
             $allStatuses = Status::all();
 
             foreach ($result as $candidate) {
