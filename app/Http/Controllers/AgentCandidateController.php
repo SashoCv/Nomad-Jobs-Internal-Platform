@@ -361,7 +361,7 @@ class AgentCandidateController extends Controller
             // Order po id (najnovi prvo)
             $query->orderBy('agent_candidates.id', 'desc');
 
-            $candidates = $query->paginate(20);
+            $candidates = $query->paginate(40);
 
             return AgentCandidateResource::collection($candidates);
 
