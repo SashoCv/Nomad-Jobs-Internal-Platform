@@ -344,15 +344,17 @@ class AgentCandidateController extends Controller
                 $query->where('user_id', $agentId);
             }
 
-            // Filter po datum
-            if ($dateFrom && $dateTo) {
-                $query->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
-            } elseif ($dateFrom) {
-                // Samo dateFrom: od toj datum do denes
-                $query->where('created_at', '>=', $dateFrom.' 00:00:00');
-            } elseif ($dateTo) {
-                // Samo dateTo: do toj datum
-                $query->where('created_at', '<=', $dateTo.' 23:59:59');
+            // Filter po datum (samo ako nema company_job_id)
+            if (!$companyJobId) {
+                if ($dateFrom && $dateTo) {
+                    $query->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
+                } elseif ($dateFrom) {
+                    // Samo dateFrom: od toj datum do denes
+                    $query->where('created_at', '>=', $dateFrom.' 00:00:00');
+                } elseif ($dateTo) {
+                    // Samo dateTo: do toj datum
+                    $query->where('created_at', '<=', $dateTo.' 23:59:59');
+                }
             }
             // Note: No default year filter - show all candidates if no date filter is provided
 
