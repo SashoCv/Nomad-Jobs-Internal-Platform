@@ -918,6 +918,8 @@ class SearchController extends Controller
                 $result = $query->orderBy('fullName', 'ASC')->paginate(20);
             } elseif ($request->orderBy === 'name_desc') {
                 $result = $query->orderBy('fullName', 'DESC')->paginate(20);
+            } elseif ($request->searchCompany) {
+                $result = $query->orderBy('statusDate', 'DESC')->paginate(20);
             } else {
                 $result = $query->orderBy('id', 'DESC')->paginate(20);
             }
