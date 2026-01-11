@@ -919,7 +919,12 @@ class SearchController extends Controller
             } elseif ($request->orderBy === 'name_desc') {
                 $result = $query->orderBy('fullName', 'DESC')->paginate(20);
             } elseif ($request->searchCompany) {
-                $result = $query->orderBy('statusDate', 'DESC')->paginate(20);
+                $result = $query->orderByDesc(
+                    \App\Models\Statushistory::select('statusDate')
+                        ->whereColumn('candidate_id', 'candidates.id')
+                        ->orderByDesc('statusDate')
+                        ->limit(1)
+                )->paginate(20);
             } else {
                 $result = $query->orderBy('id', 'DESC')->paginate(20);
             }
