@@ -124,6 +124,8 @@ class ArrivalPricingController extends Controller
 
             $data['arrival_id'] = $arrival->id;
             $data['billed'] = $arrival->arrivalPricing ? $arrival->arrivalPricing->billed : false;
+            $data['airplane_price'] = $arrival->arrivalPricing ? $arrival->arrivalPricing->airplane_price : null;
+            $data['bus_price'] = $arrival->arrivalPricing ? $arrival->arrivalPricing->bus_price : null;
             $data['price'] = $arrival->arrivalPricing ? $arrival->arrivalPricing->price : null;
             $data['margin'] = $arrival->arrivalPricing ? $arrival->arrivalPricing->margin : null;
             $data['total'] = $arrival->arrivalPricing ? $arrival->arrivalPricing->total : null;
@@ -169,6 +171,8 @@ class ArrivalPricingController extends Controller
         try {
             $data = $request->validate([
                 'arrival_id' => 'required|exists:arrivals,id',
+                'airplane_price' => 'nullable|numeric',
+                'bus_price' => 'nullable|numeric',
                 'price' => 'required|numeric',
                 'margin' => 'required|numeric',
                 'total' => 'required|numeric',
@@ -177,6 +181,8 @@ class ArrivalPricingController extends Controller
             $arrivalPricing = ArrivalPricing::updateOrCreate(
                 ['arrival_id' => $data['arrival_id']],
                 [
+                    'airplane_price' => $data['airplane_price'] ?? 0,
+                    'bus_price' => $data['bus_price'] ?? 0,
                     'price' => $data['price'],
                     'margin' => $data['margin'],
                     'total' => $data['total'],

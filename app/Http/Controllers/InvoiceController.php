@@ -61,6 +61,9 @@ class InvoiceController extends Controller
                 $query->where('statusDate', '<=', $request->dateTo);
             }
 
+            // Order by statusDate descending
+            $query->orderBy('statusDate', 'desc');
+
             // Get all filtered invoices for summary calculation
             $allFilteredInvoices = $query->get();
 
@@ -217,7 +220,7 @@ class InvoiceController extends Controller
                 $query->where('statusDate', '<=', $request->dateTo);
             }
 
-            $invoices = $query->get();
+            $invoices = $query->orderBy('statusDate', 'desc')->get();
 
             $export = new InvoicesExport($invoices);
             $currentDate = Carbon::now()->format('d-m-Y');

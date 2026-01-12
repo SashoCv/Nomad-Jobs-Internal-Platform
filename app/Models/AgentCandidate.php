@@ -16,6 +16,7 @@ class AgentCandidate extends Model
         'company_job_id',
         'candidate_id',
         'status_for_candidate_from_agent_id',
+        'status_date',
         'nomad_office_id',
         'hr_employee_id',
         'company_admin_contact',
@@ -24,6 +25,10 @@ class AgentCandidate extends Model
         'accommodation_address',
         'workplace_address',
         'hr_notes',
+    ];
+
+    protected $casts = [
+        'status_date' => 'datetime',
     ];
 
     public function candidate()

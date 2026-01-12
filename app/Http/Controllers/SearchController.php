@@ -841,10 +841,17 @@ class SearchController extends Controller
         }
 
 
+        \DB::enableQueryLog();
+
         if (!$searchEverything) {
-            $query->when($request->searchName, function ($q) use ($request) {
-                $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')
-                    ->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%');
+            $searchName = $request->searchName;
+
+            $query->when($searchName, function ($q) use ($searchName) {
+                \Log::info('searchName: ' , [$searchName]);
+                $q->where(function ($query) use ($searchName) {
+                    $query->where('fullName', 'LIKE', '%' . $searchName . '%')
+                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $searchName . '%');
+                });
             })
                 ->when($request->searchQuartal, function ($q) use ($request) {
                     $q->where('quartal', '=', $request->searchQuartal);
@@ -911,9 +918,17 @@ class SearchController extends Controller
                 $result = $query->orderBy('fullName', 'ASC')->paginate(20);
             } elseif ($request->orderBy === 'name_desc') {
                 $result = $query->orderBy('fullName', 'DESC')->paginate(20);
+            } elseif ($request->searchCompany) {
+                $result = $query->orderByDesc(
+                    \App\Models\Statushistory::select('statusDate')
+                        ->whereColumn('candidate_id', 'candidates.id')
+                        ->orderByDesc('statusDate')
+                        ->limit(1)
+                )->paginate(20);
             } else {
                 $result = $query->orderBy('id', 'DESC')->paginate(20);
             }
+            \Log::info('SQL Query:', \DB::getQueryLog());
             $allStatuses = Status::all();
 
             foreach ($result as $candidate) {

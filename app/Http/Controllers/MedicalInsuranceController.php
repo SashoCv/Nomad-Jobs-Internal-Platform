@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CalendarEvent;
+use App\Models\Candidate;
 use App\Models\MedicalInsurance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -88,6 +90,22 @@ class MedicalInsuranceController extends Controller
         try {
             $medicalInsurance = MedicalInsurance::create($request->only('name', 'description', 'candidate_id', 'dateFrom', 'dateTo'));
 
+            // Create calendar event for insurance expiry
+            if ($request->dateTo) {
+                $candidate = Candidate::find($request->candidate_id);
+                CalendarEvent::updateOrCreate(
+                    [
+                        'type' => CalendarEvent::TYPE_INSURANCE_EXPIRY,
+                        'candidate_id' => $request->candidate_id,
+                    ],
+                    [
+                        'title' => 'Изтичаща застраховка',
+                        'date' => Carbon::parse($request->dateTo)->format('Y-m-d'),
+                        'company_id' => $candidate?->company_id,
+                    ]
+                );
+            }
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
@@ -144,6 +162,22 @@ class MedicalInsuranceController extends Controller
             $medicalInsurance = MedicalInsurance::findOrFail($id);
             $medicalInsurance->update($request->only('name', 'description', 'candidate_id', 'dateFrom', 'dateTo'));
 
+            // Update calendar event for insurance expiry
+            if ($request->dateTo) {
+                $candidate = Candidate::find($medicalInsurance->candidate_id);
+                CalendarEvent::updateOrCreate(
+                    [
+                        'type' => CalendarEvent::TYPE_INSURANCE_EXPIRY,
+                        'candidate_id' => $medicalInsurance->candidate_id,
+                    ],
+                    [
+                        'title' => 'Изтичаща застраховка',
+                        'date' => Carbon::parse($request->dateTo)->format('Y-m-d'),
+                        'company_id' => $candidate?->company_id,
+                    ]
+                );
+            }
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
@@ -164,7 +198,13 @@ class MedicalInsuranceController extends Controller
     {
         try {
             $medicalInsurance = MedicalInsurance::findOrFail($id);
+            $candidateId = $medicalInsurance->candidate_id;
             $medicalInsurance->delete();
+
+            // Delete the calendar event for this insurance
+            CalendarEvent::where('type', CalendarEvent::TYPE_INSURANCE_EXPIRY)
+                ->where('candidate_id', $candidateId)
+                ->delete();
 
             return response()->json([
                 'success' => true,

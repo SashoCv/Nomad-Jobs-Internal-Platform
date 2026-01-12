@@ -9,7 +9,7 @@ class AgentCandidateResource extends JsonResource
 {
     public function toArray($request)
     {
-        $addedById = $this->candidate->addedBy ?? null;
+        $addedById = $this->candidate->agent_id ?? null;
         $agent = $addedById ? User::where('id', $addedById)->first() : null;
 
         return [

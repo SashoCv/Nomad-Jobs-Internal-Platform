@@ -174,9 +174,15 @@ class AgentCandidateController extends Controller
                 }
             }
 
+            $message = sprintf(
+                'Агент %s добави кандидат за позиция "%s"',
+                Auth::user()->firstName,
+                $getCompanyJob->job_title
+            );
+            
             $notificationData = [
-                'message' => 'Agent' . ' ' . Auth::user()->firstName . ' ' .  'added candidate for company job' . ' ' . $getCompanyJob->job_title,
-                'type' => 'Agent' . ' ' . Auth::user()->firstName . ' ' .  'added candidate for company job' . ' ' . $getCompanyJob->job_title,
+                'message' => $message,
+                'type' => $message,
             ];
 
             $notification = NotificationRepository::createNotification($notificationData);
@@ -327,8 +333,10 @@ class AgentCandidateController extends Controller
             // Filter po ime
             if ($name) {
                 $query->whereHas('candidate', function ($subquery) use ($name) {
-                    $subquery->where('fullName', 'LIKE', '%' . $name . '%')
-                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $name . '%');
+                    $subquery->where(function ($q) use ($name) {
+                        $q->where('fullName', 'LIKE', '%' . $name . '%')
+                          ->orWhere('fullNameCyrillic', 'LIKE', '%' . $name . '%');
+                    });
                 });
             }
 
@@ -342,22 +350,24 @@ class AgentCandidateController extends Controller
                 $query->where('user_id', $agentId);
             }
 
-            // Filter po datum
-            if ($dateFrom && $dateTo) {
-                $query->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
-            } elseif ($dateFrom) {
-                // Samo dateFrom: od toj datum do denes
-                $query->where('created_at', '>=', $dateFrom.' 00:00:00');
-            } elseif ($dateTo) {
-                // Samo dateTo: do toj datum
-                $query->where('created_at', '<=', $dateTo.' 23:59:59');
+            // Filter po datum (samo ako nema company_job_id)
+            if (!$companyJobId) {
+                if ($dateFrom && $dateTo) {
+                    $query->whereBetween('created_at', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59']);
+                } elseif ($dateFrom) {
+                    // Samo dateFrom: od toj datum do denes
+                    $query->where('created_at', '>=', $dateFrom.' 00:00:00');
+                } elseif ($dateTo) {
+                    // Samo dateTo: do toj datum
+                    $query->where('created_at', '<=', $dateTo.' 23:59:59');
+                }
             }
             // Note: No default year filter - show all candidates if no date filter is provided
 
             // Order po id (najnovi prvo)
             $query->orderBy('agent_candidates.id', 'desc');
 
-            $candidates = $query->paginate(20);
+            $candidates = $query->paginate(40);
 
             return AgentCandidateResource::collection($candidates);
 
@@ -532,8 +542,8 @@ class AgentCandidateController extends Controller
 
                 // Create notification
                 $notificationData = [
-                    'message' => 'Agent ' . Auth::user()->firstName . ' updated candidate ' . $person->fullName,
-                    'type' => 'Agent updated candidate',
+                    'message' => 'Агент ' . Auth::user()->firstName . ' редактира кандидат ' . $person->fullName,
+                    'type' => 'agent_updated_candidate',
                 ];
 
                 $notification = NotificationRepository::createNotification($notificationData);

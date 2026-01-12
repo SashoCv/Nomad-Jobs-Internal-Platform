@@ -105,6 +105,8 @@ class Permission extends Model
     const NOTIFICATIONS_READ = 'notifications:read';
     const NOTIFICATIONS_UPDATE = 'notifications:update';
 
+    const CALENDAR_READ = 'calendar:read';
+
     const DOCUMENTS_READ = 'documents:read';
     const DOCUMENTS_CREATE = 'documents:create';
     const DOCUMENTS_UPDATE = 'documents:update';

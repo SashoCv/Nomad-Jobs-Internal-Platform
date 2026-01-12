@@ -135,7 +135,8 @@ class CompanyJobController extends Controller
         }
 
 
-        $allJobPostings = $query->paginate();
+        $perPage = $request->get('per_page', 15);
+        $allJobPostings = $query->paginate($perPage);
 
         // Load request data and change_logs for each job posting
         $jobIds = collect($allJobPostings->items())->pluck('id')->toArray();
@@ -285,9 +286,15 @@ class CompanyJobController extends Controller
                 $companyRequest->description = "Job created by " . $user->firstName . " " . $user->lastName;
                 $companyRequest->save();
 
+                $message = sprintf(
+                    '%s публикува нова обява: "%s"',
+                    $companyForThisJob,
+                    $request->job_title
+                );
+                
                 $notificationMessages = [
-                    'message' => $companyForThisJob . ' created new job posting: ' . $request->job_title,
-                    'type' => 'job_posting'
+                    'message' => $message,
+                    'type' => $message,
                 ];
 
                 $notification_id = NotificationRepository::createNotification($notificationMessages);
@@ -526,10 +533,18 @@ class CompanyJobController extends Controller
 
         // Create notification for staff about pending changes
         $companyName = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
+
+        $message = sprintf(
+            '%s изпрати промени за одобрение на обява: "%s"',
+            $companyName,
+            $companyJob->job_title
+        );
+        
         $notificationData = [
-            'message' => $companyName . ' submitted changes for approval on job posting: ' . $companyJob->job_title,
-            'type' => 'job_posting_change_request'
+            'message' => $message,
+            'type' => $message,
         ];
+        
         $notification = NotificationRepository::createNotification($notificationData);
         UsersNotificationRepository::createNotificationForUsers($notification);
 
@@ -547,6 +562,11 @@ class CompanyJobController extends Controller
      */
     private function performDirectUpdate(Request $request, CompanyJob $companyJob, $user)
     {
+        \Log::info('=== CompanyJob Update Debug ===');
+        \Log::info('Request company_id: ' . $request->company_id);
+        \Log::info('Current company_id: ' . $companyJob->company_id);
+        \Log::info('All request data:', $request->all());
+
         // Set job_title from selected position
         if ($request->position_id) {
             $position = \App\Models\Position::find($request->position_id);
@@ -571,12 +591,16 @@ class CompanyJobController extends Controller
         $companyJob->position_id = $request->position_id;
         $companyJob->real_position = $request->real_position;
         $companyJob->country_id = $request->country_id;
+        $companyJob->company_id = $request->company_id;
+
+        \Log::info('company_id after assignment: ' . $companyJob->company_id);
 
         $companyForThisJob = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
 
         if ($companyJob->save()) {
+            \Log::info('company_id after save: ' . $companyJob->company_id);
             $notificationData = [
-                'message' => $companyForThisJob . ' updated job posting: ' . $request->job_title,
+                'message' => $companyForThisJob . ' редактира обява: ' . $request->job_title,
                 'type' => 'job_posting_updated'
             ];
 
@@ -584,7 +608,15 @@ class CompanyJobController extends Controller
             UsersNotificationRepository::createNotificationForUsers($notification);
 
             if ($this->isStaff() && $request->has('agentsIds')) {
-                foreach ($request->agentsIds as $agentId) {
+                $agentIds = $request->agentsIds ?? [];
+
+                // Delete agents that are no longer in the list
+                AssignedJob::where('company_job_id', $companyJob->id)
+                    ->whereNotIn('user_id', $agentIds)
+                    ->delete();
+
+                // Add new agents
+                foreach ($agentIds as $agentId) {
                     AssignedJob::firstOrCreate([
                         'user_id' => $agentId,
                         'company_job_id' => $companyJob->id,
@@ -741,7 +773,7 @@ class CompanyJobController extends Controller
         // Create notification for staff about pending revision
         $companyName = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
         $notificationData = [
-            'message' => $companyName . ' requested revision for job posting: ' . $companyJob->job_title,
+            'message' => $companyName . ' заяви ревизия за обява: ' . $companyJob->job_title,
             'type' => 'job_posting_revision_request'
         ];
         $notification = NotificationRepository::createNotification($notificationData);
@@ -796,7 +828,7 @@ class CompanyJobController extends Controller
         // Create notification
         $companyName = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
         $notificationData = [
-            'message' => 'Revision approved for ' . $companyName . ' job posting: ' . $companyJob->job_title,
+            'message' => 'Одобрена ревизия за ' . $companyName . ': ' . $companyJob->job_title,
             'type' => 'job_posting_revision_approved'
         ];
         $notification = NotificationRepository::createNotification($notificationData);
@@ -847,7 +879,7 @@ class CompanyJobController extends Controller
         // Create notification
         $companyName = Company::where('id', $companyJob->company_id)->first()->nameOfCompany;
         $notificationData = [
-            'message' => 'Revision rejected for ' . $companyName . ' job posting: ' . $companyJob->job_title,
+            'message' => 'Отхвърлена ревизия за ' . $companyName . ': ' . $companyJob->job_title,
             'type' => 'job_posting_revision_rejected'
         ];
         $notification = NotificationRepository::createNotification($notificationData);
