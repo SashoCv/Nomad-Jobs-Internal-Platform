@@ -12,6 +12,8 @@ class ArrivalPricing extends Model
 
     protected $fillable = [
         'arrival_id',
+        'airplane_price',
+        'bus_price',
         'price',
         'margin',
         'total',
@@ -20,6 +22,8 @@ class ArrivalPricing extends Model
     ];
 
     protected $casts = [
+        'airplane_price' => 'float',
+        'bus_price' => 'float',
         'price' => 'float',
         'margin' => 'decimal:2',
         'total' => 'float',

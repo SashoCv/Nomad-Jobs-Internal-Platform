@@ -22,7 +22,7 @@ class CompanyJobNotificationService
         $companyName = $company->nameOfCompany;
 
         $notificationData = [
-            'message' => $companyName . ' created new job posting: ' . $companyJob->job_title,
+            'message' => $companyName . ' публикува нова обява: ' . $companyJob->job_title,
             'type' => 'job_posting'
         ];
 
@@ -41,7 +41,7 @@ class CompanyJobNotificationService
         $companyName = $company->nameOfCompany;
 
         $notificationData = [
-            'message' => $companyName . ' updated job posting: ' . $companyJob->job_title,
+            'message' => $companyName . ' редактира обява: ' . $companyJob->job_title,
             'type' => 'job_posting_updated'
         ];
 

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
+use App\Models\CalendarEvent;
 use App\Models\Candidate;
 use App\Models\CompanyJob;
 use App\Models\Education;
 use App\Models\StatusForCandidateFromAgent;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -83,6 +85,12 @@ class StatusForCandidateFromAgentController extends Controller
            $candidateFromAgent = AgentCandidate::where('candidate_id', $id)->first();
               if ($candidateFromAgent) {
                 $candidateFromAgent->status_for_candidate_from_agent_id = $request->status_for_candidate_from_agent_id;
+
+                // Save status_date if provided
+                if ($request->has('status_date')) {
+                    $candidateFromAgent->status_date = $request->status_date;
+                }
+
                 if($request->status_for_candidate_from_agent_id == 3 || $request->status_for_candidate_from_agent_id == 4 || $request->status_for_candidate_from_agent_id == 5) {
                     $updateTypeOfCandidate = Candidate::where('id', $id)->first();
                     $updateTypeOfCandidate->type_id = 1;
@@ -106,6 +114,26 @@ class StatusForCandidateFromAgentController extends Controller
                     $updateTypeOfCandidate->save();
                 }
                 $candidateFromAgent->save();
+
+                // Create calendar event for interview (status 2 = "За интервю")
+                if ($request->status_for_candidate_from_agent_id == 2 && $request->has('status_date')) {
+                    $statusDateTime = Carbon::parse($request->status_date);
+                    $companyJob = $candidateFromAgent->companyJob;
+
+                    CalendarEvent::updateOrCreate(
+                        [
+                            'type' => CalendarEvent::TYPE_INTERVIEW,
+                            'candidate_id' => $id,
+                        ],
+                        [
+                            'title' => 'Интервю',
+                            'date' => $statusDateTime->toDateString(),
+                            'time' => $statusDateTime->toTimeString(),
+                            'company_id' => $companyJob?->company_id,
+                            'created_by' => Auth::id(),
+                        ]
+                    );
+                }
 
                 // Check if job posting should be marked as "filled"
                 if ($request->status_for_candidate_from_agent_id == 3 && $candidateFromAgent->company_job_id) {

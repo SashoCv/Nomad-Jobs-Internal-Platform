@@ -257,6 +257,8 @@ class ArrivalCandidateController extends Controller
                     'statuses.nameOfStatus as statusName',
                     DB::raw('company_service_contracts.contractNumber as contractNumber'),
                     'arrivals.arrival_flight as arrivalType',
+                    'arrival_pricings.airplane_price as airplane_price',
+                    'arrival_pricings.bus_price as bus_price',
                     'arrival_pricings.price as price',
                     'arrival_pricings.margin as margin',
                     'arrival_pricings.total as total',

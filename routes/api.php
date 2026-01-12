@@ -43,6 +43,7 @@ use App\Http\Controllers\CompanyRequestController;
 use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\ReferenceDataController;
 use App\Http\Controllers\ImpersonationController;
+use App\Http\Controllers\CalendarEventController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -254,11 +255,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('job-postings-overview/{companyId}', [JobPostingsOverviewController::class, 'show']);
 
     // Notifications
+    Route::get('notifications', [UserNotificationController::class, 'show']);
+    Route::get('notifications/paginated', [UserNotificationController::class, 'index']);
+    Route::post('seenNotifications', [UserNotificationController::class, 'update']);
+    Route::post('readNotification/{id}', [UserNotificationController::class, 'readNotification']);
+    Route::post('notifications/mark-all-read', [UserNotificationController::class, 'markAllAsRead']);
 
-    Route::get('notifications', [UserNotificationController::class, 'show']); // notification for user
-    Route::post('seenNotifications', [UserNotificationController::class, 'update']); // update notification is_read for user need Function To change
-    Route::post('readNotification/{id}', [UserNotificationController::class, 'readNotification']); // update notification is_seen for user
-
+    // Calendar Events
+    Route::get('calendar-events', [CalendarEventController::class, 'index']);
 
     // Assigned Jobs
     Route::post('assignJobToAgent', [AssignedJobController::class, 'store']);
@@ -494,3 +498,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 
+
+
+
+// Companies-> firmeni kandidati -> orderByDate (data na status) DONE
+// Fakturi -> orderByDate ()  Done
+// Promena na mails (da stasuva kaj rekruter ako nekoj od kompanija odobri) 
+// Cenata na transport da se razdeli na dve polinja (samolet avtobus) i marzhata e na vkuypnata suma Done
+// Да се поделат во усерите номад компании агенти Done
+// Пагинација секаде (10,20,50,100) Done

@@ -973,6 +973,27 @@ class CandidateController extends Controller
             $query->whereDoesntHave('hrAssignment');
         }
 
+        // Filter by agent name
+        if ($request->searchAgent) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where(function ($subQ) use ($request) {
+                    $subQ->where('firstName', 'like', '%' . $request->searchAgent . '%')
+                         ->orWhere('lastName', 'like', '%' . $request->searchAgent . '%')
+                         ->orWhereRaw("CONCAT(firstName, ' ', lastName) like ?", ['%' . $request->searchAgent . '%']);
+                });
+            });
+        }
+
+        // Filter by candidate name
+        if ($request->searchCandidate) {
+            $query->whereHas('candidate', function ($q) use ($request) {
+                $q->where(function ($subQ) use ($request) {
+                    $subQ->where('fullName', 'like', '%' . $request->searchCandidate . '%')
+                         ->orWhere('fullNameCyrillic', 'like', '%' . $request->searchCandidate . '%');
+                });
+            });
+        }
+
         return response()->json([
             'success' => true,
             'status' => 200,

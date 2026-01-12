@@ -127,9 +127,11 @@ class LoginController extends Controller
         }
 
         if($role_id){
+            // Support comma-separated role IDs
+            $roleIds = array_map('trim', explode(',', $role_id));
             $users = User::with(['company', 'role'])
                 ->where('id','!=','22')
-                ->where('role_id', $role_id)->get();
+                ->whereIn('role_id', $roleIds)->get();
         } else if ($this->isStaff()){
             $users = User::with(['company', 'role'])
                 ->where('id','!=','22')->get();

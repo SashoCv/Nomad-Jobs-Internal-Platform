@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\AgentCandidate;
+use App\Models\CalendarEvent;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\CompanyJob;
@@ -46,6 +47,22 @@ class CandidateService
             }
 
             $candidate->save();
+
+            // Create calendar event for contract expiry if endContractDate is set
+            if (!empty($candidate->endContractDate)) {
+                CalendarEvent::updateOrCreate(
+                    [
+                        'type' => CalendarEvent::TYPE_CONTRACT_EXPIRY,
+                        'candidate_id' => $candidate->id,
+                    ],
+                    [
+                        'title' => 'Изтичащ договор',
+                        'date' => $candidate->endContractDate,
+                        'company_id' => $candidate->company_id,
+                        'created_by' => Auth::id(),
+                    ]
+                );
+            }
 
             $statusHistory = [
                 'candidate_id' => $candidate->id,
@@ -112,6 +129,21 @@ class CandidateService
             }
 
             $candidate->save();
+
+            // Create/update calendar event for contract expiry if endContractDate is set
+            if (!empty($candidate->endContractDate)) {
+                CalendarEvent::updateOrCreate(
+                    [
+                        'type' => CalendarEvent::TYPE_CONTRACT_EXPIRY,
+                        'candidate_id' => $candidate->id,
+                    ],
+                    [
+                        'title' => 'Изтичащ договор',
+                        'date' => $candidate->endContractDate,
+                        'company_id' => $candidate->company_id,
+                    ]
+                );
+            }
 
             // Handle file uploads
             $this->handleFileUploads($candidate, $data);
