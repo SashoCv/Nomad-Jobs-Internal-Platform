@@ -12,7 +12,13 @@ class Category extends Model
     protected $fillable = [
         'candidate_id',
         'nameOfCategory',
+        'description',
         'role_id',
         'isGenerated',
+        'allowed_roles',
+    ];
+
+    protected $casts = [
+        'allowed_roles' => 'array',
     ];
 }
