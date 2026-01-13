@@ -167,6 +167,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('file', [FileController::class, 'store']);
     Route::get('downloadFile/{file}', [FileController::class, 'downloadFile']);
     Route::get('filesForPerson/{id}', [FileController::class, 'show']);
+    Route::put('files/{id}', [FileController::class, 'update']);
+    Route::post('files/{id}/duplicate', [FileController::class, 'duplicate']);
+
+
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
 
 
@@ -174,6 +178,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //CompanyFiles
     Route::post('companyFileStore', [CompanyFileController::class, 'store']);
     Route::get('companyFile/{id}', [CompanyFileController::class, 'show']);
+    Route::put('companyFiles/{id}', [CompanyFileController::class, 'update']);
+    Route::post('companyFiles/{id}/duplicate', [CompanyFileController::class, 'duplicate']);
     Route::get('downloadCompanyFile/{file}', [CompanyFileController::class, 'download']);
     Route::delete('companyFileDelete/{id}', [CompanyFileController::class, 'destroy']);
 
@@ -181,6 +187,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Company Category
 
     Route::post('companyCategoryStore', [CompanyCategoryController::class, 'store']);
+    Route::put('companyCategoryUpdate/{id}', [CompanyCategoryController::class, 'update']);
     Route::delete('deleteCompanyCategory', [CompanyCategoryController::class, 'destroy']);
 
 
@@ -206,6 +213,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('categories', [CategoryController::class, 'index']);
     Route::post('storeCategory', [CategoryController::class, 'store']);
+    Route::post('updateCategory/{category}', [CategoryController::class, 'update']);
     Route::delete('deleteCategory', [CategoryController::class, 'destroy']);
 
 

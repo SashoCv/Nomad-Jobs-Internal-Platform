@@ -14,6 +14,12 @@ class CompanyCategory extends Model
     protected $fillable = [
         'role_id',
         'company_id',
-        'companyNameCategory'
+        'companyNameCategory',
+        'allowed_roles',
+        'description'
+    ];
+
+    protected $casts = [
+        'allowed_roles' => 'array',
     ];
 }

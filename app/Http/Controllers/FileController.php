@@ -13,10 +13,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
+use App\Services\File\FileOperationService;
 
 class FileController extends Controller
 {
     use HasRolePermissions;
+
+    public function __construct(
+        protected FileOperationService $fileService
+    ) {}
     /**
      * Display a listing of the resource.
      *
@@ -112,8 +117,7 @@ class FileController extends Controller
         $file = new File();
 
         if ($request->hasFile('file')) {
-            Storage::disk('public')->put('files', $request->file('file'));
-            $name = Storage::disk('public')->put('files', $request->file('file'));
+            $name = $this->fileService->uploadFile($request->file('file'), 'files');
             $file->filePath = $name;
         }
 
@@ -172,37 +176,40 @@ class FileController extends Controller
     {
         $userRoleId = Auth::user()->role_id;
 
-        $categoriesQuery = Category::where('candidate_id', $id);
-
         if ($this->isStaff()) {
-            $categoriesQuery->whereNull('candidate_id')->orWhere('candidate_id', $id);
-        } elseif ($userRoleId == 3) {
-            $categoriesQuery->where('role_id', 3)->orWhere('role_id', 4)->where('candidate_id', $id);
-        } elseif ($userRoleId == 4) {
-            $categoriesQuery->where('role_id', 4)->where('candidate_id', $id);
-        } elseif ($userRoleId == 5) {
-            $categoriesQuery->whereIn('role_id', [3, 4, 5])->where('candidate_id', $id);
+            // Staff can see all categories for this candidate
+            $categories = Category::where('candidate_id', $id)
+                ->orderBy('id', 'asc')
+                ->get();
+        } else {
+            // Non-staff users see categories where:
+            // 1. role_id matches their role, OR
+            // 2. Their role is in allowed_roles array
+            $categories = Category::where('candidate_id', $id)
+                ->where(function ($query) use ($userRoleId) {
+                    $query->where('role_id', '=', $userRoleId)
+                          ->orWhereJsonContains('allowed_roles', (string)$userRoleId)
+                          ->orWhereJsonContains('allowed_roles', $userRoleId);
+                })
+                ->orderBy('id', 'asc')
+                ->get();
         }
 
-        $categories = $categoriesQuery->orderBy('id', 'asc')->get();
         $categoriesIds = $categories->pluck('id');
-        $filesQuery = File::with('category')->where('candidate_id', $id);
-
-        if ($userRoleId == 3 || $userRoleId == 5) {
-            $filesQuery->where(function ($query) {
-                $query->orWhereHas('category', function ($q) {
-                    $q->where('role_id', '!=', 1)
-                        ->orWhere('role_id', '!=', 2);
-                });
-            });
+        
+        // Files are filtered to only those in visible categories
+        if ($this->isStaff()) {
+            // Staff can see all files for this candidate
+            $files = File::with('category')
+                ->where('candidate_id', $id)
+                ->get();
+        } else {
+            // Non-staff users only see files in their visible categories
+            $files = File::with('category')
+                ->where('candidate_id', $id)
+                ->whereIn('category_id', $categoriesIds)
+                ->get();
         }
-
-        if ($userRoleId == 4) {
-            $filesQuery = File::where('candidate_id', $id)
-                ->whereIn('category_id', $categoriesIds);
-        }
-
-        $files = $filesQuery->get();
 
         $candidatePassport = $this->isStaff() ? Candidate::where('id', $id)->value('passportPath') : null;
 
@@ -223,9 +230,42 @@ class FileController extends Controller
      * @param  \App\Models\File  $file
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, File $file)
+    public function duplicate(Request $request, $id)
     {
-        //
+        $file = File::findOrFail($id);
+        $newCategoryId = $request->input('category_id');
+        $originalPath = $file->filePath;
+        
+        $newPath = $this->fileService->copyFile($originalPath, 'files');
+
+        if ($newPath) {
+            $newFile = $file->replicate();
+            $newFile->filePath = $newPath;
+            $newFile->category_id = $newCategoryId;
+            $newFile->save();
+            return response()->json(['success' => true, 'data' => $newFile]);
+        }
+        return response()->json(['error' => 'Copy failed'], 500);
+    }
+
+    public function update(Request $request, $id)
+    {
+         $file = File::findOrFail($id);
+
+        if ($request->has("category_id")) {
+            $file->category_id = $request->category_id;
+        }
+
+        if ($file->save()) {        
+            return response()->json([
+                "success" => true,
+                "status" => 200,
+                "message" => "File updated successfully",
+                "data" => $file
+            ]);
+        }
+
+        return response()->json(["error" => "Update failed"], 500);
     }
 
     /**
@@ -263,9 +303,8 @@ class FileController extends Controller
         $fileName = $file->fileName;
 
         if ($file->delete()) {
-            $filePath = storage_path() . '/app/public/' . $file->filePath;
-            if (file_exists($filePath)) {
-                unlink($filePath);
+            if ($file->filePath) {
+                $this->fileService->deleteFile($file->filePath);
             }
 
             return response()->json([
