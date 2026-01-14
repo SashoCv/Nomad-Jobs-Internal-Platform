@@ -141,9 +141,12 @@ class StatisticController extends Controller
 
         $statusHistories = $statusHistoryQuery->get();
 
+        // Count unique candidates per status (not duplicate status history entries)
         $statusCounts = $statusHistories->groupBy(fn($sh) => optional($sh->status)->nameOfStatus ?? 'Unknown')
             ->map(function ($group, $key) {
-                return ['label' => $key, 'value' => $group->count()];
+                // Count unique candidate_ids per status
+                $uniqueCandidates = $group->pluck('candidate_id')->unique()->count();
+                return ['label' => $key, 'value' => $uniqueCandidates];
             })->values()->toArray();
 
         $companyCounts = $candidates->groupBy(fn($c) => optional($c->company)->nameOfCompany ?? 'Unknown')
