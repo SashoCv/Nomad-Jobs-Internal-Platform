@@ -174,9 +174,15 @@ class AgentCandidateController extends Controller
                 }
             }
 
+            $message = sprintf(
+                'Агент %s добави кандидат за позиция "%s"',
+                Auth::user()->firstName,
+                $getCompanyJob->job_title
+            );
+            
             $notificationData = [
-                'message' => 'Agent' . ' ' . Auth::user()->firstName . ' ' .  'added candidate for company job' . ' ' . $getCompanyJob->job_title,
-                'type' => 'Agent' . ' ' . Auth::user()->firstName . ' ' .  'added candidate for company job' . ' ' . $getCompanyJob->job_title,
+                'message' => $message,
+                'type' => $message,
             ];
 
             $notification = NotificationRepository::createNotification($notificationData);
@@ -536,8 +542,8 @@ class AgentCandidateController extends Controller
 
                 // Create notification
                 $notificationData = [
-                    'message' => 'Agent ' . Auth::user()->firstName . ' updated candidate ' . $person->fullName,
-                    'type' => 'Agent updated candidate',
+                    'message' => 'Агент ' . Auth::user()->firstName . ' редактира кандидат ' . $person->fullName,
+                    'type' => 'agent_updated_candidate',
                 ];
 
                 $notification = NotificationRepository::createNotification($notificationData);

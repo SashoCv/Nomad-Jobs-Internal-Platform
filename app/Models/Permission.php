@@ -105,6 +105,8 @@ class Permission extends Model
     const NOTIFICATIONS_READ = 'notifications:read';
     const NOTIFICATIONS_UPDATE = 'notifications:update';
 
+    const CALENDAR_READ = 'calendar:read';
+
     const DOCUMENTS_READ = 'documents:read';
     const DOCUMENTS_CREATE = 'documents:create';
     const DOCUMENTS_UPDATE = 'documents:update';
@@ -113,6 +115,12 @@ class Permission extends Model
     const DOCUMENTS_DOWNLOAD = 'documents:download';
     const DOCUMENTS_GENERATE = 'documents:generate';
     const DOCUMENTS_PREPARATION = 'documents:preparation';
+    
+    const DOCUMENTS_CATEGORIES_READ = 'documents:categories:read';
+    const DOCUMENTS_CATEGORIES_CREATE = 'documents:categories:create';
+    const DOCUMENTS_CATEGORIES_UPDATE = 'documents:categories:update';
+    const DOCUMENTS_CATEGORIES_DELETE = 'documents:categories:delete';
+    const DOCUMENTS_CATEGORIES_MANAGE_VISIBILITY = 'documents:categories:manage_visibility';
 
     const CHANGE_LOGS_READ = 'change_logs:read';
     const CHANGE_LOGS_CREATE = 'change_logs:create';

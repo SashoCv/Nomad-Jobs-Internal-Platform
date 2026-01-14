@@ -58,10 +58,20 @@ class PermissionDefinitions
             ['name' => Permission::DOCUMENTS_DOWNLOAD, 'slug' => 'documents:download', 'description' => 'Download documents'],
             ['name' => Permission::DOCUMENTS_GENERATE, 'slug' => 'documents:generate', 'description' => 'Generate documents'],
             ['name' => Permission::DOCUMENTS_PREPARATION, 'slug' => 'documents:preparation', 'description' => 'Prepare documents'],
+            
+            // Document Categories
+            ['name' => Permission::DOCUMENTS_CATEGORIES_READ, 'slug' => 'documents:categories:read', 'description' => 'Read document categories'],
+            ['name' => Permission::DOCUMENTS_CATEGORIES_CREATE, 'slug' => 'documents:categories:create', 'description' => 'Create document categories'],
+            ['name' => Permission::DOCUMENTS_CATEGORIES_UPDATE, 'slug' => 'documents:categories:update', 'description' => 'Edit document categories'],
+            ['name' => Permission::DOCUMENTS_CATEGORIES_DELETE, 'slug' => 'documents:categories:delete', 'description' => 'Delete document categories'],
+            ['name' => Permission::DOCUMENTS_CATEGORIES_MANAGE_VISIBILITY, 'slug' => 'documents:categories:manage_visibility', 'description' => 'Manage document category visibility'],
 
             // Notifications
             ['name' => Permission::NOTIFICATIONS_READ, 'slug' => 'notifications:read', 'description' => 'Read notifications'],
             ['name' => Permission::NOTIFICATIONS_UPDATE, 'slug' => 'notifications:update', 'description' => 'Edit notifications'],
+
+            // Calendar
+            ['name' => Permission::CALENDAR_READ, 'slug' => 'calendar:read', 'description' => 'View calendar events'],
 
             // Job Postings
             ['name' => Permission::JOB_POSTINGS_READ, 'slug' => 'job_postings:read', 'description' => 'Read job postings'],

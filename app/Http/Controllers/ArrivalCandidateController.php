@@ -257,6 +257,8 @@ class ArrivalCandidateController extends Controller
                     'statuses.nameOfStatus as statusName',
                     DB::raw('company_service_contracts.contractNumber as contractNumber'),
                     'arrivals.arrival_flight as arrivalType',
+                    'arrival_pricings.airplane_price as airplane_price',
+                    'arrival_pricings.bus_price as bus_price',
                     'arrival_pricings.price as price',
                     'arrival_pricings.margin as margin',
                     'arrival_pricings.total as total',
@@ -444,24 +446,24 @@ class ArrivalCandidateController extends Controller
         try {
             $dateFrom = $request->dateFrom;
             $dateTo = $request->dateTo;
-            $statusId = $request->statusId ?? 1;
+            $statusId = $request->statusId;
 
             $candidatesWithStatuses = Statushistory::with(['candidate', 'status', 'candidate.arrival','candidate.company'])
-                ->whereHas('candidate')
-                ->whereHas('status', function ($query) use ($statusId) {
-                    $query->where('id', $statusId);
-                });
+                ->whereHas('candidate');
 
-            if ($dateFrom) {
-                $candidatesWithStatuses->whereHas('status', function ($query) use ($dateFrom) {
-                    $query->where('statusDate', '>=', $dateFrom);
+            // Only filter by status if statusId is provided
+            if ($statusId) {
+                $candidatesWithStatuses->whereHas('status', function ($query) use ($statusId) {
+                    $query->where('id', $statusId);
                 });
             }
 
+            if ($dateFrom) {
+                $candidatesWithStatuses->where('statusDate', '>=', $dateFrom);
+            }
+
             if ($dateTo) {
-                $candidatesWithStatuses->whereHas('status', function ($query) use ($dateTo) {
-                    $query->where('statusDate', '<=', $dateTo);
-                });
+                $candidatesWithStatuses->where('statusDate', '<=', $dateTo);
             }
 
             $candidatesWithStatuses->join('statuses', 'statushistories.status_id', '=', 'statuses.id')

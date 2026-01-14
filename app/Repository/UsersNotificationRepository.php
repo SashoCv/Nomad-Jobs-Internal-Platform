@@ -13,7 +13,7 @@ class UsersNotificationRepository
 
     public static function createNotificationForUsers($id)
     {
-        $allUsersAdminsAndFromNomadOffice = User::whereIn('role_id', [1, 2])->get();
+        $allUsersAdminsAndFromNomadOffice = User::whereNotIn('role_id', [3,4,5])->get();
 
         foreach ($allUsersAdminsAndFromNomadOffice as $user) {
             $notification = new UserNotification();

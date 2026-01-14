@@ -11,6 +11,7 @@ use App\Traits\HasRolePermissions;
 use App\Jobs\SendEmailToCompany;
 use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
+use App\Models\CalendarEvent;
 use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Statushistory;
@@ -134,6 +135,20 @@ class ArrivalController extends Controller
                 ]
             );
 
+            // Create or update calendar event for arrival
+            CalendarEvent::updateOrCreate(
+                [
+                    'type' => CalendarEvent::TYPE_ARRIVAL,
+                    'candidate_id' => $candidateId,
+                ],
+                [
+                    'title' => 'Пристигане',
+                    'date' => $arrivalDate,
+                    'time' => $request->arrival_time,
+                    'company_id' => $candidate->company_id,
+                    'created_by' => Auth::id(),
+                ]
+            );
 
             DB::commit();
 
@@ -196,6 +211,21 @@ class ArrivalController extends Controller
                 [
                     'role_id'     => 2,
                     'isGenerated' => 0,
+                ]
+            );
+
+            // Update calendar event for arrival
+            $candidate = Candidate::find($candidateId);
+            CalendarEvent::updateOrCreate(
+                [
+                    'type' => CalendarEvent::TYPE_ARRIVAL,
+                    'candidate_id' => $candidateId,
+                ],
+                [
+                    'title' => 'Пристигане',
+                    'date' => $arrivalDate,
+                    'time' => $request->arrival_time,
+                    'company_id' => $candidate?->company_id,
                 ]
             );
 
