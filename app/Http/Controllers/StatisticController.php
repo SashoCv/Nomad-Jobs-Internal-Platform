@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\AgentCandidate;
 use App\Models\AssignedJob;
 use App\Models\Candidate;
-use App\Models\Statushistory;
 use Illuminate\Http\Request;
 
 class StatisticController extends Controller
@@ -88,65 +87,9 @@ class StatisticController extends Controller
         $countries = \App\Models\Country::all()->keyBy('id');
 
         // Transform counts into arrays of {label, value} objects
-        // Status counts from status_histories table (not from latest status)
-        $statusHistoryQuery = Statushistory::query()
-            ->with('status:id,nameOfStatus')
-            ->whereHas('status')
-            ->whereBetween('statusDate', [$dateFrom, $dateTo]);
-
-        // Apply same filters through candidate relationship
-        if ($companyId) {
-            $statusHistoryQuery->whereHas('candidate', function ($q) use ($companyId) {
-                $q->where('company_id', $companyId);
-            });
-        }
-
-        if ($cityId) {
-            $statusHistoryQuery->whereHas('candidate.companyAddress', function ($q) use ($cityId) {
-                $q->where('city_id', $cityId);
-            });
-        }
-
-        if ($agentId) {
-            $statusHistoryQuery->whereHas('candidate.agentCandidates', function ($q) use ($agentId) {
-                $q->where('user_id', $agentId);
-            });
-        }
-
-        if ($country) {
-            $statusHistoryQuery->whereHas('candidate', function ($q) use ($country) {
-                $q->where('country_id', $country);
-            });
-        }
-
-        if ($contractType) {
-            $map = [
-                'ЕРПР 1' => 'ЕРПР 1',
-                'ЕРПР 2' => 'ЕРПР 2',
-                'ЕРПР 3' => 'ЕРПР 3',
-                '90 дни' => '90 дни',
-                '9 месеца' => '9 месеца',
-            ];
-            $contractTypeLatin = $map[$contractType] ?? $contractType;
-            $statusHistoryQuery->whereHas('candidate', function ($q) use ($contractTypeLatin) {
-                $q->where('contractType', $contractTypeLatin);
-            });
-        }
-
-        if ($status) {
-            $statusHistoryQuery->whereHas('status', function ($q) use ($status) {
-                $q->where('nameOfStatus', $status);
-            });
-        }
-
-        $statusHistories = $statusHistoryQuery->get();
-
-        // Count unique candidates per status (not duplicate status history entries)
-        $statusCounts = $statusHistories->groupBy(fn($sh) => optional($sh->status)->nameOfStatus ?? 'Unknown')
+        $statusCounts = $candidates->groupBy(fn($c) => optional(optional($c->latestStatusHistory)->status)->nameOfStatus ?? 'Unknown')
             ->map(function ($group, $key) {
-                // Count unique candidate_ids per status
-                $uniqueCandidates = $group->pluck('candidate_id')->unique()->count();
-                return ['label' => $key, 'value' => $uniqueCandidates];
+                return ['label' => $key, 'value' => $group->count()];
             })->values()->toArray();
 
         $companyCounts = $candidates->groupBy(fn($c) => optional($c->company)->nameOfCompany ?? 'Unknown')
