@@ -70,6 +70,9 @@ class PermissionDefinitions
             ['name' => Permission::NOTIFICATIONS_READ, 'slug' => 'notifications:read', 'description' => 'Read notifications'],
             ['name' => Permission::NOTIFICATIONS_UPDATE, 'slug' => 'notifications:update', 'description' => 'Edit notifications'],
 
+            // Calendar
+            ['name' => Permission::CALENDAR_READ, 'slug' => 'calendar:read', 'description' => 'View calendar events'],
+
             // Job Postings
             ['name' => Permission::JOB_POSTINGS_READ, 'slug' => 'job_postings:read', 'description' => 'Read job postings'],
             ['name' => Permission::JOB_POSTINGS_CREATE, 'slug' => 'job_postings:create', 'description' => 'Create job postings'],

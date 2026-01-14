@@ -58,6 +58,7 @@ class ManagerPermissions
             Permission::INSURANCE_DELETE,
             Permission::NOTIFICATIONS_READ,
             Permission::NOTIFICATIONS_UPDATE,
+            Permission::CALENDAR_READ,
             Permission::DOCUMENTS_READ,
             Permission::DOCUMENTS_CREATE,
             Permission::DOCUMENTS_UPDATE,
