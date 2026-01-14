@@ -455,15 +455,11 @@ class ArrivalCandidateController extends Controller
                 });
 
             if ($dateFrom) {
-                $candidatesWithStatuses->whereHas('status', function ($query) use ($dateFrom) {
-                    $query->where('statusDate', '>=', $dateFrom);
-                });
+                $candidatesWithStatuses->where('statusDate', '>=', $dateFrom);
             }
 
             if ($dateTo) {
-                $candidatesWithStatuses->whereHas('status', function ($query) use ($dateTo) {
-                    $query->where('statusDate', '<=', $dateTo);
-                });
+                $candidatesWithStatuses->where('statusDate', '<=', $dateTo);
             }
 
             $candidatesWithStatuses->join('statuses', 'statushistories.status_id', '=', 'statuses.id')
