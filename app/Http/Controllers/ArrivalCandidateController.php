@@ -446,13 +446,17 @@ class ArrivalCandidateController extends Controller
         try {
             $dateFrom = $request->dateFrom;
             $dateTo = $request->dateTo;
-            $statusId = $request->statusId ?? 1;
+            $statusId = $request->statusId;
 
             $candidatesWithStatuses = Statushistory::with(['candidate', 'status', 'candidate.arrival','candidate.company'])
-                ->whereHas('candidate')
-                ->whereHas('status', function ($query) use ($statusId) {
+                ->whereHas('candidate');
+
+            // Only filter by status if statusId is provided
+            if ($statusId) {
+                $candidatesWithStatuses->whereHas('status', function ($query) use ($statusId) {
                     $query->where('id', $statusId);
                 });
+            }
 
             if ($dateFrom) {
                 $candidatesWithStatuses->where('statusDate', '>=', $dateFrom);
