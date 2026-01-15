@@ -320,4 +320,141 @@ class FileController extends Controller
             'message' => 'Грешка при изтриване на файла',
         ], 500);
     }
+    /**
+     * Download multiple selected files as a ZIP archive.
+     */
+    public function downloadSelected(Request $request)
+    {
+        $fileIds = $request->input('file_ids');
+        
+        if (empty($fileIds) || !is_array($fileIds)) {
+            return response()->json(['message' => 'No files selected'], 400);
+        }
+
+        $files = File::whereIn('id', $fileIds)->get();
+
+        if ($files->isEmpty()) {
+            return response()->json(['message' => 'No files found'], 404);
+        }
+
+        // Permission check: filter files user is allowed to download
+        $user = Auth::user();
+        $allowedFiles = $files->filter(function ($file) use ($user) {
+            // Staff with DOCUMENTS_DELETE permission can download any document
+            if ($this->checkPermission(Permission::DOCUMENTS_DELETE)) {
+                return true;
+            }
+            
+            // Agents can only download documents for their own candidates
+            if ($user->hasRole(Role::AGENT)) {
+                $candidate = Candidate::find($file->candidate_id);
+                return $candidate && $candidate->agent_id === $user->id;
+            }
+            
+            return false;
+        });
+
+        if ($allowedFiles->isEmpty()) {
+            return response()->json(['message' => 'No files found or access denied'], 403);
+        }
+
+        // Check if any files actually exist on disk
+        $existingFiles = [];
+        foreach ($allowedFiles as $file) {
+            $relPath = $file->filePath ?? $file->file_path;
+            $filePath = public_path('storage/' . $relPath);
+            
+            if (file_exists($filePath)) {
+                $existingFiles[] = $file;
+            } else {
+                 $storagePath = storage_path('app/public/' . $relPath);
+                 if (file_exists($storagePath)) {
+                      $file->resolvedPath = $storagePath;
+                      $existingFiles[] = $file;
+                 }
+            }
+        }
+
+        if (empty($existingFiles)) {
+             return response()->json(['message' => 'Selected files do not exist on server'], 404);
+        }
+
+        $zip = new ZipArchive;
+        $zipFileName = 'selected_documents_' . time() . '.zip';
+        $zipFilePath = storage_path('app/' . $zipFileName);
+
+        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($existingFiles as $file) {
+                $path = $file->resolvedPath ?? public_path('storage/' . ($file->filePath ?? $file->file_path));
+                
+                $fileName = $file->fileName;
+                $extension = pathinfo($path, PATHINFO_EXTENSION);
+                
+                // Ensure extension is on the filename
+                 if ($extension && !str_ends_with(strtolower($fileName), '.' . strtolower($extension))) {
+                    $fileName .= '.' . $extension;
+                }
+                
+                $zip->addFile($path, $fileName);
+            }
+            $zip->close();
+
+            return response()->download($zipFilePath, $zipFileName)->deleteFileAfterSend(true);
+        } else {
+            return response()->json(['message' => 'Failed to create the zip file'], 500);
+        }
+    }
+
+    /**
+     * Bulk delete selected files.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $fileIds = $request->input('file_ids');
+
+        if (empty($fileIds) || !is_array($fileIds)) {
+            return response()->json(['message' => 'No files selected'], 400);
+        }
+
+        $user = Auth::user();
+        $deletedCount = 0;
+        $errors = [];
+
+        $files = File::whereIn('id', $fileIds)->get();
+
+        foreach ($files as $file) {
+            // Permission check (replicated from destroy method)
+            $canDelete = false;
+
+            if ($this->checkPermission(Permission::DOCUMENTS_DELETE)) {
+                $canDelete = true;
+            } elseif ($user->hasRole(Role::AGENT)) {
+                $candidate = Candidate::find($file->candidate_id);
+                if ($candidate && $candidate->agent_id === $user->id) {
+                    $canDelete = true;
+                }
+            }
+
+            if ($canDelete) {
+                if ($file->delete()) {
+                    $relPath = $file->filePath ?? $file->file_path;
+                    if ($relPath) {
+                        $this->fileService->deleteFile($relPath);
+                    }
+                    $deletedCount++;
+                } else {
+                    $errors[] = "Failed to delete file ID {$file->id}";
+                }
+            } else {
+                $errors[] = "Permission denied for file ID {$file->id}";
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Deleted {$deletedCount} files.",
+            'deleted_count' => $deletedCount,
+            'errors' => $errors
+        ]);
+    }
 }
