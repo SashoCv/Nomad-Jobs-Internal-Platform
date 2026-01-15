@@ -294,7 +294,7 @@ class CandidateController extends Controller
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
-        $query = Candidate::with(['categories', 'company', 'position','statusHistories','statusHistories.status', 'country'])->where('id', $id);
+        $query = Candidate::with(['categories', 'company', 'position','statusHistories','statusHistories.status', 'country', 'companyAddress', 'companyAddress.city'])->where('id', $id);
 
         if ($this->isStaff()) {
             $person = $query->first();
@@ -373,7 +373,7 @@ class CandidateController extends Controller
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
-        $query = Candidate::where('id', '=', $id);
+        $query = Candidate::with(['companyAddress', 'companyAddress.city'])->where('id', '=', $id);
 
         if ($this->isStaff()) {
             // Staff can see any candidate
@@ -421,26 +421,23 @@ class CandidateController extends Controller
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
-        $query = DB::table('candidates')
-            ->join('companies', 'companies.id', '=', 'candidates.company_id')
-            ->where('candidates.id', $id)
-            ->select('candidates.*', 'companies.nameOfCompany');
+        $query = Candidate::with(['company', 'companyAddress.city'])->where('id', $id);
 
         if ($this->isStaff()) {
-            // Staff can see any candidate
             $person = $query->first();
         } else if ($user->hasRole(Role::COMPANY_USER)) {
-            // Company users can only see candidates from their company
-            $person = $query->where('candidates.company_id', $user->company_id)->first();
+            $person = $query->where('company_id', $user->company_id)->first();
         } else if ($user->hasRole(Role::COMPANY_OWNER)) {
-            // Company owners can see candidates from companies they own
             $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
-            $person = $query->whereIn('candidates.company_id', $companyIds)->first();
+            $person = $query->whereIn('company_id', $companyIds)->first();
         } else {
-            // Default: no access
             $person = null;
         }
-        if (isset($person)) {
+
+        if ($person) {
+            // Ensure nameOfCompany is sent to match previous DB::table response
+            $person->nameOfCompany = $person->company->nameOfCompany ?? null;
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
