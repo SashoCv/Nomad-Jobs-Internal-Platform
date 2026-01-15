@@ -169,6 +169,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('filesForPerson/{id}', [FileController::class, 'show']);
     Route::put('files/{id}', [FileController::class, 'update']);
     Route::post('files/{id}/duplicate', [FileController::class, 'duplicate']);
+    Route::post('documents/share', [\App\Http\Controllers\DocumentShareController::class, 'share']);
+    Route::post('documents/download-selected', [FileController::class, 'downloadSelected']);
+    Route::post('documents/bulk-delete', [FileController::class, 'bulkDestroy']);
 
 
     Route::delete('fileDelete/{id}', [FileController::class, 'destroy']);
@@ -508,10 +511,3 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
 
-
-// Companies-> firmeni kandidati -> orderByDate (data na status) DONE
-// Fakturi -> orderByDate ()  Done
-// Promena na mails (da stasuva kaj rekruter ako nekoj od kompanija odobri) 
-// Cenata na transport da se razdeli na dve polinja (samolet avtobus) i marzhata e na vkuypnata suma Done
-// Да се поделат во усерите номад компании агенти Done
-// Пагинација секаде (10,20,50,100) Done

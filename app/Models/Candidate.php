@@ -26,6 +26,29 @@ class Candidate extends Model
         'passportName', 'personPicturePath', 'personPictureName', 'company_adresses_id'
     ];
 
+    protected $appends = ['workAddressCity'];
+
+    /**
+     * Get the city from the selected company work address.
+     * This is a virtual property used in documents and the frontend.
+     */
+    public function getWorkAddressCityAttribute(): ?string
+    {
+        // Check if the relationship is loaded and exists
+        if ($this->companyAddress) {
+            $city = $this->companyAddress->city;
+
+            // Handle both City model relationship and legacy string column
+            if ($city instanceof \App\Models\City) {
+                return $city->name;
+            }
+
+            return is_string($city) ? $city : null;
+        }
+
+        return null;
+    }
+
     protected $casts = [
         'date' => 'date:Y-m-d',
     ];
