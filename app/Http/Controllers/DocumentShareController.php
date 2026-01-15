@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ShareDocumentsRequest;
 use App\Mail\DocumentShareMail;
 use App\Models\File;
+use App\Models\CompanyFile;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class DocumentShareController extends Controller
 {
@@ -16,14 +18,22 @@ class DocumentShareController extends Controller
     {
         $data = $request->validated();
         
-        $files = File::whereIn('id', $data['file_ids'])->get();
+        $fileType = $data['file_type'] ?? 'candidate';
+        
+        // Fetch files from the appropriate table
+        if ($fileType === 'company') {
+            $files = CompanyFile::whereIn('id', $data['file_ids'])->get();
+        } else {
+            $files = File::whereIn('id', $data['file_ids'])->get();
+        }
+        
         $filePaths = [];
 
         foreach ($files as $file) {
             $relPath = $file->filePath ?? $file->file_path;
 
             if (!$relPath) {
-                \Illuminate\Support\Facades\Log::warning("No file path found for file ID {$file->id}");
+                Log::warning("No file path found for {$fileType} file ID {$file->id}");
                 continue;
             }
 
@@ -37,7 +47,7 @@ class DocumentShareController extends Controller
                  if (file_exists($storagePath) && is_file($storagePath)) {
                       $filePaths[] = $storagePath;
                  } else {
-                     \Illuminate\Support\Facades\Log::warning("File not found for ID {$file->id}: " . $relPath);
+                     Log::warning("File not found for {$fileType} ID {$file->id}: " . $relPath);
                  }
             }
         }
