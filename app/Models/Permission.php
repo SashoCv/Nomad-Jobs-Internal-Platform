@@ -136,4 +136,9 @@ class Permission extends Model
     const TRANSPORT_READ = 'transport:read';
     const TRANSPORT_CREATE = 'transport:create';
     const TRANSPORT_COVERAGE = 'transport:coverage';
+
+    const CITIES_READ = 'cities:read';
+    const CITIES_CREATE = 'cities:create';
+    const CITIES_UPDATE = 'cities:update';
+    const CITIES_DELETE = 'cities:delete';
 }

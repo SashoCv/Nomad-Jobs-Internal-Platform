@@ -83,6 +83,10 @@ class OfficePermissions
             Permission::AGENTS_CONTRACTS_CREATE,
             Permission::AGENTS_CONTRACTS_UPDATE,
             Permission::AGENTS_CONTRACTS_DELETE,
+            Permission::CITIES_READ,
+            Permission::CITIES_CREATE,
+            Permission::CITIES_UPDATE,
+            Permission::CITIES_DELETE,
         ];
     }
 }

@@ -23,7 +23,8 @@ class CompanyOwnerPermissions
             Permission::COMPANY_JOB_REQUESTS_READ,
             Permission::CHANGE_LOGS_READ,
             Permission::DOCUMENTS_READ,
-            Permission::DOCUMENTS_DOWNLOAD
+            Permission::DOCUMENTS_DOWNLOAD,
+            Permission::CITIES_READ,
         ];
     }
 }

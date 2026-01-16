@@ -14,4 +14,9 @@ class Country extends Model
         'code',
         'name_en',
     ];
+
+    public function cities()
+    {
+        return $this->hasMany(City::class);
+    }
 }

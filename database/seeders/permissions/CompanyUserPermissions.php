@@ -27,6 +27,7 @@ class CompanyUserPermissions
             Permission::DOCUMENTS_CATEGORIES_CREATE,
             Permission::DOCUMENTS_CATEGORIES_UPDATE,
             Permission::DOCUMENTS_CATEGORIES_DELETE,
+            Permission::CITIES_READ,
         ];
     }
 }
