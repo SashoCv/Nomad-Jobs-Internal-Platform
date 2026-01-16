@@ -154,7 +154,13 @@ class PermissionDefinitions
             // Transport
             ['name' => Permission::TRANSPORT_READ, 'slug' => 'transport:read', 'description' => 'Read transport'],
             ['name' => Permission::TRANSPORT_CREATE, 'slug' => 'transport:create', 'description' => 'Create transport'],
-            ['name' => Permission::TRANSPORT_COVERAGE, 'slug' => 'transport:coverage', 'description' => 'Manage transport coverage']
+            ['name' => Permission::TRANSPORT_COVERAGE, 'slug' => 'transport:coverage', 'description' => 'Manage transport coverage'],
+
+            // Cities
+            ['name' => Permission::CITIES_READ, 'slug' => 'cities:read', 'description' => 'Read cities'],
+            ['name' => Permission::CITIES_CREATE, 'slug' => 'cities:create', 'description' => 'Create cities'],
+            ['name' => Permission::CITIES_UPDATE, 'slug' => 'cities:update', 'description' => 'Edit cities'],
+            ['name' => Permission::CITIES_DELETE, 'slug' => 'cities:delete', 'description' => 'Delete cities'],
 
         ];
     }

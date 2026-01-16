@@ -25,6 +25,7 @@ class AgentPermissions
             Permission::AGENT_COMPANIES_READ,
             Permission::AGENTS_CONTRACTS_READ,
             Permission::COMPANIES_READ,
+            Permission::CITIES_READ,
         ];
     }
 }

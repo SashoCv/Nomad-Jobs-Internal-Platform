@@ -77,6 +77,10 @@ class RecruitersPermissions
             Permission::COMPANY_JOB_REQUESTS_READ,
             Permission::COMPANY_JOB_REQUESTS_APPROVE,
             Permission::COMPANY_JOB_REQUESTS_DELETE,
+            Permission::CITIES_READ,
+            Permission::CITIES_CREATE,
+            Permission::CITIES_UPDATE,
+            Permission::CITIES_DELETE,
         ];
     }
 }

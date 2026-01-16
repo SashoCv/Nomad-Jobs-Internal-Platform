@@ -12,12 +12,17 @@ class City extends Model
     protected $table = 'cities';
 
     protected $fillable = [
-        'name'
+        'name',
+        'country_id'
     ];
-
 
     public function company()
     {
         return $this->hasOne(Company::class);
+    }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
     }
 }
