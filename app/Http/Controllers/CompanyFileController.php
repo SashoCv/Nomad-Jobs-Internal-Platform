@@ -124,6 +124,7 @@ class CompanyFileController extends Controller
 
         $request->validate([
             'company_category_id' => 'nullable|integer|exists:company_categories,id',
+            'fileName' => 'nullable|string|max:255',
         ]);
 
         $companyFile = CompanyFile::findOrFail($id);
@@ -132,11 +133,15 @@ class CompanyFileController extends Controller
             $companyFile->company_category_id = $request->company_category_id;
         }
 
+        if ($request->has('fileName')) {
+            $companyFile->fileName = $request->fileName;
+        }
+
         if ($companyFile->save()) {
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'message' => 'File updated successfully',
+                'message' => 'Файлът беше преименуван успешно',
                 'data' => $companyFile
             ]);
         }

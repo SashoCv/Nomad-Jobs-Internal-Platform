@@ -133,6 +133,32 @@ class StatisticController extends Controller
                 return ['label' => $key, 'value' => $group->count()];
             })->values()->toArray();
 
+        // Group by month - format: "Януари 2024", "Февруари 2024", etc.
+        $monthNames = [
+            1 => 'Януари', 2 => 'Февруари', 3 => 'Март', 4 => 'Април',
+            5 => 'Май', 6 => 'Юни', 7 => 'Юли', 8 => 'Август',
+            9 => 'Септември', 10 => 'Октомври', 11 => 'Ноември', 12 => 'Декември'
+        ];
+
+        $monthCounts = $candidates->groupBy(function($c) {
+            return $c->created_at->format('Y-m');
+        })
+        ->map(function ($group, $key) use ($monthNames) {
+            $date = \Carbon\Carbon::createFromFormat('Y-m', $key);
+            $monthName = $monthNames[$date->month] . ' ' . $date->year;
+            return [
+                'label' => $monthName,
+                'value' => $group->count(),
+                'sortKey' => $key
+            ];
+        })
+        ->sortBy('sortKey')
+        ->map(function ($item) {
+            return ['label' => $item['label'], 'value' => $item['value']];
+        })
+        ->values()
+        ->toArray();
+
         // Return structured data
         return response()->json([
             'statusCounts' => $statusCounts,
@@ -140,6 +166,7 @@ class StatisticController extends Controller
             'countryCounts' => $countryCounts,
             'typeCounts' => $typeCounts,
             'agentCounts' => $agentCounts,
+            'monthCounts' => $monthCounts,
             'companiesWithActiveContracts' => $companiesWithActiveContracts,
         ], 200, ['Content-Type' => 'application/json']);
     }
