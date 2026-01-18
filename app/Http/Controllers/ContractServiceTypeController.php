@@ -15,7 +15,7 @@ class ContractServiceTypeController extends Controller
     public function index()
     {
         try {
-            $contractServiceTypes = ContractServiceType::all('id', 'name');
+            $contractServiceTypes = ContractServiceType::all('id', 'name', 'catalog_number');
             return response()->json($contractServiceTypes);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to retrieve contract service types: ' . $e->getMessage()], 500);
@@ -37,6 +37,7 @@ class ContractServiceTypeController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'catalog_number' => 'nullable|string|max:255|unique:contract_service_types,catalog_number',
             ]);
 
             $serviceType = ContractServiceType::create($validated);
@@ -57,6 +58,7 @@ class ContractServiceTypeController extends Controller
 
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'catalog_number' => 'nullable|string|max:255|unique:contract_service_types,catalog_number,' . $id,
             ]);
 
             $serviceType->update($validated);

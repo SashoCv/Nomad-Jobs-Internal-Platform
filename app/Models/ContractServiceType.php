@@ -13,5 +13,6 @@ class ContractServiceType extends Model
 
     protected $fillable = [
         'name',
+        'catalog_number',
     ];
 }

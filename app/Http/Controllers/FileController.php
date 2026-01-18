@@ -250,17 +250,21 @@ class FileController extends Controller
 
     public function update(Request $request, $id)
     {
-         $file = File::findOrFail($id);
+        $file = File::findOrFail($id);
 
         if ($request->has("category_id")) {
             $file->category_id = $request->category_id;
         }
 
-        if ($file->save()) {        
+        if ($request->has("fileName")) {
+            $file->fileName = $request->fileName;
+        }
+
+        if ($file->save()) {
             return response()->json([
                 "success" => true,
                 "status" => 200,
-                "message" => "File updated successfully",
+                "message" => "Файлът беше преименуван успешно",
                 "data" => $file
             ]);
         }

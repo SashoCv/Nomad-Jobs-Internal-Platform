@@ -17,6 +17,7 @@ class ContractPricing extends Model
         'company_service_contract_id',
         'contract_service_type_id',
         'price',
+        'price_bgn',
         'status_id',
         'description',
         'country_scope',
