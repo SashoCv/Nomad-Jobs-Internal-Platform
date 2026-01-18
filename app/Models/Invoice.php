@@ -18,6 +18,7 @@ class Invoice extends Model
         'statusName',
         'statusDate',
         'price',
+        'price_bgn',
         'invoiceStatus',
         'notes',
     ];
