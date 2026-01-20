@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $nameOfCompanyLatin
  * @property string $address
  * @property string $email
- * @property string $companyEmail
+
  * @property string $website
  * @property string $phoneNumber
  * @property string $EIK
@@ -50,7 +50,7 @@ class Company extends Model
         'nameOfCompanyLatin',
         'address',
         'email',
-        'companyEmail',
+
         'website',
         'phoneNumber',
         'EIK',
@@ -72,7 +72,7 @@ class Company extends Model
         'stampName',
         'employedByMonths',
         'companyPhone',
-        'companyEmail',
+
     ];
 
     /**
@@ -82,6 +82,13 @@ class Company extends Model
         'employedByMonths' => 'array',
         'commissionRate' => 'decimal:2'
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['default_email'];
 
     /**
      * Get the industry that owns the company.
@@ -174,5 +181,30 @@ class Company extends Model
     public function companyJobs(): HasMany
     {
         return $this->hasMany(CompanyJob::class, 'company_id');
+    }
+
+    /**
+     * Get the emails for the company.
+     */
+    public function companyEmails(): HasMany
+    {
+        return $this->hasMany(CompanyEmail::class);
+    }
+
+    /**
+     * Get the default email for the company.
+     * Use $company->default_email
+     */
+    public function getDefaultEmailAttribute()
+    {
+        // Check internal collection if loaded
+        $default = $this->companyEmails->firstWhere('is_default', true);
+        
+        // If not found (maybe no default set, though should be), fallback to first
+        if (!$default) {
+            $default = $this->companyEmails->first();
+        }
+        
+        return $default ? $default->email : null;
     }
 }

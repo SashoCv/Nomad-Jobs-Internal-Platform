@@ -120,14 +120,24 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         ];
 
         try {
-            if($company->companyEmail == null) {
-                Log::info("Company email is null for candidate ID: " . $this->candidateId);
+            $recipients = $company->companyEmails()
+                ->where('is_notification_recipient', true)
+                ->pluck('email')
+                ->toArray();
+
+            // Fallback to default email if no recipients selected
+            if (empty($recipients) && !empty($company->default_email)) {
+                $recipients = [$company->default_email];
+            }
+
+            if (empty($recipients)) {
+                Log::info("No recipients found for company ID: " . $company->id);
                 return;
             }
 
             if($this->sendEmail){
-                Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $company) {
-                    $message->to($company->companyEmail)
+                Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $recipients) {
+                    $message->to($recipients)
                         ->subject('Notification for ' . $data['candidateName']);
                 });
             }
