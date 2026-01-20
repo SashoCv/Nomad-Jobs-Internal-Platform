@@ -96,10 +96,16 @@ class CompanyJobController extends Controller
             $query->where('company_jobs.contract_type', $contractTypeName);
         }
 
-        // Filter by status (supports comma-separated values)
         if ($statusFilter) {
             $statuses = explode(',', $statusFilter);
             $query->whereIn('company_jobs.status', $statuses);
+        }
+
+        if ($search = $request->search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('company_jobs.job_title', 'like', "%{$search}%")
+                  ->orWhere('company_jobs.real_position', 'like', "%{$search}%");
+            });
         }
 
         switch ($roleId) {
