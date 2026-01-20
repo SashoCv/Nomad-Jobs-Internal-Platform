@@ -97,6 +97,8 @@ class ArrivalController extends Controller
                 ]
             );
 
+            $arrival->save();
+
             if ($request->hasFile('ticket_files')) {
                 foreach ($request->file('ticket_files') as $file) {
                     $directory = 'candidate/' . $candidateId . '/documents/' . $category->id;
@@ -114,8 +116,6 @@ class ArrivalController extends Controller
                     ]);
                 }
             }
-
-            $arrival->save();
 
             // Status ID for "Arrival Expected"
             $statusId = Status::ARRIVAL_EXPECTED;
