@@ -69,7 +69,7 @@ class changeStatusForAllCandidatesThatNeedToArriveCommand extends Command
                     $arrivalCandidate->save();
 
                     $category = new Category();
-                    $category->nameOfCategory = 'Documents For Arrival Candidates';
+                    $category->nameOfCategory = Category::ARRIVAL_DOCUMENTS;
                     $category->candidate_id = $arrival->candidate_id;
                     $category->role_id = 2;
                     $category->isGenerated = 0;

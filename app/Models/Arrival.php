@@ -24,6 +24,11 @@ class Arrival extends Model
         'phone_number',
     ];
 
+    public function files()
+    {
+        return $this->hasMany(File::class, 'arrival_id');
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'company_id');

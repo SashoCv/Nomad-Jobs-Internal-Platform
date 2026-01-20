@@ -9,6 +9,8 @@ class Category extends Model
 {
     use HasFactory;
 
+    const ARRIVAL_DOCUMENTS = 'Arrival Documents / Документи за пристигане';
+
     protected $fillable = [
         'candidate_id',
         'nameOfCategory',
