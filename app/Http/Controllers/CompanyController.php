@@ -251,7 +251,7 @@ class CompanyController extends Controller
                 'director_date_of_issue_idCard', 'companyPhone'
             ]);
 
-            $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
+            $updateData['commissionRate'] = ($request->commissionRate === 'null' || $request->commissionRate === '') ? null : $request->commissionRate;
 
             if ($request->employedByMonths && $request->employedByMonths !== 'null') {
                 $updateData['employedByMonths'] = json_decode($request->employedByMonths, true);
