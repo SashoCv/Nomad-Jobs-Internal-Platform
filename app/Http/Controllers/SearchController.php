@@ -779,7 +779,8 @@ class SearchController extends Controller
             'position',
             'user',
             'status',
-            'company.company_addresses'
+            'company.company_addresses',
+            'arrival.files'
         ])
             ->whereNotNull('status_id');
 
@@ -936,7 +937,10 @@ class SearchController extends Controller
                     $currentStatusId = $candidate->status_id;
 
                     $candidate->availableStatuses = $allStatuses->where('id', '!=', $currentStatusId)->pluck('id')->toArray();
-                    $candidate->addArrival = ($currentStatusId == 18);
+                    
+                    // Allow adding/editing if status is ARRIVAL_EXPECTED (18) OR if arrival already exists
+                    $hasArrival = $candidate->arrival !== null;
+                    $candidate->addArrival = ($currentStatusId == 18 || $hasArrival);
                 } else {
                     $candidate->availableStatuses = $allStatuses->pluck('id')->toArray();
                     $candidate->addArrival = false;

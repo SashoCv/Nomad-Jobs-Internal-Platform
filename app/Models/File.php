@@ -11,6 +11,7 @@ class File extends Model
 
     protected $fillable = [
         'candidate_id',
+        'arrival_id',
         'category_id',
         'filePath',
         'fileName',

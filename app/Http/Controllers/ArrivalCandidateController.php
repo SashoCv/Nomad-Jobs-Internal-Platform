@@ -26,7 +26,7 @@ use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
 {
-    const ARRIVAL_EXPECTED_STATUS_ID = 18; // "Има билет" status
+    // Use Status::ARRIVAL_EXPECTED instead of local constant <!-- id: 18 -->
 
     /**
      * Display a listing of the resource.
@@ -73,12 +73,12 @@ class ArrivalCandidateController extends Controller
             }
 
             // Load arrivals relationship for all candidates
-            $query->with('arrival');
+            $query->with('arrival.files');
 
             // Sorting - for arrival expected status, we'll sort using a subquery
-            if ($statusId == self::ARRIVAL_EXPECTED_STATUS_ID) {
+            if ($statusId == Status::ARRIVAL_EXPECTED) {
                 $query->leftJoin('arrivals', 'candidates.id', '=', 'arrivals.candidate_id')
-                    ->select('candidates.*')
+                    ->select('candidates.*', 'arrivals.arrival_date')
                     ->distinct()
                     ->orderByRaw('arrivals.arrival_date IS NULL')
                     ->orderBy('arrivals.arrival_date', 'desc');
@@ -108,7 +108,7 @@ class ArrivalCandidateController extends Controller
                 $arrival = $candidate->arrival;
 
                 if ($currentStatusId) {
-                    if ($currentStatusId === self::ARRIVAL_EXPECTED_STATUS_ID && (!$arrival || !$arrival->arrival_date)) {
+                    if ($currentStatusId === Status::ARRIVAL_EXPECTED && (!$arrival || !$arrival->arrival_date)) {
                         $addArrival = true;
                     }
 
@@ -119,11 +119,11 @@ class ArrivalCandidateController extends Controller
                         $nextStatusId = $nextStatus->id;
                         $availableStatuses = [$nextStatusId, 11, 12, 13, 14];
 
-                        if ($nextStatusId === self::ARRIVAL_EXPECTED_STATUS_ID) {
+                        if ($nextStatusId === Status::ARRIVAL_EXPECTED) {
                             $addArrival = true;
                         }
                     } else {
-                        if ($currentStatusId >= self::ARRIVAL_EXPECTED_STATUS_ID) {
+                        if ($currentStatusId >= Status::ARRIVAL_EXPECTED) {
                             $availableStatuses = [11, 12, 13, 14];
                             $higherStatuses = $allStatuses->where('order', '>', $currentStatusOrder)->pluck('id')->toArray();
                             $availableStatuses = array_unique(array_merge($availableStatuses, $higherStatuses));
@@ -137,7 +137,7 @@ class ArrivalCandidateController extends Controller
 
                 // Build arrival info if status is 18
                 $arrivalInfo = null;
-                if ($currentStatusId == self::ARRIVAL_EXPECTED_STATUS_ID && $arrival && $arrival->arrival_date) {
+                if ($currentStatusId == Status::ARRIVAL_EXPECTED && $arrival && $arrival->arrival_date) {
                     $arrivalInfo = [
                         'id' => $arrival->id,
                         'arrival_date' => $arrival->arrival_date,
@@ -146,6 +146,13 @@ class ArrivalCandidateController extends Controller
                         'arrival_location' => $arrival->arrival_location,
                         'where_to_stay' => $arrival->where_to_stay,
                         'phone_number' => $arrival->phone_number,
+                        'ticket_files' => $arrival->files->map(function ($file) {
+                            return [
+                                'id' => $file->id,
+                                'path' => $file->filePath,
+                                'name' => $file->fileName,
+                            ];
+                        })->values(),
                     ];
                 }
 
@@ -340,7 +347,13 @@ class ArrivalCandidateController extends Controller
                 ], 422);
             }
 
-            if (!in_array($status_id, [11, 12, 13, 14, 19])) {
+            if (!in_array($status_id, [
+                Status::TERMINATED_CONTRACT,
+                Status::REFUSED_MIGRATION,
+                Status::REFUSED_CANDIDATE,
+                Status::REFUSED_EMPLOYER,
+                Status::REFUSED_BY_MIGRATION_OFFICE
+            ])) {
                 $allStatuses = Status::where('order', '<=', Status::find($status_id)->order)
                     ->pluck('id')
                     ->toArray();
@@ -408,7 +421,7 @@ class ArrivalCandidateController extends Controller
     public function downloadDocumentsForArrivalCandidates($candidateId)
     {
 
-        $candidateCategoryId = Category::where('candidate_id', $candidateId)->where('nameOfCategory', 'Documents For Arrival Candidates')->first()->id;
+        $candidateCategoryId = Category::where('candidate_id', $candidateId)->where('nameOfCategory', Category::ARRIVAL_DOCUMENTS)->first()->id;
 
 
         $files = File::where('candidate_id', $candidateId)->where('category_id', $candidateCategoryId)->get(['fileName', 'filePath']);

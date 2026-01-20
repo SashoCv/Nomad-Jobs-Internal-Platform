@@ -42,7 +42,7 @@ class CompanyRequestTransformerService
             'company' => [
                 'id' => $company->id,
                 'name' => $company->nameOfCompany,
-                'email' => $company->email,
+                'email' => $company->default_email,
                 'address' => $company->address,
                 'city' => $company->companyCity,
                 'eik' => $company->EIK,

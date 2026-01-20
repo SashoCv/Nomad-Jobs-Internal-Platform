@@ -32,7 +32,7 @@ class CompanyRequestController extends Controller
         try {
             $user = Auth::user();
 
-            $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.user','companyJob.changeLogs.user'])
+            $companyRequests = CompanyRequest::with(['companyJob', 'companyJob.company', 'companyJob.company.companyEmails', 'companyJob.user','companyJob.changeLogs.user'])
                 ->whereHas('companyJob', function ($query) {
                     $query->whereNotNull('company_id')
                     ->whereHas('company');
@@ -181,7 +181,7 @@ class CompanyRequestController extends Controller
             $pricingData = [
                 'companyId' => $companyRequest->companyJob->company->id,
                 'companyName' => $companyRequest->companyJob->company->nameOfCompany,
-                'companyEmail' => $companyRequest->companyJob->company->email,
+                'default_email' => $companyRequest->companyJob->company->default_email,
                 'companyCity' => $companyRequest->companyJob->company->companyCity,
                 'jobTitle' => $companyRequest->companyJob->job_title,
                 'salary' => $companyRequest->companyJob->salary,

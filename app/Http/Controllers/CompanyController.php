@@ -7,11 +7,13 @@ use App\Models\Candidate;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\CompanyAdress;
+use App\Models\CompanyEmail;
 use App\Models\File;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOwner;
+use App\Services\CompanyService;
 use App\Traits\HasRolePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,6 +36,9 @@ class CompanyController extends Controller
     const ROLE_COMPANY_USER = 3;
     const ROLE_OWNER = 5;
 
+    public function __construct(
+        private CompanyService $companyService
+    ) {}
 
     /**
      * Display a listing of companies based on user role.
@@ -63,7 +68,7 @@ class CompanyController extends Controller
      */
     private function getCompaniesForAdmin()
     {
-        return Company::with(['company_addresses','company_addresses.city'])->get();
+        return Company::with(['company_addresses','company_addresses.city', 'companyEmails'])->get();
     }
 
     /**
@@ -80,7 +85,7 @@ class CompanyController extends Controller
     private function getCompaniesForOwner($user)
     {
         $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
-        return Company::with(['company_addresses','company_addresses.city'])->whereIn('id', $companyIds)->get();
+        return Company::with(['company_addresses','company_addresses.city', 'companyEmails'])->whereIn('id', $companyIds)->get();
     }
 
     /**
@@ -109,58 +114,6 @@ class CompanyController extends Controller
     }
 
     /**
-     * Handle file upload for company
-     *
-     * @param Request $request
-     * @param Company $company
-     * @param string $fileField
-     * @param string $pathField
-     * @param string $nameField
-     */
-    private function handleFileUpload(Request $request, Company $company, string $fileField, string $pathField, string $nameField): void
-    {
-        if ($request->hasFile($fileField)) {
-            $path = Storage::disk('public')->put('companyImages', $request->file($fileField));
-            $company->$pathField = $path;
-            $company->$nameField = $request->file($fileField)->getClientOriginalName();
-        }
-    }
-
-    /**
-     * Handle company addresses creation/update
-     *
-     * @param Company $company
-     * @param array $addresses
-     * @param bool $isUpdate
-     */
-    private function handleCompanyAddresses(Company $company, array $addresses, bool $isUpdate = false): void
-    {
-        if ($isUpdate) {
-            CompanyAdress::where('company_id', $company->id)->delete();
-        }
-
-        foreach ($addresses as $address) {
-            // Handle city field - if it's an array/object, extract name or use city_id
-            $cityValue = null;
-            if (isset($address['city'])) {
-                if (is_array($address['city']) && isset($address['city']['name'])) {
-                    $cityValue = $address['city']['name'];
-                } elseif (is_string($address['city'])) {
-                    $cityValue = $address['city'];
-                }
-            }
-
-            CompanyAdress::create([
-                'company_id' => $company->id,
-                'address' => $address['address'],
-                'city' => $cityValue, // need delete this field in future
-                'state' => $address['state'],
-                'zip_code' => $address['zip_code'],
-                'city_id' => $address['city_id']
-            ]);
-        }
-    }
-    /**
      * Store a newly created company in storage.
      *
      * @param Request $request
@@ -185,14 +138,12 @@ class CompanyController extends Controller
                 ]);
             }
 
-            DB::beginTransaction();
-
             $companyData = $request->only([
-                'nameOfCompany', 'nameOfCompanyLatin', 'address', 'email', 'companyEmail', 'website',
+                'nameOfCompany', 'nameOfCompanyLatin', 'address', 'website',
                 'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
                 'companyCity', 'industry_id', 'foreignersLC12', 'description',
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
-                'director_date_of_issue_idCard','companyEmail', 'companyPhone'
+                'director_date_of_issue_idCard', 'companyPhone'
             ]);
 
             $companyData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
@@ -203,28 +154,14 @@ class CompanyController extends Controller
                 $companyData['employedByMonths'] = null;
             }
 
-
-            $company = Company::create($companyData);
-
-            $this->handleFileUpload($request, $company, 'companyLogo', 'logoPath', 'logoName');
-            $this->handleFileUpload($request, $company, 'companyStamp', 'stampPath', 'stampName');
-
-            $company->save();
-
-            $companyAddresses = json_decode($request->company_addresses, true);
-            if ($companyAddresses) {
-                $this->handleCompanyAddresses($company, $companyAddresses);
-            }
-
-            DB::commit();
+            $company = $this->companyService->createCompany($companyData, $request);
 
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => $company->load('company_addresses')
+                'data' => $company->load(['company_addresses', 'companyEmails'])
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Error creating company: ' . $e->getMessage());
 
             return response()->json([
@@ -246,14 +183,14 @@ class CompanyController extends Controller
         $user = Auth::user();
 
         $company = match(true) {
-            $this->isStaff()  || $this->checkPermission(Permission::AGENT_COMPANIES_READ) =>
-                Company::with(['industry', 'company_addresses.city'])->where('id', $id)->first(),
+            $this->isStaff() || $this->checkPermission(Permission::AGENT_COMPANIES_READ) =>
+                Company::with(['industry', 'company_addresses.city', 'companyEmails'])->where('id', $id)->first(),
             $user->role_id === self::ROLE_COMPANY_USER =>
-                Company::with(['industry', 'company_addresses.city'])
+                Company::with(['industry', 'company_addresses.city', 'companyEmails'])
                     ->where('id', $user->company_id)
                     ->first(),
             $user->role_id === self::ROLE_OWNER =>
-                Company::with(['industry', 'company_addresses.city'])
+                Company::with(['industry', 'company_addresses.city', 'companyEmails'])
                     ->whereIn('id', UserOwner::where('user_id', $user->id)->pluck('company_id'))
                     ->where('id', $id)
                     ->first(),
@@ -304,71 +241,33 @@ class CompanyController extends Controller
         }
 
         try {
-            Log::info('Company update started for ID: ' . $id);
-            Log::info('Request data: ', $request->all());
-            
             $company = Company::findOrFail($id);
-            Log::info('Company found: ' . $company->nameOfCompany);
-
-            DB::beginTransaction();
 
             $updateData = $request->only([
-                'nameOfCompany', 'nameOfCompanyLatin', 'address', 'email', 'companyEmail', 'website',
+                'nameOfCompany', 'nameOfCompanyLatin', 'address', 'website',
                 'phoneNumber', 'EIK', 'contactPerson', 'EGN', 'dateBornDirector',
                 'companyCity', 'industry_id', 'foreignersLC12', 'description',
                 'nameOfContactPerson', 'phoneOfContactPerson', 'director_idCard',
-                'director_date_of_issue_idCard', 'companyEmail', 'companyPhone'
+                'director_date_of_issue_idCard', 'companyPhone'
             ]);
-            
-            Log::info('Update data after only(): ', $updateData);
 
-            $updateData['commissionRate'] = $request->commissionRate === 'null' ? null : $request->commissionRate;
+            $updateData['commissionRate'] = ($request->commissionRate === 'null' || $request->commissionRate === '') ? null : $request->commissionRate;
 
-             if ($request->employedByMonths && $request->employedByMonths !== 'null') {
+            if ($request->employedByMonths && $request->employedByMonths !== 'null') {
                 $updateData['employedByMonths'] = json_decode($request->employedByMonths, true);
             } else {
                 $updateData['employedByMonths'] = null;
             }
-            
-            Log::info('Commission rate processed: ' . ($updateData['commissionRate'] ?? 'null'));
 
-            Log::info('Before fill - company data: ', $company->toArray());
-            $company->fill($updateData);
-            Log::info('After fill - company data: ', $company->toArray());
-
-            Log::info('Before file uploads');
-            $this->handleFileUpload($request, $company, 'companyLogo', 'logoPath', 'logoName');
-            $this->handleFileUpload($request, $company, 'companyStamp', 'stampPath', 'stampName');
-            Log::info('After file uploads');
-
-            Log::info('Before save - company data: ', $company->toArray());
-            $company->save();
-            Log::info('Company saved successfully');
-
-            if ($request->company_addresses) {
-                Log::info('Processing company addresses: ' . $request->company_addresses);
-                $companyAddresses = json_decode($request->company_addresses, true);
-                if ($companyAddresses) {
-                    Log::info('Company addresses decoded: ', $companyAddresses);
-                    $this->handleCompanyAddresses($company, $companyAddresses, true);
-                    Log::info('Company addresses processed');
-                }
-            }
-
-            DB::commit();
-            Log::info('Company update completed successfully');
+            $company = $this->companyService->updateCompany($company, $updateData, $request);
 
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'data' => $company->load('company_addresses')
+                'data' => $company->load(['company_addresses', 'companyEmails'])
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Error updating company: ' . $e->getMessage());
-            Log::error('Exception file: ' . $e->getFile());
-            Log::error('Exception line: ' . $e->getLine());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return response()->json([
                 'success' => false,
@@ -396,7 +295,7 @@ class CompanyController extends Controller
 
         try {
             $company = Company::findOrFail($id);
-            $company->delete();
+            $this->companyService->deleteCompany($company);
 
             return response()->json([
                 'success' => true,

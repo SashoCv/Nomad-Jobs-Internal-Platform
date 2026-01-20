@@ -6,6 +6,7 @@ use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Company;
+use App\Models\Status;
 use App\Models\StatusArrival;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -40,55 +41,55 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
 
         // here i need base on the status to send different mail
         switch ($this->statusId) {
-            case 1: // migration
+            case Status::MIGRATION: // migration
                 $blade = 'StatusEmails.status_migration';
                 break;
-            case 2: // Получил разрешение.
+            case Status::RECEIVED_PERMISSION: // Получил разрешение.
                 $blade = 'StatusEmails.status_received_permission';
                 break;
-            case 15: // Изпратени документи за виза
+            case Status::SENT_DOCUMENTS_FOR_VISA: // Изпратени документи за виза
                 $blade = 'StatusEmails.status_sent_documents_for_visa';
                 break;
-            case 3: // Подаден в посолството.
+            case Status::SUBMITTED_AT_EMBASSY: // Подаден в посолството.
                 $blade = 'StatusEmails.status_submitted_at_embassy';
                 break;
-            case 4: // Получил виза.
+            case Status::RECEIVED_VISA: // Получил виза.
                 $blade = 'StatusEmails.status_received_visa';
                 break;
-            case 18: // Очаква се.
+            case Status::ARRIVAL_EXPECTED: // Очаква се.
                 $blade = 'StatusEmails.status_waiting_to_arrive';
                 break;
-            case 5: // Пристигнал.
+            case Status::ARRIVED: // Пристигнал.
                 $blade = 'StatusEmails.status_arrived';
                 break;
-            case 6: // Процедура за ЕРПР.
+            case Status::PROCEDURE_FOR_ERPR: // Процедура за ЕРПР.
                 $blade = 'StatusEmails.status_procedure_for_ERPR';
                 break;
-            case 17: // Писмо за ЕРПР.
+            case Status::LETTER_FOR_ERPR: // Писмо за ЕРПР.
                 $blade = 'StatusEmails.status_letter_for_ERPR';
                 break;
-            case 7: // Снимка за ЕРПР.
+            case Status::PHOTO_FOR_ERPR: // Снимка за ЕРПР.
                 $blade = 'StatusEmails.status_photo_for_ERPR';
                 break;
-            case 8: // Получаване на ЕРПР.
+            case Status::TAKING_ERPR: // Получаване на ЕРПР.
                 $blade = 'StatusEmails.status_taking_ERPR';
                 break;
-            case 9: // Назначен на работа.
+            case Status::HIRED: // Назначен на работа.
                 $blade = 'StatusEmails.status_hired_for_job';
                 break;
-            case 12: // Отказ от Миграция.
+            case Status::REFUSED_MIGRATION: // Отказ от Миграция.
                 $blade = 'StatusEmails.status_refused_migration';
                 break;
-            case 13: // Отказ от кандидата.
+            case Status::REFUSED_CANDIDATE: // Отказ от кандидата.
                 $blade = 'StatusEmails.status_refused_candidate';
                 break;
-            case 14: // Отказ от работодателя.
+            case Status::REFUSED_EMPLOYER: // Отказ от работодателя.
                 $blade = 'StatusEmails.status_refused_employer';
                 break;
-            case 11: // Прекратен договор.
+            case Status::TERMINATED_CONTRACT: // Прекратен договор.
                 $blade = 'StatusEmails.status_terminated_contract';
                 break;
-            case 10: // Приключил договор.
+            case Status::FINISHED_CONTRACT: // Приключил договор.
                 $blade = 'StatusEmails.status_finished_contract';
                 break;
             default:
@@ -120,20 +121,30 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         ];
 
         try {
-            if($company->companyEmail == null) {
-                Log::info("Company email is null for candidate ID: " . $this->candidateId);
+            $recipients = $company->companyEmails()
+                ->where('is_notification_recipient', true)
+                ->pluck('email')
+                ->toArray();
+
+            // Fallback to default email if no recipients selected
+            if (empty($recipients) && !empty($company->default_email)) {
+                $recipients = [$company->default_email];
+            }
+
+            if (empty($recipients)) {
+                Log::info("No recipients found for company ID: " . $company->id);
                 return;
             }
 
             if($this->sendEmail){
-                Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $company) {
-                    $message->to($company->companyEmail)
+                Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $recipients) {
+                    $message->to($recipients)
                         ->subject('Notification for ' . $data['candidateName']);
                 });
             }
 
 
-            if($this->statusId == 18){
+            if($this->statusId == Status::ARRIVAL_EXPECTED && $this->sendEmail){
                 $dataArrival = [
                     'candidateName' => $data['candidateName'],
                     'companyName' => $data['companyName'],
@@ -153,8 +164,8 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
 
             }
 
-            // For all other statuses that are not 18 or 5, send email to nomadOffice
-            if($this->statusId != 18) {
+            // For all other statuses that are not ARRIVAL_EXPECTED, send email to nomadOffice
+            if($this->statusId != Status::ARRIVAL_EXPECTED) {
                 $statusName = Candidate::with('latestStatusHistory.status')->find($this->candidateId)->latestStatusHistory->status->nameOfStatus ?? 'Unknown Status';
                 $dataForAllStatuses = [
                     'candidateName' => $data['candidateName'],
