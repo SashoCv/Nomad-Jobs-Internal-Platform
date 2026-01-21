@@ -44,6 +44,7 @@ use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\ReferenceDataController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\CalendarEventController;
+use App\Http\Controllers\CandidateVisaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -381,6 +382,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Candidates whose contracts are expiring
     Route::get('getCandidatesWhoseContractsAreExpiring', [CandidateController::class, 'getCandidatesWhoseContractsAreExpiring']);
+
+
+    // Candidate Visas
+    Route::post('candidate-visas', [CandidateVisaController::class, 'store']);
+    Route::get('candidate-visas/{candidateId}', [CandidateVisaController::class, 'show']);
+    Route::get('candidate-visas/{candidateId}/history', [CandidateVisaController::class, 'history']);
+    Route::put('candidate-visas/{id}', [CandidateVisaController::class, 'update']);
+    Route::delete('candidate-visas/{id}', [CandidateVisaController::class, 'destroy']);
+    Route::get('candidate-visas/{id}/download', [CandidateVisaController::class, 'download']);
+    Route::get('candidate-visas/{id}/view', [CandidateVisaController::class, 'view']);
 
 
     // Medical Insurance

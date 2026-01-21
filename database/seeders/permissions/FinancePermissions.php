@@ -62,6 +62,7 @@ class FinancePermissions
             Permission::INSURANCE_CREATE,
             Permission::INSURANCE_UPDATE,
             Permission::INSURANCE_DELETE,
+            Permission::VISA_READ,
             Permission::NOTIFICATIONS_READ,
             Permission::NOTIFICATIONS_UPDATE,
             Permission::CALENDAR_READ,

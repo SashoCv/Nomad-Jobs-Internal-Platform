@@ -102,6 +102,11 @@ class Permission extends Model
     const INSURANCE_UPDATE = 'insurance:update';
     const INSURANCE_DELETE = 'insurance:delete';
 
+    const VISA_READ = 'visa:read';
+    const VISA_CREATE = 'visa:create';
+    const VISA_UPDATE = 'visa:update';
+    const VISA_DELETE = 'visa:delete';
+
     const NOTIFICATIONS_READ = 'notifications:read';
     const NOTIFICATIONS_UPDATE = 'notifications:update';
 

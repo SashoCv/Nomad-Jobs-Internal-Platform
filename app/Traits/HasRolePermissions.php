@@ -352,6 +352,27 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::FINANCE_DELETE);
     }
 
+    // Visas
+    protected function canViewVisas()
+    {
+        return $this->checkPermission(Permission::VISA_READ);
+    }
+
+    protected function canCreateVisas()
+    {
+        return $this->checkPermission(Permission::VISA_CREATE);
+    }
+
+    protected function canUpdateVisas()
+    {
+        return $this->checkPermission(Permission::VISA_UPDATE);
+    }
+
+    protected function canDeleteVisas()
+    {
+        return $this->checkPermission(Permission::VISA_DELETE);
+    }
+
     /**
      * Check if user is staff (admin/manager roles) - replacement for role_id == 1 || role_id == 2
      */
