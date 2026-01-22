@@ -173,6 +173,16 @@ class Candidate extends Model
         return $this->hasOne(Arrival::class);
     }
 
+    public function visas()
+    {
+        return $this->hasMany(CandidateVisa::class);
+    }
+
+    public function currentVisa()
+    {
+        return $this->hasOne(CandidateVisa::class)->latestOfMany('end_date');
+    }
+
     // Scopes
     public function scopeByCompany(Builder $query, int $companyId): Builder
     {

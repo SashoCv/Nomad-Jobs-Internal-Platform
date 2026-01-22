@@ -72,8 +72,8 @@ class ArrivalCandidateController extends Controller
                 });
             }
 
-            // Load arrivals relationship for all candidates
-            $query->with('arrival.files');
+            // Load arrivals and visa relationships for all candidates
+            $query->with(['arrival.files', 'currentVisa']);
 
             // Sorting - for arrival expected status, we'll sort using a subquery
             if ($statusId == Status::ARRIVAL_EXPECTED) {
@@ -167,6 +167,7 @@ class ArrivalCandidateController extends Controller
                     'availableStatuses' => $availableStatuses,
                     'addArrival' => $addArrival,
                     'has_files' => $candidatesWithFiles->has($candidate->id),
+                    'hasVisa' => $candidate->currentVisa !== null,
                     'statusHistories' => [
                         'status_id' => $candidate->status_id,
                         'statusName' => $currentStatus ? $currentStatus->nameOfStatus : null,

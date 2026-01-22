@@ -121,6 +121,9 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         ];
 
         try {
+            // Get Nomad office recipients from env
+            $nomadRecipients = array_filter(array_map('trim', explode(',', env('NOMAD_NOTIFICATION_EMAILS', ''))));
+
             $recipients = $company->companyEmails()
                 ->where('is_notification_recipient', true)
                 ->pluck('email')
@@ -157,10 +160,14 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                     'phone_number' => $data['candidatePhone'],
                 ];
 
-                Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data) {
-                    $message->to(['gabriela@nomadpartners.bg','snezhana@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
-                        ->subject('Notification for Arrival ' . $data['candidateName']);
-                });
+                if (!empty($nomadRecipients)) {
+                    Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data, $nomadRecipients) {
+                        $message->to($nomadRecipients)
+                            ->subject('Notification for Arrival ' . $data['candidateName']);
+                    });
+                } else {
+                    Log::warning("No NOMAD_NOTIFICATION_EMAILS configured. Skipping arrival notification to Nomad office.");
+                }
 
             }
 
@@ -176,10 +183,14 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                     'description' => 'Status changed to ' . $statusName . ' on ' . $this->statusDate,
                 ];
 
-                Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data) {
-                    $message->to(['gabriela@nomadpartners.bg','snezhana@nomadpartners.bg', 'katya@nomadpartners.bg', 'sashko@nomadpartners.bg', 'georgi@nomadpartners.bg', 'milen@nomadpartners.bg'])
-                        ->subject('Notification for Arrival ' . $data['candidateName']);
-                });
+                if (!empty($nomadRecipients)) {
+                    Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data, $nomadRecipients) {
+                        $message->to($nomadRecipients)
+                            ->subject('Notification for Arrival ' . $data['candidateName']);
+                    });
+                } else {
+                    Log::warning("No NOMAD_NOTIFICATION_EMAILS configured. Skipping status notification to Nomad office.");
+                }
             }
 
             // Log success

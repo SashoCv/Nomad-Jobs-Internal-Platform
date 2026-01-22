@@ -49,6 +49,12 @@ class PermissionDefinitions
             ['name' => Permission::INSURANCE_UPDATE, 'slug' => 'insurance:update', 'description' => 'Edit insurance'],
             ['name' => Permission::INSURANCE_DELETE, 'slug' => 'insurance:delete', 'description' => 'Delete insurance'],
 
+            // Visa
+            ['name' => Permission::VISA_READ, 'slug' => 'visa:read', 'description' => 'Read visa information'],
+            ['name' => Permission::VISA_CREATE, 'slug' => 'visa:create', 'description' => 'Create visa records'],
+            ['name' => Permission::VISA_UPDATE, 'slug' => 'visa:update', 'description' => 'Edit visa records'],
+            ['name' => Permission::VISA_DELETE, 'slug' => 'visa:delete', 'description' => 'Delete visa records'],
+
             // Documents
             ['name' => Permission::DOCUMENTS_READ, 'slug' => 'documents:read', 'description' => 'Read documents'],
             ['name' => Permission::DOCUMENTS_CREATE, 'slug' => 'documents:create', 'description' => 'Create documents'],
