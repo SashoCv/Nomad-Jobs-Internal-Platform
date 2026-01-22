@@ -15,8 +15,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $nameOfCompany
  * @property string $nameOfCompanyLatin
  * @property string $address
- * @property string $email
-
  * @property string $website
  * @property string $phoneNumber
  * @property string $EIK
@@ -49,8 +47,6 @@ class Company extends Model
         'nameOfCompany',
         'nameOfCompanyLatin',
         'address',
-        'email',
-
         'website',
         'phoneNumber',
         'EIK',
