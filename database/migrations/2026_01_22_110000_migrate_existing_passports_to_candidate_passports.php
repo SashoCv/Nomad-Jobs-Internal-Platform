@@ -71,7 +71,7 @@ return new class extends Migration
                 'passport_number' => $candidate->passport,
                 'issue_date' => $candidate->passportIssuedOn,
                 'expiry_date' => $candidate->passportValidUntil,
-                'issuing_country' => $candidate->passportIssuedBy,
+                'issued_by' => $candidate->passportIssuedBy,
                 'file_path' => $newFilePath,
                 'file_name' => $newFileName,
                 'notes' => null,

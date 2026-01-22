@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('passport_number')->nullable();
             $table->date('issue_date')->nullable();
             $table->date('expiry_date')->nullable();
-            $table->string('issuing_country')->nullable();
+            $table->string('issued_by')->nullable();
             $table->string('file_path')->nullable();
             $table->string('file_name')->nullable();
             $table->text('notes')->nullable();

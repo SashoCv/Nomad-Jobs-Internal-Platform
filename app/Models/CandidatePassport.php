@@ -15,7 +15,7 @@ class CandidatePassport extends Model
         'passport_number',
         'issue_date',
         'expiry_date',
-        'issuing_country',
+        'issued_by',
         'file_path',
         'file_name',
         'notes',

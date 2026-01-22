@@ -322,7 +322,7 @@ class CandidateService
                 'passport_number' => $data['passport'] ?? null,
                 'issue_date' => $data['passportIssuedOn'] ?? null,
                 'expiry_date' => $data['passportValidUntil'] ?? null,
-                'issuing_country' => $data['passportIssuedBy'] ?? null,
+                'issued_by' => $data['passportIssuedBy'] ?? null,
             ]);
 
             // Also update legacy fields for backward compatibility (can be removed later)

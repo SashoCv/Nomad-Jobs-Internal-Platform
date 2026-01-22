@@ -33,7 +33,7 @@ class CandidatePassportController extends Controller
             'passport_number' => 'nullable|string|max:255',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'nullable|date',
-            'issuing_country' => 'nullable|string|max:255',
+            'issued_by' => 'nullable|string|max:255',
             'passport_file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
             'notes' => 'nullable|string',
         ];
@@ -55,7 +55,7 @@ class CandidatePassportController extends Controller
                 'passport_number' => $request->passport_number,
                 'issue_date' => $request->issue_date,
                 'expiry_date' => $request->expiry_date,
-                'issuing_country' => $request->issuing_country,
+                'issued_by' => $request->issued_by,
                 'notes' => $request->notes,
             ];
 
@@ -136,7 +136,7 @@ class CandidatePassportController extends Controller
             'passport_number' => 'nullable|string|max:255',
             'issue_date' => 'nullable|date',
             'expiry_date' => 'nullable|date',
-            'issuing_country' => 'nullable|string|max:255',
+            'issued_by' => 'nullable|string|max:255',
             'passport_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
             'notes' => 'nullable|string',
         ];
@@ -157,7 +157,7 @@ class CandidatePassportController extends Controller
             $passport->passport_number = $request->passport_number;
             $passport->issue_date = $request->issue_date;
             $passport->expiry_date = $request->expiry_date;
-            $passport->issuing_country = $request->issuing_country;
+            $passport->issued_by = $request->issued_by;
             $passport->notes = $request->notes;
 
             // Track old file path for cleanup after successful operations
