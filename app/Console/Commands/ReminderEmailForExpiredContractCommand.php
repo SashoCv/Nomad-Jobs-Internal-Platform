@@ -44,13 +44,20 @@ class ReminderEmailForExpiredContractCommand extends Command
         Log::info("Found {$count} candidates with expired contracts as of {$oneMonthFromNow}.");
 
         if ($count > 0) {
-            Mail::send('expiredContract', ['data' => $allCandidatesWithThisDate], function ($message) {
-                $message->to(['sasocvetanoski@gmail.com']);
+            $recipients = array_filter(array_map('trim', explode(',', env('NOMAD_NOTIFICATION_EMAILS', ''))));
+
+            if (empty($recipients)) {
+                Log::warning("No recipients configured in NOMAD_NOTIFICATION_EMAILS. Skipping email.");
+                return Command::SUCCESS;
+            }
+
+            Mail::send('expiredContract', ['data' => $allCandidatesWithThisDate], function ($message) use ($recipients) {
+                $message->to($recipients);
                 $message->subject('Reminder for expired contract');
             });
 
             // Log the success of the email sending process
-            Log::info("Reminder email sent successfully to sasocvetanoski@gmail.com for {$count} expired contracts.");
+            Log::info("Reminder email sent successfully to " . implode(', ', $recipients) . " for {$count} expired contracts.");
         } else {
             // Log no candidates found
             Log::info("No expired contracts found to send reminders.");

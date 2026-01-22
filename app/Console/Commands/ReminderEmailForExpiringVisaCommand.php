@@ -74,15 +74,23 @@ class ReminderEmailForExpiringVisaCommand extends Command
      */
     private function sendEmail($visas, string $daysRemaining): void
     {
+        $recipients = array_filter(array_map('trim', explode(',', env('NOMAD_NOTIFICATION_EMAILS', ''))));
+
+        if (empty($recipients)) {
+            Log::warning("No recipients configured in NOMAD_NOTIFICATION_EMAILS. Skipping email.");
+            return;
+        }
+
         $data = [
             'visas' => $visas,
             'daysRemaining' => $daysRemaining,
         ];
 
-        // TODO: Replace with configurable recipients when notification_settings is implemented
-        Mail::send('expiringVisa', ['data' => $data], function ($message) use ($daysRemaining) {
-            $message->to(['sasocvetanoski@gmail.com']);
+        Mail::send('expiringVisa', ['data' => $data], function ($message) use ($daysRemaining, $recipients) {
+            $message->to($recipients);
             $message->subject("Напомняне: Визи изтичащи след {$daysRemaining}");
         });
+
+        Log::info("Visa expiry reminder sent to: " . implode(', ', $recipients));
     }
 }
