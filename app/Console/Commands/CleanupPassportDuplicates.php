@@ -26,13 +26,14 @@ class CleanupPassportDuplicates extends Command
         $this->info($isDryRun ? '🔍 DRY RUN MODE - No files will be moved' : '🚀 LIVE MODE - Files will be moved to backup');
         $this->newLine();
 
-        // Get all passport records that have file_path set
+        // Only process passport records that were migrated to new path format
+        // These are the ones with duplicates (original in files table + copy in candidate/{id}/passport/)
+        // Records with personPassports/ format have no duplicates - they're uploaded directly
         $query = DB::table('candidate_passports')
-            ->whereNotNull('file_path')
-            ->where('file_path', '!=', '');
+            ->where('file_path', 'LIKE', 'candidate/%');
 
         $total = $query->count();
-        $this->info("Found {$total} passport records with files");
+        $this->info("Found {$total} passport records with new path format (migrated files)");
 
         if ($batchSize > 0) {
             $query->limit($batchSize);
