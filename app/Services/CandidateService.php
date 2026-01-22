@@ -6,6 +6,7 @@ use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\AgentCandidate;
 use App\Models\CalendarEvent;
 use App\Models\Candidate;
+use App\Models\CandidatePassport;
 use App\Models\Category;
 use App\Models\CompanyJob;
 use App\Models\File;
@@ -302,15 +303,41 @@ class CandidateService
 
     protected function handleFileUploads(Candidate $candidate, array $data): void
     {
-        if (isset($data['personPassport']) && $data['personPassport'] instanceof UploadedFile) {
-            $passportPath = $data['personPassport']->store('personPassports', 'public');
+        // Handle passport - create record in candidate_passports table
+        if (isset($data['personPassport'])
+            && $data['personPassport'] instanceof UploadedFile
+            && $data['personPassport']->isValid()
+            && $data['personPassport']->getSize() > 0
+        ) {
+            // Store file in organized directory structure
+            $directory = 'candidate/' . $candidate->id . '/passport';
+            $fileName = \Illuminate\Support\Str::uuid() . '_' . $data['personPassport']->getClientOriginalName();
+            $passportPath = $data['personPassport']->storeAs($directory, $fileName, 'public');
+
+            // Create passport record using existing form field names
+            CandidatePassport::create([
+                'candidate_id' => $candidate->id,
+                'file_path' => $passportPath,
+                'file_name' => $data['personPassport']->getClientOriginalName(),
+                'passport_number' => $data['passport'] ?? null,
+                'issue_date' => $data['passportIssuedOn'] ?? null,
+                'expiry_date' => $data['passportValidUntil'] ?? null,
+                'issued_by' => $data['passportIssuedBy'] ?? null,
+            ]);
+
+            // Also update legacy fields for backward compatibility (can be removed later)
             $candidate->update([
                 'passportPath' => $passportPath,
                 'passportName' => $data['personPassport']->getClientOriginalName()
             ]);
         }
 
-        if (isset($data['personPicture']) && $data['personPicture'] instanceof UploadedFile) {
+        // Handle profile picture
+        if (isset($data['personPicture'])
+            && $data['personPicture'] instanceof UploadedFile
+            && $data['personPicture']->isValid()
+            && $data['personPicture']->getSize() > 0
+        ) {
             $picturePath = $data['personPicture']->store('personImages', 'public');
             $candidate->update([
                 'personPicturePath' => $picturePath,

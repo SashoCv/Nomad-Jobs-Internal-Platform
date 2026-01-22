@@ -55,6 +55,12 @@ class PermissionDefinitions
             ['name' => Permission::VISA_UPDATE, 'slug' => 'visa:update', 'description' => 'Edit visa records'],
             ['name' => Permission::VISA_DELETE, 'slug' => 'visa:delete', 'description' => 'Delete visa records'],
 
+            // Passport
+            ['name' => Permission::PASSPORT_READ, 'slug' => 'passport:read', 'description' => 'Read passport information'],
+            ['name' => Permission::PASSPORT_CREATE, 'slug' => 'passport:create', 'description' => 'Create passport records'],
+            ['name' => Permission::PASSPORT_UPDATE, 'slug' => 'passport:update', 'description' => 'Edit passport records'],
+            ['name' => Permission::PASSPORT_DELETE, 'slug' => 'passport:delete', 'description' => 'Delete passport records'],
+
             // Documents
             ['name' => Permission::DOCUMENTS_READ, 'slug' => 'documents:read', 'description' => 'Read documents'],
             ['name' => Permission::DOCUMENTS_CREATE, 'slug' => 'documents:create', 'description' => 'Create documents'],

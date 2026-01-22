@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use ZipArchive;
 use App\Services\File\FileOperationService;
 
@@ -114,11 +115,41 @@ class FileController extends Controller
      */
     public function store(Request $request)
     {
+        // Debug logging
+        Log::info('[DEBUG FileController store] hasFile: ' . ($request->hasFile('file') ? 'true' : 'false'));
+        Log::info('[DEBUG FileController store] fileName: ' . $request->fileName);
+        Log::info('[DEBUG FileController store] all files keys: ' . json_encode(array_keys($request->allFiles())));
+
+        // Try to get file directly
+        $uploadedFile = $request->file('file');
+        Log::info('[DEBUG FileController store] file() result: ' . ($uploadedFile ? 'exists' : 'null'));
+
+        if ($uploadedFile) {
+            Log::info('[DEBUG FileController store] file isValid: ' . ($uploadedFile->isValid() ? 'true' : 'false'));
+            Log::info('[DEBUG FileController store] file getError: ' . $uploadedFile->getError());
+            Log::info('[DEBUG FileController store] file getSize: ' . $uploadedFile->getSize());
+            Log::info('[DEBUG FileController store] file getPath: ' . $uploadedFile->getPath());
+            Log::info('[DEBUG FileController store] file getRealPath: ' . $uploadedFile->getRealPath());
+        }
+
         $file = new File();
 
-        if ($request->hasFile('file')) {
-            $name = $this->fileService->uploadFile($request->file('file'), 'files');
+        // Use file() directly instead of hasFile() check
+        if ($uploadedFile && $uploadedFile->isValid()) {
+            Log::info('[DEBUG FileController store] file size: ' . $uploadedFile->getSize());
+            Log::info('[DEBUG FileController store] file mime: ' . $uploadedFile->getMimeType());
+
+            $name = $this->fileService->uploadFile($uploadedFile, 'files');
             $file->filePath = $name;
+        } else {
+            // No file uploaded - return error instead of proceeding
+            $errorMsg = $uploadedFile ? 'File invalid, error: ' . $uploadedFile->getError() : 'No file received';
+            Log::error('[DEBUG FileController store] ' . $errorMsg);
+            return response()->json([
+                'success' => false,
+                'status' => 400,
+                'message' => 'No file was uploaded. ' . $errorMsg,
+            ], 400);
         }
 
         $file->fileName = $request->fileName;
@@ -164,6 +195,42 @@ class FileController extends Controller
         }
 
         return response()->download($pathToFile, $fileName);
+    }
+
+    /**
+     * View/stream a file inline (for preview).
+     *
+     * @param  \App\Models\File  $file
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse|\Illuminate\Http\JsonResponse
+     */
+    public function viewFile(File $file)
+    {
+        if (!$file->filePath || !Storage::disk('public')->exists($file->filePath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Document not found',
+            ], 404);
+        }
+
+        $mimeType = Storage::disk('public')->mimeType($file->filePath);
+        $extension = pathinfo($file->filePath, PATHINFO_EXTENSION);
+        $fileName = $file->fileName;
+
+        // Add extension if not already present
+        if ($extension && !str_ends_with(strtolower($fileName), '.' . strtolower($extension))) {
+            $fileName .= '.' . $extension;
+        }
+
+        return response()->stream(
+            function () use ($file) {
+                echo Storage::disk('public')->get($file->filePath);
+            },
+            200,
+            [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            ]
+        );
     }
 
     /**

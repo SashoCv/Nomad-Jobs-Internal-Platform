@@ -269,6 +269,17 @@ class CandidateController extends Controller
     {
         try {
             $data = $request->all();
+
+            // Debug: Log file fields separately
+            Log::info('[DEBUG store] personPassport from input: ' . json_encode($request->input('personPassport')));
+            Log::info('[DEBUG store] hasFile personPassport: ' . ($request->hasFile('personPassport') ? 'true' : 'false'));
+            Log::info('[DEBUG store] personPicture from input: ' . json_encode($request->input('personPicture')));
+            Log::info('[DEBUG store] hasFile personPicture: ' . ($request->hasFile('personPicture') ? 'true' : 'false'));
+
+            if ($request->hasFile('personPassport')) {
+                Log::info('[DEBUG store] personPassport file name: ' . $request->file('personPassport')->getClientOriginalName());
+            }
+
             Log::info('Creating candidate with data in STORE', ['data' => $data]);
             $candidate = $this->candidateService->createCandidate($data);
 
@@ -276,7 +287,9 @@ class CandidateController extends Controller
             return $this->successResponse(new CandidateResource($candidate), 'Candidate created successfully');
         } catch (\Exception $e) {
             Log::error('Error creating candidate: ' . $e->getMessage());
-            return $this->errorResponse('Failed to create candidate');
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('Request data: ' . json_encode($request->except(['personPassport', 'personPicture'])));
+            return $this->errorResponse('Failed to create candidate: ' . $e->getMessage());
         }
     }
 
