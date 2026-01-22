@@ -25,6 +25,7 @@ class CompanyOwnerPermissions
             Permission::DOCUMENTS_READ,
             Permission::DOCUMENTS_DOWNLOAD,
             Permission::CITIES_READ,
+            Permission::PASSPORT_READ,
         ];
     }
 }

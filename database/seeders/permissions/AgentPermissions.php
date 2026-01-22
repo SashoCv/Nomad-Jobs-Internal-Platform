@@ -26,6 +26,10 @@ class AgentPermissions
             Permission::AGENTS_CONTRACTS_READ,
             Permission::COMPANIES_READ,
             Permission::CITIES_READ,
+            Permission::PASSPORT_READ,
+            Permission::PASSPORT_CREATE,
+            Permission::PASSPORT_UPDATE,
+            Permission::PASSPORT_DELETE,
         ];
     }
 }
