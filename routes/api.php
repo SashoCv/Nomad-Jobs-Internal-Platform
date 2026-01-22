@@ -45,6 +45,7 @@ use App\Http\Controllers\ReferenceDataController;
 use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\CandidateVisaController;
+use App\Http\Controllers\CandidatePassportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -167,6 +168,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Files
     Route::post('file', [FileController::class, 'store']);
     Route::get('downloadFile/{file}', [FileController::class, 'downloadFile']);
+    Route::get('viewFile/{file}', [FileController::class, 'viewFile']);
     Route::get('filesForPerson/{id}', [FileController::class, 'show']);
     Route::put('files/{id}', [FileController::class, 'update']);
     Route::post('files/{id}/duplicate', [FileController::class, 'duplicate']);
@@ -392,6 +394,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('candidate-visas/{id}', [CandidateVisaController::class, 'destroy']);
     Route::get('candidate-visas/{id}/download', [CandidateVisaController::class, 'download']);
     Route::get('candidate-visas/{id}/view', [CandidateVisaController::class, 'view']);
+
+    // Candidate Passports
+    Route::post('candidate-passports', [CandidatePassportController::class, 'store']);
+    Route::get('candidate-passports/{candidateId}', [CandidatePassportController::class, 'show']);
+    Route::put('candidate-passports/{id}', [CandidatePassportController::class, 'update']);
+    Route::get('candidate-passports/{id}/download', [CandidatePassportController::class, 'download']);
+    Route::get('candidate-passports/{id}/view', [CandidatePassportController::class, 'view']);
 
 
     // Medical Insurance

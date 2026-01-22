@@ -438,6 +438,9 @@ class AgentCandidateController extends Controller
 
             // Handle passport file update
             if ($request->hasFile('personPassport')) {
+                // Store old passport name BEFORE updating (fix for orphan file bug)
+                $oldPassportName = $person->passportName;
+
                 // Delete old passport file if exists
                 if ($person->passportPath) {
                     Storage::disk('public')->delete($person->passportPath);
@@ -447,19 +450,35 @@ class AgentCandidateController extends Controller
                 $person->passportPath = $name;
                 $person->passportName = $request->file('personPassport')->getClientOriginalName();
 
-                // Update file in files table
-                $categoryForFiles = Category::where('candidate_id', $id)
-                    ->where('nameOfCategory', 'files from agent')
-                    ->first();
+                // Update file in files table - search by _passport suffix pattern
+                if ($oldPassportName) {
+                    // Build the _passport filename pattern from the old name
+                    // e.g., "image.png" -> "image_passport.png"
+                    $pathInfo = pathinfo($oldPassportName);
+                    $oldPassportFileNameWithSuffix = $pathInfo['filename'] . '_passport';
+                    if (isset($pathInfo['extension'])) {
+                        $oldPassportFileNameWithSuffix .= '.' . $pathInfo['extension'];
+                    }
 
-                if ($categoryForFiles) {
+                    // Build the new _passport filename
+                    $newPathInfo = pathinfo($person->passportName);
+                    $newPassportFileNameWithSuffix = $newPathInfo['filename'] . '_passport';
+                    if (isset($newPathInfo['extension'])) {
+                        $newPassportFileNameWithSuffix .= '.' . $newPathInfo['extension'];
+                    }
+
+                    // Search for passport file by filename pattern (any category with _passport suffix)
                     $passportFile = File::where('candidate_id', $id)
-                        ->where('category_id', $categoryForFiles->id)
-                        ->where('fileName', $person->passportName)
+                        ->where('fileName', 'like', '%_passport%')
                         ->first();
 
                     if ($passportFile) {
-                        $passportFile->fileName = $person->passportName;
+                        // Delete old file from storage
+                        if ($passportFile->filePath) {
+                            Storage::disk('public')->delete($passportFile->filePath);
+                        }
+                        // Update with new file info
+                        $passportFile->fileName = $newPassportFileNameWithSuffix;
                         $passportFile->filePath = $person->passportPath;
                         $passportFile->save();
                     }
