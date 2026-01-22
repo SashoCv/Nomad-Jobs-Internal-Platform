@@ -9,27 +9,22 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Migrates existing passport data from candidates table to the new candidate_passports table.
+     * Migrates existing passport data from candidates table and files table
+     * to the new candidate_passports table.
      */
     public function up(): void
     {
-        // Get all candidates that have any passport data
+        // Get all candidates that have passport dates
         $candidates = DB::table('candidates')
-            ->whereNotNull('passport')
-            ->orWhereNotNull('passportValidUntil')
-            ->orWhereNotNull('passportIssuedBy')
-            ->orWhereNotNull('passportIssuedOn')
-            ->orWhereNotNull('passportPath')
-            ->orWhereNotNull('passportName')
+            ->where(function ($query) {
+                $query->whereNotNull('passportValidUntil')
+                    ->orWhereNotNull('passportIssuedOn');
+            })
             ->get();
 
         foreach ($candidates as $candidate) {
             // Skip if no meaningful passport data
-            if (
-                empty($candidate->passport) &&
-                empty($candidate->passportValidUntil) &&
-                empty($candidate->passportPath)
-            ) {
+            if (empty($candidate->passportValidUntil) && empty($candidate->passportIssuedOn)) {
                 continue;
             }
 
@@ -43,35 +38,51 @@ return new class extends Migration
                 continue;
             }
 
-            // Handle file migration if there's a passport file
-            $newFilePath = null;
-            $newFileName = $candidate->passportName;
+            // Find passport file from files table
+            // Look for files with 'passport' or 'паспорт' in the filename
+            $passportFile = DB::table('files')
+                ->where('candidate_id', $candidate->id)
+                ->where(function ($query) {
+                    $query->where('fileName', 'LIKE', '%passport%')
+                        ->orWhere('fileName', 'LIKE', '%паспорт%')
+                        ->orWhere('fileName', 'LIKE', '%Passport%')
+                        ->orWhere('fileName', 'LIKE', '%Паспорт%');
+                })
+                ->orderBy('id', 'desc') // Get the most recent one
+                ->first();
 
-            if (!empty($candidate->passportPath)) {
-                $oldPath = $candidate->passportPath;
+            $newFilePath = null;
+            $newFileName = null;
+
+            if ($passportFile && !empty($passportFile->filePath)) {
+                $oldPath = $passportFile->filePath;
 
                 // Check if the file exists
                 if (Storage::disk('public')->exists($oldPath)) {
                     // Create new path: candidate/{id}/passport/filename
                     $extension = pathinfo($oldPath, PATHINFO_EXTENSION);
-                    $newFileName = $candidate->passportName ?: ('passport.' . $extension);
+                    $originalName = $passportFile->fileName;
+
+                    // Clean up the filename (remove _passport suffix if present from generated docs)
+                    $newFileName = preg_replace('/_passport$/', '', $originalName);
+                    if (!$newFileName) {
+                        $newFileName = 'passport.' . $extension;
+                    }
+
                     $newFilePath = "candidate/{$candidate->id}/passport/{$newFileName}";
 
-                    // Copy file to new location
+                    // Copy file to new location (don't delete original as it's still in files table)
                     Storage::disk('public')->copy($oldPath, $newFilePath);
-                } else {
-                    // File doesn't exist, just keep the reference
-                    $newFilePath = $oldPath;
                 }
             }
 
             // Create the new passport record
             DB::table('candidate_passports')->insert([
                 'candidate_id' => $candidate->id,
-                'passport_number' => $candidate->passport,
+                'passport_number' => $candidate->passport ?? null,
                 'issue_date' => $candidate->passportIssuedOn,
                 'expiry_date' => $candidate->passportValidUntil,
-                'issued_by' => $candidate->passportIssuedBy,
+                'issued_by' => $candidate->passportIssuedBy ?? null,
                 'file_path' => $newFilePath,
                 'file_name' => $newFileName,
                 'notes' => null,
