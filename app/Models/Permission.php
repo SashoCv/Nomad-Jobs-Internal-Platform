@@ -107,6 +107,11 @@ class Permission extends Model
     const VISA_UPDATE = 'visa:update';
     const VISA_DELETE = 'visa:delete';
 
+    const PASSPORT_READ = 'passport:read';
+    const PASSPORT_CREATE = 'passport:create';
+    const PASSPORT_UPDATE = 'passport:update';
+    const PASSPORT_DELETE = 'passport:delete';
+
     const NOTIFICATIONS_READ = 'notifications:read';
     const NOTIFICATIONS_UPDATE = 'notifications:update';
 

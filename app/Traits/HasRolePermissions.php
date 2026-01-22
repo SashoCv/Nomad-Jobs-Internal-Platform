@@ -373,6 +373,27 @@ trait HasRolePermissions
         return $this->checkPermission(Permission::VISA_DELETE);
     }
 
+    // Passport permissions
+    protected function canViewPassports()
+    {
+        return $this->checkPermission(Permission::PASSPORT_READ);
+    }
+
+    protected function canCreatePassports()
+    {
+        return $this->checkPermission(Permission::PASSPORT_CREATE);
+    }
+
+    protected function canUpdatePassports()
+    {
+        return $this->checkPermission(Permission::PASSPORT_UPDATE);
+    }
+
+    protected function canDeletePassports()
+    {
+        return $this->checkPermission(Permission::PASSPORT_DELETE);
+    }
+
     /**
      * Check if user is staff (admin/manager roles) - replacement for role_id == 1 || role_id == 2
      */
