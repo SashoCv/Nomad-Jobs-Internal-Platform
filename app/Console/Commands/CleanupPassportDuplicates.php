@@ -109,9 +109,13 @@ class CleanupPassportDuplicates extends Command
 
         // Check if original file exists
         if (!Storage::disk('public')->exists($oldPath)) {
-            // File already moved but record still exists - just delete the record
-            if (!$isDryRun) {
-                DB::table('files')->where('id', $originalFile->id)->delete();
+            // File already moved but record not updated - update it now
+            $backupPath = "backup/passports/{$oldPath}";
+            if (!$isDryRun && !str_starts_with($originalFile->fileName, '[MIGRATED]')) {
+                DB::table('files')->where('id', $originalFile->id)->update([
+                    'filePath' => $backupPath,
+                    'fileName' => '[MIGRATED] ' . $originalFile->fileName,
+                ]);
             }
             $this->skipped++;
             return;
@@ -141,8 +145,12 @@ class CleanupPassportDuplicates extends Command
                 // Move file to backup
                 Storage::disk('public')->move($oldPath, $backupPath);
 
-                // Delete the record from files table (file is now in candidate_passports)
-                DB::table('files')->where('id', $originalFile->id)->delete();
+                // Update the record to point to backup location (don't delete - for easy recovery)
+                // Add [MIGRATED] prefix so it's clear this was processed
+                DB::table('files')->where('id', $originalFile->id)->update([
+                    'filePath' => $backupPath,
+                    'fileName' => '[MIGRATED] ' . $originalFile->fileName,
+                ]);
 
                 $this->moved++;
             } catch (\Exception $e) {
