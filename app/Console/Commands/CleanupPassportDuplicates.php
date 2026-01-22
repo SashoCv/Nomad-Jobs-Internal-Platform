@@ -30,14 +30,15 @@ class CleanupPassportDuplicates extends Command
         // These are the ones with duplicates (original in files table + copy in candidate/{id}/passport/)
         // Records with personPassports/ format have no duplicates - they're uploaded directly
         $query = DB::table('candidate_passports')
-            ->where('file_path', 'LIKE', 'candidate/%');
+            ->where('file_path', 'LIKE', 'candidate/%')
+            ->orderBy('candidate_id', 'asc'); // Process oldest candidates first
 
         $total = $query->count();
         $this->info("Found {$total} passport records with new path format (migrated files)");
 
         if ($batchSize > 0) {
             $query->limit($batchSize);
-            $this->info("Processing batch of {$batchSize} files");
+            $this->info("Processing batch of {$batchSize} files (oldest candidates first)");
         }
 
         $passports = $query->get();
