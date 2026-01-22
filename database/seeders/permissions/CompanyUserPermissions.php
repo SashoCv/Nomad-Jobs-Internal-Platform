@@ -28,6 +28,7 @@ class CompanyUserPermissions
             Permission::DOCUMENTS_CATEGORIES_UPDATE,
             Permission::DOCUMENTS_CATEGORIES_DELETE,
             Permission::CITIES_READ,
+            Permission::PASSPORT_READ,
         ];
     }
 }
