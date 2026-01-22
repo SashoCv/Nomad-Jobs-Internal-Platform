@@ -109,13 +109,9 @@ class CleanupPassportDuplicates extends Command
 
         // Check if original file exists
         if (!Storage::disk('public')->exists($oldPath)) {
-            // File already moved but record not updated - update it now
-            $backupPath = "backup/passports/{$oldPath}";
-            if (!$isDryRun && !str_starts_with($originalFile->fileName, '[MIGRATED]')) {
-                DB::table('files')->where('id', $originalFile->id)->update([
-                    'filePath' => $backupPath,
-                    'fileName' => '[MIGRATED] ' . $originalFile->fileName,
-                ]);
+            // File already moved - backup record data and delete
+            if (!$isDryRun) {
+                $this->backupAndDeleteRecord($originalFile);
             }
             $this->skipped++;
             return;
@@ -145,12 +141,8 @@ class CleanupPassportDuplicates extends Command
                 // Move file to backup
                 Storage::disk('public')->move($oldPath, $backupPath);
 
-                // Update the record to point to backup location (don't delete - for easy recovery)
-                // Add [MIGRATED] prefix so it's clear this was processed
-                DB::table('files')->where('id', $originalFile->id)->update([
-                    'filePath' => $backupPath,
-                    'fileName' => '[MIGRATED] ' . $originalFile->fileName,
-                ]);
+                // Backup record data to JSON file, then delete record
+                $this->backupAndDeleteRecord($originalFile, $backupPath);
 
                 $this->moved++;
             } catch (\Exception $e) {
@@ -160,5 +152,39 @@ class CleanupPassportDuplicates extends Command
         } else {
             $this->moved++;
         }
+    }
+
+    /**
+     * Backup file record data to JSON and delete the record
+     */
+    private function backupAndDeleteRecord(object $fileRecord, ?string $backupPath = null): void
+    {
+        // Prepare backup data
+        $backupData = [
+            'id' => $fileRecord->id,
+            'candidate_id' => $fileRecord->candidate_id,
+            'category_id' => $fileRecord->category_id,
+            'fileName' => $fileRecord->fileName,
+            'filePath' => $fileRecord->filePath,
+            'backupPath' => $backupPath ?? "backup/passports/{$fileRecord->filePath}",
+            'deleted_at' => now()->toIso8601String(),
+        ];
+
+        // Read existing backup file or create new array
+        $backupFile = 'backup/passports/deleted_records.json';
+        $existingData = [];
+
+        if (Storage::disk('public')->exists($backupFile)) {
+            $existingData = json_decode(Storage::disk('public')->get($backupFile), true) ?? [];
+        }
+
+        // Add new record
+        $existingData[] = $backupData;
+
+        // Save backup file
+        Storage::disk('public')->put($backupFile, json_encode($existingData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        // Delete the record from files table
+        DB::table('files')->where('id', $fileRecord->id)->delete();
     }
 }
