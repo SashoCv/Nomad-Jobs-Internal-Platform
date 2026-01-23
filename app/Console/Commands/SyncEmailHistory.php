@@ -48,18 +48,31 @@ class SyncEmailHistory extends Command
         $mbox = @imap_open($this->imapHost, $this->username, $this->password);
 
         if (!$mbox) {
-            // Try alternative folder name if "Sent" fails
-            $this->warn('Could not open "Sent". Trying "INBOX.Sent"...');
-            $this->imapHost = '{imap.titan.email:993/imap/ssl}INBOX.Sent';
-            $mbox = @imap_open($this->imapHost, $this->username, $this->password);
-        }
-
-        if (!$mbox) {
-            $this->error('Could not connect to IMAP: ' . imap_last_error());
+            $this->error('Could not connect to initial folder. Trying to list folders...');
+            $mbox = @imap_open('{imap.titan.email:993/imap/ssl}', $this->username, $this->password);
+            
+            if ($mbox) {
+                $folders = imap_list($mbox, '{imap.titan.email:993/imap/ssl}', '*');
+                $this->info('Available folders:');
+                foreach ($folders as $folder) {
+                    $this->line("- " . $folder);
+                }
+            } else {
+                 $this->error('Could not connect to IMAP: ' . imap_last_error());
+            }
             return Command::FAILURE;
         }
 
-        $this->info('Connected successfully. Fetching emails...');
+        $this->info('Connected successfully to ' . $this->imapHost);
+        
+        // List folders anyway for debug
+        $folders = imap_list($mbox, '{imap.titan.email:993/imap/ssl}', '*');
+        if ($folders) {
+             $this->info('Available folders:');
+             foreach ($folders as $folder) {
+                 $this->line("- " . $folder);
+             }
+        }
 
         $days = (int) $this->option('days');
         $limit = (int) $this->option('limit');
