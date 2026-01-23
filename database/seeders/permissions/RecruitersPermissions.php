@@ -34,9 +34,6 @@ class RecruitersPermissions
             Permission::JOB_POSTINGS_DELETE,
             Permission::JOB_POSTINGS_REVISIONS_MANAGE,
             Permission::JOB_POSITIONS_READ,
-            Permission::JOB_POSITIONS_CREATE,
-            Permission::JOB_POSITIONS_UPDATE,
-            Permission::JOB_POSITIONS_DELETE,
             Permission::INSURANCE_READ,
             Permission::INSURANCE_CREATE,
             Permission::INSURANCE_UPDATE,
@@ -83,9 +80,8 @@ class RecruitersPermissions
             Permission::COMPANY_JOB_REQUESTS_APPROVE,
             Permission::COMPANY_JOB_REQUESTS_DELETE,
             Permission::CITIES_READ,
-            Permission::CITIES_CREATE,
-            Permission::CITIES_UPDATE,
-            Permission::CITIES_DELETE,
+            Permission::EMAIL_LOGS_READ,
+            Permission::REFERENCE_DATA_READ,
         ];
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Mail\WelcomeSetPasswordMail;
+use App\Models\EmailLog;
+use App\Services\EmailTrackingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -39,14 +41,24 @@ class SendWelcomeSetPasswordEmailJob implements ShouldQueue
      *
      * @return void
      */
-    public function handle(): void
+    public function handle(EmailTrackingService $trackingService): void
     {
         Log::info("SendWelcomeSetPasswordEmailJob: Sending welcome email to: " . $this->email);
 
+        $logId = $trackingService->logEmail(
+            recipientEmail: $this->email,
+            subject: 'Welcome to Nomad Cloud - Set Your Password',
+            emailType: EmailLog::TYPE_WELCOME_SET_PASSWORD,
+            recipientName: $this->userName,
+            metadata: ['user_name' => $this->userName]
+        );
+
         try {
             Mail::to($this->email)->send(new WelcomeSetPasswordMail($this->setPasswordUrl, $this->userName));
+            $trackingService->markSent($logId);
             Log::info("SendWelcomeSetPasswordEmailJob: Welcome email sent successfully to " . $this->email);
         } catch (\Exception $e) {
+            $trackingService->markFailed($logId, $e->getMessage());
             Log::error("SendWelcomeSetPasswordEmailJob: Error sending welcome email: " . $e->getMessage());
             throw $e;
         }

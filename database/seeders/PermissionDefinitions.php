@@ -174,6 +174,15 @@ class PermissionDefinitions
             ['name' => Permission::CITIES_UPDATE, 'slug' => 'cities:update', 'description' => 'Edit cities'],
             ['name' => Permission::CITIES_DELETE, 'slug' => 'cities:delete', 'description' => 'Delete cities'],
 
+            // Email Logs
+            ['name' => Permission::EMAIL_LOGS_READ, 'slug' => 'email_logs:read', 'description' => 'Read email logs'],
+
+            // Reference Data
+            ['name' => Permission::REFERENCE_DATA_READ, 'slug' => 'reference_data:read', 'description' => 'Read reference data'],
+            ['name' => Permission::REFERENCE_DATA_CREATE, 'slug' => 'reference_data:create', 'description' => 'Create reference data'],
+            ['name' => Permission::REFERENCE_DATA_UPDATE, 'slug' => 'reference_data:update', 'description' => 'Edit reference data'],
+            ['name' => Permission::REFERENCE_DATA_DELETE, 'slug' => 'reference_data:delete', 'description' => 'Delete reference data'],
+
         ];
     }
 }

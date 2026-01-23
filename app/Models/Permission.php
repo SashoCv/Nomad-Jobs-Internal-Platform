@@ -151,4 +151,11 @@ class Permission extends Model
     const CITIES_CREATE = 'cities:create';
     const CITIES_UPDATE = 'cities:update';
     const CITIES_DELETE = 'cities:delete';
+
+    const EMAIL_LOGS_READ = 'email_logs:read';
+
+    const REFERENCE_DATA_READ = 'reference_data:read';
+    const REFERENCE_DATA_CREATE = 'reference_data:create';
+    const REFERENCE_DATA_UPDATE = 'reference_data:update';
+    const REFERENCE_DATA_DELETE = 'reference_data:delete';
 }
