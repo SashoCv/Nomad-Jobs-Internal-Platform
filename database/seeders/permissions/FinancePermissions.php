@@ -19,9 +19,6 @@ class FinancePermissions
             Permission::COMPANIES_CONTRACTS_UPDATE,
             Permission::COMPANIES_CONTRACTS_DELETE,
             Permission::INDUSTRIES_READ,
-            Permission::INDUSTRIES_CREATE,
-            Permission::INDUSTRIES_UPDATE,
-            Permission::INDUSTRIES_DELETE,
             Permission::COMPANY_JOB_REQUESTS_READ,
             Permission::COMPANY_JOB_REQUESTS_APPROVE,
             Permission::COMPANY_JOB_REQUESTS_DELETE,
@@ -50,9 +47,6 @@ class FinancePermissions
             Permission::JOB_POSTINGS_DELETE,
             Permission::JOB_POSTINGS_REVISIONS_MANAGE,
             Permission::JOB_POSITIONS_READ,
-            Permission::JOB_POSITIONS_CREATE,
-            Permission::JOB_POSITIONS_UPDATE,
-            Permission::JOB_POSITIONS_DELETE,
             Permission::FINANCE_READ,
             Permission::FINANCE_CREATE,
             Permission::FINANCE_UPDATE,
@@ -100,9 +94,8 @@ class FinancePermissions
             Permission::AGENTS_CONTRACTS_UPDATE,
             Permission::AGENTS_CONTRACTS_DELETE,
             Permission::CITIES_READ,
-            Permission::CITIES_CREATE,
-            Permission::CITIES_UPDATE,
-            Permission::CITIES_DELETE,
+            Permission::EMAIL_LOGS_READ,
+            Permission::REFERENCE_DATA_READ,
         ];
     }
 }

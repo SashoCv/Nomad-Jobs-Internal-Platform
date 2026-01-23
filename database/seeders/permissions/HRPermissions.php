@@ -92,6 +92,11 @@ class HRPermissions
             Permission::CITIES_CREATE,
             Permission::CITIES_UPDATE,
             Permission::CITIES_DELETE,
+            Permission::EMAIL_LOGS_READ,
+            Permission::REFERENCE_DATA_READ,
+            Permission::REFERENCE_DATA_CREATE,
+            Permission::REFERENCE_DATA_UPDATE,
+            Permission::REFERENCE_DATA_DELETE,
         ];
     }
 }

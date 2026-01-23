@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Mail\PasswordResetMail;
+use App\Models\EmailLog;
+use App\Services\EmailTrackingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -39,14 +41,24 @@ class SendPasswordResetEmailJob implements ShouldQueue
      *
      * @return void
      */
-    public function handle(): void
+    public function handle(EmailTrackingService $trackingService): void
     {
         Log::info("SendPasswordResetEmailJob: Sending password reset email to: " . $this->email);
 
+        $logId = $trackingService->logEmail(
+            recipientEmail: $this->email,
+            subject: 'Password Reset - Nomad Cloud',
+            emailType: EmailLog::TYPE_PASSWORD_RESET,
+            recipientName: $this->userName,
+            metadata: ['user_name' => $this->userName]
+        );
+
         try {
             Mail::to($this->email)->send(new PasswordResetMail($this->resetUrl, $this->userName));
+            $trackingService->markSent($logId);
             Log::info("SendPasswordResetEmailJob: Password reset email sent successfully to " . $this->email);
         } catch (\Exception $e) {
+            $trackingService->markFailed($logId, $e->getMessage());
             Log::error("SendPasswordResetEmailJob: Error sending password reset email: " . $e->getMessage());
             throw $e;
         }

@@ -46,6 +46,7 @@ use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\CandidateVisaController;
 use App\Http\Controllers\CandidatePassportController;
+use App\Http\Controllers\EmailLogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -526,6 +527,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Applicants (Candidates without status)
     Route::get('applicants', [CandidateController::class, 'getApplicants']);
+
+    // Email Logs
+    Route::get('email-logs', [EmailLogController::class, 'index']);
+    Route::get('email-logs/statistics', [EmailLogController::class, 'statistics']);
+    Route::get('email-logs/types', [EmailLogController::class, 'types']);
+    Route::get('email-logs/{id}', [EmailLogController::class, 'show']);
 });
 
 

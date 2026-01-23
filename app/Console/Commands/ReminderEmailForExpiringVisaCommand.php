@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\CandidateVisa;
+use App\Models\EmailLog;
+use App\Services\EmailTrackingService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -24,15 +26,18 @@ class ReminderEmailForExpiringVisaCommand extends Command
      */
     protected $description = 'Send reminder email for expiring visas (60 days and 30 days before)';
 
+    protected EmailTrackingService $trackingService;
+
     /**
      * Execute the console command.
      *
      * @return int
      */
-    public function handle()
+    public function handle(EmailTrackingService $trackingService)
     {
+        $this->trackingService = $trackingService;
         $today = Carbon::now();
-        
+
         // Get visas expiring in 60 days
         $sixtyDaysFromNow = $today->copy()->addDays(60)->format('Y-m-d');
         $visasExpiring60Days = CandidateVisa::with(['candidate.company'])
@@ -86,11 +91,29 @@ class ReminderEmailForExpiringVisaCommand extends Command
             'daysRemaining' => $daysRemaining,
         ];
 
-        Mail::send('expiringVisa', ['data' => $data], function ($message) use ($daysRemaining, $recipients) {
-            $message->to($recipients);
-            $message->subject("Напомняне: Визи изтичащи след {$daysRemaining}");
-        });
+        $subject = "Напомняне: Визи изтичащи след {$daysRemaining}";
 
-        Log::info("Visa expiry reminder sent to: " . implode(', ', $recipients));
+        // Log emails for tracking
+        $logIds = $this->trackingService->logMultipleEmails(
+            recipients: $recipients,
+            subject: $subject,
+            emailType: EmailLog::TYPE_VISA_EXPIRY_REMINDER,
+            metadata: [
+                'visa_count' => $visas->count(),
+                'days_remaining' => $daysRemaining,
+            ]
+        );
+
+        try {
+            Mail::send('expiringVisa', ['data' => $data], function ($message) use ($subject, $recipients) {
+                $message->to($recipients);
+                $message->subject($subject);
+            });
+            $this->trackingService->markMultipleSent($logIds);
+            Log::info("Visa expiry reminder sent to: " . implode(', ', $recipients));
+        } catch (\Exception $e) {
+            $this->trackingService->markMultipleFailed($logIds, $e->getMessage());
+            Log::error("Failed to send visa expiry reminder: " . $e->getMessage());
+        }
     }
 }

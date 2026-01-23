@@ -6,8 +6,10 @@ use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Company;
+use App\Models\EmailLog;
 use App\Models\Status;
 use App\Models\StatusArrival;
+use App\Services\EmailTrackingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -34,7 +36,7 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
         $this->onQueue('mail');
     }
 
-    public function handle()
+    public function handle(EmailTrackingService $trackingService)
     {
         // Log to check if the handle method is being executed
         Log::info("SendEmailForArrivalCandidates Job Started.");
@@ -140,10 +142,29 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
             }
 
             if($this->sendEmail){
-                Mail::send($blade, ['data' => $data], function ($message) use ($candidate, $data, $recipients) {
-                    $message->to($recipients)
-                        ->subject('Notification for ' . $data['candidateName']);
-                });
+                // Log emails for company recipients
+                $companyLogIds = $trackingService->logMultipleEmails(
+                    recipients: $recipients,
+                    subject: 'Notification for ' . $data['candidateName'],
+                    emailType: EmailLog::TYPE_STATUS_NOTIFICATION,
+                    metadata: [
+                        'candidate_id' => $this->candidateId,
+                        'candidate_name' => $data['candidateName'],
+                        'company_name' => $data['companyName'],
+                        'status_id' => $this->statusId,
+                    ]
+                );
+
+                try {
+                    Mail::send($blade, ['data' => $data], function ($message) use ($data, $recipients) {
+                        $message->to($recipients)
+                            ->subject('Notification for ' . $data['candidateName']);
+                    });
+                    $trackingService->markMultipleSent($companyLogIds);
+                } catch (\Exception $e) {
+                    $trackingService->markMultipleFailed($companyLogIds, $e->getMessage());
+                    throw $e;
+                }
             }
 
 
@@ -161,10 +182,28 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 ];
 
                 if (!empty($nomadRecipients)) {
-                    Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data, $nomadRecipients) {
-                        $message->to($nomadRecipients)
-                            ->subject('Notification for Arrival ' . $data['candidateName']);
-                    });
+                    // Log emails for Nomad office arrival notification
+                    $arrivalLogIds = $trackingService->logMultipleEmails(
+                        recipients: $nomadRecipients,
+                        subject: 'Notification for Arrival ' . $data['candidateName'],
+                        emailType: EmailLog::TYPE_ARRIVAL_NOTIFICATION,
+                        metadata: [
+                            'candidate_id' => $this->candidateId,
+                            'candidate_name' => $data['candidateName'],
+                            'company_name' => $data['companyName'],
+                        ]
+                    );
+
+                    try {
+                        Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data, $nomadRecipients) {
+                            $message->to($nomadRecipients)
+                                ->subject('Notification for Arrival ' . $data['candidateName']);
+                        });
+                        $trackingService->markMultipleSent($arrivalLogIds);
+                    } catch (\Exception $e) {
+                        $trackingService->markMultipleFailed($arrivalLogIds, $e->getMessage());
+                        throw $e;
+                    }
                 } else {
                     Log::warning("No NOMAD_NOTIFICATION_EMAILS configured. Skipping arrival notification to Nomad office.");
                 }
@@ -184,10 +223,29 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
                 ];
 
                 if (!empty($nomadRecipients)) {
-                    Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data, $nomadRecipients) {
-                        $message->to($nomadRecipients)
-                            ->subject('Notification for Arrival ' . $data['candidateName']);
-                    });
+                    // Log emails for Nomad office status notification
+                    $statusLogIds = $trackingService->logMultipleEmails(
+                        recipients: $nomadRecipients,
+                        subject: 'Notification for Arrival ' . $data['candidateName'],
+                        emailType: EmailLog::TYPE_STATUS_NOTIFICATION,
+                        metadata: [
+                            'candidate_id' => $this->candidateId,
+                            'candidate_name' => $data['candidateName'],
+                            'company_name' => $data['companyName'],
+                            'status_name' => $statusName,
+                        ]
+                    );
+
+                    try {
+                        Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data, $nomadRecipients) {
+                            $message->to($nomadRecipients)
+                                ->subject('Notification for Arrival ' . $data['candidateName']);
+                        });
+                        $trackingService->markMultipleSent($statusLogIds);
+                    } catch (\Exception $e) {
+                        $trackingService->markMultipleFailed($statusLogIds, $e->getMessage());
+                        throw $e;
+                    }
                 } else {
                     Log::warning("No NOMAD_NOTIFICATION_EMAILS configured. Skipping status notification to Nomad office.");
                 }

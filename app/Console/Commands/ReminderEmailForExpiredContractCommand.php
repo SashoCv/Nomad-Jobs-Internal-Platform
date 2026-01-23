@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Candidate;
+use App\Models\EmailLog;
+use App\Services\EmailTrackingService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -29,7 +31,7 @@ class ReminderEmailForExpiredContractCommand extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(EmailTrackingService $trackingService)
     {
         // Get the date one month ago
       $oneMonthFromNow = Carbon::now()->addMonth()->format('Y-m-d');
@@ -51,13 +53,28 @@ class ReminderEmailForExpiredContractCommand extends Command
                 return Command::SUCCESS;
             }
 
-            Mail::send('expiredContract', ['data' => $allCandidatesWithThisDate], function ($message) use ($recipients) {
-                $message->to($recipients);
-                $message->subject('Reminder for expired contract');
-            });
+            // Log emails for tracking
+            $logIds = $trackingService->logMultipleEmails(
+                recipients: $recipients,
+                subject: 'Reminder for expired contract',
+                emailType: EmailLog::TYPE_CONTRACT_EXPIRY_REMINDER,
+                metadata: [
+                    'candidate_count' => $count,
+                    'expiry_date' => $oneMonthFromNow,
+                ]
+            );
 
-            // Log the success of the email sending process
-            Log::info("Reminder email sent successfully to " . implode(', ', $recipients) . " for {$count} expired contracts.");
+            try {
+                Mail::send('expiredContract', ['data' => $allCandidatesWithThisDate], function ($message) use ($recipients) {
+                    $message->to($recipients);
+                    $message->subject('Reminder for expired contract');
+                });
+                $trackingService->markMultipleSent($logIds);
+                Log::info("Reminder email sent successfully to " . implode(', ', $recipients) . " for {$count} expired contracts.");
+            } catch (\Exception $e) {
+                $trackingService->markMultipleFailed($logIds, $e->getMessage());
+                Log::error("Failed to send contract expiry reminder: " . $e->getMessage());
+            }
         } else {
             // Log no candidates found
             Log::info("No expired contracts found to send reminders.");
