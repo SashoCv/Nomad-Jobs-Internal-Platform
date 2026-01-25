@@ -659,14 +659,22 @@ class CandidateController extends Controller
 
     protected function handleAgentDeletion(Candidate $candidate, int $id): JsonResponse
     {
+        $userId = Auth::id();
 
         $agentCandidate = AgentCandidate::where('candidate_id', $id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->first();
 
         if ($agentCandidate) {
+            // Set deleted_by before soft delete
+            $agentCandidate->deleted_by = $userId;
+            $agentCandidate->save();
             $agentCandidate->delete();
+
+            $candidate->deleted_by = $userId;
+            $candidate->save();
             $candidate->delete();
+
             return $this->successResponse(null, 'Candidate deleted successfully');
         }
 

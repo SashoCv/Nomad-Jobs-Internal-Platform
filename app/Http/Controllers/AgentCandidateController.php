@@ -387,7 +387,21 @@ class AgentCandidateController extends Controller
 
             $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
             if ($agentCandidate) {
+                $userId = Auth::id();
+
+                // Set deleted_by before soft delete
+                $agentCandidate->deleted_by = $userId;
+                $agentCandidate->save();
                 $agentCandidate->delete();
+
+                // Also set deleted_by on the candidate record
+                $candidate = Candidate::find($id);
+                if ($candidate) {
+                    $candidate->deleted_by = $userId;
+                    $candidate->save();
+                    $candidate->delete();
+                }
+
                 return response()->json(['message' => 'Candidate deleted successfully'], 200);
             } else {
                 return response()->json(['message' => 'Candidate not found'], 404);

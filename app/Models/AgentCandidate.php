@@ -25,6 +25,7 @@ class AgentCandidate extends Model
         'accommodation_address',
         'workplace_address',
         'hr_notes',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -71,6 +72,11 @@ class AgentCandidate extends Model
     public function details()
     {
         return $this->hasOne(AgentCandidateDetail::class);
+    }
+
+    public function deletedByUser()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }
 
