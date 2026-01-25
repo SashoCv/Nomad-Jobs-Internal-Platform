@@ -24,7 +24,12 @@ class Candidate extends Model
         'dossierNumber', 'notes', 'addedBy', 'quartal', 'seasonal', 'contractPeriodDate',
         'contractPeriodNumber', 'startContractDate', 'endContractDate', 'passportPath',
         'passportName', 'personPicturePath', 'personPictureName', 'company_adresses_id',
-        'deleted_by'
+        'deleted_by',
+        // CV fields
+        'height', 'weight', 'chronic_diseases', 'country_of_visa_application',
+        'has_driving_license', 'driving_license_category', 'driving_license_expiry', 'driving_license_country',
+        'english_level', 'russian_level', 'other_language', 'other_language_level',
+        'children_info'
     ];
 
     protected $appends = ['workAddressCity'];
@@ -52,6 +57,7 @@ class Candidate extends Model
 
     protected $casts = [
         'date' => 'date:Y-m-d',
+        'has_driving_license' => 'boolean',
     ];
 
     const TYPE_CANDIDATE = 1;
@@ -187,6 +193,26 @@ class Candidate extends Model
     public function currentVisa()
     {
         return $this->hasOne(CandidateVisa::class)->latestOfMany('end_date');
+    }
+
+    public function cvPhotos()
+    {
+        return $this->hasMany(CandidateCvPhoto::class);
+    }
+
+    public function workplacePhotos()
+    {
+        return $this->hasMany(CandidateCvPhoto::class)->where('type', CandidateCvPhoto::TYPE_WORKPLACE)->orderBy('sort_order');
+    }
+
+    public function diplomaPhotos()
+    {
+        return $this->hasMany(CandidateCvPhoto::class)->where('type', CandidateCvPhoto::TYPE_DIPLOMA)->orderBy('sort_order');
+    }
+
+    public function drivingLicensePhoto()
+    {
+        return $this->hasOne(CandidateCvPhoto::class)->where('type', CandidateCvPhoto::TYPE_DRIVING_LICENSE);
     }
 
     // Scopes

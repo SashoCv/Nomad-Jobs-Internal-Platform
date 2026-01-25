@@ -14,9 +14,11 @@ use App\Models\File;
 use App\Models\Role;
 use App\Models\Permission;
 use App\Models\UserOwner;
+use App\Models\CandidateCvPhoto;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use App\Services\CvGeneratorService;
+use App\Services\CvDocxGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -102,7 +104,7 @@ class AgentCandidateController extends Controller
         $person->fullNameCyrillic = $request->fullNameCyrillic;
         $person->birthday = $request->birthday;
         $person->placeOfBirth = $request->placeOfBirth;
-        $person->country = $request->country;
+        $person->country_id = $request->country_id;
         $person->area = $request->area;
         $person->areaOfResidence = $request->areaOfResidence;
         $person->addressOfResidence = $request->addressOfResidence;
@@ -127,6 +129,22 @@ class AgentCandidateController extends Controller
         $person->notes = $request->notes;
         $person->user_id = $request->user_id;
         $person->addedBy = Auth::user()->id;
+
+        // CV fields
+        $person->height = $request->height;
+        $person->weight = $request->weight;
+        $person->chronic_diseases = $request->chronic_diseases;
+        $person->country_of_visa_application = $request->country_of_visa_application;
+        $person->has_driving_license = filter_var($request->has_driving_license, FILTER_VALIDATE_BOOLEAN);
+        $person->driving_license_category = $request->driving_license_category;
+        $person->driving_license_expiry = $request->driving_license_expiry;
+        $person->driving_license_country = $request->driving_license_country;
+        $person->english_level = $request->english_level;
+        $person->russian_level = $request->russian_level;
+        $person->other_language = $request->other_language;
+        $person->other_language_level = $request->other_language_level;
+        $person->children_info = $request->children_info;
+
         $educations = $request->educations ?? [];
         $experiences = $request->experiences ?? [];
         $person->agent_id = Auth::user()->id;
@@ -168,11 +186,15 @@ class AgentCandidateController extends Controller
                     $newExperience->candidate_id = $person->id;
                     $newExperience->company_name = $experience['company_name'];
                     $newExperience->position = $experience['position'];
+                    $newExperience->responsibilities = $experience['responsibilities'] ?? null;
                     $newExperience->start_date = $experience['start_date'];
                     $newExperience->end_date = $experience['end_date'];
                     $newExperience->save();
                 }
             }
+
+            // Handle CV Photos
+            $this->handleCvPhotoUploads($request, $person);
 
             $message = sprintf(
                 'Агент %s добави кандидат за позиция "%s"',
@@ -213,6 +235,14 @@ class AgentCandidateController extends Controller
 
             $passportFile->save();
 
+            // Generate CV DOCX automatically and save it in "files from agent" category
+            try {
+                $cvService = new CvDocxGeneratorService();
+                $cvService->generateAndSaveCv($person);
+            } catch (\Exception $e) {
+                Log::warning('CV generation failed for candidate ' . $person->id . ': ' . $e->getMessage());
+                // Don't fail the whole request if CV generation fails
+            }
 
             $agentCandidate = new AgentCandidate();
 
@@ -387,21 +417,7 @@ class AgentCandidateController extends Controller
 
             $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
             if ($agentCandidate) {
-                $userId = Auth::id();
-
-                // Set deleted_by before soft delete
-                $agentCandidate->deleted_by = $userId;
-                $agentCandidate->save();
                 $agentCandidate->delete();
-
-                // Also set deleted_by on the candidate record
-                $candidate = Candidate::find($id);
-                if ($candidate) {
-                    $candidate->deleted_by = $userId;
-                    $candidate->save();
-                    $candidate->delete();
-                }
-
                 return response()->json(['message' => 'Candidate deleted successfully'], 200);
             } else {
                 return response()->json(['message' => 'Candidate not found'], 404);
@@ -441,12 +457,24 @@ class AgentCandidateController extends Controller
                 'nameOfFacility', 'education', 'specialty', 'qualification',
                 'contractExtensionPeriod', 'salary', 'workingTime', 'workingDays',
                 'martialStatus', 'contractPeriod', 'contractType',
-                'dossierNumber', 'notes'
+                'dossierNumber', 'notes',
+                // CV fields
+                'height', 'weight', 'chronic_diseases', 'country_of_visa_application',
+                'has_driving_license', 'driving_license_category', 'driving_license_expiry',
+                'driving_license_country', 'english_level', 'russian_level',
+                'other_language', 'other_language_level', 'children_info'
             ];
 
             foreach ($fieldsToUpdate as $field) {
                 if ($request->has($field)) {
-                    $person->$field = $request->$field;
+                    $value = $request->$field;
+
+                    // Handle boolean fields - convert string 'true'/'false' to actual boolean
+                    if ($field === 'has_driving_license') {
+                        $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+                    }
+
+                    $person->$field = $value;
                 }
             }
 
@@ -566,6 +594,7 @@ class AgentCandidateController extends Controller
                         $newExperience->candidate_id = $person->id;
                         $newExperience->company_name = $experience['company_name'];
                         $newExperience->position = $experience['position'];
+                        $newExperience->responsibilities = $experience['responsibilities'] ?? null;
                         $newExperience->start_date = $experience['start_date'];
                         $newExperience->end_date = $experience['end_date'];
                         $newExperience->save();
@@ -581,6 +610,33 @@ class AgentCandidateController extends Controller
 
                 $notification = NotificationRepository::createNotification($notificationData);
                 UsersNotificationRepository::createNotificationForUsers($notification);
+
+                // Handle CV Photos
+                $this->handleCvPhotoUploads($request, $person);
+
+                // Regenerate CV with updated data
+                try {
+                    // Delete old auto-generated CV file
+                    $oldCvFile = File::where('candidate_id', $person->id)
+                        ->where('fileName', 'like', 'CV_%')
+                        ->where('autoGenerated', 1)
+                        ->first();
+
+                    if ($oldCvFile) {
+                        // Delete physical file
+                        if ($oldCvFile->filePath) {
+                            Storage::disk('public')->delete($oldCvFile->filePath);
+                        }
+                        $oldCvFile->delete();
+                    }
+
+                    // Generate new CV
+                    $cvService = new CvDocxGeneratorService();
+                    $cvService->generateAndSaveCv($person);
+                } catch (\Exception $e) {
+                    Log::warning('CV regeneration failed for candidate ' . $person->id . ': ' . $e->getMessage());
+                    // Don't fail the whole request if CV generation fails
+                }
 
                 return response()->json([
                     'message' => 'Candidate updated successfully',
@@ -678,6 +734,68 @@ class AgentCandidateController extends Controller
                 'error' => 'Failed to generate CV',
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Handle CV photo uploads (workplace, diploma, driving license)
+     */
+    protected function handleCvPhotoUploads(Request $request, Candidate $candidate): void
+    {
+        $photoTypes = [
+            'workplacePhotos' => CandidateCvPhoto::TYPE_WORKPLACE,
+            'diplomaPhotos' => CandidateCvPhoto::TYPE_DIPLOMA,
+            'drivingLicensePhoto' => CandidateCvPhoto::TYPE_DRIVING_LICENSE,
+        ];
+
+        foreach ($photoTypes as $fieldName => $type) {
+            if ($request->hasFile($fieldName)) {
+                $files = $request->file($fieldName);
+
+                // Ensure it's an array
+                if (!is_array($files)) {
+                    $files = [$files];
+                }
+
+                // For driving license, only keep one photo - delete existing first
+                if ($type === CandidateCvPhoto::TYPE_DRIVING_LICENSE) {
+                    $existingPhotos = CandidateCvPhoto::where('candidate_id', $candidate->id)
+                        ->where('type', $type)
+                        ->get();
+
+                    foreach ($existingPhotos as $photo) {
+                        if (Storage::disk('public')->exists($photo->file_path)) {
+                            Storage::disk('public')->delete($photo->file_path);
+                        }
+                        $photo->delete();
+                    }
+                }
+
+                $directory = 'candidate/' . $candidate->id . '/cv-photos/' . $type;
+                $sortOrder = CandidateCvPhoto::where('candidate_id', $candidate->id)
+                    ->where('type', $type)
+                    ->max('sort_order') ?? 0;
+
+                foreach ($files as $file) {
+                    if ($file && $file->isValid()) {
+                        $fileName = \Illuminate\Support\Str::uuid() . '_' . $file->getClientOriginalName();
+                        $filePath = $file->storeAs($directory, $fileName, 'public');
+
+                        CandidateCvPhoto::create([
+                            'candidate_id' => $candidate->id,
+                            'type' => $type,
+                            'file_path' => $filePath,
+                            'file_name' => $file->getClientOriginalName(),
+                            'sort_order' => ++$sortOrder,
+                        ]);
+
+                        // For driving license, only store one
+                        if ($type === CandidateCvPhoto::TYPE_DRIVING_LICENSE) {
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -46,6 +46,7 @@ use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\CandidateVisaController;
 use App\Http\Controllers\CandidatePassportController;
+use App\Http\Controllers\CandidateCvPhotoController;
 use App\Http\Controllers\EmailLogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -403,6 +404,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('candidate-passports/{id}/download', [CandidatePassportController::class, 'download']);
     Route::get('candidate-passports/{id}/view', [CandidatePassportController::class, 'view']);
 
+    // Candidate CV Photos (workplace, diploma, driving license)
+    Route::get('candidate-cv-photos/{candidate}', [CandidateCvPhotoController::class, 'index']);
+    Route::post('candidate-cv-photos/{candidate}', [CandidateCvPhotoController::class, 'store']);
+    Route::delete('candidate-cv-photos/{cvPhoto}', [CandidateCvPhotoController::class, 'destroy']);
+    Route::post('candidate-cv-photos/{candidate}/reorder', [CandidateCvPhotoController::class, 'reorder']);
 
     // Medical Insurance
     Route::post('storeMedicalInsuranceForCandidate', [MedicalInsuranceController::class, 'store']);

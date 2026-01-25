@@ -76,12 +76,45 @@ return new class extends Migration
                 }
             }
 
+            // Helper function to fix/validate dates with typos like 22034, 20233, etc.
+            $fixDate = function ($date) {
+                if (!$date) return null;
+
+                // Check if year has 5 digits (common typo)
+                if (preg_match('/^(\d{5})-(\d{2})-(\d{2})$/', $date, $matches)) {
+                    $wrongYear = $matches[1];
+                    // Try to extract correct 4-digit year
+                    // 22034 -> 2034, 20233 -> 2033, 20234 -> 2034
+                    if (substr($wrongYear, 0, 2) === '20') {
+                        // 20233 -> 2033 (remove first '2')
+                        $fixedYear = substr($wrongYear, 1);
+                    } elseif (substr($wrongYear, 0, 1) === '2') {
+                        // 22034 -> 2034 (remove second digit)
+                        $fixedYear = substr($wrongYear, 0, 1) . substr($wrongYear, 2);
+                    } else {
+                        return null;
+                    }
+                    return $fixedYear . '-' . $matches[2] . '-' . $matches[3];
+                }
+
+                // Regular 4-digit year validation
+                $year = (int) substr($date, 0, 4);
+                if ($year > 2100 || $year < 1900) {
+                    return null;
+                }
+
+                return $date;
+            };
+
+            $issueDate = $fixDate($candidate->passportIssuedOn);
+            $expiryDate = $fixDate($candidate->passportValidUntil);
+
             // Create the new passport record
             DB::table('candidate_passports')->insert([
                 'candidate_id' => $candidate->id,
                 'passport_number' => $candidate->passport ?? null,
-                'issue_date' => $candidate->passportIssuedOn,
-                'expiry_date' => $candidate->passportValidUntil,
+                'issue_date' => $issueDate,
+                'expiry_date' => $expiryDate,
                 'issued_by' => $candidate->passportIssuedBy ?? null,
                 'file_path' => $newFilePath,
                 'file_name' => $newFileName,
