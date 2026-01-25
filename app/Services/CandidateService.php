@@ -219,6 +219,8 @@ class CandidateService
     public function deleteCandidate(Candidate $candidate): bool
     {
         return DB::transaction(function () use ($candidate) {
+            $userId = Auth::id();
+
             // Delete associated files
             $files = File::where('candidate_id', $candidate->id)->get();
 
@@ -231,6 +233,18 @@ class CandidateService
 
             // Delete categories
             Category::where('candidate_id', $candidate->id)->delete();
+
+            // Set deleted_by on agent_candidates if exists
+            $agentCandidate = AgentCandidate::where('candidate_id', $candidate->id)->first();
+            if ($agentCandidate) {
+                $agentCandidate->deleted_by = $userId;
+                $agentCandidate->save();
+                $agentCandidate->delete();
+            }
+
+            // Set deleted_by before soft delete
+            $candidate->deleted_by = $userId;
+            $candidate->save();
 
             return $candidate->delete();
         });

@@ -23,7 +23,8 @@ class Candidate extends Model
         'workingTime', 'workingDays', 'martialStatus', 'contractPeriod', 'contractType',
         'dossierNumber', 'notes', 'addedBy', 'quartal', 'seasonal', 'contractPeriodDate',
         'contractPeriodNumber', 'startContractDate', 'endContractDate', 'passportPath',
-        'passportName', 'personPicturePath', 'personPictureName', 'company_adresses_id'
+        'passportName', 'personPicturePath', 'personPictureName', 'company_adresses_id',
+        'deleted_by'
     ];
 
     protected $appends = ['workAddressCity'];
@@ -69,6 +70,11 @@ class Candidate extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function deletedByUser()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function type()
