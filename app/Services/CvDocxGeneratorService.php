@@ -261,9 +261,10 @@ class CvDocxGeneratorService
                 try {
                     $template->setImageValue('candidate_photo', [
                         'path' => $imagePath,
-                        'width' => 150,
-                        'height' => 200,
+                        'width' => 200,
+                        'height' => 260,
                         'ratio' => true,
+                        'wrappingStyle' => 'inline',
                     ]);
                     return;
                 } catch (\Exception $e) {
@@ -327,9 +328,10 @@ class CvDocxGeneratorService
                 try {
                     $template->setImageValue($placeholder, [
                         'path' => $imagePath,
-                        'width' => 200,
-                        'height' => 150,
+                        'width' => 350,
+                        'height' => 280,
                         'ratio' => true,
+                        'wrappingStyle' => 'inline',
                     ]);
                     return;
                 } catch (\Exception $e) {
