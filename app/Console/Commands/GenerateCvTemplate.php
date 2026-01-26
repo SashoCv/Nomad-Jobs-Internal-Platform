@@ -68,9 +68,18 @@ class GenerateCvTemplate extends Command
         // Education
         $section->addTitle('Education', 2);
         $table = $section->addTable(['borderSize' => 6, 'borderColor' => '999999']);
-        $this->addTableRow($table, 'Name of institution', '${education_institution}');
-        $this->addTableRow($table, 'Speciality', '${education_speciality}');
-        $this->addTableRow($table, 'Year of Ending', '${education_year}');
+
+        // Header row
+        $table->addRow();
+        $table->addCell(3500)->addText('Name of institution', ['bold' => true]);
+        $table->addCell(3500)->addText('Speciality', ['bold' => true]);
+        $table->addCell(3000)->addText('Year of Ending', ['bold' => true]);
+
+        // Data row (will be cloned by cloneRow)
+        $table->addRow();
+        $table->addCell(3500)->addText('${edu_institution}');
+        $table->addCell(3500)->addText('${edu_speciality}');
+        $table->addCell(3000)->addText('${edu_year}');
 
         $section->addTextBreak();
 
