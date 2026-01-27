@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\CalendarEvent;
 use App\Models\MedicalInsurance;
+use App\Models\Status;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -32,7 +33,19 @@ class SyncInsuranceExpiryToCalendar extends Command
     {
         $this->info('Syncing insurance expiry dates to calendar events...');
 
-        $insurances = MedicalInsurance::with('candidate:id,company_id')
+        // Exclude candidates with terminated/refused statuses
+        $excludedStatuses = [
+            Status::TERMINATED_CONTRACT,
+            Status::REFUSED_MIGRATION,
+            Status::REFUSED_CANDIDATE,
+            Status::REFUSED_EMPLOYER,
+            Status::REFUSED_BY_MIGRATION_OFFICE,
+        ];
+
+        $insurances = MedicalInsurance::with('candidate:id,company_id,status_id')
+            ->whereHas('candidate', function ($query) use ($excludedStatuses) {
+                $query->whereNotIn('status_id', $excludedStatuses);
+            })
             ->whereNotNull('dateTo')
             ->where('dateTo', '!=', '')
             ->get();
