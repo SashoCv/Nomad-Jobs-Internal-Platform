@@ -247,40 +247,29 @@ class FileController extends Controller
      */
     public function show($id)
     {
-        $userRoleId = Auth::user()->role_id;
-
         if ($this->isStaff()) {
-            // Staff can see all categories for this candidate
-            $categories = Category::where('candidate_id', $id)
+            $categories = Category::with('visibleToRoles')
+                ->where('candidate_id', $id)
                 ->orderBy('id', 'asc')
                 ->get();
-        } else {
-            // Non-staff users see categories where:
-            // 1. role_id matches their role, OR
-            // 2. Their role is in allowed_roles array
-            $categories = Category::where('candidate_id', $id)
-                ->where(function ($query) use ($userRoleId) {
-                    $query->where('role_id', '=', $userRoleId)
-                          ->orWhereJsonContains('allowed_roles', (string)$userRoleId)
-                          ->orWhereJsonContains('allowed_roles', $userRoleId);
-                })
-                ->orderBy('id', 'asc')
-                ->get();
-        }
 
-        $categoriesIds = $categories->pluck('id');
-        
-        // Files are filtered to only those in visible categories
-        if ($this->isStaff()) {
-            // Staff can see all files for this candidate
             $files = File::with('category')
                 ->where('candidate_id', $id)
                 ->get();
         } else {
-            // Non-staff users only see files in their visible categories
+            $userRoleId = Auth::user()->role_id;
+
+            $categories = Category::with('visibleToRoles')
+                ->where('candidate_id', $id)
+                ->whereHas('visibleToRoles', fn($q) => $q->where('roles.id', $userRoleId))
+                ->orderBy('id', 'asc')
+                ->get();
+
+            $categoryIds = $categories->pluck('id');
+
             $files = File::with('category')
                 ->where('candidate_id', $id)
-                ->whereIn('category_id', $categoriesIds)
+                ->whereIn('category_id', $categoryIds)
                 ->get();
         }
 
