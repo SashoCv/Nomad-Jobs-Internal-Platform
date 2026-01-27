@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class CompanyCategory extends Model
 {
@@ -12,14 +13,22 @@ class CompanyCategory extends Model
     protected $table = 'company_categories';
 
     protected $fillable = [
-        'role_id',
         'company_id',
         'companyNameCategory',
-        'allowed_roles',
-        'description'
+        'description',
     ];
 
-    protected $casts = [
-        'allowed_roles' => 'array',
-    ];
+    public function visibleToRoles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'company_category_role');
+    }
+
+    public function isVisibleToRole(int $roleId): bool
+    {
+        if ($this->relationLoaded('visibleToRoles')) {
+            return $this->visibleToRoles->contains('id', $roleId);
+        }
+
+        return $this->visibleToRoles()->where('roles.id', $roleId)->exists();
+    }
 }

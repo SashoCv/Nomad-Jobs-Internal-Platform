@@ -81,23 +81,16 @@ class CompanyFileController extends Controller
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
-        $companyFiles = CompanyFile::where('company_id', '=', $id)->get();
+        $companyFiles = CompanyFile::where('company_id', $id)->get();
 
         if ($this->isStaff()) {
-            // Staff can see all categories
-            $companyCategories = CompanyCategory::where('company_id', '=', $id)->get();
+            $companyCategories = CompanyCategory::with('visibleToRoles')
+                ->where('company_id', $id)
+                ->get();
         } else {
-            // Non-staff users see categories where:
-            // 1. role_id matches their role, OR
-            // 2. Their role is in allowed_roles array
-            $userRoleId = $user->role_id;
-            
-            $companyCategories = CompanyCategory::where('company_id', '=', $id)
-                ->where(function ($query) use ($userRoleId) {
-                    $query->where('role_id', '=', $userRoleId)
-                          ->orWhereJsonContains('allowed_roles', (string)$userRoleId)
-                          ->orWhereJsonContains('allowed_roles', $userRoleId);
-                })
+            $companyCategories = CompanyCategory::with('visibleToRoles')
+                ->where('company_id', $id)
+                ->whereHas('visibleToRoles', fn($q) => $q->where('roles.id', $user->role_id))
                 ->get();
         }
 

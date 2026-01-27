@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\Category;
+use App\Models\CompanyCategory;
 
 class Role extends Model
 {
@@ -29,6 +32,16 @@ class Role extends Model
     public function hasAnyPermission($permissions)
     {
         return $this->permissions()->whereIn('slug', $permissions)->exists();
+    }
+
+    public function visibleCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'category_role');
+    }
+
+    public function visibleCompanyCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(CompanyCategory::class, 'company_category_role');
     }
 
     public function givePermissionTo($permission)
