@@ -72,8 +72,8 @@ class ArrivalCandidateController extends Controller
                 });
             }
 
-            // Load arrivals and visa relationships for all candidates
-            $query->with(['arrival.files', 'currentVisa']);
+            // Load arrivals, visa, and status histories relationships for all candidates
+            $query->with(['arrival.files', 'currentVisa', 'statusHistories']);
 
             // Sorting - for arrival expected status, we'll sort using a subquery
             if ($statusId == Status::ARRIVAL_EXPECTED) {
@@ -156,6 +156,12 @@ class ArrivalCandidateController extends Controller
                     ];
                 }
 
+                // Get description from the latest status history for current status
+                $currentStatusHistory = $candidate->statusHistories
+                    ->where('status_id', $currentStatusId)
+                    ->sortByDesc('id')
+                    ->first();
+
                 return [
                     'id' => $candidate->id,
                     'fullName' => $candidate->fullName,
@@ -164,6 +170,9 @@ class ArrivalCandidateController extends Controller
                     'company_id' => $candidate->company_id,
                     'companyName' => $candidate->company?->nameOfCompany,
                     'phoneNumber' => $candidate->phoneNumber,
+                    'birthday' => $candidate->birthday,
+                    'nationality' => $candidate->nationality,
+                    'dossierNumber' => $candidate->dossierNumber,
                     'availableStatuses' => $availableStatuses,
                     'addArrival' => $addArrival,
                     'has_files' => $candidatesWithFiles->has($candidate->id),
@@ -171,7 +180,8 @@ class ArrivalCandidateController extends Controller
                     'statusHistories' => [
                         'status_id' => $candidate->status_id,
                         'statusName' => $currentStatus ? $currentStatus->nameOfStatus : null,
-                        'statusDate' => $candidate->statusDate,
+                        'statusDate' => $currentStatusHistory?->statusDate,
+                        'description' => $currentStatusHistory->description ?? null,
                         'arrivalInfo' => $arrivalInfo,
                     ],
                 ];

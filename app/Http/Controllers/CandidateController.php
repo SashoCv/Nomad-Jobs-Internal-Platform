@@ -75,12 +75,22 @@ class CandidateController extends Controller
     {
         $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
 
+        // Exclude candidates with terminated/refused statuses
+        $excludedStatuses = [
+            Status::TERMINATED_CONTRACT,
+            Status::REFUSED_MIGRATION,
+            Status::REFUSED_CANDIDATE,
+            Status::REFUSED_EMPLOYER,
+            Status::REFUSED_BY_MIGRATION_OFFICE,
+        ];
+
         $candidates = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'contractType', 'company_id', 'status_id', 'position_id')
             ->with([
                 'company:id,nameOfCompany,EIK',
                 'latestStatusHistory.status:id,nameOfStatus',
                 'position:id,jobPosition'
             ])
+            ->whereNotIn('status_id', $excludedStatuses)
             ->whereDate('endContractDate', '<=', $fourMonthsBefore)
             ->orderBy('endContractDate', 'desc')
             ->paginate();
