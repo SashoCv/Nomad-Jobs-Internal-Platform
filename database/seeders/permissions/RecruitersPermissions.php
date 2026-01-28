@@ -82,6 +82,10 @@ class RecruitersPermissions
             Permission::CITIES_READ,
             Permission::EMAIL_LOGS_READ,
             Permission::REFERENCE_DATA_READ,
+            Permission::VISA_READ,
+            Permission::VISA_CREATE,
+            Permission::VISA_UPDATE,
+            Permission::VISA_DELETE
         ];
     }
 }
