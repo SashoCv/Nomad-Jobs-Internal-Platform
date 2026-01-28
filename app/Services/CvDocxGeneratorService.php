@@ -6,6 +6,7 @@ use App\Models\Candidate;
 use App\Models\CandidateCvPhoto;
 use App\Models\Category;
 use App\Models\File;
+use App\Models\Role;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\TemplateProcessor;
 
@@ -366,9 +367,9 @@ class CvDocxGeneratorService
             $category = new Category();
             $category->candidate_id = $candidate->id;
             $category->nameOfCategory = 'files from agent';
-            $category->role_id = 4; // Agent role
             $category->isGenerated = 0;
             $category->save();
+            $category->visibleToRoles()->attach(Role::AGENT);
         }
 
         return $category;
