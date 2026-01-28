@@ -218,11 +218,11 @@ class AgentCandidateController extends Controller
             ];
 
             $categoryForFiles = new Category();
-            $categoryForFiles->role_id = Role::AGENT;
             $categoryForFiles->nameOfCategory = 'files from agent';
             $categoryForFiles->candidate_id = $person->id;
             $categoryForFiles->isGenerated = 0;
             $categoryForFiles->save();
+            $categoryForFiles->visibleToRoles()->attach(Role::AGENT);
 
 
             $passportFile = new File();
