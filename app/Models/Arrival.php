@@ -16,6 +16,7 @@ class Arrival extends Model
     protected $fillable = [
         'company_id',
         'candidate_id',
+        'contract_id',
         'arrival_date',
         'arrival_time',
         'arrival_location',
@@ -37,6 +38,11 @@ class Arrival extends Model
     public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class, 'candidate_id');
+    }
+
+    public function contract(): BelongsTo
+    {
+        return $this->belongsTo(CandidateContract::class, 'contract_id');
     }
 
     public function arrivalPricing()

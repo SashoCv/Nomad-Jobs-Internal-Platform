@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
 
 class Candidate extends Model
@@ -195,6 +197,15 @@ class Candidate extends Model
         return $this->hasOne(CandidateVisa::class)->latestOfMany('end_date');
     }
 
+    /**
+     * Get the passport record for this candidate.
+     * This is the source of truth for passport data.
+     */
+    public function passport(): HasOne
+    {
+        return $this->hasOne(CandidatePassport::class);
+    }
+
     public function cvPhotos()
     {
         return $this->hasMany(CandidateCvPhoto::class);
@@ -213,6 +224,45 @@ class Candidate extends Model
     public function drivingLicensePhoto()
     {
         return $this->hasOne(CandidateCvPhoto::class)->where('type', CandidateCvPhoto::TYPE_DRIVING_LICENSE);
+    }
+
+    // ==================
+    // Contract Relationships (NEW)
+    // ==================
+
+    /**
+     * Get all contracts for this candidate (person profile)
+     */
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(CandidateContract::class)->orderBy('contract_period_number', 'desc');
+    }
+
+    /**
+     * Get the currently active contract
+     */
+    public function activeContract(): HasOne
+    {
+        return $this->hasOne(CandidateContract::class)
+            ->where('is_active', true)
+            ->latestOfMany('contract_period_number');
+    }
+
+    /**
+     * Get the most recent contract (active or not)
+     */
+    public function latestContract(): HasOne
+    {
+        return $this->hasOne(CandidateContract::class)
+            ->latestOfMany('contract_period_number');
+    }
+
+    /**
+     * Get the count of contracts for this candidate
+     */
+    public function getContractsCountAttribute(): int
+    {
+        return $this->contracts()->count();
     }
 
     // Scopes

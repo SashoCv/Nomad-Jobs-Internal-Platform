@@ -17,25 +17,116 @@ class UpdateCandidateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // For updates, file is optional (they might already have one)
+            // File uploads (optional for updates)
             'personPassport' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            'personPicture' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
+
+            // Personal Information
+            'fullName' => 'required|string|max:255',
+            'fullNameCyrillic' => 'required|string|max:255',
+            'birthday' => 'required|date',
+            'placeOfBirth' => 'required|string|max:255',
+            'nationality' => 'required|string|max:100',
+            'country_id' => 'required|integer|exists:countries,id',
+            'gender' => 'required|in:male,female',
+            'martialStatus' => 'required|string|max:50',
+
+            // Passport Information
             'passport' => 'required|string|max:50',
             'passportValidUntil' => 'required|date',
             'passportIssuedOn' => 'required|date',
             'passportIssuedBy' => 'required|string|max:255',
+
+            // Residence Information
+            'addressOfResidence' => 'required|string|max:500',
+            'periodOfResidence' => 'required|string|max:100',
+
+            // Contract Information
+            'company_id' => 'required|integer|exists:companies,id',
+            'position_id' => 'required|integer|exists:positions,id',
+            'contractType' => 'required|string|max:50',
+            'salary' => 'required|numeric|min:0',
+            'workingTime' => 'required|integer|min:1|max:24',
+            'workingDays' => 'nullable|integer|min:1|max:7',
+            'addressOfWork' => 'required|string|max:500',
+            'nameOfFacility' => 'nullable|string|max:255',
+            'user_id' => 'required|integer|exists:users,id',
+
+            // Contract dates
+            'startContractDate' => 'nullable|date',
+            'endContractDate' => 'nullable|date|after_or_equal:startContractDate',
+            'contractPeriod' => 'nullable|string|max:50',
+            'contractExtensionPeriod' => 'nullable|string|max:50',
+
+            // Optional fields
+            'education' => 'nullable|string|max:255',
+            'specialty' => 'nullable|string|max:255',
+            'qualification' => 'nullable|string|max:255',
+            'phoneNumber' => 'nullable|string|max:50',
+            'email' => 'nullable|email|max:255',
+            'notes' => 'nullable|string|max:2000',
+            'agent_id' => 'nullable|integer|exists:users,id',
+            'case_id' => 'nullable|integer|exists:cases,id',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'personPassport.file' => 'Passport must be a valid file.',
-            'personPassport.mimes' => 'Passport must be a JPG, PNG, or PDF file.',
-            'personPassport.max' => 'Passport file must not exceed 10MB.',
-            'passport.required' => 'Passport number is required.',
-            'passportValidUntil.required' => 'Passport expiry date is required.',
-            'passportIssuedOn.required' => 'Passport issue date is required.',
-            'passportIssuedBy.required' => 'Passport issuing authority is required.',
+            // File uploads
+            'personPassport.file' => 'Паспортът трябва да бъде валиден файл.',
+            'personPassport.mimes' => 'Паспортът трябва да бъде JPG, PNG или PDF файл.',
+            'personPassport.max' => 'Файлът на паспорта не трябва да надвишава 10MB.',
+            'personPicture.file' => 'Снимката трябва да бъде валиден файл.',
+            'personPicture.mimes' => 'Снимката трябва да бъде JPG или PNG файл.',
+            'personPicture.max' => 'Снимката не трябва да надвишава 5MB.',
+
+            // Personal Information
+            'fullName.required' => 'Името на латиница е задължително.',
+            'fullNameCyrillic.required' => 'Името на кирилица е задължително.',
+            'birthday.required' => 'Датата на раждане е задължителна.',
+            'placeOfBirth.required' => 'Мястото на раждане е задължително.',
+            'nationality.required' => 'Националността е задължителна.',
+            'country_id.required' => 'Държавата е задължителна.',
+            'country_id.exists' => 'Избраната държава не съществува.',
+            'gender.required' => 'Полът е задължителен.',
+            'gender.in' => 'Полът трябва да бъде мъж или жена.',
+            'martialStatus.required' => 'Семейното положение е задължително.',
+
+            // Passport Information
+            'passport.required' => 'Номерът на паспорта е задължителен.',
+            'passportValidUntil.required' => 'Датата на валидност на паспорта е задължителна.',
+            'passportIssuedOn.required' => 'Датата на издаване на паспорта е задължителна.',
+            'passportIssuedBy.required' => 'Органът, издал паспорта е задължителен.',
+
+            // Residence Information
+            'addressOfResidence.required' => 'Адресът на пребиваване е задължителен.',
+            'periodOfResidence.required' => 'Периодът на пребиваване е задължителен.',
+
+            // Contract Information
+            'company_id.required' => 'Компанията е задължителна.',
+            'company_id.exists' => 'Избраната компания не съществува.',
+            'position_id.required' => 'Позицията е задължителна.',
+            'position_id.exists' => 'Избраната позиция не съществува.',
+            'contractType.required' => 'Типът на договора е задължителен.',
+            'salary.required' => 'Заплатата е задължителна.',
+            'salary.numeric' => 'Заплатата трябва да бъде число.',
+            'salary.min' => 'Заплатата не може да бъде отрицателна.',
+            'workingTime.required' => 'Работното време е задължително.',
+            'workingTime.integer' => 'Работното време трябва да бъде цяло число.',
+            'workingTime.min' => 'Работното време трябва да бъде поне 1 час.',
+            'workingTime.max' => 'Работното време не може да надвишава 24 часа.',
+            'addressOfWork.required' => 'Адресът на работа е задължителен.',
+            'user_id.required' => 'Упълномощеният представител е задължителен.',
+            'user_id.exists' => 'Избраният упълномощен представител не съществува.',
+
+            // Contract dates
+            'endContractDate.after_or_equal' => 'Крайната дата на договора трябва да бъде след началната дата.',
+
+            // Optional fields
+            'email.email' => 'Имейлът трябва да бъде валиден имейл адрес.',
+            'agent_id.exists' => 'Избраният агент не съществува.',
+            'case_id.exists' => 'Избраното дело не съществува.',
         ];
     }
 }

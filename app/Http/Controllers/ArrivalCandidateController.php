@@ -345,6 +345,16 @@ class ArrivalCandidateController extends Controller
             $statusDate = $request->statusDate ?? Carbon::now()->format('m-d-Y');
             $candidate_id = $id;
 
+            // Strict Contract ID Check
+            if (!$request->has('contract_id') || !$request->contract_id) {
+                 return response()->json([
+                    'success' => false,
+                    'status' => 422,
+                    'message' => 'Contract ID is required.',
+                ], 422);
+            }
+            $contract_id = $request->contract_id;
+
 
             $existingRequestedStatus = Statushistory::where('candidate_id', $id)
                 ->where('status_id', $status_id)
@@ -380,6 +390,7 @@ class ArrivalCandidateController extends Controller
                 if (!$existingStatus) {
                     $newStatus = new Statushistory();
                     $newStatus->candidate_id = $candidate_id;
+                    $newStatus->contract_id = $contract_id;
                     $newStatus->status_id = $status;
                     $newStatus->statusDate = Carbon::createFromFormat('m-d-Y', $statusDate)->format('Y-m-d');
                     $newStatus->description = $description;

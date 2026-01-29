@@ -15,6 +15,7 @@ class AgentCandidate extends Model
         'user_id',
         'company_job_id',
         'candidate_id',
+        'contract_id',
         'status_for_candidate_from_agent_id',
         'status_date',
         'nomad_office_id',
@@ -35,6 +36,11 @@ class AgentCandidate extends Model
     public function candidate()
     {
         return $this->belongsTo(Candidate::class);
+    }
+
+    public function contract()
+    {
+        return $this->belongsTo(CandidateContract::class, 'contract_id');
     }
 
     public function companyJob()

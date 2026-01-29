@@ -103,8 +103,15 @@ class StatusController extends Controller
     public function updateStatusForCandidate(Request $request)
     {
         if ($this->isStaff() || $this->isAdminOrManager()) {
+            $request->validate([
+                'candidate_id' => 'required|integer|exists:candidates,id',
+                'status_id' => 'required|integer|exists:statuses,id',
+                'contract_id' => 'required|integer|exists:candidate_contracts,id',
+            ]);
+
             $candidate_id = $request->candidate_id;
             $status_id = $request->status_id;
+            $contract_id = $request->contract_id;
             $description = $request->description ?? null;
             $statusDate = $request->statusDate ?? Carbon::now()->format('m-d-Y');
             $sendEmail = $request->sendEmail ?? false;
@@ -146,6 +153,7 @@ class StatusController extends Controller
                 if (!$existingStatus) {
                     $newStatus = new Statushistory();
                     $newStatus->candidate_id = $candidate_id;
+                    $newStatus->contract_id = $contract_id;
                     $newStatus->status_id = $status;
                     $newStatus->statusDate = Carbon::createFromFormat('m-d-Y', $statusDate)->format('Y-m-d');
                     $newStatus->description = $description;
