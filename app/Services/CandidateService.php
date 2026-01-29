@@ -6,6 +6,7 @@ use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\AgentCandidate;
 use App\Models\CalendarEvent;
 use App\Models\Candidate;
+use App\Models\CandidateContract;
 use App\Models\CandidatePassport;
 use App\Models\Category;
 use App\Models\CompanyJob;
@@ -21,7 +22,14 @@ use Illuminate\Support\Facades\DB;
 
 class CandidateService
 {
-    public function createCandidate($data): Candidate
+    /**
+     * Create a new candidate with their first contract
+     * Implements DUAL WRITE: writes to both contracts table AND legacy columns
+     *
+     * @param array $data The candidate and contract data
+     * @return array ['candidate' => Candidate, 'contract' => CandidateContract]
+     */
+    public function createCandidate($data): array
     {
         return DB::transaction(function () use ($data) {
             $candidate = new Candidate();
@@ -37,23 +45,63 @@ class CandidateService
             $candidate->addedBy = Auth::id();
             $statusId = $data['status_id'] ?? 16; // Default to 'New' status if not provided
 
-
             // Calculate derived fields
+            $date = isset($data['date']) ? Carbon::parse($data['date']) : Carbon::now();
+            $quartal = $candidate->calculateQuartal($date);
+            $seasonal = null;
 
-            $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));
-
-            if ($data['contractType'] === Candidate::CONTRACT_TYPE_90_DAYS) {
-                $candidate->seasonal = $candidate->calculateSeason(Carbon::parse($data['date']));
+            if (($data['contractType'] ?? '') === Candidate::CONTRACT_TYPE_90_DAYS) {
+                $seasonal = $candidate->calculateSeason($date);
             }
 
+            $contractPeriodDate = null;
             if (isset($data['contractPeriod'])) {
-                $candidate->contractPeriodDate = $candidate->calculateContractEndDate(
-                    Carbon::parse($data['date']),
-                    $data['contractPeriod']
-                );
+                $contractPeriodDate = $candidate->calculateContractEndDate($date, $data['contractPeriod']);
             }
+
+            // Set legacy columns (DUAL WRITE for backward compatibility)
+            $candidate->quartal = $quartal;
+            $candidate->seasonal = $seasonal;
+            $candidate->contractPeriodDate = $contractPeriodDate;
 
             $candidate->save();
+
+            // Create first contract record (Source of Truth)
+            $contract = CandidateContract::create([
+                'candidate_id' => $candidate->id,
+                'contract_period_number' => 1,
+                'is_active' => true,
+                'company_id' => $data['company_id'] ?? null,
+                'position_id' => $data['position_id'] ?? null,
+                'status_id' => $statusId,
+                'type_id' => $data['type_id'] ?? Candidate::TYPE_CANDIDATE,
+                'contract_type' => $data['contractType'] ?? 'indefinite',
+                'contract_period' => $data['contractPeriod'] ?? null,
+                'contract_extension_period' => $data['contractExtensionPeriod'] ?? null,
+                'start_contract_date' => $data['startContractDate'] ?? null,
+                'end_contract_date' => $data['endContractDate'] ?? null,
+                'contract_period_date' => $contractPeriodDate,
+                'salary' => $data['salary'] ?? null,
+                'working_time' => $data['workingTime'] ?? null,
+                'working_days' => $data['workingDays'] ?? null,
+                'address_of_work' => $data['addressOfWork'] ?? null,
+                'name_of_facility' => $data['nameOfFacility'] ?? null,
+                'company_adresses_id' => $data['company_adresses_id'] ?? null,
+                'dossier_number' => $data['dossierNumber'] ?? null,
+                'agent_id' => $data['agent_id'] ?? null,
+                'user_id' => $data['user_id'] ?? null,
+                'case_id' => $data['case_id'] ?? null,
+                'added_by' => Auth::id(),
+                'notes' => $data['notes'] ?? null,
+                'date' => $data['date'] ?? now(),
+                'quartal' => $quartal,
+                'seasonal' => $seasonal,
+            ]);
+
+            Log::info('Created new candidate with contract', [
+                'candidate_id' => $candidate->id,
+                'contract_id' => $contract->id,
+            ]);
 
             // Create calendar event for contract expiry if endContractDate is set
             if (!empty($candidate->endContractDate)) {
@@ -73,6 +121,7 @@ class CandidateService
 
             $statusHistory = [
                 'candidate_id' => $candidate->id,
+                'contract_id' => $contract->id,
                 'status_id' => $statusId,
                 'statusDate' => Carbon::now()->toDateString(),
                 'description' => 'Candidate created',
@@ -85,7 +134,6 @@ class CandidateService
             $this->handleFileUploads($candidate, $data);
 
             // Create default category
-
             $this->createDefaultCategory($candidate);
 
             // Create agent_candidates record if agent_id and company_job_id are provided
@@ -94,23 +142,30 @@ class CandidateService
                     'user_id' => $data['agent_id'],
                     'company_job_id' => $data['company_job_id'],
                     'candidate_id' => $candidate->id,
+                    'contract_id' => $contract->id,
                     'status_for_candidate_from_agent_id' => 3, // Approved status
-                    'nomad_office_id' => Auth::user()->id ?? null, // Can be set based on your business logic
+                    'nomad_office_id' => Auth::user()->id ?? null,
                 ]);
 
                 // Check if job posting should be marked as "filled"
                 $this->checkAndUpdateJobFilledStatus($data['company_job_id']);
             }
 
-            return $candidate;
+            return [
+                'candidate' => $candidate->fresh()->load('activeContract'),
+                'contract' => $contract,
+            ];
         });
     }
 
-    public function updateCandidate(Candidate $candidate, $data): Candidate
+    public function updateCandidate(Candidate $candidate, $data, bool $skipDocumentRegeneration = false, ?int $contractId = null): Candidate
     {
-        return DB::transaction(function () use ($candidate, $data) {
-            // Clean up auto-generated files
-            $this->cleanupAutoGeneratedFiles($candidate);
+        return DB::transaction(function () use ($candidate, $data, $skipDocumentRegeneration, $contractId) {
+            // Clean up auto-generated files (only if document-affecting fields changed)
+            // If contractId is provided, only clean up files for that specific contract
+            if (!$skipDocumentRegeneration) {
+                $this->cleanupAutoGeneratedFiles($candidate, $contractId);
+            }
 
             // Convert string 'false'/'true' to boolean for has_driving_license
             if (isset($data['has_driving_license'])) {
@@ -191,34 +246,209 @@ class CandidateService
         });
     }
 
-    public function extendCandidateContract(Candidate $originalCandidate, array $data): Candidate
+    /**
+     * Extend contract - creates new contract record for existing profile
+     * Implements DUAL WRITE: writes to both contracts table AND legacy columns
+     * NO LONGER creates duplicate candidate records
+     *
+     * @param Candidate $candidate The existing candidate profile
+     * @param array $data The contract/employment data
+     * @return array ['candidate' => Candidate, 'contract' => CandidateContract]
+     */
+    public function extendCandidateContract(Candidate $candidate, array $data): array
     {
-        return DB::transaction(function () use ($originalCandidate, $data) {
-            $newCandidate = $originalCandidate->replicate();
-            $newCandidate->contractPeriodNumber = ($originalCandidate->contractPeriodNumber ?? 0) + 1;
-            $newCandidate->fill($data);
+        return DB::transaction(function () use ($candidate, $data) {
+            // Get current contract period number
+            $lastContract = $candidate->latestContract;
+            $newPeriodNumber = $lastContract ? $lastContract->contract_period_number + 1 : ($candidate->contractPeriodNumber ?? 0) + 1;
+
+            // Deactivate all previous contracts
+            $candidate->contracts()->update(['is_active' => false]);
 
             // Calculate derived fields
-            $newCandidate->quartal = $newCandidate->calculateQuartal(Carbon::parse($data['date']));
+            $date = Carbon::parse($data['date']);
+            $quartal = $candidate->calculateQuartal($date);
+            $seasonal = null;
 
-            if ($data['contractType'] === Candidate::CONTRACT_TYPE_90_DAYS) {
-                $newCandidate->seasonal = $newCandidate->calculateSeason(Carbon::parse($data['date']));
+            if (($data['contractType'] ?? '') === Candidate::CONTRACT_TYPE_90_DAYS) {
+                $seasonal = $candidate->calculateSeason($date);
             }
 
+            $contractPeriodDate = null;
             if (isset($data['contractPeriod'])) {
-                $newCandidate->contractPeriodDate = $newCandidate->calculateContractEndDate(
-                    Carbon::parse($data['date']),
-                    $data['contractPeriod']
+                $contractPeriodDate = $candidate->calculateContractEndDate($date, $data['contractPeriod']);
+            }
+
+            // Create new contract record (Source of Truth)
+            $contract = CandidateContract::create([
+                'candidate_id' => $candidate->id,
+                'contract_period_number' => $newPeriodNumber,
+                'is_active' => true,
+                'company_id' => $data['company_id'],
+                'position_id' => $data['position_id'] ?? null,
+                'status_id' => $data['status_id'] ?? null,
+                'type_id' => $data['type_id'] ?? Candidate::TYPE_CANDIDATE,
+                'contract_type' => $data['contractType'] ?? 'indefinite',
+                'contract_period' => $data['contractPeriod'] ?? null,
+                'contract_extension_period' => $data['contractExtensionPeriod'] ?? null,
+                'start_contract_date' => $data['startContractDate'] ?? null,
+                'end_contract_date' => $data['endContractDate'] ?? null,
+                'contract_period_date' => $contractPeriodDate,
+                'salary' => $data['salary'] ?? null,
+                'working_time' => $data['workingTime'] ?? null,
+                'working_days' => $data['workingDays'] ?? null,
+                'address_of_work' => $data['addressOfWork'] ?? null,
+                'name_of_facility' => $data['nameOfFacility'] ?? null,
+                'company_adresses_id' => $data['company_adresses_id'] ?? null,
+                'dossier_number' => $data['dossierNumber'] ?? null,
+                'agent_id' => $data['agent_id'] ?? null,
+                'user_id' => $data['user_id'] ?? null,
+                'case_id' => $data['case_id'] ?? null,
+                'added_by' => Auth::id(),
+                'notes' => $data['notes'] ?? null,
+                'date' => $data['date'] ?? now(),
+                'quartal' => $quartal,
+                'seasonal' => $seasonal,
+            ]);
+
+            Log::info('Created new contract', [
+                'candidate_id' => $candidate->id,
+                'contract_id' => $contract->id,
+                'contract_period_number' => $newPeriodNumber
+            ]);
+
+            // DUAL WRITE: Update legacy columns on candidate for backward compatibility
+            $this->syncContractToLegacyColumns($candidate, $contract, $data);
+
+            // Create/update calendar event for contract expiry
+            if (!empty($data['endContractDate'])) {
+                CalendarEvent::updateOrCreate(
+                    [
+                        'type' => CalendarEvent::TYPE_CONTRACT_EXPIRY,
+                        'candidate_id' => $candidate->id,
+                    ],
+                    [
+                        'title' => 'Изтичащ договор',
+                        'date' => $data['endContractDate'],
+                        'company_id' => $data['company_id'],
+                        'created_by' => Auth::id(),
+                    ]
                 );
             }
 
-            $newCandidate->save();
-
             // Handle file uploads
-            $this->handleFileUploads($newCandidate, $data);
+            $this->handleFileUploads($candidate, $data);
 
-            return $newCandidate->load('position');
+            return [
+                'candidate' => $candidate->fresh()->load('position', 'activeContract', 'contracts'),
+                'contract' => $contract,
+            ];
         });
+    }
+
+    /**
+     * Find existing candidate profile by passport or name+birthday
+     *
+     * @param array $data The candidate data containing passport, fullName, birthday
+     * @return Candidate|null
+     */
+    public function findExistingProfile(array $data): ?Candidate
+    {
+        // Priority 1: Match by passport (if valid/non-empty)
+        if (!empty($data['passport']) && strlen(trim($data['passport'])) > 5) {
+            $existing = Candidate::where('passport', $data['passport'])
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($existing) {
+                Log::info('Found existing profile by passport', [
+                    'candidate_id' => $existing->id,
+                    'passport' => $data['passport']
+                ]);
+                return $existing;
+            }
+        }
+
+        // Priority 2: Match by fullName + birthday
+        if (!empty($data['fullName']) && !empty($data['birthday'])) {
+            $existing = Candidate::where('fullName', $data['fullName'])
+                ->where('birthday', $data['birthday'])
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($existing) {
+                Log::info('Found existing profile by fullName + birthday', [
+                    'candidate_id' => $existing->id,
+                    'fullName' => $data['fullName'],
+                    'birthday' => $data['birthday']
+                ]);
+                return $existing;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Sync contract data to legacy columns on candidate record
+     * This ensures backward compatibility with existing code that reads from candidates table
+     *
+     * @param Candidate $candidate
+     * @param CandidateContract $contract
+     * @param array $data Original request data for personal info updates
+     */
+    private function syncContractToLegacyColumns(Candidate $candidate, CandidateContract $contract, array $data): void
+    {
+        // Prepare update data - contract fields
+        $updateData = [
+            'company_id' => $contract->company_id,
+            'position_id' => $contract->position_id,
+            'status_id' => $contract->status_id,
+            'type_id' => $contract->type_id,
+            'contractType' => $contract->contract_type,
+            'contractPeriod' => $contract->contract_period,
+            'contractPeriodNumber' => $contract->contract_period_number,
+            'contractExtensionPeriod' => $contract->contract_extension_period,
+            'startContractDate' => $contract->start_contract_date,
+            'endContractDate' => $contract->end_contract_date,
+            'contractPeriodDate' => $contract->contract_period_date,
+            'salary' => $contract->salary,
+            'workingTime' => $contract->working_time,
+            'workingDays' => $contract->working_days,
+            'addressOfWork' => $contract->address_of_work,
+            'nameOfFacility' => $contract->name_of_facility,
+            'company_adresses_id' => $contract->company_adresses_id,
+            'dossierNumber' => $contract->dossier_number,
+            'quartal' => $contract->quartal,
+            'seasonal' => $contract->seasonal,
+            'case_id' => $contract->case_id,
+            'agent_id' => $contract->agent_id,
+            'user_id' => $contract->user_id,
+            'date' => $contract->date,
+            'notes' => $contract->notes,
+        ];
+
+        // Also update personal fields if provided
+        $personalFields = [
+            'fullName', 'fullNameCyrillic', 'email', 'phoneNumber', 'passport',
+            'passportValidUntil', 'passportIssuedBy', 'passportIssuedOn',
+            'birthday', 'placeOfBirth', 'nationality', 'gender',
+            'address', 'areaOfResidence', 'addressOfResidence', 'periodOfResidence',
+            'education', 'specialty', 'qualification', 'martialStatus'
+        ];
+
+        foreach ($personalFields as $field) {
+            if (isset($data[$field]) && $data[$field] !== null) {
+                $updateData[$field] = $data[$field];
+            }
+        }
+
+        $candidate->update($updateData);
+
+        Log::info('Synced contract to legacy columns (dual write)', [
+            'candidate_id' => $candidate->id,
+            'contract_id' => $contract->id
+        ]);
     }
 
     public function promoteToEmployee(Candidate $candidate): bool
@@ -422,13 +652,11 @@ class CandidateService
         ]);
     }
 
-
-
     protected function createDefaultCategory(Candidate $candidate): void
     {
         foreach (\App\Enums\DefaultCandidateCategory::cases() as $category) {
             $def = $category->definition();
-            
+
             Category::create([
                 'candidate_id' => $candidate->id,
                 'nameOfCategory' => $def->name,
@@ -439,12 +667,18 @@ class CandidateService
         }
     }
 
-    protected function cleanupAutoGeneratedFiles(Candidate $candidate): void
+    protected function cleanupAutoGeneratedFiles(Candidate $candidate, ?int $contractId = null): void
     {
-        $files = File::where('candidate_id', $candidate->id)
+        $query = File::where('candidate_id', $candidate->id)
             ->where('autoGenerated', 1)
-            ->where('deleteFile', 0)
-            ->get();
+            ->where('deleteFile', 0);
+
+        // If contract_id is provided, only delete files for that specific contract
+        if ($contractId !== null) {
+            $query->where('contract_id', $contractId);
+        }
+
+        $files = $query->get();
 
         foreach ($files as $file) {
             if ($file->filePath && Storage::disk('public')->exists($file->filePath)) {

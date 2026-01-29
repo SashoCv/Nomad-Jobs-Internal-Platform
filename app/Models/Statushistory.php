@@ -12,6 +12,7 @@ class Statushistory extends Model
 
     protected $fillable = [
         'candidate_id',
+        'contract_id',
         'status_id',
         'statusDate',
         'description',
@@ -24,6 +25,11 @@ class Statushistory extends Model
     public function candidate()
     {
         return $this->belongsTo(Candidate::class, 'candidate_id');
+    }
+
+    public function contract()
+    {
+        return $this->belongsTo(CandidateContract::class, 'contract_id');
     }
 
     public function status()

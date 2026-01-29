@@ -165,6 +165,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('exportCandidates', [CandidateController::class, 'exportCandidates']); // new route for exporting candidates with latest status
     Route::get('exportCandidatesBasedOnStatus', [CandidateController::class, 'exportCandidatesBasedOnStatus']); // new route for exporting candidates based on status
 
+    // Candidate Contracts Routes (NEW)
+    Route::get('candidates/{candidateId}/contracts', [\App\Http\Controllers\CandidateContractController::class, 'index']);
+    Route::get('contracts/{id}', [\App\Http\Controllers\CandidateContractController::class, 'show']);
+    Route::put('contracts/{id}', [\App\Http\Controllers\CandidateContractController::class, 'update']);
+    Route::delete('contracts/{id}', [\App\Http\Controllers\CandidateContractController::class, 'destroy']);
+    Route::get('contracts-expiring', [\App\Http\Controllers\CandidateContractController::class, 'expiring']);
+
     Route::get('contract-types', [CandidateController::class, 'types']);
 
     // Files

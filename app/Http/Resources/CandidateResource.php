@@ -84,6 +84,8 @@ class CandidateResource extends JsonResource
             'experience' => $this->whenLoaded('experience'),
             'medicalInsurance' => $this->whenLoaded('medicalInsurance'),
             'arrival' => $this->whenLoaded('arrival'),
+            'activeContract' => $this->whenLoaded('activeContract'),
+            'contracts' => $this->whenLoaded('contracts'),
 
             // Conditional fields
             'agentFullName' => $this->when(isset($this->agentFullName), $this->agentFullName),

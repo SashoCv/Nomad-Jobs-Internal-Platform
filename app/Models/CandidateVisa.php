@@ -12,6 +12,7 @@ class CandidateVisa extends Model
 
     protected $fillable = [
         'candidate_id',
+        'contract_id',
         'start_date',
         'end_date',
         'file_path',
@@ -28,5 +29,10 @@ class CandidateVisa extends Model
     public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class);
+    }
+
+    public function contract(): BelongsTo
+    {
+        return $this->belongsTo(CandidateContract::class, 'contract_id');
     }
 }

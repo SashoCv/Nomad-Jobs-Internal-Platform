@@ -117,6 +117,19 @@ class ArrivalController extends Controller
                 }
             }
 
+            // Fetch candidate to get contract info
+            $candidate = Candidate::find($candidateId);
+            if (!$candidate) {
+                return response()->json(['error' => 'Candidate not found'], 404);
+            }
+
+            // STRICT CONTRACT CHECK
+            $activeContract = $candidate->activeContract;
+            if (!$activeContract) {
+                return response()->json(['error' => 'Active contract required to create arrival status.'], 422);
+            }
+            $contractId = $activeContract->id;
+
             // Status ID for "Arrival Expected"
             $statusId = Status::ARRIVAL_EXPECTED;
             $sendEmail = $request->sendEmail ?? false;
@@ -144,6 +157,7 @@ class ArrivalController extends Controller
                 if (!$existingStatus) {
                     Statushistory::create([
                         'candidate_id' => $candidateId,
+                        'contract_id'  => $contractId,
                         'status_id'    => $status,
                         'statusDate'   => $arrivalDate,
                         'description'  => 'Arrival Expected',
@@ -155,7 +169,6 @@ class ArrivalController extends Controller
             }
 
             // Update the candidate's current status (CRITICAL FIX!)
-            $candidate = Candidate::find($candidateId);
             if ($candidate) {
                 $candidate->status_id = $statusId;
                 $candidate->save();
@@ -268,6 +281,17 @@ class ArrivalController extends Controller
             $sendEmail = $request->sendEmail ?? false;
 
             $candidate = Candidate::find($candidateId);
+            if (!$candidate) {
+                return response()->json(['error' => 'Candidate not found'], 404);
+            }
+
+            // STRICT CONTRACT CHECK
+            $activeContract = $candidate->activeContract;
+            if (!$activeContract) {
+                 return response()->json(['error' => 'Active contract required to update arrival status.'], 422);
+            }
+            $contractId = $activeContract->id;
+
 
             // Update calendar event for arrival
             CalendarEvent::updateOrCreate(

@@ -11,6 +11,7 @@ class File extends Model
 
     protected $fillable = [
         'candidate_id',
+        'contract_id',
         'arrival_id',
         'category_id',
         'filePath',
@@ -23,6 +24,11 @@ class File extends Model
     public function candidates()
     {
         return $this->belongsTo(Candidate::class,'candidate_id');
+    }
+
+    public function contract()
+    {
+        return $this->belongsTo(CandidateContract::class, 'contract_id');
     }
 
     public function category()

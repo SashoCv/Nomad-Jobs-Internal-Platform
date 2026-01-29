@@ -12,6 +12,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'candidate_id',
+        'contract_id',
         'company_id',
         'company_service_contract_id',
         'contract_service_type_id',
@@ -30,6 +31,11 @@ class Invoice extends Model
     public function candidate()
     {
         return $this->belongsTo(Candidate::class);
+    }
+
+    public function contract()
+    {
+        return $this->belongsTo(CandidateContract::class, 'contract_id');
     }
 
     public function company()

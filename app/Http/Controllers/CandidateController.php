@@ -291,10 +291,24 @@ class CandidateController extends Controller
             }
 
             Log::info('Creating candidate with data in STORE', ['data' => $data]);
-            $candidate = $this->candidateService->createCandidate($data);
+            $result = $this->candidateService->createCandidate($data);
 
-            Log::info('Candidate created successfully', ['candidate_id' => $candidate->id]);
-            return $this->successResponse(new CandidateResource($candidate), 'Candidate created successfully');
+            Log::info('Candidate created successfully', [
+                'candidate_id' => $result['candidate']->id,
+                'contract_id' => $result['contract']->id,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [
+                    'id' => $result['candidate']->id,
+                    'contract_id' => $result['contract']->id,
+                    'contract_period_number' => $result['contract']->contract_period_number,
+                    'candidate' => new CandidateResource($result['candidate']),
+                ],
+                'message' => 'Candidate created successfully',
+            ]);
         } catch (\Exception $e) {
             Log::error('Error creating candidate: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
@@ -485,7 +499,14 @@ class CandidateController extends Controller
             $candidate = Candidate::findOrFail($id);
             $data = $request->all();
 
-            $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data);
+            // Check if document regeneration should be skipped
+            // (used when only non-document fields like phone/email are changed)
+            $skipDocumentRegeneration = $request->boolean('skip_document_regeneration', false);
+
+            // Get contract_id if provided - used to clean up only files for a specific contract
+            $contractId = $request->has('contract_id') ? (int) $request->input('contract_id') : null;
+
+            $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data, $skipDocumentRegeneration, $contractId);
 
             if($candidate->status_id == NULL){
                 $candidate->status_id = 16;
@@ -508,123 +529,110 @@ class CandidateController extends Controller
     }
 
 
+    /**
+     * Extend contract for existing candidate profile
+     * NO LONGER creates duplicate candidate record - creates a new contract instead
+     * Implements DUAL WRITE: updates both contracts table and legacy columns
+     */
     public function extendContractForCandidate(Request $request, $id)
     {
-        if ($this->isStaff()) {
-            $oldPerson = Candidate::where('id', '=', $id)->first();
-            $contractPeriodNumber = $oldPerson->contractPeriodNumber;
-            $newContractPeriodNumber = $contractPeriodNumber + 1;
-
-            $person = new Candidate();
-
-            $person->contractPeriodNumber = $newContractPeriodNumber;
-            $person->status_id = $request->status_id;
-            $person->type_id = 1;
-            $person->company_id = $request->company_id;
-            $person->gender = $request->gender;
-            $person->email = $request->email;
-            $person->nationality = $request->nationality;
-            $person->date = $request->date;
-            $person->phoneNumber = $request->phoneNumber;
-            $person->address = $request->address;
-            $person->passport = $request->passport;
-            $person->fullName = $request->fullName;
-            $person->fullNameCyrillic = $request->fullNameCyrillic;
-            $person->birthday = $request->birthday;
-            $person->placeOfBirth = $request->placeOfBirth;
-            $person->country = $request->country;
-            $person->area = $request->area;
-            $person->areaOfResidence = $request->areaOfResidence;
-            $person->addressOfResidence = $request->addressOfResidence;
-            $person->periodOfResidence = $request->periodOfResidence;
-            $person->passportValidUntil = $request->passportValidUntil;
-            $person->passportIssuedBy = $request->passportIssuedBy;
-            $person->passportIssuedOn = $request->passportIssuedOn;
-            $person->addressOfWork = $request->addressOfWork;
-            $person->nameOfFacility = $request->nameOfFacility;
-            $person->education = $request->education;
-            $person->specialty = $request->specialty;
-            $person->qualification = $request->qualification;
-            $person->contractExtensionPeriod = $request->contractExtensionPeriod;
-            $person->salary = $request->salary;
-            $person->workingTime = $request->workingTime;
-            $person->workingDays = $request->workingDays;
-            $person->martialStatus = $request->martialStatus;
-            $person->contractPeriod = $request->contractPeriod;
-            $person->contractType = $request->contractType;
-            $person->position_id = $request->position_id;
-            $person->dossierNumber = $request->dossierNumber;
-            $person->notes = $request->notes;
-            $person->user_id = $request->user_id ?? null;
-            $person->case_id = $request->case_id ?? null;
-            $person->agent_id = $request->agent_id ?? null;
-
-
-            $quartalyYear = date('Y', strtotime($request->date));
-            $quartalyMonth = date('m', strtotime($request->date));
-            $person->quartal = $quartalyMonth . "/" . $quartalyYear;
-
-            preg_match('/\d+/', $request->contractPeriod, $matches);
-            $contractPeriod = isset($matches[0]) ? (int) $matches[0] : null;
-
-            if($contractPeriod === null){
-                $contractPeriodDate = null;
-            } else {
-                $date = Carbon::parse($request->date);
-                $contractPeriodDate = $date->addYears($contractPeriod);
-            }
-
-            $person->contractPeriodDate = $contractPeriodDate;
-
-            if($request->contractType == '90days'){
-                if ($quartalyMonth > 5 && $quartalyMonth < 9) {
-                    $person->seasonal = 'summer' . '/' . $quartalyYear;
-                } else if ($quartalyMonth > 11 || $quartalyMonth <= 2) {
-                    $person->seasonal = 'winter' . '/' . ($quartalyMonth > 11 ? $quartalyYear : $quartalyYear - 1);
-                } else if ($quartalyMonth > 2 && $quartalyMonth <= 5) {
-                    $person->seasonal = 'spring' . '/' . $quartalyYear;
-                } else if ($quartalyMonth > 8 && $quartalyMonth <= 11) {
-                    $person->seasonal = 'autumn' . '/' . $quartalyYear;
-                }
-            } else {
-                $person->seasonal = Null;
-            }
-
-            if ($request->hasFile('personPassport')) {
-                Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-                $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-                $person->passportPath = $name;
-                $person->passportName = $request->file('personPassport')->getClientOriginalName();
-            }
-
-
-            if ($request->hasFile('personPicture')) {
-                Storage::disk('public')->put('personImages', $request->file('personPicture'));
-                $name = Storage::disk('public')->put('companyImages', $request->file('personPicture'));
-                $person->personPicturePath = $name;
-                $person->personPictureName = $request->file('personPicture')->getClientOriginalName();
-            }
-
-            Log::info('person', [$person]);
-            if ($person->save()) {
-                $newPerson = Candidate::with('position')->where('id', '=', $person->id)->first();
-                return response()->json([
-                    'success' => true,
-                    'status' => 200,
-                    'data' => $newPerson,
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'status' => 500,
-                    'data' => [],
-                ]);
-            }
-        } else {
+        if (!$this->isStaff()) {
             return response()->json([
                 'success' => false,
                 'status' => 401,
                 'message' => 'You are not authorized to perform this action',
+            ]);
+        }
+
+        try {
+            $candidate = Candidate::findOrFail($id);
+
+            // Prepare contract data from request
+            $contractData = [
+                'company_id' => $request->company_id,
+                'position_id' => $request->position_id,
+                'status_id' => $request->status_id,
+                'type_id' => 1, // Candidate type for new contract
+                'contractType' => $request->contractType,
+                'contractPeriod' => $request->contractPeriod,
+                'contractExtensionPeriod' => $request->contractExtensionPeriod,
+                'startContractDate' => $request->startContractDate,
+                'endContractDate' => $request->endContractDate,
+                'salary' => $request->salary,
+                'workingTime' => $request->workingTime,
+                'workingDays' => $request->workingDays,
+                'addressOfWork' => $request->addressOfWork,
+                'nameOfFacility' => $request->nameOfFacility,
+                'company_adresses_id' => $request->company_adresses_id,
+                'dossierNumber' => $request->dossierNumber,
+                'agent_id' => $request->agent_id,
+                'user_id' => $request->user_id,
+                'case_id' => $request->case_id,
+                'notes' => $request->notes,
+                'date' => $request->date,
+                // Personal fields to update on the profile
+                'fullName' => $request->fullName,
+                'fullNameCyrillic' => $request->fullNameCyrillic,
+                'email' => $request->email,
+                'phoneNumber' => $request->phoneNumber,
+                'passport' => $request->passport,
+                'passportValidUntil' => $request->passportValidUntil,
+                'passportIssuedBy' => $request->passportIssuedBy,
+                'passportIssuedOn' => $request->passportIssuedOn,
+                'birthday' => $request->birthday,
+                'placeOfBirth' => $request->placeOfBirth,
+                'nationality' => $request->nationality,
+                'gender' => $request->gender,
+                'address' => $request->address,
+                'area' => $request->area,
+                'areaOfResidence' => $request->areaOfResidence,
+                'addressOfResidence' => $request->addressOfResidence,
+                'periodOfResidence' => $request->periodOfResidence,
+                'education' => $request->education,
+                'specialty' => $request->specialty,
+                'qualification' => $request->qualification,
+                'martialStatus' => $request->martialStatus,
+            ];
+
+            // Handle file uploads (add to contractData for the service)
+            if ($request->hasFile('personPicture')) {
+                $contractData['personPicture'] = $request->file('personPicture');
+            }
+            if ($request->hasFile('personPassport')) {
+                $contractData['personPassport'] = $request->file('personPassport');
+            }
+
+            // Use the service to extend contract (creates contract record + dual write)
+            $result = $this->candidateService->extendCandidateContract($candidate, $contractData);
+
+            Log::info('Contract extended successfully', [
+                'candidate_id' => $result['candidate']->id,
+                'contract_id' => $result['contract']->id,
+                'contract_period_number' => $result['contract']->contract_period_number
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'status' => 200,
+                'data' => [
+                    'id' => $result['candidate']->id,  // SAME candidate ID (not a new person!)
+                    'contract_id' => $result['contract']->id,  // NEW contract ID
+                    'contract_period_number' => $result['contract']->contract_period_number,
+                    // Include full candidate data for backward compatibility
+                    'candidate' => $result['candidate'],
+                ],
+                'message' => 'Contract extended successfully',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error extending contract: ' . $e->getMessage(), [
+                'candidate_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'status' => 500,
+                'message' => 'Failed to extend contract: ' . $e->getMessage(),
             ]);
         }
     }
