@@ -503,7 +503,10 @@ class CandidateController extends Controller
             // (used when only non-document fields like phone/email are changed)
             $skipDocumentRegeneration = $request->boolean('skip_document_regeneration', false);
 
-            $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data, $skipDocumentRegeneration);
+            // Get contract_id if provided - used to clean up only files for a specific contract
+            $contractId = $request->has('contract_id') ? (int) $request->input('contract_id') : null;
+
+            $updatedCandidate = $this->candidateService->updateCandidate($candidate, $data, $skipDocumentRegeneration, $contractId);
 
             if($candidate->status_id == NULL){
                 $candidate->status_id = 16;
