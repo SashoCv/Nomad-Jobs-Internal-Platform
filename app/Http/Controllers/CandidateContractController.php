@@ -161,6 +161,79 @@ class CandidateContractController extends Controller
     }
 
     /**
+     * Delete a contract
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $contract = CandidateContract::find($id);
+
+        if (!$contract) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Contract not found',
+            ], 404);
+        }
+
+        // Check if this is the only contract for the candidate
+        $contractCount = CandidateContract::where('candidate_id', $contract->candidate_id)->count();
+        if ($contractCount <= 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete the only contract for this candidate',
+            ], 400);
+        }
+
+        // If deleting the active contract, make another one active
+        if ($contract->is_active) {
+            $nextContract = CandidateContract::where('candidate_id', $contract->candidate_id)
+                ->where('id', '!=', $id)
+                ->orderBy('contract_period_number', 'desc')
+                ->first();
+
+            if ($nextContract) {
+                $nextContract->update(['is_active' => true]);
+
+                // Update candidate's legacy columns to reflect the new active contract
+                $candidate = $nextContract->candidate;
+                if ($candidate) {
+                    $candidate->update([
+                        'company_id' => $nextContract->company_id,
+                        'position_id' => $nextContract->position_id,
+                        'status_id' => $nextContract->status_id,
+                        'type_id' => $nextContract->type_id,
+                        'contractType' => $nextContract->contract_type,
+                        'contractPeriod' => $nextContract->contract_period,
+                        'startContractDate' => $nextContract->start_contract_date,
+                        'endContractDate' => $nextContract->end_contract_date,
+                        'salary' => $nextContract->salary,
+                        'workingTime' => $nextContract->working_time,
+                        'workingDays' => $nextContract->working_days,
+                        'addressOfWork' => $nextContract->address_of_work,
+                        'nameOfFacility' => $nextContract->name_of_facility,
+                        'dossierNumber' => $nextContract->dossier_number,
+                        'company_adresses_id' => $nextContract->company_adresses_id,
+                        'notes' => $nextContract->notes,
+                    ]);
+                }
+            }
+        }
+
+        // Delete related files first
+        $contract->files()->delete();
+
+        // Delete the contract
+        $contract->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contract deleted successfully',
+        ]);
+    }
+
+    /**
      * Get expiring contracts (contracts expiring within specified months)
      *
      * @param Request $request
