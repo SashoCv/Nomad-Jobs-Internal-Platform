@@ -15,6 +15,7 @@ use App\Models\Role;
 use App\Models\Permission;
 use App\Models\UserOwner;
 use App\Models\CandidateCvPhoto;
+use App\Models\CandidatePassport;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use App\Services\CvGeneratorService;
@@ -150,21 +151,32 @@ class AgentCandidateController extends Controller
         $person->agent_id = Auth::user()->id;
 
         if ($request->hasFile('personPassport')) {
-            Storage::disk('public')->put('personPassports', $request->file('personPassport'));
             $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
             $person->passportPath = $name;
             $person->passportName = $request->file('personPassport')->getClientOriginalName();
         }
 
         if ($request->hasFile('personPicture')) {
-            Storage::disk('public')->put('personImages', $request->file('personPicture'));
-            $name = Storage::disk('public')->put('companyImages', $request->file('personPicture'));
+            $name = Storage::disk('public')->put('personImages', $request->file('personPicture'));
             $person->personPicturePath = $name;
             $person->personPictureName = $request->file('personPicture')->getClientOriginalName();
         }
 
         if($person->save()){
-
+            // Sync passport data to candidate_passports table (dual-write)
+            if ($person->passportValidUntil || $person->passport || $person->passportPath) {
+                CandidatePassport::updateOrCreate(
+                    ['candidate_id' => $person->id],
+                    [
+                        'passport_number' => $person->passport,
+                        'issue_date' => $person->passportIssuedOn,
+                        'expiry_date' => $person->passportValidUntil,
+                        'issued_by' => $person->passportIssuedBy,
+                        'file_path' => $person->passportPath,
+                        'file_name' => $person->passportName,
+                    ]
+                );
+            }
 
             if(count($educations) > 0){
                 foreach ($educations as $education) {
@@ -541,6 +553,21 @@ class AgentCandidateController extends Controller
 
             // Save the person
             if ($person->save()) {
+                // Sync passport data to candidate_passports table (dual-write)
+                if ($person->passportValidUntil || $person->passport || $person->passportPath) {
+                    CandidatePassport::updateOrCreate(
+                        ['candidate_id' => $person->id],
+                        [
+                            'passport_number' => $person->passport,
+                            'issue_date' => $person->passportIssuedOn,
+                            'expiry_date' => $person->passportValidUntil,
+                            'issued_by' => $person->passportIssuedBy,
+                            'file_path' => $person->passportPath,
+                            'file_name' => $person->passportName,
+                        ]
+                    );
+                }
+
                 // Handle educations update
                 if ($request->has('educations')) {
                     // Delete existing educations
