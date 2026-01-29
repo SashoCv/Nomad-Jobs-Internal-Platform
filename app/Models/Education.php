@@ -17,6 +17,11 @@ class Education extends Model
         'end_date',
     ];
 
+    protected $casts = [
+        'start_date' => 'integer',
+        'end_date' => 'integer',
+    ];
+
     public function candidate()
     {
         return $this->belongsTo(Candidate::class);
