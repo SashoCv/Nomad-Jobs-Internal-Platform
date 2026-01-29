@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CalendarEvent;
 use App\Models\Candidate;
 use App\Models\MedicalInsurance;
+use App\Models\Status;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -128,8 +129,20 @@ class MedicalInsuranceController extends Controller
             $currentDate = now();
             $thirtyDaysAgo = $currentDate->copy()->addDays(30);
 
+            // Exclude candidates with terminated/refused statuses
+            $excludedStatuses = [
+                Status::TERMINATED_CONTRACT,
+                Status::REFUSED_MIGRATION,
+                Status::REFUSED_CANDIDATE,
+                Status::REFUSED_EMPLOYER,
+                Status::REFUSED_BY_MIGRATION_OFFICE,
+            ];
+
             $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
                 ->with($this->withCandidateRelations())
+                ->whereHas('candidate', function ($query) use ($excludedStatuses) {
+                    $query->whereNotIn('status_id', $excludedStatuses);
+                })
                 ->where('dateTo', '<=', $thirtyDaysAgo)
                 ->orderBy('dateTo', 'desc')
                 ->paginate();

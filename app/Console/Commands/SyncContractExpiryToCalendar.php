@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\CalendarEvent;
 use App\Models\Candidate;
+use App\Models\Status;
 use Illuminate\Console\Command;
 
 class SyncContractExpiryToCalendar extends Command
@@ -31,7 +32,17 @@ class SyncContractExpiryToCalendar extends Command
     {
         $this->info('Syncing contract expiry dates to calendar events...');
 
+        // Exclude candidates with terminated/refused statuses
+        $excludedStatuses = [
+            Status::TERMINATED_CONTRACT,
+            Status::REFUSED_MIGRATION,
+            Status::REFUSED_CANDIDATE,
+            Status::REFUSED_EMPLOYER,
+            Status::REFUSED_BY_MIGRATION_OFFICE,
+        ];
+
         $candidates = Candidate::whereNotNull('endContractDate')
+            ->whereNotIn('status_id', $excludedStatuses)
             ->select('id', 'endContractDate', 'company_id')
             ->get();
 

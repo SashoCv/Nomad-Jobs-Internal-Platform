@@ -30,6 +30,10 @@ class AgentPermissions
             Permission::PASSPORT_CREATE,
             Permission::PASSPORT_UPDATE,
             Permission::PASSPORT_DELETE,
+            Permission::VISA_READ,
+            Permission::VISA_CREATE,
+            Permission::VISA_UPDATE,
+            Permission::VISA_DELETE
         ];
     }
 }

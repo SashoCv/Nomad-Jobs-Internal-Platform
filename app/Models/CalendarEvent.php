@@ -31,6 +31,11 @@ class CalendarEvent extends Model
     const TYPE_INSURANCE_EXPIRY = 'insurance_expiry';
     const TYPE_VISA_EXPIRY = 'visa_expiry';
     const TYPE_PASSPORT_EXPIRY = 'passport_expiry';
+    const TYPE_RECEIVED_VISA = 'received_visa';
+    const TYPE_ERPR_PROCEDURE = 'erpr_procedure';
+    const TYPE_ERPR_LETTER = 'erpr_letter';
+    const TYPE_ERPR_PHOTO = 'erpr_photo';
+    const TYPE_HIRED = 'hired';
 
     public function candidate()
     {
