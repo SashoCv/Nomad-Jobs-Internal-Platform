@@ -9,31 +9,27 @@ return new class extends Migration
     /**
      * Sync passport data from legacy candidates columns to candidate_passports table.
      *
-     * This migration fixes two issues:
-     * 1. 131 candidates created after Jan 22, 2026 that have passport data but no record in candidate_passports
-     * 2. 50 records with mismatched data between tables (legacy columns have more recent/correct data)
+     * This migration fixes:
+     * - ~120 candidates created after Jan 22, 2026 that have complete passport data but no record in candidate_passports
+     * - Mismatched records where legacy columns have more recent/correct data
      *
+     * Note: Skips ~7 old records that only have passport number without dates (garbage data).
      * The legacy candidates table is used as the source of truth.
      */
     public function up(): void
     {
         // Step 1: Insert missing passport records (candidates without a passport record)
+        // Only include records with at least passportValidUntil (expiry date) to skip garbage data
         $missingCount = DB::table('candidates as c')
             ->leftJoin('candidate_passports as cp', 'c.id', '=', 'cp.candidate_id')
             ->whereNull('cp.id')
             ->whereNull('c.deleted_at')
-            ->where(function ($query) {
-                $query->whereNotNull('c.passport')
-                    ->orWhereNotNull('c.passportValidUntil')
-                    ->orWhereNotNull('c.passportIssuedOn')
-                    ->orWhereNotNull('c.passportIssuedBy')
-                    ->orWhereNotNull('c.passportPath');
-            })
+            ->whereNotNull('c.passportValidUntil')
             ->count();
 
         Log::info("Passport sync migration: Found {$missingCount} candidates without passport records");
 
-        // Insert missing records
+        // Insert missing records - require passportValidUntil to filter out garbage data
         DB::statement("
             INSERT INTO candidate_passports (candidate_id, passport_number, expiry_date, issue_date, issued_by, file_path, file_name, created_at, updated_at)
             SELECT
@@ -50,13 +46,7 @@ return new class extends Migration
             LEFT JOIN candidate_passports cp ON c.id = cp.candidate_id
             WHERE cp.id IS NULL
               AND c.deleted_at IS NULL
-              AND (
-                  c.passport IS NOT NULL
-                  OR c.passportValidUntil IS NOT NULL
-                  OR c.passportIssuedOn IS NOT NULL
-                  OR c.passportIssuedBy IS NOT NULL
-                  OR c.passportPath IS NOT NULL
-              )
+              AND c.passportValidUntil IS NOT NULL
         ");
 
         Log::info("Passport sync migration: Inserted missing passport records");
@@ -93,14 +83,12 @@ return new class extends Migration
         Log::info("Passport sync migration: Updated all passport records from legacy data");
 
         // Verification queries
+        // Only count missing records with passportValidUntil (excludes garbage data)
         $stillMissing = DB::table('candidates as c')
             ->leftJoin('candidate_passports as cp', 'c.id', '=', 'cp.candidate_id')
             ->whereNull('cp.id')
             ->whereNull('c.deleted_at')
-            ->where(function ($query) {
-                $query->whereNotNull('c.passport')
-                    ->orWhereNotNull('c.passportValidUntil');
-            })
+            ->whereNotNull('c.passportValidUntil')
             ->count();
 
         $stillMismatched = DB::table('candidates as c')
