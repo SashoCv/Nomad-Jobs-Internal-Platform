@@ -328,34 +328,8 @@ class CandidateService
 
     protected function handleFileUploads(Candidate $candidate, array $data): void
     {
-        // Handle passport - create record in candidate_passports table
-        if (isset($data['personPassport'])
-            && $data['personPassport'] instanceof UploadedFile
-            && $data['personPassport']->isValid()
-            && $data['personPassport']->getSize() > 0
-        ) {
-            // Store file in organized directory structure
-            $directory = 'candidate/' . $candidate->id . '/passport';
-            $fileName = \Illuminate\Support\Str::uuid() . '_' . $data['personPassport']->getClientOriginalName();
-            $passportPath = $data['personPassport']->storeAs($directory, $fileName, 'public');
-
-            // Create passport record using existing form field names
-            CandidatePassport::create([
-                'candidate_id' => $candidate->id,
-                'file_path' => $passportPath,
-                'file_name' => $data['personPassport']->getClientOriginalName(),
-                'passport_number' => $data['passport'] ?? null,
-                'issue_date' => $data['passportIssuedOn'] ?? null,
-                'expiry_date' => $data['passportValidUntil'] ?? null,
-                'issued_by' => $data['passportIssuedBy'] ?? null,
-            ]);
-
-            // Also update legacy fields for backward compatibility (can be removed later)
-            $candidate->update([
-                'passportPath' => $passportPath,
-                'passportName' => $data['personPassport']->getClientOriginalName()
-            ]);
-        }
+        // Handle passport - always sync to candidate_passports table
+        $this->syncPassportData($candidate, $data);
 
         // Handle profile picture
         if (isset($data['personPicture'])
@@ -369,6 +343,83 @@ class CandidateService
                 'personPictureName' => $data['personPicture']->getClientOriginalName()
             ]);
         }
+    }
+
+    /**
+     * Sync passport data to candidate_passports table.
+     * Handles both file uploads and text field updates.
+     * Implements DUAL WRITE for backward compatibility with legacy columns.
+     */
+    protected function syncPassportData(Candidate $candidate, array $data): void
+    {
+        $passportPath = null;
+        $passportFileName = null;
+
+        // Handle file upload if present
+        if (isset($data['personPassport'])
+            && $data['personPassport'] instanceof UploadedFile
+            && $data['personPassport']->isValid()
+            && $data['personPassport']->getSize() > 0
+        ) {
+            // Store file in organized directory structure
+            $directory = 'candidate/' . $candidate->id . '/passport';
+            $fileName = \Illuminate\Support\Str::uuid() . '_' . $data['personPassport']->getClientOriginalName();
+            $passportPath = $data['personPassport']->storeAs($directory, $fileName, 'public');
+            $passportFileName = $data['personPassport']->getClientOriginalName();
+
+            // Update legacy fields for backward compatibility
+            $candidate->update([
+                'passportPath' => $passportPath,
+                'passportName' => $passportFileName
+            ]);
+        }
+
+        // Check if we have any passport data to sync
+        $hasPassportData = !empty($data['passport'])
+            || !empty($data['passportValidUntil'])
+            || !empty($data['passportIssuedOn'])
+            || !empty($data['passportIssuedBy'])
+            || $passportPath !== null;
+
+        if (!$hasPassportData) {
+            return;
+        }
+
+        // Build update data - only include fields that are present in the request
+        $passportData = [
+            'candidate_id' => $candidate->id,
+        ];
+
+        // Always sync these fields if present in request
+        if (array_key_exists('passport', $data)) {
+            $passportData['passport_number'] = $data['passport'];
+        }
+        if (array_key_exists('passportValidUntil', $data)) {
+            $passportData['expiry_date'] = $data['passportValidUntil'];
+        }
+        if (array_key_exists('passportIssuedOn', $data)) {
+            $passportData['issue_date'] = $data['passportIssuedOn'];
+        }
+        if (array_key_exists('passportIssuedBy', $data)) {
+            $passportData['issued_by'] = $data['passportIssuedBy'];
+        }
+
+        // Add file data if uploaded
+        if ($passportPath !== null) {
+            $passportData['file_path'] = $passportPath;
+            $passportData['file_name'] = $passportFileName;
+        }
+
+        // Create or update passport record
+        CandidatePassport::updateOrCreate(
+            ['candidate_id' => $candidate->id],
+            $passportData
+        );
+
+        Log::info('Synced passport data to candidate_passports', [
+            'candidate_id' => $candidate->id,
+            'has_file' => $passportPath !== null,
+        ]);
     }
 
 
