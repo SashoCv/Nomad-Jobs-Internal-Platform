@@ -239,17 +239,12 @@ class Candidate extends Model
     }
 
     /**
-     * Get the currently active contract.
-     * If no contract is marked as active, returns the only contract (if there's just one)
-     * or the latest contract as fallback.
+     * Get the currently active contract
      */
     public function activeContract(): HasOne
     {
         return $this->hasOne(CandidateContract::class)
-            ->where(function ($query) {
-                $query->where('is_active', true)
-                    ->orWhereRaw('(SELECT COUNT(*) FROM candidate_contracts WHERE candidate_id = candidates.id) = 1');
-            })
+            ->where('is_active', true)
             ->latestOfMany('contract_period_number');
     }
 
