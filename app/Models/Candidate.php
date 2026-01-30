@@ -36,25 +36,19 @@ class Candidate extends Model
 
     protected $appends = ['workAddressCity'];
 
-    /**
-     * Get the city from the selected company work address.
-     * This is a virtual property used in documents and the frontend.
-     */
     public function getWorkAddressCityAttribute(): ?string
     {
-        // Check if the relationship is loaded and exists
-        if ($this->companyAddress) {
-            $city = $this->companyAddress->city;
-
-            // Handle both City model relationship and legacy string column
-            if ($city instanceof \App\Models\City) {
-                return $city->name;
-            }
-
-            return is_string($city) ? $city : null;
+        if (! $this->companyAddress) {
+            return null;
         }
 
-        return null;
+        $city = $this->companyAddress->city;
+
+        if ($city instanceof \App\Models\City) {
+            return $city->name;
+        }
+
+        return is_string($city) ? $city : null;
     }
 
     protected $casts = [
@@ -65,10 +59,14 @@ class Candidate extends Model
     const TYPE_CANDIDATE = 1;
     const TYPE_EMPLOYEE = 2;
 
-    const CONTRACT_TYPE_90_DAYS = '90 дни';
-    const CONTRACT_TYPE_YEARLY = 'indefinite';
-
+    const CONTRACT_TYPE_90_DAYS = '90days';
     const CONTRACT_TYPE_9_MONTHS = '9months';
+    const CONTRACT_TYPE_ERPR_1 = 'erpr1';
+    const CONTRACT_TYPE_ERPR_2 = 'erpr2';
+    const CONTRACT_TYPE_ERPR_3 = 'erpr3';
+
+    // Deprecated - kept for backward compatibility
+    const CONTRACT_TYPE_YEARLY = 'erpr1';
 
     const SEASON_SPRING = 'spring';
     const SEASON_SUMMER = 'summer';
@@ -94,7 +92,6 @@ class Candidate extends Model
     {
         return $this->belongsTo(ContractCandidate::class, 'contract_candidates_id');
     }
-
 
     public function status()
     {
@@ -226,21 +223,11 @@ class Candidate extends Model
         return $this->hasOne(CandidateCvPhoto::class)->where('type', CandidateCvPhoto::TYPE_DRIVING_LICENSE);
     }
 
-    // ==================
-    // Contract Relationships (NEW)
-    // ==================
-
-    /**
-     * Get all contracts for this candidate (person profile)
-     */
     public function contracts(): HasMany
     {
         return $this->hasMany(CandidateContract::class)->orderBy('contract_period_number', 'desc');
     }
 
-    /**
-     * Get the currently active contract
-     */
     public function activeContract(): HasOne
     {
         return $this->hasOne(CandidateContract::class)
@@ -248,18 +235,12 @@ class Candidate extends Model
             ->latestOfMany('contract_period_number');
     }
 
-    /**
-     * Get the most recent contract (active or not)
-     */
     public function latestContract(): HasOne
     {
         return $this->hasOne(CandidateContract::class)
             ->latestOfMany('contract_period_number');
     }
 
-    /**
-     * Get the count of contracts for this candidate
-     */
     public function getContractsCountAttribute(): int
     {
         return $this->contracts()->count();
@@ -409,7 +390,7 @@ class Candidate extends Model
 
     public function getContractStatusAttribute(): string
     {
-        if (!$this->endContractDate) {
+        if (! $this->endContractDate) {
             return 'No end date';
         }
 
@@ -440,7 +421,7 @@ class Candidate extends Model
 
     public function getStatusDateAttribute()
     {
-        if (!$this->status_id) {
+        if (! $this->status_id) {
             return null;
         }
 

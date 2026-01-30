@@ -23,41 +23,53 @@ class SendEmailToCompany implements ShouldQueue
 
     protected $arrivalCandidateId;
 
-    public function __construct($arrivalCandidateId)
+    public function __construct(int $arrivalCandidateId)
     {
         $this->arrivalCandidateId = $arrivalCandidateId;
         $this->onQueue('mail');
     }
 
-    public function handle()
+    public function handle(): void
     {
         Log::info("SendEmailForArrivalCandidates Job Started.");
 
         $arrivalCandidate = ArrivalCandidate::find($this->arrivalCandidateId);
+
+        if (! $arrivalCandidate) {
+            Log::error("ArrivalCandidate not found: {$this->arrivalCandidateId}");
+            return;
+        }
+
         $arrival = Arrival::find($arrivalCandidate->arrival_id);
+
+        if (! $arrival) {
+            Log::error("Arrival not found: {$arrivalCandidate->arrival_id}");
+            return;
+        }
+
         $candidate = Candidate::find($arrival->candidate_id);
         $company = Company::find($arrival->company_id);
-        $positionId = $candidate->position_id;
-        $position = Position::find($positionId);
-        $typeOfContract = $this->getTypeOfContract($candidate->contractType);
-        $companyAddress = $company->address;
-        $email = $company->default_email;
-        $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
-        $status = $statusArrival->statusName;
 
+        if (! $candidate || ! $company) {
+            Log::error("Candidate or Company not found for arrival: {$arrival->id}");
+            return;
+        }
+
+        $position = Position::find($candidate->position_id);
+        $statusArrival = StatusArrival::find($arrivalCandidate->status_arrival_id);
 
         $data = [
             'candidateName' => $candidate->fullNameCyrillic,
             'companyName' => $company->nameOfCompany,
-            'status' => $status,
-            'jobPosition' => $position->jobPosition,
-            'contractType' => $typeOfContract,
+            'status' => $statusArrival?->statusName,
+            'jobPosition' => $position?->jobPosition,
+            'contractType' => $this->getTypeOfContract($candidate->contractType),
             'changedStatusDate' => $arrivalCandidate->status_date,
             'description' => $arrivalCandidate->status_description,
             'phone_number' => $arrival->phone_number,
             'arrivalTime' => $arrival->arrival_time,
             'arrivalDate' => Carbon::parse($arrival->arrival_date)->format('d.m.Y'),
-            'companyAddress' => $companyAddress,
+            'companyAddress' => $company->address,
             'personPicture' => $candidate->personPicturePath,
         ];
 
@@ -67,24 +79,19 @@ class SendEmailToCompany implements ShouldQueue
 //                    ->subject('Уведомление за пристигане на ' . $data['candidateName']);
 //            });
 
-            Log::info("Email sent successfully to " . $email);
+            Log::info("Email sent successfully to " . $company->default_email);
         } catch (\Exception $e) {
             Log::error("Error sending email: " . $e->getMessage());
         }
     }
 
-    public function getTypeOfContract($contractType)
+    public function getTypeOfContract(string $contractType): string
     {
-        if(str_starts_with($contractType, 'ERPR')) {
-            return "ЕРПР";
-        } elseif($contractType == "indefinite") {
-            return "ЕРПР";
-        } elseif($contractType == "90days") {
-            return "90 дена";
-        } elseif($contractType == "9months") {
-            return "9 месеца";
-        } else {
-            return "Непознат тип на договор";
-        }
+        return match ($contractType) {
+            'erpr1', 'erpr2', 'erpr3' => 'ЕРПР',
+            '90days' => '90 дена',
+            '9months' => '9 месеца',
+            default => 'Непознат тип на договор',
+        };
     }
 }

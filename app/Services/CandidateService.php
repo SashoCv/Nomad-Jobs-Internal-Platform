@@ -68,7 +68,7 @@ class CandidateService
                 'position_id' => $data['position_id'] ?? null,
                 'status_id' => $statusId,
                 'type_id' => $data['type_id'] ?? Candidate::TYPE_CANDIDATE,
-                'contract_type' => $data['contractType'] ?? 'indefinite',
+                'contract_type' => $data['contractType'] ?? 'erpr1',
                 'contract_period' => $data['contractPeriod'] ?? null,
                 'contract_extension_period' => $data['contractExtensionPeriod'] ?? null,
                 'start_contract_date' => $data['startContractDate'] ?? null,
@@ -98,7 +98,7 @@ class CandidateService
             ]);
 
             // Create calendar event for contract expiry if endContractDate is set
-            if (!empty($candidate->endContractDate)) {
+            if (! empty($candidate->endContractDate)) {
                 CalendarEvent::updateOrCreate(
                     [
                         'type' => CalendarEvent::TYPE_CONTRACT_EXPIRY,
@@ -131,7 +131,7 @@ class CandidateService
             $this->createDefaultCategory($candidate);
 
             // Create agent_candidates record if agent_id and company_job_id are provided
-            if (!empty($data['agent_id']) && !empty($data['company_job_id'])) {
+            if (! empty($data['agent_id']) && ! empty($data['company_job_id'])) {
                 AgentCandidate::create([
                     'user_id' => $data['agent_id'],
                     'company_job_id' => $data['company_job_id'],
@@ -257,7 +257,7 @@ class CandidateService
                 'position_id' => $data['position_id'] ?? null,
                 'status_id' => $data['status_id'] ?? null,
                 'type_id' => $data['type_id'] ?? Candidate::TYPE_CANDIDATE,
-                'contract_type' => $data['contractType'] ?? 'indefinite',
+                'contract_type' => $data['contractType'] ?? 'erpr1',
                 'contract_period' => $data['contractPeriod'] ?? null,
                 'contract_extension_period' => $data['contractExtensionPeriod'] ?? null,
                 'start_contract_date' => $data['startContractDate'] ?? null,
@@ -544,7 +544,7 @@ class CandidateService
             || ! empty($data['passportIssuedBy'])
             || $passportPath !== null;
 
-        if (!$hasPassportData) {
+        if (! $hasPassportData) {
             return;
         }
 
