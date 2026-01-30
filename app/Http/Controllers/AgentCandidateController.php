@@ -100,7 +100,7 @@ class AgentCandidateController extends Controller
         $person->date = $request->date;
         $person->phoneNumber = $request->phoneNumber;
         $person->address = $request->address;
-        $person->passport = $request->passport;
+        // Passport fields removed - stored in candidate_passports table only
         $person->fullName = $request->fullName;
         $person->fullNameCyrillic = $request->fullNameCyrillic;
         $person->birthday = $request->birthday;
@@ -110,9 +110,7 @@ class AgentCandidateController extends Controller
         $person->areaOfResidence = $request->areaOfResidence;
         $person->addressOfResidence = $request->addressOfResidence;
         $person->periodOfResidence = $request->periodOfResidence;
-        $person->passportValidUntil = $request->passportValidUntil;
-        $person->passportIssuedBy = $request->passportIssuedBy;
-        $person->passportIssuedOn = $request->passportIssuedOn;
+        // passportValidUntil, passportIssuedBy, passportIssuedOn removed - stored in candidate_passports
         $person->addressOfWork = $request->addressOfWork;
         $person->nameOfFacility = $request->nameOfFacility;
         $person->education = $request->education;
@@ -150,10 +148,13 @@ class AgentCandidateController extends Controller
         $experiences = $request->experiences ?? [];
         $person->agent_id = Auth::user()->id;
 
+        // Handle passport file - store path for later sync to candidate_passports
+        $passportPath = null;
+        $passportFileName = null;
         if ($request->hasFile('personPassport')) {
-            $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-            $person->passportPath = $name;
-            $person->passportName = $request->file('personPassport')->getClientOriginalName();
+            $directory = 'candidate/' . $person->id . '/passport';
+            $passportFileName = $request->file('personPassport')->getClientOriginalName();
+            $passportPath = $request->file('personPassport')->storeAs($directory, \Illuminate\Support\Str::uuid() . '_' . $passportFileName, 'public');
         }
 
         if ($request->hasFile('personPicture')) {
@@ -163,17 +164,17 @@ class AgentCandidateController extends Controller
         }
 
         if($person->save()){
-            // Sync passport data to candidate_passports table (dual-write)
-            if ($person->passportValidUntil || $person->passport || $person->passportPath) {
+            // Store passport data in candidate_passports table only
+            if ($request->passportValidUntil || $request->passport || $passportPath) {
                 CandidatePassport::updateOrCreate(
                     ['candidate_id' => $person->id],
                     [
-                        'passport_number' => $person->passport,
-                        'issue_date' => $person->passportIssuedOn,
-                        'expiry_date' => $person->passportValidUntil,
-                        'issued_by' => $person->passportIssuedBy,
-                        'file_path' => $person->passportPath,
-                        'file_name' => $person->passportName,
+                        'passport_number' => $request->passport,
+                        'issue_date' => $request->passportIssuedOn,
+                        'expiry_date' => $request->passportValidUntil,
+                        'issued_by' => $request->passportIssuedBy,
+                        'file_path' => $passportPath,
+                        'file_name' => $passportFileName,
                     ]
                 );
             }
@@ -448,13 +449,12 @@ class AgentCandidateController extends Controller
             if ($person->agent_id != Auth::user()->id) {
                 return response()->json(['message' => 'You can only update candidates you added'], 403);
             }
-            // Update basic fields
+            // Update basic fields (passport fields removed - stored in candidate_passports only)
             $fieldsToUpdate = [
                 'gender', 'email', 'nationality', 'date', 'phoneNumber',
-                'address', 'passport', 'fullName', 'fullNameCyrillic',
+                'address', 'fullName', 'fullNameCyrillic',
                 'birthday', 'placeOfBirth', 'country_id', 'area', 'areaOfResidence',
-                'addressOfResidence', 'periodOfResidence', 'passportValidUntil',
-                'passportIssuedBy', 'passportIssuedOn', 'addressOfWork',
+                'addressOfResidence', 'periodOfResidence', 'addressOfWork',
                 'nameOfFacility', 'education', 'specialty', 'qualification',
                 'contractExtensionPeriod', 'salary', 'workingTime', 'workingDays',
                 'martialStatus', 'contractPeriod', 'contractType',
@@ -479,52 +479,37 @@ class AgentCandidateController extends Controller
                 }
             }
 
-            // Handle passport file update
+            // Handle passport file update - store in candidate_passports only
+            $passportPath = null;
+            $passportFileName = null;
             if ($request->hasFile('personPassport')) {
-                // Store old passport name BEFORE updating (fix for orphan file bug)
-                $oldPassportName = $person->passportName;
-
-                // Delete old passport file if exists
-                if ($person->passportPath) {
-                    Storage::disk('public')->delete($person->passportPath);
+                // Get existing passport record to delete old file
+                $existingPassport = CandidatePassport::where('candidate_id', $id)->first();
+                if ($existingPassport && $existingPassport->file_path) {
+                    Storage::disk('public')->delete($existingPassport->file_path);
                 }
 
-                $name = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-                $person->passportPath = $name;
-                $person->passportName = $request->file('personPassport')->getClientOriginalName();
+                $directory = 'candidate/' . $id . '/passport';
+                $passportFileName = $request->file('personPassport')->getClientOriginalName();
+                $passportPath = $request->file('personPassport')->storeAs($directory, \Illuminate\Support\Str::uuid() . '_' . $passportFileName, 'public');
 
-                // Update file in files table - search by _passport suffix pattern
-                if ($oldPassportName) {
-                    // Build the _passport filename pattern from the old name
-                    // e.g., "image.png" -> "image_passport.png"
-                    $pathInfo = pathinfo($oldPassportName);
-                    $oldPassportFileNameWithSuffix = $pathInfo['filename'] . '_passport';
-                    if (isset($pathInfo['extension'])) {
-                        $oldPassportFileNameWithSuffix .= '.' . $pathInfo['extension'];
+                // Update file in files table if exists
+                $passportFile = File::where('candidate_id', $id)
+                    ->where('fileName', 'like', '%_passport%')
+                    ->first();
+
+                if ($passportFile) {
+                    if ($passportFile->filePath) {
+                        Storage::disk('public')->delete($passportFile->filePath);
                     }
-
-                    // Build the new _passport filename
-                    $newPathInfo = pathinfo($person->passportName);
+                    $newPathInfo = pathinfo($passportFileName);
                     $newPassportFileNameWithSuffix = $newPathInfo['filename'] . '_passport';
                     if (isset($newPathInfo['extension'])) {
                         $newPassportFileNameWithSuffix .= '.' . $newPathInfo['extension'];
                     }
-
-                    // Search for passport file by filename pattern (any category with _passport suffix)
-                    $passportFile = File::where('candidate_id', $id)
-                        ->where('fileName', 'like', '%_passport%')
-                        ->first();
-
-                    if ($passportFile) {
-                        // Delete old file from storage
-                        if ($passportFile->filePath) {
-                            Storage::disk('public')->delete($passportFile->filePath);
-                        }
-                        // Update with new file info
-                        $passportFile->fileName = $newPassportFileNameWithSuffix;
-                        $passportFile->filePath = $person->passportPath;
-                        $passportFile->save();
-                    }
+                    $passportFile->fileName = $newPassportFileNameWithSuffix;
+                    $passportFile->filePath = $passportPath;
+                    $passportFile->save();
                 }
             }
 
@@ -542,18 +527,21 @@ class AgentCandidateController extends Controller
 
             // Save the person
             if ($person->save()) {
-                // Sync passport data to candidate_passports table (dual-write)
-                if ($person->passportValidUntil || $person->passport || $person->passportPath) {
+                // Store passport data in candidate_passports table only
+                if ($request->passportValidUntil || $request->passport || $passportPath) {
+                    $passportData = [
+                        'passport_number' => $request->passport,
+                        'issue_date' => $request->passportIssuedOn,
+                        'expiry_date' => $request->passportValidUntil,
+                        'issued_by' => $request->passportIssuedBy,
+                    ];
+                    if ($passportPath) {
+                        $passportData['file_path'] = $passportPath;
+                        $passportData['file_name'] = $passportFileName;
+                    }
                     CandidatePassport::updateOrCreate(
                         ['candidate_id' => $person->id],
-                        [
-                            'passport_number' => $person->passport,
-                            'issue_date' => $person->passportIssuedOn,
-                            'expiry_date' => $person->passportValidUntil,
-                            'issued_by' => $person->passportIssuedBy,
-                            'file_path' => $person->passportPath,
-                            'file_name' => $person->passportName,
-                        ]
+                        $passportData
                     );
                 }
 

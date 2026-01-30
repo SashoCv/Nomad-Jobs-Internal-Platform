@@ -33,7 +33,11 @@ class CandidateService
                 $data['has_driving_license'] = filter_var($data['has_driving_license'], FILTER_VALIDATE_BOOLEAN);
             }
 
-            $candidate->fill($data);
+            // Filter out passport fields - passport data is stored in candidate_passports table only
+            $passportFields = ['passport', 'passportValidUntil', 'passportIssuedBy', 'passportIssuedOn', 'passportPath', 'passportName'];
+            $candidateData = array_diff_key($data, array_flip($passportFields));
+
+            $candidate->fill($candidateData);
 
             $candidate->addedBy = Auth::id();
             $statusId = $data['status_id'] ?? 16; // Default to 'New' status if not provided
@@ -164,7 +168,11 @@ class CandidateService
                 $data['has_driving_license'] = filter_var($data['has_driving_license'], FILTER_VALIDATE_BOOLEAN);
             }
 
-            $candidate->fill($data);
+            // Filter out passport fields - passport data is stored in candidate_passports table only
+            $passportFields = ['passport', 'passportValidUntil', 'passportIssuedBy', 'passportIssuedOn', 'passportPath', 'passportName'];
+            $candidateData = array_diff_key($data, array_flip($passportFields));
+
+            $candidate->fill($candidateData);
 
             $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));
 
@@ -380,9 +388,9 @@ class CandidateService
             'notes' => $contract->notes,
         ];
 
+        // Note: Passport fields removed - passport data is stored in candidate_passports table only
         $personalFields = [
-            'fullName', 'fullNameCyrillic', 'email', 'phoneNumber', 'passport',
-            'passportValidUntil', 'passportIssuedBy', 'passportIssuedOn',
+            'fullName', 'fullNameCyrillic', 'email', 'phoneNumber',
             'birthday', 'placeOfBirth', 'nationality', 'gender',
             'address', 'areaOfResidence', 'addressOfResidence', 'periodOfResidence',
             'education', 'specialty', 'qualification', 'martialStatus'
@@ -524,6 +532,7 @@ class CandidateService
         $passportPath = null;
         $passportFileName = null;
 
+        // Handle passport file upload - store only in candidate_passports table
         if (isset($data['personPassport'])
             && $data['personPassport'] instanceof UploadedFile
             && $data['personPassport']->isValid()
@@ -533,11 +542,6 @@ class CandidateService
             $fileName = \Illuminate\Support\Str::uuid() . '_' . $data['personPassport']->getClientOriginalName();
             $passportPath = $data['personPassport']->storeAs($directory, $fileName, 'public');
             $passportFileName = $data['personPassport']->getClientOriginalName();
-
-            $candidate->update([
-                'passportPath' => $passportPath,
-                'passportName' => $passportFileName
-            ]);
         }
 
         $hasPassportData = ! empty($data['passport'])
