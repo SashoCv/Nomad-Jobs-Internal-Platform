@@ -781,7 +781,8 @@ class SearchController extends Controller
             'status',
             'company.company_addresses',
             'arrival.files',
-            'activeContract'
+            'activeContract',
+            'latestContract'
         ])
             ->whereNotNull('status_id');
 
