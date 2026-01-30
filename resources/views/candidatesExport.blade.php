@@ -61,8 +61,8 @@
             <td>{{ $candidate->phoneNumber }}</td>
             <td>{{ ucfirst($candidate->gender) }}</td>
             <td>{{ $candidate->nationality }}</td>
-            <td>{{ $candidate->passport }}</td>
-            <td>{{ $candidate->passportValidUntil }}</td>
+            <td>{{ $candidate->passportRecord?->passport_number }}</td>
+            <td>{{ $candidate->passportRecord?->expiry_date }}</td>
             <td>{{ $candidate->addressOfResidence }}</td>
             <td>{{ $candidate->addressOfWork }}</td>
             <td>{{ $candidate->position->jobPosition ?? 'N/A' }}</td>

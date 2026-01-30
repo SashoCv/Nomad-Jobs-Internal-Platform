@@ -146,7 +146,7 @@ class CandidateService
             }
 
             return [
-                'candidate' => $candidate->fresh()->load('activeContract'),
+                'candidate' => $candidate->fresh()->load('activeContract', 'passportRecord'),
                 'contract' => $contract,
             ];
         });
@@ -224,7 +224,7 @@ class CandidateService
                 $existingAgentCandidate->delete();
             }
 
-            return $candidate->load('position');
+            return $candidate->load('position', 'passportRecord');
         });
     }
 
@@ -307,7 +307,7 @@ class CandidateService
             $this->handleFileUploads($candidate, $data);
 
             return [
-                'candidate' => $candidate->fresh()->load('position', 'activeContract', 'contracts'),
+                'candidate' => $candidate->fresh()->load('position', 'activeContract', 'contracts', 'passportRecord'),
                 'contract' => $contract,
             ];
         });
@@ -316,7 +316,9 @@ class CandidateService
     public function findExistingProfile(array $data): ?Candidate
     {
         if (! empty($data['passport']) && strlen(trim($data['passport'])) > 5) {
-            $existing = Candidate::where('passport', $data['passport'])
+            $existing = Candidate::whereHas('passportRecord', function ($query) use ($data) {
+                $query->where('passport_number', $data['passport']);
+            })
                 ->whereNull('deleted_at')
                 ->first();
 

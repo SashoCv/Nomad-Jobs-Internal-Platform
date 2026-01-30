@@ -198,7 +198,7 @@ class Candidate extends Model
      * Get the passport record for this candidate.
      * This is the source of truth for passport data.
      */
-    public function passport(): HasOne
+    public function passportRecord(): HasOne
     {
         return $this->hasOne(CandidatePassport::class);
     }
