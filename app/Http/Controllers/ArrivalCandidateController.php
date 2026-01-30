@@ -365,15 +365,17 @@ class ArrivalCandidateController extends Controller
             }
 
 
+            // Check if status exists for this candidate AND contract (not globally)
             $existingRequestedStatus = Statushistory::where('candidate_id', $id)
                 ->where('status_id', $status_id)
+                ->where('contract_id', $contract_id)
                 ->first();
 
             if ($existingRequestedStatus) {
                 return response()->json([
                     'success' => false,
                     'status' => 422,
-                    'message' => 'This status already exists for the candidate.',
+                    'message' => 'This status already exists for this contract.',
                 ], 422);
             }
 
@@ -392,8 +394,10 @@ class ArrivalCandidateController extends Controller
             }
 
             foreach ($allStatuses as $status) {
+                // Check per contract, not globally
                 $existingStatus = Statushistory::where('candidate_id', $candidate_id)
                     ->where('status_id', $status)
+                    ->where('contract_id', $contract_id)
                     ->first();
 
                 if (!$existingStatus) {

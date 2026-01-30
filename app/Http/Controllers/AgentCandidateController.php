@@ -182,11 +182,11 @@ class AgentCandidateController extends Controller
                 foreach ($educations as $education) {
                     $newEducation = new Education();
                     $newEducation->candidate_id = $person->id;
-                    $newEducation->school_name = $education['school_name'];
-                    $newEducation->degree = $education['degree'];
-                    $newEducation->field_of_study = $education['field_of_study'];
-                    $newEducation->start_date = $education['start_date'];
-                    $newEducation->end_date = $education['end_date'];
+                    $newEducation->school_name = $education['school_name'] ?? null;
+                    $newEducation->degree = $education['degree'] ?? null;
+                    $newEducation->field_of_study = $education['field_of_study'] ?? null;
+                    $newEducation->start_date = $education['start_date'] ?? null;
+                    $newEducation->end_date = $education['end_date'] ?? null;
                     $newEducation->save();
                 }
             }
@@ -196,11 +196,11 @@ class AgentCandidateController extends Controller
                 foreach ($experiences as $experience) {
                     $newExperience = new Experience();
                     $newExperience->candidate_id = $person->id;
-                    $newExperience->company_name = $experience['company_name'];
-                    $newExperience->position = $experience['position'];
+                    $newExperience->company_name = $experience['company_name'] ?? null;
+                    $newExperience->position = $experience['position'] ?? null;
                     $newExperience->responsibilities = $experience['responsibilities'] ?? null;
-                    $newExperience->start_date = $experience['start_date'];
-                    $newExperience->end_date = $experience['end_date'];
+                    $newExperience->start_date = $experience['start_date'] ?? null;
+                    $newExperience->end_date = $experience['end_date'] ?? null;
                     $newExperience->save();
                 }
             }
