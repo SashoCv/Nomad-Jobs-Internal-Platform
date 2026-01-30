@@ -345,15 +345,24 @@ class ArrivalCandidateController extends Controller
             $statusDate = $request->statusDate ?? Carbon::now()->format('m-d-Y');
             $candidate_id = $id;
 
-            // Strict Contract ID Check
-            if (!$request->has('contract_id') || !$request->contract_id) {
-                 return response()->json([
-                    'success' => false,
-                    'status' => 422,
-                    'message' => 'Contract ID is required.',
-                ], 422);
-            }
+            // Get contract_id from request or find active contract for candidate
             $contract_id = $request->contract_id;
+            if (!$contract_id) {
+                // Try to find the active contract for this candidate
+                $activeContract = \App\Models\CandidateContract::where('candidate_id', $candidate_id)
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($activeContract) {
+                    $contract_id = $activeContract->id;
+                } else {
+                    // Fall back to the latest contract if no active contract
+                    $latestContract = \App\Models\CandidateContract::where('candidate_id', $candidate_id)
+                        ->orderBy('contract_period_number', 'desc')
+                        ->first();
+                    $contract_id = $latestContract?->id;
+                }
+            }
 
 
             $existingRequestedStatus = Statushistory::where('candidate_id', $id)
