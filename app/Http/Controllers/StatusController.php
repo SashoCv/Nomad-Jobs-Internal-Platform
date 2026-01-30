@@ -117,9 +117,10 @@ class StatusController extends Controller
             $sendEmail = $request->sendEmail ?? false;
 
 
-            // Check if the requested status already exists for this candidate
+            // Check if the requested status already exists for this candidate in this contract
             $existingRequestedStatus = Statushistory::where('candidate_id', $candidate_id)
                 ->where('status_id', $status_id)
+                ->where('contract_id', $contract_id)
                 ->first();
 
             if ($existingRequestedStatus) {
@@ -148,6 +149,7 @@ class StatusController extends Controller
             foreach ($allStatuses as $status) {
                 $existingStatus = Statushistory::where('candidate_id', $candidate_id)
                     ->where('status_id', $status)
+                    ->where('contract_id', $contract_id)
                     ->first();
 
                 if (!$existingStatus) {
