@@ -10,17 +10,11 @@ use Illuminate\Support\Facades\Auth;
 
 class CandidateContractController extends Controller
 {
-    /**
-     * Get all contracts for a candidate
-     *
-     * @param int $candidateId
-     * @return JsonResponse
-     */
     public function index(int $candidateId): JsonResponse
     {
         $candidate = Candidate::find($candidateId);
 
-        if (!$candidate) {
+        if (! $candidate) {
             return response()->json([
                 'success' => false,
                 'message' => 'Candidate not found',
@@ -43,12 +37,6 @@ class CandidateContractController extends Controller
         ]);
     }
 
-    /**
-     * Get single contract details
-     *
-     * @param int $id
-     * @return JsonResponse
-     */
     public function show(int $id): JsonResponse
     {
         $contract = CandidateContract::with([
@@ -64,7 +52,7 @@ class CandidateContractController extends Controller
             'statusHistories.status',
         ])->find($id);
 
-        if (!$contract) {
+        if (! $contract) {
             return response()->json([
                 'success' => false,
                 'message' => 'Contract not found',
@@ -77,25 +65,17 @@ class CandidateContractController extends Controller
         ]);
     }
 
-    /**
-     * Update a contract
-     *
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
-     */
     public function update(Request $request, int $id): JsonResponse
     {
         $contract = CandidateContract::find($id);
 
-        if (!$contract) {
+        if (! $contract) {
             return response()->json([
                 'success' => false,
                 'message' => 'Contract not found',
             ], 404);
         }
 
-        // Validate the request
         $validated = $request->validate([
             'company_id' => 'sometimes|exists:companies,id',
             'position_id' => 'sometimes|nullable|exists:positions,id',
@@ -120,33 +100,13 @@ class CandidateContractController extends Controller
             'agent_id' => 'sometimes|nullable|exists:users,id',
             'case_id' => 'sometimes|nullable|exists:cases,id',
             'company_job_id' => 'sometimes|nullable|integer',
+            'is_extension' => 'sometimes|boolean',
         ]);
 
         $contract->update($validated);
 
-        // If this is the active contract, also update the candidate's legacy columns
         if ($contract->is_active) {
-            $candidate = $contract->candidate;
-            if ($candidate) {
-                $candidate->update([
-                    'company_id' => $contract->company_id,
-                    'position_id' => $contract->position_id,
-                    'status_id' => $contract->status_id,
-                    'type_id' => $contract->type_id,
-                    'contractType' => $contract->contract_type,
-                    'contractPeriod' => $contract->contract_period,
-                    'startContractDate' => $contract->start_contract_date,
-                    'endContractDate' => $contract->end_contract_date,
-                    'salary' => $contract->salary,
-                    'workingTime' => $contract->working_time,
-                    'workingDays' => $contract->working_days,
-                    'addressOfWork' => $contract->address_of_work,
-                    'nameOfFacility' => $contract->name_of_facility,
-                    'dossierNumber' => $contract->dossier_number,
-                    'company_adresses_id' => $contract->company_adresses_id,
-                    'notes' => $contract->notes,
-                ]);
-            }
+            $this->syncContractToCandidate($contract);
         }
 
         return response()->json([
@@ -160,25 +120,19 @@ class CandidateContractController extends Controller
         ]);
     }
 
-    /**
-     * Delete a contract
-     *
-     * @param int $id
-     * @return JsonResponse
-     */
     public function destroy(int $id): JsonResponse
     {
         $contract = CandidateContract::find($id);
 
-        if (!$contract) {
+        if (! $contract) {
             return response()->json([
                 'success' => false,
                 'message' => 'Contract not found',
             ], 404);
         }
 
-        // Check if this is the only contract for the candidate
         $contractCount = CandidateContract::where('candidate_id', $contract->candidate_id)->count();
+
         if ($contractCount <= 1) {
             return response()->json([
                 'success' => false,
@@ -186,7 +140,6 @@ class CandidateContractController extends Controller
             ], 400);
         }
 
-        // If deleting the active contract, make another one active
         if ($contract->is_active) {
             $nextContract = CandidateContract::where('candidate_id', $contract->candidate_id)
                 ->where('id', '!=', $id)
@@ -195,36 +148,11 @@ class CandidateContractController extends Controller
 
             if ($nextContract) {
                 $nextContract->update(['is_active' => true]);
-
-                // Update candidate's legacy columns to reflect the new active contract
-                $candidate = $nextContract->candidate;
-                if ($candidate) {
-                    $candidate->update([
-                        'company_id' => $nextContract->company_id,
-                        'position_id' => $nextContract->position_id,
-                        'status_id' => $nextContract->status_id,
-                        'type_id' => $nextContract->type_id,
-                        'contractType' => $nextContract->contract_type,
-                        'contractPeriod' => $nextContract->contract_period,
-                        'startContractDate' => $nextContract->start_contract_date,
-                        'endContractDate' => $nextContract->end_contract_date,
-                        'salary' => $nextContract->salary,
-                        'workingTime' => $nextContract->working_time,
-                        'workingDays' => $nextContract->working_days,
-                        'addressOfWork' => $nextContract->address_of_work,
-                        'nameOfFacility' => $nextContract->name_of_facility,
-                        'dossierNumber' => $nextContract->dossier_number,
-                        'company_adresses_id' => $nextContract->company_adresses_id,
-                        'notes' => $nextContract->notes,
-                    ]);
-                }
+                $this->syncContractToCandidate($nextContract);
             }
         }
 
-        // Delete related files first
         $contract->files()->delete();
-
-        // Delete the contract
         $contract->delete();
 
         return response()->json([
@@ -233,12 +161,6 @@ class CandidateContractController extends Controller
         ]);
     }
 
-    /**
-     * Get expiring contracts (contracts expiring within specified months)
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function expiring(Request $request): JsonResponse
     {
         $months = $request->input('months', 4);
@@ -256,6 +178,34 @@ class CandidateContractController extends Controller
             'success' => true,
             'status' => 200,
             'data' => $contracts,
+        ]);
+    }
+
+    private function syncContractToCandidate(CandidateContract $contract): void
+    {
+        $candidate = $contract->candidate;
+
+        if (! $candidate) {
+            return;
+        }
+
+        $candidate->update([
+            'company_id' => $contract->company_id,
+            'position_id' => $contract->position_id,
+            'status_id' => $contract->status_id,
+            'type_id' => $contract->type_id,
+            'contractType' => $contract->contract_type,
+            'contractPeriod' => $contract->contract_period,
+            'startContractDate' => $contract->start_contract_date,
+            'endContractDate' => $contract->end_contract_date,
+            'salary' => $contract->salary,
+            'workingTime' => $contract->working_time,
+            'workingDays' => $contract->working_days,
+            'addressOfWork' => $contract->address_of_work,
+            'nameOfFacility' => $contract->name_of_facility,
+            'dossierNumber' => $contract->dossier_number,
+            'company_adresses_id' => $contract->company_adresses_id,
+            'notes' => $contract->notes,
         ]);
     }
 }
