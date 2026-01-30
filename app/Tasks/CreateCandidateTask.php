@@ -41,20 +41,16 @@ class CreateCandidateTask
                     $passportPath = $request->file('personPassport')->storeAs($directory, \Illuminate\Support\Str::uuid() . '_' . $passportFileName, 'public');
                 }
 
-                // Store passport data in candidate_passports table
-                if ($request->passportValidUntil || $request->passport || $passportPath) {
-                    CandidatePassport::updateOrCreate(
-                        ['candidate_id' => $person->id],
-                        [
-                            'passport_number' => $request->passport,
-                            'issue_date' => $request->passportIssuedOn,
-                            'expiry_date' => $request->passportValidUntil,
-                            'issued_by' => $request->passportIssuedBy,
-                            'file_path' => $passportPath,
-                            'file_name' => $passportFileName,
-                        ]
-                    );
-                }
+                // Store passport data in candidate_passports table (required for new candidates)
+                CandidatePassport::create([
+                    'candidate_id' => $person->id,
+                    'passport_number' => $request->passport,
+                    'issue_date' => $request->passportIssuedOn,
+                    'expiry_date' => $request->passportValidUntil,
+                    'issued_by' => $request->passportIssuedBy,
+                    'file_path' => $passportPath,
+                    'file_name' => $passportFileName,
+                ]);
 
                 $jobPositionDocument = Position::find($request->position_id);
 

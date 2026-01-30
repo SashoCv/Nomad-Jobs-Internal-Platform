@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAgentCandidateRequest;
 use App\Http\Resources\AgentCandidateResource;
 use App\Models\CompanyJob;
 use App\Traits\HasRolePermissions;
@@ -78,7 +79,7 @@ class AgentCandidateController extends Controller
         }
     }
 
-    public function agentAddCandidateForAssignedJob(Request $request)
+    public function agentAddCandidateForAssignedJob(StoreAgentCandidateRequest $request)
     {
         if (!$this->checkPermission(Permission::AGENT_CANDIDATES_CREATE)) {
             return response()->json(['error' => 'Insufficient permissions'], 403);
@@ -164,20 +165,16 @@ class AgentCandidateController extends Controller
         }
 
         if($person->save()){
-            // Store passport data in candidate_passports table only
-            if ($request->passportValidUntil || $request->passport || $passportPath) {
-                CandidatePassport::updateOrCreate(
-                    ['candidate_id' => $person->id],
-                    [
-                        'passport_number' => $request->passport,
-                        'issue_date' => $request->passportIssuedOn,
-                        'expiry_date' => $request->passportValidUntil,
-                        'issued_by' => $request->passportIssuedBy,
-                        'file_path' => $passportPath,
-                        'file_name' => $passportFileName,
-                    ]
-                );
-            }
+            // Store passport data in candidate_passports table (required for new candidates)
+            CandidatePassport::create([
+                'candidate_id' => $person->id,
+                'passport_number' => $request->passport,
+                'issue_date' => $request->passportIssuedOn,
+                'expiry_date' => $request->passportValidUntil,
+                'issued_by' => $request->passportIssuedBy,
+                'file_path' => $passportPath,
+                'file_name' => $passportFileName,
+            ]);
 
             if(count($educations) > 0){
                 foreach ($educations as $education) {
@@ -527,18 +524,26 @@ class AgentCandidateController extends Controller
 
             // Save the person
             if ($person->save()) {
-                // Store passport data in candidate_passports table only
-                if ($request->passportValidUntil || $request->passport || $passportPath) {
-                    $passportData = [
-                        'passport_number' => $request->passport,
-                        'issue_date' => $request->passportIssuedOn,
-                        'expiry_date' => $request->passportValidUntil,
-                        'issued_by' => $request->passportIssuedBy,
-                    ];
-                    if ($passportPath) {
-                        $passportData['file_path'] = $passportPath;
-                        $passportData['file_name'] = $passportFileName;
-                    }
+                // Store passport data in candidate_passports table only (skip empty values to preserve existing data)
+                $passportData = [];
+                if (!empty($request->passport)) {
+                    $passportData['passport_number'] = $request->passport;
+                }
+                if (!empty($request->passportIssuedOn)) {
+                    $passportData['issue_date'] = $request->passportIssuedOn;
+                }
+                if (!empty($request->passportValidUntil)) {
+                    $passportData['expiry_date'] = $request->passportValidUntil;
+                }
+                if (!empty($request->passportIssuedBy)) {
+                    $passportData['issued_by'] = $request->passportIssuedBy;
+                }
+                if ($passportPath) {
+                    $passportData['file_path'] = $passportPath;
+                    $passportData['file_name'] = $passportFileName;
+                }
+
+                if (!empty($passportData)) {
                     CandidatePassport::updateOrCreate(
                         ['candidate_id' => $person->id],
                         $passportData

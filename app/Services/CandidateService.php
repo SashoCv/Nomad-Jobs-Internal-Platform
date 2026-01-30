@@ -554,26 +554,30 @@ class CandidateService
             return;
         }
 
-        $passportData = [
-            'candidate_id' => $candidate->id,
-        ];
+        $passportData = [];
 
-        if (array_key_exists('passport', $data)) {
+        // Only include non-empty values to avoid overwriting existing data
+        if (! empty($data['passport'])) {
             $passportData['passport_number'] = $data['passport'];
         }
-        if (array_key_exists('passportValidUntil', $data)) {
+        if (! empty($data['passportValidUntil'])) {
             $passportData['expiry_date'] = $data['passportValidUntil'];
         }
-        if (array_key_exists('passportIssuedOn', $data)) {
+        if (! empty($data['passportIssuedOn'])) {
             $passportData['issue_date'] = $data['passportIssuedOn'];
         }
-        if (array_key_exists('passportIssuedBy', $data)) {
+        if (! empty($data['passportIssuedBy'])) {
             $passportData['issued_by'] = $data['passportIssuedBy'];
         }
 
         if ($passportPath !== null) {
             $passportData['file_path'] = $passportPath;
             $passportData['file_name'] = $passportFileName;
+        }
+
+        // Only update if we have data to update
+        if (empty($passportData)) {
+            return;
         }
 
         CandidatePassport::updateOrCreate(

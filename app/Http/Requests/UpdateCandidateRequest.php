@@ -31,11 +31,11 @@ class UpdateCandidateRequest extends FormRequest
             'gender' => 'required|in:male,female',
             'martialStatus' => 'required|string|max:50',
 
-            // Passport Information
-            'passport' => 'required|string|max:50',
-            'passportValidUntil' => 'required|date',
-            'passportIssuedOn' => 'required|date',
-            'passportIssuedBy' => 'required|string|max:255',
+            // Passport Information (nullable - passport data stored separately in candidate_passports)
+            'passport' => 'nullable|string|max:50',
+            'passportValidUntil' => 'nullable|date',
+            'passportIssuedOn' => 'nullable|date',
+            'passportIssuedBy' => 'nullable|string|max:255',
 
             // Residence Information
             'addressOfResidence' => 'required|string|max:500',
