@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class MigrateContractTypeData extends Command
 {
@@ -12,12 +11,15 @@ class MigrateContractTypeData extends Command
 
     protected $description = 'Migrate contract type string values to contract_type_id foreign key';
 
+    // Default contract type for empty/null values
+    private const DEFAULT_CONTRACT_TYPE_SLUG = 'erpr1';
+
     /**
      * Map various string formats to contract type slugs
      */
     private function normalizeSlug(?string $value): ?string
     {
-        if (!$value) {
+        if (!$value || trim($value) === '') {
             return null;
         }
 
@@ -29,7 +31,7 @@ class MigrateContractTypeData extends Command
             return strtolower($value);
         }
 
-        // Map display names to slugs
+        // Map display names and legacy values to slugs
         $mapping = [
             // ERPR 1
             'ЕРПР 1' => 'erpr1',
@@ -42,6 +44,8 @@ class MigrateContractTypeData extends Command
             // ERPR 3
             'ЕРПР 3' => 'erpr3',
             'ERPR 3' => 'erpr3',
+            'indefinite' => 'erpr3',  // Legacy: indefinite maps to ERPR 3
+            'безсрочен' => 'erpr3',
 
             // 90 days
             '90 дни' => '90days',
@@ -50,10 +54,6 @@ class MigrateContractTypeData extends Command
             // 9 months
             '9 месеца' => '9months',
             '9 months' => '9months',
-
-            // Indefinite (not in current table, but handle gracefully)
-            'indefinite' => null,
-            'безсрочен' => null,
         ];
 
         return $mapping[$value] ?? null;
@@ -88,6 +88,9 @@ class MigrateContractTypeData extends Command
         // Migrate candidate_contracts
         $this->migrateTable('candidate_contracts', 'contract_type', $contractTypes, $dryRun);
 
+        // Fix records with empty/null contract_type but no contract_type_id
+        $this->fixEmptyContractTypes($contractTypes, $dryRun);
+
         $this->info('');
         $this->info('=== Migration Complete ===');
 
@@ -120,6 +123,7 @@ class MigrateContractTypeData extends Command
             }
 
             $typeId = $contractTypes[$slug];
+            $typeName = $this->getContractTypeName($slug);
 
             // Count records to update
             $count = DB::table($table)
@@ -134,7 +138,10 @@ class MigrateContractTypeData extends Command
                     DB::table($table)
                         ->where($column, $value)
                         ->whereNull('contract_type_id')
-                        ->update(['contract_type_id' => $typeId]);
+                        ->update([
+                            'contract_type_id' => $typeId,
+                            $column => $typeName, // Also normalize the string value
+                        ]);
                 }
 
                 $totalUpdated += $count;
@@ -149,5 +156,75 @@ class MigrateContractTypeData extends Command
         }
 
         $this->info('');
+    }
+
+    /**
+     * Fix records that have empty/null contract_type and no contract_type_id
+     */
+    private function fixEmptyContractTypes(array $contractTypes, bool $dryRun): void
+    {
+        $this->info('Fixing records with empty contract_type...');
+
+        $defaultSlug = self::DEFAULT_CONTRACT_TYPE_SLUG;
+        $defaultId = $contractTypes[$defaultSlug] ?? null;
+        $defaultName = $this->getContractTypeName($defaultSlug);
+
+        if (!$defaultId) {
+            $this->error("  Default contract type '{$defaultSlug}' not found!");
+            return;
+        }
+
+        $tables = [
+            'company_jobs' => 'contract_type',
+            'candidates' => 'contractType',
+            'candidate_contracts' => 'contract_type',
+        ];
+
+        foreach ($tables as $table => $column) {
+            $count = DB::table($table)
+                ->whereNull('contract_type_id')
+                ->where(function ($query) use ($column) {
+                    $query->whereNull($column)
+                        ->orWhere($column, '');
+                })
+                ->count();
+
+            if ($count > 0) {
+                $this->line("  {$table}: {$count} records with empty contract_type → {$defaultSlug} (ID: {$defaultId})");
+
+                if (!$dryRun) {
+                    DB::table($table)
+                        ->whereNull('contract_type_id')
+                        ->where(function ($query) use ($column) {
+                            $query->whereNull($column)
+                                ->orWhere($column, '');
+                        })
+                        ->update([
+                            'contract_type_id' => $defaultId,
+                            $column => $defaultName,
+                        ]);
+                }
+            } else {
+                $this->line("  {$table}: No records with empty contract_type");
+            }
+        }
+
+        $this->info('');
+    }
+
+    /**
+     * Get the display name for a contract type slug
+     */
+    private function getContractTypeName(string $slug): string
+    {
+        $names = [
+            'erpr1' => 'ЕРПР 1',
+            'erpr2' => 'ЕРПР 2',
+            'erpr3' => 'ЕРПР 3',
+            '90days' => '90 дни',
+            '9months' => '9 месеца',
+        ];
+
+        return $names[$slug] ?? $slug;
     }
 }
