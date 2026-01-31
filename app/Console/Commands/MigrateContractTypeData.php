@@ -91,6 +91,9 @@ class MigrateContractTypeData extends Command
         // Fix records with empty/null contract_type but no contract_type_id
         $this->fixEmptyContractTypes($contractTypes, $dryRun);
 
+        // Fix company_jobs to use slugs instead of names (frontend expects slugs)
+        $this->fixCompanyJobsToUseSlugs($dryRun);
+
         $this->info('');
         $this->info('=== Migration Complete ===');
 
@@ -226,5 +229,52 @@ class MigrateContractTypeData extends Command
         ];
 
         return $names[$slug] ?? $slug;
+    }
+
+    /**
+     * Fix company_jobs to use slugs instead of names in contract_type column
+     * (Frontend expects slugs for the ContractTypeSelect component)
+     */
+    private function fixCompanyJobsToUseSlugs(bool $dryRun): void
+    {
+        $this->info('Fixing company_jobs to use slugs instead of names...');
+
+        // Map names to slugs
+        $nameToSlug = [
+            'ЕРПР 1' => 'erpr1',
+            'ERPR 1' => 'erpr1',
+            'ЕРПР 2' => 'erpr2',
+            'ERPR 2' => 'erpr2',
+            'ЕРПР 3' => 'erpr3',
+            'ERPR 3' => 'erpr3',
+            '90 дни' => '90days',
+            '90 days' => '90days',
+            '9 месеца' => '9months',
+            '9 months' => '9months',
+        ];
+
+        $totalUpdated = 0;
+
+        foreach ($nameToSlug as $name => $slug) {
+            $count = DB::table('company_jobs')
+                ->where('contract_type', $name)
+                ->count();
+
+            if ($count > 0) {
+                $this->line("  '{$name}' → '{$slug}' - {$count} records");
+
+                if (!$dryRun) {
+                    DB::table('company_jobs')
+                        ->where('contract_type', $name)
+                        ->update(['contract_type' => $slug]);
+                }
+
+                $totalUpdated += $count;
+            }
+        }
+
+        $action = $dryRun ? 'Would update' : 'Updated';
+        $this->info("  {$action} {$totalUpdated} company_jobs to use slugs");
+        $this->info('');
     }
 }

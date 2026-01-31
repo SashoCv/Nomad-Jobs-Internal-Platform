@@ -40,11 +40,12 @@ class CandidateResource extends JsonResource
             'contractType' => $this->contractType,
             'contract_type_id' => $this->contract_type_id,
             'contract_type' => $this->whenLoaded('contractType', function () {
-                return [
-                    'id' => $this->contractType->id,
-                    'name' => $this->contractType->name,
-                    'slug' => $this->contractType->slug,
-                ];
+                $relation = $this->getRelation('contractType');
+                return $relation ? [
+                    'id' => $relation->id,
+                    'name' => $relation->name,
+                    'slug' => $relation->slug,
+                ] : null;
             }),
             'contractExtensionPeriod' => $this->contractExtensionPeriod,
             'salary' => $this->salary,

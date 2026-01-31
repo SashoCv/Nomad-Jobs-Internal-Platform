@@ -262,7 +262,7 @@ class CompanyJobController extends Controller
                 $contractType = ContractType::where('slug', $request->contract_type)->first();
                 if ($contractType) {
                     $companyJob->contract_type_id = $contractType->id;
-                    $companyJob->contract_type = $contractType->name;
+                    $companyJob->contract_type = $contractType->slug;
                 } else {
                     $companyJob->contract_type = $request->contract_type;
                 }
@@ -606,7 +606,7 @@ class CompanyJobController extends Controller
             $contractType = ContractType::where('slug', $request->contract_type)->first();
             if ($contractType) {
                 $companyJob->contract_type_id = $contractType->id;
-                $companyJob->contract_type = $contractType->name;
+                $companyJob->contract_type = $contractType->slug;
             } else {
                 $companyJob->contract_type = $request->contract_type;
             }
