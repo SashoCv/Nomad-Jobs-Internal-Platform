@@ -3,6 +3,7 @@
 namespace App\Tasks;
 
 use App\Models\Candidate;
+use App\Models\CandidatePassport;
 use App\Models\Position;
 use App\Models\File;
 use Illuminate\Support\Facades\Storage;
@@ -14,12 +15,17 @@ class CreateCandidateTask
         if (auth()->user()->role_id == 1 || auth()->user()->role_id == 2) {
             $person = new Candidate();
 
-            $person->fill($request->all());
+            // Filter out passport fields - stored in candidate_passports table only
+            $passportFields = ['passport', 'passportValidUntil', 'passportIssuedBy', 'passportIssuedOn', 'passportPath', 'passportName'];
+            $candidateData = array_diff_key($request->all(), array_flip($passportFields));
+            $person->fill($candidateData);
 
+            // Handle passport file - store for later sync to candidate_passports
+            $passportPath = null;
+            $passportFileName = null;
             if ($request->hasFile('personPassport')) {
-                $passportPath = Storage::disk('public')->put('personPassports', $request->file('personPassport'));
-                $person->passportPath = $passportPath;
-                $person->passportName = $request->file('personPassport')->getClientOriginalName();
+                $passportFileName = $request->file('personPassport')->getClientOriginalName();
+                // Note: We'll store to organized path after save when we have the ID
             }
 
             if ($request->hasFile('personPicture')) {
@@ -29,6 +35,23 @@ class CreateCandidateTask
             }
 
             if ($person->save()) {
+                // Now store passport file with candidate ID in path
+                if ($request->hasFile('personPassport')) {
+                    $directory = 'candidate/' . $person->id . '/passport';
+                    $passportPath = $request->file('personPassport')->storeAs($directory, \Illuminate\Support\Str::uuid() . '_' . $passportFileName, 'public');
+                }
+
+                // Store passport data in candidate_passports table (required for new candidates)
+                CandidatePassport::create([
+                    'candidate_id' => $person->id,
+                    'passport_number' => $request->passport,
+                    'issue_date' => $request->passportIssuedOn,
+                    'expiry_date' => $request->passportValidUntil,
+                    'issued_by' => $request->passportIssuedBy,
+                    'file_path' => $passportPath,
+                    'file_name' => $passportFileName,
+                ]);
+
                 $jobPositionDocument = Position::find($request->position_id);
 
                 if ($jobPositionDocument && $jobPositionDocument->positionPath != null) {

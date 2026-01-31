@@ -274,7 +274,7 @@ class FileController extends Controller
                 ->get();
         }
 
-        $candidatePassport = $this->isStaff() ? Candidate::where('id', $id)->value('passportPath') : null;
+        $candidatePassport = $this->isStaff() ? \App\Models\CandidatePassport::where('candidate_id', $id)->value('file_path') : null;
 
         return response()->json([
             'success' => true,

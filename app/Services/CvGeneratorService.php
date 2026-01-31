@@ -21,6 +21,7 @@ class CvGeneratorService
             'candidate.experience',
             'candidate.position',
             'candidate.company',
+            'candidate.passportRecord',
             'companyJob.company',
         ])->findOrFail($agentCandidateId);
 
@@ -77,7 +78,7 @@ class CvGeneratorService
             'birthday' => $candidate->birthday ?? 'N/A',
             'nationality' => $candidate->nationality ?? 'N/A',
             'gender' => $candidate->gender ?? 'N/A',
-            'passport' => $candidate->passport ?? 'N/A',
+            'passport' => $candidate->passportRecord?->passport_number ?? 'N/A',
             'placeOfBirth' => $candidate->placeOfBirth ?? 'N/A',
             'education' => $candidate->education ?? 'N/A',
             'specialty' => $candidate->specialty ?? 'N/A',

@@ -132,21 +132,14 @@ class CandidatePassportController extends Controller
             ], 403);
         }
 
-        $rules = [
-            'passport_number' => 'nullable|string|max:255',
-            'issue_date' => 'nullable|date',
-            'expiry_date' => 'nullable|date',
-            'issued_by' => 'nullable|string|max:255',
+        $request->validate([
+            'passport_number' => 'required|string|max:255',
+            'issue_date' => 'required|date',
+            'expiry_date' => 'required|date|after:issue_date',
+            'issued_by' => 'required|string|max:255',
             'passport_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
             'notes' => 'nullable|string',
-        ];
-
-        // Only validate expiry_date > issue_date when both are provided
-        if ($request->filled('issue_date') && $request->filled('expiry_date')) {
-            $rules['expiry_date'] .= '|after:issue_date';
-        }
-
-        $request->validate($rules);
+        ]);
 
         try {
             DB::beginTransaction();

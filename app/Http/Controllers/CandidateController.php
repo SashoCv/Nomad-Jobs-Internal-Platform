@@ -240,7 +240,7 @@ class CandidateController extends Controller
                 return $this->unauthorizedResponse();
             }
 
-            $candidates = $query->candidates()->with(['company', 'status', 'position'])
+            $candidates = $query->candidates()->with(['company', 'status', 'position', 'passportRecord'])
                 ->orderBy('id', 'desc')
                 ->paginate(25);
 
@@ -261,7 +261,7 @@ class CandidateController extends Controller
                 return $this->unauthorizedResponse();
             }
 
-            $employees = $query->employees()->with(['company', 'status', 'position'])
+            $employees = $query->employees()->with(['company', 'status', 'position', 'passportRecord'])
                 ->orderBy('id', 'desc')
                 ->paginate(25);
 
@@ -331,7 +331,7 @@ class CandidateController extends Controller
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
-        $query = Candidate::with(['categories', 'company', 'position','statusHistories','statusHistories.status', 'country', 'companyAddress', 'companyAddress.city'])->where('id', $id);
+        $query = Candidate::with(['categories', 'company', 'position', 'statusHistories', 'statusHistories.status', 'country', 'companyAddress', 'companyAddress.city', 'passportRecord'])->where('id', $id);
 
         if ($this->isStaff()) {
             $person = $query->first();
@@ -727,7 +727,7 @@ class CandidateController extends Controller
             $user = Auth::user();
 
             if ($this->isStaff()) {
-                $candidates = Candidate::with(['company', 'status', 'position']);
+                $candidates = Candidate::with(['company', 'status', 'position', 'passportRecord']);
 
                 if ($filters['status_id']) {
                     $candidates->where('status_id', $filters['status_id']);
@@ -807,7 +807,7 @@ class CandidateController extends Controller
                 }
 
             } else if ($user->hasRole(Role::COMPANY_USER)) {
-                $candidates = Candidate::with(['company', 'status', 'position'])
+                $candidates = Candidate::with(['company', 'status', 'position', 'passportRecord'])
                     ->where('company_id', $user->company_id);
 
                 if ($filters['status_id']) {

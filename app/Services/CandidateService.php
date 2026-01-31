@@ -33,7 +33,11 @@ class CandidateService
                 $data['has_driving_license'] = filter_var($data['has_driving_license'], FILTER_VALIDATE_BOOLEAN);
             }
 
-            $candidate->fill($data);
+            // Filter out passport fields - passport data is stored in candidate_passports table only
+            $passportFields = ['passport', 'passportValidUntil', 'passportIssuedBy', 'passportIssuedOn', 'passportPath', 'passportName'];
+            $candidateData = array_diff_key($data, array_flip($passportFields));
+
+            $candidate->fill($candidateData);
 
             $candidate->addedBy = Auth::id();
             $statusId = $data['status_id'] ?? 16; // Default to 'New' status if not provided
@@ -146,7 +150,7 @@ class CandidateService
             }
 
             return [
-                'candidate' => $candidate->fresh()->load('activeContract'),
+                'candidate' => $candidate->fresh()->load('activeContract', 'passportRecord'),
                 'contract' => $contract,
             ];
         });
@@ -164,7 +168,11 @@ class CandidateService
                 $data['has_driving_license'] = filter_var($data['has_driving_license'], FILTER_VALIDATE_BOOLEAN);
             }
 
-            $candidate->fill($data);
+            // Filter out passport fields - passport data is stored in candidate_passports table only
+            $passportFields = ['passport', 'passportValidUntil', 'passportIssuedBy', 'passportIssuedOn', 'passportPath', 'passportName'];
+            $candidateData = array_diff_key($data, array_flip($passportFields));
+
+            $candidate->fill($candidateData);
 
             $candidate->quartal = $candidate->calculateQuartal(Carbon::parse($data['date']));
 
@@ -224,7 +232,7 @@ class CandidateService
                 $existingAgentCandidate->delete();
             }
 
-            return $candidate->load('position');
+            return $candidate->load('position', 'passportRecord');
         });
     }
 
@@ -307,7 +315,7 @@ class CandidateService
             $this->handleFileUploads($candidate, $data);
 
             return [
-                'candidate' => $candidate->fresh()->load('position', 'activeContract', 'contracts'),
+                'candidate' => $candidate->fresh()->load('position', 'activeContract', 'contracts', 'passportRecord'),
                 'contract' => $contract,
             ];
         });
@@ -316,7 +324,9 @@ class CandidateService
     public function findExistingProfile(array $data): ?Candidate
     {
         if (! empty($data['passport']) && strlen(trim($data['passport'])) > 5) {
-            $existing = Candidate::where('passport', $data['passport'])
+            $existing = Candidate::whereHas('passportRecord', function ($query) use ($data) {
+                $query->where('passport_number', $data['passport']);
+            })
                 ->whereNull('deleted_at')
                 ->first();
 
@@ -378,9 +388,9 @@ class CandidateService
             'notes' => $contract->notes,
         ];
 
+        // Note: Passport fields removed - passport data is stored in candidate_passports table only
         $personalFields = [
-            'fullName', 'fullNameCyrillic', 'email', 'phoneNumber', 'passport',
-            'passportValidUntil', 'passportIssuedBy', 'passportIssuedOn',
+            'fullName', 'fullNameCyrillic', 'email', 'phoneNumber',
             'birthday', 'placeOfBirth', 'nationality', 'gender',
             'address', 'areaOfResidence', 'addressOfResidence', 'periodOfResidence',
             'education', 'specialty', 'qualification', 'martialStatus'
@@ -522,6 +532,7 @@ class CandidateService
         $passportPath = null;
         $passportFileName = null;
 
+        // Handle passport file upload - store only in candidate_passports table
         if (isset($data['personPassport'])
             && $data['personPassport'] instanceof UploadedFile
             && $data['personPassport']->isValid()
@@ -531,11 +542,6 @@ class CandidateService
             $fileName = \Illuminate\Support\Str::uuid() . '_' . $data['personPassport']->getClientOriginalName();
             $passportPath = $data['personPassport']->storeAs($directory, $fileName, 'public');
             $passportFileName = $data['personPassport']->getClientOriginalName();
-
-            $candidate->update([
-                'passportPath' => $passportPath,
-                'passportName' => $passportFileName
-            ]);
         }
 
         $hasPassportData = ! empty($data['passport'])
@@ -548,26 +554,30 @@ class CandidateService
             return;
         }
 
-        $passportData = [
-            'candidate_id' => $candidate->id,
-        ];
+        $passportData = [];
 
-        if (array_key_exists('passport', $data)) {
+        // Only include non-empty values to avoid overwriting existing data
+        if (! empty($data['passport'])) {
             $passportData['passport_number'] = $data['passport'];
         }
-        if (array_key_exists('passportValidUntil', $data)) {
+        if (! empty($data['passportValidUntil'])) {
             $passportData['expiry_date'] = $data['passportValidUntil'];
         }
-        if (array_key_exists('passportIssuedOn', $data)) {
+        if (! empty($data['passportIssuedOn'])) {
             $passportData['issue_date'] = $data['passportIssuedOn'];
         }
-        if (array_key_exists('passportIssuedBy', $data)) {
+        if (! empty($data['passportIssuedBy'])) {
             $passportData['issued_by'] = $data['passportIssuedBy'];
         }
 
         if ($passportPath !== null) {
             $passportData['file_path'] = $passportPath;
             $passportData['file_name'] = $passportFileName;
+        }
+
+        // Only update if we have data to update
+        if (empty($passportData)) {
+            return;
         }
 
         CandidatePassport::updateOrCreate(

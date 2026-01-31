@@ -135,18 +135,19 @@ class CvDocxGeneratorService
     protected function setPassportData(TemplateProcessor $template, Candidate $candidate): void
     {
         $passportInfo = [];
+        $passport = $candidate->passportRecord;
 
-        if ($candidate->passport) {
-            $passportInfo[] = 'Number: ' . $candidate->passport;
+        if ($passport?->passport_number) {
+            $passportInfo[] = 'Number: ' . $passport->passport_number;
         }
-        if ($candidate->passportIssuedBy) {
-            $passportInfo[] = 'Issued by: ' . $candidate->passportIssuedBy;
+        if ($passport?->issued_by) {
+            $passportInfo[] = 'Issued by: ' . $passport->issued_by;
         }
-        if ($candidate->passportIssuedOn) {
-            $passportInfo[] = 'Issued: ' . $this->formatDate($candidate->passportIssuedOn);
+        if ($passport?->issue_date) {
+            $passportInfo[] = 'Issued: ' . $this->formatDate($passport->issue_date);
         }
-        if ($candidate->passportValidUntil) {
-            $passportInfo[] = 'Valid until: ' . $this->formatDate($candidate->passportValidUntil);
+        if ($passport?->expiry_date) {
+            $passportInfo[] = 'Valid until: ' . $this->formatDate($passport->expiry_date);
         }
 
         $template->setValue('passport_data', implode(', ', $passportInfo));
