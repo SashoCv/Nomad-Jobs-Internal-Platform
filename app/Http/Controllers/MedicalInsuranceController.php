@@ -16,13 +16,16 @@ class MedicalInsuranceController extends Controller
     {
         return [
             'candidate' => function ($query) {
-                $query->select('id', 'fullNameCyrillic as fullName', 'contractType', 'company_id', 'position_id');
+                $query->select('id', 'fullNameCyrillic as fullName', 'contractType', 'contract_type_id', 'company_id', 'position_id');
             },
             'candidate.company' => function ($query) {
                 $query->select('id', 'nameOfCompany');
             },
             'candidate.position' => function ($query) {
                 $query->select('id', 'jobPosition');
+            },
+            'candidate.contractType' => function ($query) {
+                $query->select('id', 'name', 'slug');
             }
         ];
     }

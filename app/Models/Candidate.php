@@ -17,6 +17,7 @@ class Candidate extends Model
 
     protected $fillable = [
         'status_id', 'type_id', 'company_id', 'position_id', 'user_id', 'case_id', 'agent_id',
+        'contract_type_id', // FK to contract_types table
         'gender', 'email', 'nationality', 'date', 'phoneNumber', 'address', 'passport',
         'fullName', 'fullNameCyrillic', 'birthday', 'placeOfBirth', 'country_id', 'area',
         'areaOfResidence', 'addressOfResidence', 'periodOfResidence', 'passportValidUntil',
@@ -88,9 +89,15 @@ class Candidate extends Model
         return $this->belongsTo(Type::class, 'type_id');
     }
 
+    public function contractType()
+    {
+        return $this->belongsTo(ContractType::class, 'contract_type_id');
+    }
+
+    // Backwards compatibility alias
     public function contractCandidate()
     {
-        return $this->belongsTo(ContractCandidate::class, 'contract_candidates_id');
+        return $this->contractType();
     }
 
     public function status()

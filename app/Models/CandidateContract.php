@@ -23,6 +23,7 @@ class CandidateContract extends Model
         'status_id',
         'type_id',
         'contract_type',
+        'contract_type_id',
         'contract_period',
         'contract_period_number',
         'contract_extension_period',
@@ -81,6 +82,11 @@ class CandidateContract extends Model
     public function type(): BelongsTo
     {
         return $this->belongsTo(Type::class);
+    }
+
+    public function contractType(): BelongsTo
+    {
+        return $this->belongsTo(ContractType::class, 'contract_type_id');
     }
 
     public function companyAddress(): BelongsTo

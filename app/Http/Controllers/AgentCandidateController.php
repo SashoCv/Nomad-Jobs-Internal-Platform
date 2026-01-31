@@ -90,7 +90,15 @@ class AgentCandidateController extends Controller
         if(!$getCompanyJob){
             return response()->json(['message' => 'Job not found'], 404);
         }
+
+        // Extract contract defaults from job posting
         $companyId = $getCompanyJob->company_id;
+        $jobPositionId = $getCompanyJob->position_id;
+        $jobContractTypeId = $getCompanyJob->contract_type_id ?? null;
+        $jobContractType = $getCompanyJob->contract_type; // Legacy string field
+        $jobSalary = $getCompanyJob->salary;
+        $jobWorkTime = $getCompanyJob->workTime;
+
         $person = new Candidate();
 
         $person->status_id = $request->status_id;
@@ -102,7 +110,6 @@ class AgentCandidateController extends Controller
         $person->date = $request->date;
         $person->phoneNumber = $request->phoneNumber;
         $person->address = $request->address;
-        // Passport fields removed - stored in candidate_passports table only
         $person->fullName = $request->fullName;
         $person->fullNameCyrillic = $request->fullNameCyrillic;
         $person->birthday = $request->birthday;
@@ -112,20 +119,21 @@ class AgentCandidateController extends Controller
         $person->areaOfResidence = $request->areaOfResidence;
         $person->addressOfResidence = $request->addressOfResidence;
         $person->periodOfResidence = $request->periodOfResidence;
-        // passportValidUntil, passportIssuedBy, passportIssuedOn removed - stored in candidate_passports
         $person->addressOfWork = $request->addressOfWork;
         $person->nameOfFacility = $request->nameOfFacility;
         $person->education = $request->education;
         $person->specialty = $request->specialty;
         $person->qualification = $request->qualification;
         $person->contractExtensionPeriod = $request->contractExtensionPeriod;
-        $person->salary = $request->salary;
-        $person->workingTime = $request->workingTime;
+        // Use job posting defaults for contract fields (agent doesn't provide these)
+        $person->salary = $request->salary ?? $jobSalary;
+        $person->workingTime = $request->workingTime ?? $jobWorkTime;
         $person->workingDays = $request->workingDays;
         $person->martialStatus = $request->martialStatus;
         $person->contractPeriod = $request->contractPeriod;
-        $person->contractType = $request->contractType;
-        $person->position_id = $request->position_id;
+        $person->contractType = $request->contractType ?? $jobContractType;
+        $person->contract_type_id = $jobContractTypeId; // FK to contract_types table
+        $person->position_id = $request->position_id ?? $jobPositionId;
         $person->dossierNumber = $request->dossierNumber;
         $person->notes = $request->notes;
         $person->user_id = $request->user_id;
@@ -178,19 +186,21 @@ class AgentCandidateController extends Controller
             ]);
 
             // Create contract record (source of truth for contract data)
+            // Use job posting defaults for fields agent doesn't provide
             $contract = CandidateContract::create([
                 'candidate_id' => $person->id,
                 'contract_period_number' => 1,
                 'is_active' => true,
                 'company_id' => $companyId,
-                'position_id' => $request->position_id,
+                'position_id' => $request->position_id ?? $jobPositionId,
                 'status_id' => $request->status_id,
                 'type_id' => 3, // Agent candidate type
-                'contract_type' => $request->contractType ?? 'erpr1',
+                'contract_type' => $request->contractType ?? $jobContractType,
+                'contract_type_id' => $jobContractTypeId, // FK to contract_types table
                 'contract_period' => $request->contractPeriod,
                 'contract_extension_period' => $request->contractExtensionPeriod,
-                'salary' => $request->salary,
-                'working_time' => $request->workingTime,
+                'salary' => $request->salary ?? $jobSalary,
+                'working_time' => $request->workingTime ?? $jobWorkTime,
                 'working_days' => $request->workingDays,
                 'address_of_work' => $request->addressOfWork,
                 'name_of_facility' => $request->nameOfFacility,

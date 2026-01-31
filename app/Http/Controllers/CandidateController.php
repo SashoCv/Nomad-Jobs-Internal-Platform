@@ -13,7 +13,7 @@ use App\Models\Arrival;
 use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
 use App\Models\Category;
-use App\Models\ContractCandidate;
+use App\Models\ContractType;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\File;
@@ -55,7 +55,7 @@ class CandidateController extends Controller
     public function types()
     {
         try {
-            $allTypes = ContractCandidate::all();
+            $allTypes = ContractType::all();
             return response()->json([
                 'success' => true,
                 'status' => 200,
@@ -84,11 +84,12 @@ class CandidateController extends Controller
             Status::REFUSED_BY_MIGRATION_OFFICE,
         ];
 
-        $candidates = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'contractType', 'company_id', 'status_id', 'position_id')
+        $candidates = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'contractType', 'contract_type_id', 'company_id', 'status_id', 'position_id')
             ->with([
                 'company:id,nameOfCompany,EIK',
                 'latestStatusHistory.status:id,nameOfStatus',
-                'position:id,jobPosition'
+                'position:id,jobPosition',
+                'contractType:id,name,slug'
             ])
             ->whereNotIn('status_id', $excludedStatuses)
             ->whereDate('endContractDate', '<=', $fourMonthsBefore)
