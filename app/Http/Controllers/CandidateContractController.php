@@ -26,7 +26,7 @@ class CandidateContractController extends Controller
             'position:id,jobPosition,NKDP',
             'status:id,nameOfStatus',
             'type:id,typeOfEmploy',
-            'contractType:id,name,slug',
+            'contract_type:id,name,slug',
         ])
             ->where('candidate_id', $candidateId)
             ->orderBy('contract_period_number', 'desc')
@@ -46,7 +46,7 @@ class CandidateContractController extends Controller
             'position:id,jobPosition,NKDP',
             'status:id,nameOfStatus',
             'type:id,typeOfEmploy',
-            'contractType:id,name,slug',
+            'contract_type:id,name,slug',
             'companyAddress',
             'agent:id,name,email',
             'user:id,name,email',
@@ -117,7 +117,7 @@ class CandidateContractController extends Controller
                 'company:id,nameOfCompany',
                 'position:id,jobPosition',
                 'status:id,nameOfStatus',
-                'contractType:id,name,slug',
+                'contract_type:id,name,slug',
             ]),
             'message' => 'Contract updated successfully',
         ]);
@@ -172,7 +172,7 @@ class CandidateContractController extends Controller
             'candidate:id,fullName,fullNameCyrillic,passport,personPicturePath',
             'company:id,nameOfCompany,EIK',
             'position:id,jobPosition,NKDP',
-            'contractType:id,name,slug',
+            'contract_type:id,name,slug',
         ])
             ->expiringSoon($months)
             ->orderBy('end_contract_date', 'asc')

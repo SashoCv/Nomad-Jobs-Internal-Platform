@@ -89,7 +89,7 @@ class CandidateController extends Controller
                 'company:id,nameOfCompany,EIK',
                 'latestStatusHistory.status:id,nameOfStatus',
                 'position:id,jobPosition',
-                'contractType:id,name,slug'
+                'contract_type:id,name,slug'
             ])
             ->whereNotIn('status_id', $excludedStatuses)
             ->whereDate('endContractDate', '<=', $fourMonthsBefore)
@@ -241,7 +241,7 @@ class CandidateController extends Controller
                 return $this->unauthorizedResponse();
             }
 
-            $candidates = $query->candidates()->with(['company', 'status', 'position', 'passportRecord', 'contractType'])
+            $candidates = $query->candidates()->with(['company', 'status', 'position', 'passportRecord', 'contract_type'])
                 ->orderBy('id', 'desc')
                 ->paginate(25);
 
@@ -262,7 +262,7 @@ class CandidateController extends Controller
                 return $this->unauthorizedResponse();
             }
 
-            $employees = $query->employees()->with(['company', 'status', 'position', 'passportRecord', 'contractType'])
+            $employees = $query->employees()->with(['company', 'status', 'position', 'passportRecord', 'contract_type'])
                 ->orderBy('id', 'desc')
                 ->paginate(25);
 

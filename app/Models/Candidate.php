@@ -89,15 +89,9 @@ class Candidate extends Model
         return $this->belongsTo(Type::class, 'type_id');
     }
 
-    public function contractType()
+    public function contract_type()
     {
         return $this->belongsTo(ContractType::class, 'contract_type_id');
-    }
-
-    // Backwards compatibility alias
-    public function contractCandidate()
-    {
-        return $this->contractType();
     }
 
     public function status()

@@ -782,7 +782,8 @@ class SearchController extends Controller
             'company.company_addresses',
             'arrival.files',
             'activeContract',
-            'latestContract'
+            'latestContract',
+            'contract_type'
         ])
             ->whereNotNull('status_id');
 
@@ -1010,12 +1011,12 @@ class SearchController extends Controller
             }
         }
 
-            return response()->json([
-                'success' => true,
-                'status' => 200,
-                'data' => $result,
-                'firstQuartal' => $firstQuartal
-            ]);
+        return response()->json([
+            'success' => true,
+            'status' => 200,
+            'data' => $result,
+            'firstQuartal' => $firstQuartal
+        ]);
 
     }
 }
