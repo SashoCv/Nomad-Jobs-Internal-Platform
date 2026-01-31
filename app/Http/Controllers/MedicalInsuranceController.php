@@ -89,6 +89,16 @@ class MedicalInsuranceController extends Controller
     public function store(Request $request)
     {
         try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'dateFrom' => 'required|date',
+                'dateTo' => 'required|date|after:dateFrom',
+                'description' => 'nullable|string',
+                'candidate_id' => 'required|exists:candidates,id',
+            ], [
+                'dateTo.after' => 'Крайната дата трябва да е след началната дата',
+            ]);
+
             $medicalInsurance = MedicalInsurance::create($request->only('name', 'description', 'candidate_id', 'dateFrom', 'dateTo'));
 
             // Create calendar event for insurance expiry
@@ -172,6 +182,16 @@ class MedicalInsuranceController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'dateFrom' => 'required|date',
+                'dateTo' => 'required|date|after:dateFrom',
+                'description' => 'nullable|string',
+                'candidate_id' => 'nullable|exists:candidates,id',
+            ], [
+                'dateTo.after' => 'Крайната дата трябва да е след началната дата',
+            ]);
+
             $medicalInsurance = MedicalInsurance::findOrFail($id);
             $medicalInsurance->update($request->only('name', 'description', 'candidate_id', 'dateFrom', 'dateTo'));
 
