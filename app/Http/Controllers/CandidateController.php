@@ -241,7 +241,7 @@ class CandidateController extends Controller
                 return $this->unauthorizedResponse();
             }
 
-            $candidates = $query->candidates()->with(['company', 'status', 'position', 'passportRecord'])
+            $candidates = $query->candidates()->with(['company', 'status', 'position', 'passportRecord', 'contractType'])
                 ->orderBy('id', 'desc')
                 ->paginate(25);
 
@@ -262,7 +262,7 @@ class CandidateController extends Controller
                 return $this->unauthorizedResponse();
             }
 
-            $employees = $query->employees()->with(['company', 'status', 'position', 'passportRecord'])
+            $employees = $query->employees()->with(['company', 'status', 'position', 'passportRecord', 'contractType'])
                 ->orderBy('id', 'desc')
                 ->paginate(25);
 

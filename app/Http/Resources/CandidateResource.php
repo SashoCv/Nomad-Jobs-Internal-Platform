@@ -38,6 +38,14 @@ class CandidateResource extends JsonResource
             'martialStatus' => $this->martialStatus,
             'contractPeriod' => $this->contractPeriod,
             'contractType' => $this->contractType,
+            'contract_type_id' => $this->contract_type_id,
+            'contract_type' => $this->whenLoaded('contractType', function () {
+                return [
+                    'id' => $this->contractType->id,
+                    'name' => $this->contractType->name,
+                    'slug' => $this->contractType->slug,
+                ];
+            }),
             'contractExtensionPeriod' => $this->contractExtensionPeriod,
             'salary' => $this->salary,
             'workingTime' => $this->workingTime,
