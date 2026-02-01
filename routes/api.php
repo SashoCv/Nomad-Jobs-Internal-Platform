@@ -195,7 +195,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('companyFile/{id}', [CompanyFileController::class, 'show']);
     Route::put('companyFiles/{id}', [CompanyFileController::class, 'update']);
     Route::post('companyFiles/{id}/duplicate', [CompanyFileController::class, 'duplicate']);
-    Route::get('downloadCompanyFile/{file}', [CompanyFileController::class, 'download']);
+    Route::get('downloadCompanyFile/{file}', [CompanyFileController::class, 'downloadCompanyFile']);
     Route::delete('companyFileDelete/{id}', [CompanyFileController::class, 'destroy']);
 
 

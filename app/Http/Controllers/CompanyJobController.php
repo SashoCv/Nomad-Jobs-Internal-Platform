@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\CompanyJob;
 use App\Models\CompanyRequest;
-use App\Models\ContractCandidate;
+use App\Models\ContractType;
 use App\Models\User;
 use App\Models\UserOwner;
 use App\Models\Role;
@@ -92,8 +92,11 @@ class CompanyJobController extends Controller
             ->orderBy('company_jobs.created_at', 'desc');
 
         if ($contractType) {
-            $contractTypeName = ContractCandidate::where('id', $contractType)->value('name');
-            $query->where('company_jobs.contract_type', $contractTypeName);
+            // Frontend sends slug (e.g., "erpr1", "90days"), lookup name for filtering
+            $contractTypeName = ContractType::where('slug', $contractType)->value('name');
+            if ($contractTypeName) {
+                $query->where('company_jobs.contract_type', $contractTypeName);
+            }
         }
 
         if ($statusFilter) {
@@ -254,7 +257,16 @@ class CompanyJobController extends Controller
             }
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
-            $companyJob->contract_type = $request->contract_type;
+            // Handle contract type - frontend sends slug (e.g., "erpr1", "90days")
+            if ($request->contract_type) {
+                $contractType = ContractType::where('slug', $request->contract_type)->first();
+                if ($contractType) {
+                    $companyJob->contract_type_id = $contractType->id;
+                    $companyJob->contract_type = $contractType->slug;
+                } else {
+                    $companyJob->contract_type = $request->contract_type;
+                }
+            }
             $companyJob->requirementsForCandidates = $request->requirementsForCandidates;
             $companyJob->salary = $request->salary;
             $companyJob->bonus = $request->bonus;
@@ -490,12 +502,18 @@ class CompanyJobController extends Controller
             $newJobTitle = $position ? $position->jobPosition : $request->job_title;
         }
 
+        // Handle contract type - convert slug to name for change logs
+        $contractTypeValue = $request->contract_type;
+        if ($contractTypeValue) {
+            $contractTypeValue = ContractType::where('slug', $contractTypeValue)->value('name') ?? $contractTypeValue;
+        }
+
         // Build array of new values
         $newValues = [
             'job_title' => $newJobTitle,
             'number_of_positions' => $request->number_of_positions,
             'job_description' => $request->job_description,
-            'contract_type' => $request->contract_type,
+            'contract_type' => $contractTypeValue,
             'requirementsForCandidates' => $request->requirementsForCandidates,
             'salary' => $request->salary,
             'bonus' => $request->bonus,
@@ -583,7 +601,16 @@ class CompanyJobController extends Controller
 
         $companyJob->number_of_positions = $request->number_of_positions;
         $companyJob->job_description = $request->job_description;
-        $companyJob->contract_type = $request->contract_type;
+        // Handle contract type - frontend sends slug (e.g., "erpr1", "90days")
+        if ($request->contract_type) {
+            $contractType = ContractType::where('slug', $request->contract_type)->first();
+            if ($contractType) {
+                $companyJob->contract_type_id = $contractType->id;
+                $companyJob->contract_type = $contractType->slug;
+            } else {
+                $companyJob->contract_type = $request->contract_type;
+            }
+        }
         $companyJob->requirementsForCandidates = $request->requirementsForCandidates;
         $companyJob->salary = $request->salary;
         $companyJob->bonus = $request->bonus;

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ContractCandidate;
+use App\Models\ContractType;
 use Illuminate\Http\Request;
 
 class ContaractCandidateController extends Controller
@@ -41,10 +41,10 @@ class ContaractCandidateController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\ContractCandidate  $contaractCandidate
+     * @param  \App\Models\ContractType  $contaractCandidate
      * @return \Illuminate\Http\Response
      */
-    public function show(ContractCandidate $contaractCandidate)
+    public function show(ContractType $contaractCandidate)
     {
         //
     }
@@ -52,10 +52,10 @@ class ContaractCandidateController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\ContractCandidate  $contaractCandidate
+     * @param  \App\Models\ContractType  $contaractCandidate
      * @return \Illuminate\Http\Response
      */
-    public function edit(ContractCandidate $contaractCandidate)
+    public function edit(ContractType $contaractCandidate)
     {
         //
     }
@@ -64,10 +64,10 @@ class ContaractCandidateController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\ContractCandidate  $contaractCandidate
+     * @param  \App\Models\ContractType  $contaractCandidate
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, ContractCandidate $contaractCandidate)
+    public function update(Request $request, ContractType $contaractCandidate)
     {
         //
     }
@@ -75,10 +75,10 @@ class ContaractCandidateController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\ContractCandidate  $contaractCandidate
+     * @param  \App\Models\ContractType  $contaractCandidate
      * @return \Illuminate\Http\Response
      */
-    public function destroy(ContractCandidate $contaractCandidate)
+    public function destroy(ContractType $contaractCandidate)
     {
         //
     }

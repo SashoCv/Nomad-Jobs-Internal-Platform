@@ -26,6 +26,7 @@ class CandidateContractController extends Controller
             'position:id,jobPosition,NKDP',
             'status:id,nameOfStatus',
             'type:id,typeOfEmploy',
+            'contract_type:id,name,slug',
         ])
             ->where('candidate_id', $candidateId)
             ->orderBy('contract_period_number', 'desc')
@@ -45,6 +46,7 @@ class CandidateContractController extends Controller
             'position:id,jobPosition,NKDP',
             'status:id,nameOfStatus',
             'type:id,typeOfEmploy',
+            'contract_type:id,name,slug',
             'companyAddress',
             'agent:id,name,email',
             'user:id,name,email',
@@ -81,7 +83,8 @@ class CandidateContractController extends Controller
             'position_id' => 'sometimes|nullable|exists:positions,id',
             'status_id' => 'sometimes|nullable|exists:statuses,id',
             'type_id' => 'sometimes|nullable|exists:types,id',
-            'contract_type' => 'sometimes|string',
+            'contract_type' => 'sometimes|nullable|string',
+            'contract_type_id' => 'sometimes|nullable|exists:contract_types,id',
             'contract_period' => 'sometimes|nullable|string',
             'start_contract_date' => 'sometimes|nullable|date',
             'end_contract_date' => 'sometimes|nullable|date',
@@ -115,6 +118,7 @@ class CandidateContractController extends Controller
                 'company:id,nameOfCompany',
                 'position:id,jobPosition',
                 'status:id,nameOfStatus',
+                'contract_type:id,name,slug',
             ]),
             'message' => 'Contract updated successfully',
         ]);
@@ -169,6 +173,7 @@ class CandidateContractController extends Controller
             'candidate:id,fullName,fullNameCyrillic,passport,personPicturePath',
             'company:id,nameOfCompany,EIK',
             'position:id,jobPosition,NKDP',
+            'contract_type:id,name,slug',
         ])
             ->expiringSoon($months)
             ->orderBy('end_contract_date', 'asc')
@@ -195,6 +200,7 @@ class CandidateContractController extends Controller
             'status_id' => $contract->status_id,
             'type_id' => $contract->type_id,
             'contractType' => $contract->contract_type,
+            'contract_type_id' => $contract->contract_type_id,
             'contractPeriod' => $contract->contract_period,
             'startContractDate' => $contract->start_contract_date,
             'endContractDate' => $contract->end_contract_date,

@@ -16,13 +16,16 @@ class MedicalInsuranceController extends Controller
     {
         return [
             'candidate' => function ($query) {
-                $query->select('id', 'fullNameCyrillic as fullName', 'contractType', 'company_id', 'position_id');
+                $query->select('id', 'fullNameCyrillic as fullName', 'contractType', 'contract_type_id', 'company_id', 'position_id');
             },
             'candidate.company' => function ($query) {
                 $query->select('id', 'nameOfCompany');
             },
             'candidate.position' => function ($query) {
                 $query->select('id', 'jobPosition');
+            },
+            'candidate.contract_type' => function ($query) {
+                $query->select('id', 'name', 'slug');
             }
         ];
     }
@@ -89,6 +92,16 @@ class MedicalInsuranceController extends Controller
     public function store(Request $request)
     {
         try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'dateFrom' => 'required|date',
+                'dateTo' => 'required|date|after:dateFrom',
+                'description' => 'nullable|string',
+                'candidate_id' => 'required|exists:candidates,id',
+            ], [
+                'dateTo.after' => 'Крайната дата трябва да е след началната дата',
+            ]);
+
             $medicalInsurance = MedicalInsurance::create($request->only('name', 'description', 'candidate_id', 'dateFrom', 'dateTo'));
 
             // Create calendar event for insurance expiry
@@ -148,8 +161,16 @@ class MedicalInsuranceController extends Controller
                 ->paginate();
 
             $medicalInsurances->getCollection()->transform(function ($insurance) {
-                $insurance->dateFrom = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateFrom)->toISOString();
-                $insurance->dateTo = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateTo)->toISOString();
+                try {
+                    if ($insurance->dateFrom) {
+                        $insurance->dateFrom = \Carbon\Carbon::parse($insurance->dateFrom)->toISOString();
+                    }
+                    if ($insurance->dateTo) {
+                        $insurance->dateTo = \Carbon\Carbon::parse($insurance->dateTo)->toISOString();
+                    }
+                } catch (\Exception $e) {
+                    // Keep original values if parsing fails
+                }
                 return $insurance;
             });
 
@@ -159,12 +180,14 @@ class MedicalInsuranceController extends Controller
                 'data' => $medicalInsurances
             ]);
         } catch (\Exception $e) {
-            Log::error('Medical Insurance fetch failed: ' . $e->getMessage());
+            Log::error('Medical Insurance fetch failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return response()->json([
                 'success' => false,
                 'status' => 500,
-                'message' => 'Medical Insurance fetch failed'
+                'message' => 'Medical Insurance fetch failed: ' . $e->getMessage()
             ]);
         }
     }
@@ -172,6 +195,16 @@ class MedicalInsuranceController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'dateFrom' => 'required|date',
+                'dateTo' => 'required|date|after:dateFrom',
+                'description' => 'nullable|string',
+                'candidate_id' => 'nullable|exists:candidates,id',
+            ], [
+                'dateTo.after' => 'Крайната дата трябва да е след началната дата',
+            ]);
+
             $medicalInsurance = MedicalInsurance::findOrFail($id);
             $medicalInsurance->update($request->only('name', 'description', 'candidate_id', 'dateFrom', 'dateTo'));
 

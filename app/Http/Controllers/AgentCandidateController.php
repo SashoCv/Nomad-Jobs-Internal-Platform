@@ -17,6 +17,7 @@ use App\Models\Permission;
 use App\Models\UserOwner;
 use App\Models\CandidateCvPhoto;
 use App\Models\CandidatePassport;
+use App\Models\CandidateContract;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use App\Services\CvGeneratorService;
@@ -89,7 +90,15 @@ class AgentCandidateController extends Controller
         if(!$getCompanyJob){
             return response()->json(['message' => 'Job not found'], 404);
         }
+
+        // Extract contract defaults from job posting
         $companyId = $getCompanyJob->company_id;
+        $jobPositionId = $getCompanyJob->position_id;
+        $jobContractTypeId = $getCompanyJob->contract_type_id ?? null;
+        $jobContractType = $getCompanyJob->contract_type; // Legacy string field
+        $jobSalary = $getCompanyJob->salary;
+        $jobWorkTime = $getCompanyJob->workTime;
+
         $person = new Candidate();
 
         $person->status_id = $request->status_id;
@@ -101,7 +110,6 @@ class AgentCandidateController extends Controller
         $person->date = $request->date;
         $person->phoneNumber = $request->phoneNumber;
         $person->address = $request->address;
-        // Passport fields removed - stored in candidate_passports table only
         $person->fullName = $request->fullName;
         $person->fullNameCyrillic = $request->fullNameCyrillic;
         $person->birthday = $request->birthday;
@@ -111,20 +119,21 @@ class AgentCandidateController extends Controller
         $person->areaOfResidence = $request->areaOfResidence;
         $person->addressOfResidence = $request->addressOfResidence;
         $person->periodOfResidence = $request->periodOfResidence;
-        // passportValidUntil, passportIssuedBy, passportIssuedOn removed - stored in candidate_passports
         $person->addressOfWork = $request->addressOfWork;
         $person->nameOfFacility = $request->nameOfFacility;
         $person->education = $request->education;
         $person->specialty = $request->specialty;
         $person->qualification = $request->qualification;
         $person->contractExtensionPeriod = $request->contractExtensionPeriod;
-        $person->salary = $request->salary;
-        $person->workingTime = $request->workingTime;
+        // Use job posting defaults for contract fields (agent doesn't provide these)
+        $person->salary = $request->salary ?? $jobSalary;
+        $person->workingTime = $request->workingTime ?? $jobWorkTime;
         $person->workingDays = $request->workingDays;
         $person->martialStatus = $request->martialStatus;
         $person->contractPeriod = $request->contractPeriod;
-        $person->contractType = $request->contractType;
-        $person->position_id = $request->position_id;
+        $person->contractType = $request->contractType ?? $jobContractType;
+        $person->contract_type_id = $jobContractTypeId; // FK to contract_types table
+        $person->position_id = $request->position_id ?? $jobPositionId;
         $person->dossierNumber = $request->dossierNumber;
         $person->notes = $request->notes;
         $person->user_id = $request->user_id;
@@ -144,6 +153,7 @@ class AgentCandidateController extends Controller
         $person->other_language = $request->other_language;
         $person->other_language_level = $request->other_language_level;
         $person->children_info = $request->children_info;
+        $person->is_qualified = filter_var($request->is_qualified, FILTER_VALIDATE_BOOLEAN);
 
         $educations = $request->educations ?? [];
         $experiences = $request->experiences ?? [];
@@ -174,6 +184,33 @@ class AgentCandidateController extends Controller
                 'issued_by' => $request->passportIssuedBy,
                 'file_path' => $passportPath,
                 'file_name' => $passportFileName,
+            ]);
+
+            // Create contract record (source of truth for contract data)
+            // Use job posting defaults for fields agent doesn't provide
+            $contract = CandidateContract::create([
+                'candidate_id' => $person->id,
+                'contract_period_number' => 1,
+                'is_active' => true,
+                'company_id' => $companyId,
+                'position_id' => $request->position_id ?? $jobPositionId,
+                'status_id' => $request->status_id,
+                'type_id' => 3, // Agent candidate type
+                'contract_type' => $request->contractType ?? $jobContractType,
+                'contract_type_id' => $jobContractTypeId, // FK to contract_types table
+                'contract_period' => $request->contractPeriod,
+                'contract_extension_period' => $request->contractExtensionPeriod,
+                'salary' => $request->salary ?? $jobSalary,
+                'working_time' => $request->workingTime ?? $jobWorkTime,
+                'working_days' => $request->workingDays,
+                'address_of_work' => $request->addressOfWork,
+                'name_of_facility' => $request->nameOfFacility,
+                'dossier_number' => $request->dossierNumber,
+                'agent_id' => Auth::user()->id,
+                'user_id' => $request->user_id,
+                'added_by' => Auth::user()->id,
+                'notes' => $request->notes,
+                'date' => $request->date ?? now(),
             ]);
 
             if(count($educations) > 0){
@@ -248,6 +285,7 @@ class AgentCandidateController extends Controller
             $agentCandidate->user_id = $candidateData['user_id'];
             $agentCandidate->company_job_id = $candidateData['company_job_id'];
             $agentCandidate->candidate_id = $candidateData['candidate_id'];
+            $agentCandidate->contract_id = $contract->id;
             $agentCandidate->status_for_candidate_from_agent_id = $candidateData['status_id'];
 
             $agentCandidate->save();
@@ -460,7 +498,9 @@ class AgentCandidateController extends Controller
                 'height', 'weight', 'chronic_diseases', 'country_of_visa_application',
                 'has_driving_license', 'driving_license_category', 'driving_license_expiry',
                 'driving_license_country', 'english_level', 'russian_level',
-                'other_language', 'other_language_level', 'children_info'
+                'other_language', 'other_language_level', 'children_info',
+                // Qualification field
+                'is_qualified'
             ];
 
             foreach ($fieldsToUpdate as $field) {
@@ -468,7 +508,7 @@ class AgentCandidateController extends Controller
                     $value = $request->$field;
 
                     // Handle boolean fields - convert string 'true'/'false' to actual boolean
-                    if ($field === 'has_driving_license') {
+                    if ($field === 'has_driving_license' || $field === 'is_qualified') {
                         $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
                     }
 

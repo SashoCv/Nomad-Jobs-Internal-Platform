@@ -22,6 +22,7 @@ class Invoice extends Model
         'price_bgn',
         'invoiceStatus',
         'notes',
+        'invoice_number',
     ];
 
     const INVOICE_STATUS_INVOICED = 'invoiced';

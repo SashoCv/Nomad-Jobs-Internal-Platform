@@ -24,7 +24,7 @@ class AgentContractPricingController extends Controller
             //     return response()->json(['error' => 'Insufficient permissions'], 403);
             // }
 
-            $pricing = AgentContractPricing::with(['agentServiceContract', 'agentServiceType', 'status'])
+            $pricing = AgentContractPricing::with(['agentServiceContract', 'agentServiceType', 'status', 'contractTypes'])
                 ->get();
 
             return response()->json($pricing);
@@ -59,12 +59,20 @@ class AgentContractPricingController extends Controller
                 'companyScopeType' => 'required|in:all,include,exclude',
                 'companyScopeIds' => 'nullable|array',
                 'companyScopeIds.*' => 'exists:companies,id',
+                'contract_type_ids' => 'nullable|array',
+                'contract_type_ids.*' => 'exists:contract_types,id',
+                'qualification_scope' => 'nullable|in:all,qualified,unqualified',
             ]);
 
-            $pricing = new AgentContractPricing($request->all());
+            $pricing = new AgentContractPricing($request->except('contract_type_ids'));
             $pricing->save();
 
-            return response()->json($pricing->load(['agentServiceType', 'status']), 201);
+            // Sync contract types (empty array = applies to all)
+            if ($request->has('contract_type_ids')) {
+                $pricing->contractTypes()->sync($request->contract_type_ids ?? []);
+            }
+
+            return response()->json($pricing->load(['agentServiceType', 'status', 'contractTypes']), 201);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to create pricing: ' . $e->getMessage()], 400);
         }
@@ -84,7 +92,7 @@ class AgentContractPricingController extends Controller
             //     return response()->json(['error' => 'Insufficient permissions'], 403);
             // }
 
-            $pricing = AgentContractPricing::with(['agentServiceContract', 'agentServiceType', 'status'])
+            $pricing = AgentContractPricing::with(['agentServiceContract', 'agentServiceType', 'status', 'contractTypes'])
                 ->findOrFail($id);
 
             return response()->json($pricing);
@@ -120,13 +128,21 @@ class AgentContractPricingController extends Controller
                 'companyScopeType' => 'sometimes|in:all,include,exclude',
                 'companyScopeIds' => 'nullable|array',
                 'companyScopeIds.*' => 'exists:companies,id',
+                'contract_type_ids' => 'nullable|array',
+                'contract_type_ids.*' => 'exists:contract_types,id',
+                'qualification_scope' => 'nullable|in:all,qualified,unqualified',
             ]);
 
             $pricing = AgentContractPricing::findOrFail($id);
-            $pricing->fill($request->all());
+            $pricing->fill($request->except('contract_type_ids'));
             $pricing->save();
 
-            return response()->json($pricing->load(['agentServiceType', 'status']), 200);
+            // Sync contract types if provided (empty array = applies to all)
+            if ($request->has('contract_type_ids')) {
+                $pricing->contractTypes()->sync($request->contract_type_ids ?? []);
+            }
+
+            return response()->json($pricing->load(['agentServiceType', 'status', 'contractTypes']), 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to update pricing: ' . $e->getMessage()], 400);
         }
@@ -169,7 +185,7 @@ class AgentContractPricingController extends Controller
             //     return response()->json(['error' => 'Insufficient permissions'], 403);
             // }
 
-            $pricing = AgentContractPricing::with(['agentServiceType', 'status'])
+            $pricing = AgentContractPricing::with(['agentServiceType', 'status', 'contractTypes'])
                 ->where('agent_service_contract_id', $contractId)
                 ->get();
 

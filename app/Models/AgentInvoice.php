@@ -21,6 +21,7 @@ class AgentInvoice extends Model
         'price',
         'invoiceStatus',
         'notes',
+        'invoice_number',
     ];
 
     const INVOICE_STATUS_INVOICED = 'invoiced';

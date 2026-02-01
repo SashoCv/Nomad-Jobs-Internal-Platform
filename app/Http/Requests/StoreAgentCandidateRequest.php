@@ -30,7 +30,7 @@ class StoreAgentCandidateRequest extends FormRequest
             'passportValidUntil' => 'required|date',
             'passportIssuedOn' => 'required|date',
             'passportIssuedBy' => 'required|string|max:255',
-            'personPassport' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            'personPassport' => 'nullable|file|max:10240',
 
             // Optional fields
             'email' => 'nullable|email|max:255',
@@ -103,7 +103,7 @@ class StoreAgentCandidateRequest extends FormRequest
             'passportIssuedOn.required' => 'Passport issue date is required.',
             'passportIssuedBy.required' => 'Passport issuing authority is required.',
             'personPassport.file' => 'Passport must be a valid file.',
-            'personPassport.mimes' => 'Passport must be a JPG, PNG, or PDF file.',
+            'personPassport.mimes' => 'Passport must be a JPG, PNG, PDF, DOC, or DOCX file.',
             'personPassport.max' => 'Passport file must not exceed 10MB.',
         ];
     }

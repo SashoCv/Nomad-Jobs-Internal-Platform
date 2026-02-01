@@ -68,16 +68,25 @@ class MigrationDocumentPreparationController extends Controller
                     $query->whereDate('submissionDate', $searchBySubmissionDate);
                 })
                 ->with([
-                    'candidate:id,fullName,dossierNumber,company_id',
-                    'user:id,firstName,lastName,email',
-                    'candidate.company:id,nameOfCompany,email'
+                    'candidate' => function ($query) {
+                        $query->select('id', 'fullName', 'dossierNumber', 'company_id')->withTrashed();
+                    },
+                    'user' => function ($query) {
+                        $query->select('id', 'firstName', 'lastName', 'email')->withTrashed();
+                    },
+                    'candidate.company' => function ($query) {
+                        $query->select('id', 'nameOfCompany', 'phoneOfContactPerson')->withTrashed();
+                    }
                 ])
                 ->paginate();
 
             return response()->json($migrationDocumentPreparation, 200);
         } catch (\Exception $e) {
-            Log::info('Document Preparation could not be retrieved', ['message' => $e->getMessage()]);
-            return response()->json(['message' => 'Document Preparation could not be retrieved'], 409);
+            Log::error('Document Preparation could not be retrieved', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Document Preparation could not be retrieved: ' . $e->getMessage()], 409);
         }
     }
 
@@ -128,9 +137,15 @@ class MigrationDocumentPreparationController extends Controller
                     $query->whereDate('submissionDate', $searchBySubmissionDate);
                 })
                 ->with([
-                    'candidate:id,fullName,dossierNumber,company_id',
-                    'user:id,firstName,lastName,email',
-                    'candidate.company:id,nameOfCompany,email'
+                    'candidate' => function ($query) {
+                        $query->select('id', 'fullName', 'dossierNumber', 'company_id')->withTrashed();
+                    },
+                    'user' => function ($query) {
+                        $query->select('id', 'firstName', 'lastName', 'email')->withTrashed();
+                    },
+                    'candidate.company' => function ($query) {
+                        $query->select('id', 'nameOfCompany', 'phoneOfContactPerson')->withTrashed();
+                    }
                 ])
                 ->get();
 
@@ -143,8 +158,11 @@ class MigrationDocumentPreparationController extends Controller
             return response()->download($filePath)->deleteFileAfterSend(true);
 
         } catch (\Exception $e) {
-            Log::info('Document Preparation could not be retrieved', ['message' => $e->getMessage()]);
-            return response()->json(['message' => 'Document Preparation could not be retrieved'], 409);
+            Log::error('Document Preparation export failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Document Preparation could not be retrieved: ' . $e->getMessage()], 409);
         }
     }
 
@@ -224,16 +242,25 @@ class MigrationDocumentPreparationController extends Controller
                 'employmentContract'
             )
                 ->with([
-                    'candidate:id,fullName,dossierNumber,company_id',
-                    'user:id,firstName,lastName,email',
-                    'candidate.company:id,nameOfCompany,email'
+                    'candidate' => function ($query) {
+                        $query->select('id', 'fullName', 'dossierNumber', 'company_id')->withTrashed();
+                    },
+                    'user' => function ($query) {
+                        $query->select('id', 'firstName', 'lastName', 'email')->withTrashed();
+                    },
+                    'candidate.company' => function ($query) {
+                        $query->select('id', 'nameOfCompany', 'phoneOfContactPerson')->withTrashed();
+                    }
                 ])
                 ->find($id);
 
             return response()->json($migrationDocumentPreparation, 200);
         } catch (\Exception $e) {
-            Log::info('Document Preparation could not be retrieved', ['message' => $e->getMessage()]);
-            return response()->json(['message' => 'Document Preparation could not be retrieved'], 409);
+            Log::error('Document Preparation could not be retrieved', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['message' => 'Document Preparation could not be retrieved: ' . $e->getMessage()], 409);
         }
     }
 

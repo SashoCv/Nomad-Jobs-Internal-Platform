@@ -131,6 +131,7 @@ class AgentInvoiceController extends Controller
             $validated = $request->validate([
                 'invoiceStatus' => 'required|in:invoiced,not_invoiced,rejected,paid',
                 'notes' => 'nullable|string',
+                'invoice_number' => 'nullable|string',
             ]);
 
             $invoice->update($validated);

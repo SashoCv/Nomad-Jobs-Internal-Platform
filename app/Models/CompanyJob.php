@@ -84,6 +84,11 @@ class CompanyJob extends Model
         return $this->belongsTo(Country::class);
     }
 
+    public function contract_type()
+    {
+        return $this->belongsTo(ContractType::class, 'contract_type_id');
+    }
+
     public function agentCandidates()
     {
         return $this->hasMany(AgentCandidate::class, 'company_job_id');

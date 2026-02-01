@@ -17,6 +17,7 @@ class Candidate extends Model
 
     protected $fillable = [
         'status_id', 'type_id', 'company_id', 'position_id', 'user_id', 'case_id', 'agent_id',
+        'contract_type_id', // FK to contract_types table
         'gender', 'email', 'nationality', 'date', 'phoneNumber', 'address', 'passport',
         'fullName', 'fullNameCyrillic', 'birthday', 'placeOfBirth', 'country_id', 'area',
         'areaOfResidence', 'addressOfResidence', 'periodOfResidence', 'passportValidUntil',
@@ -31,7 +32,8 @@ class Candidate extends Model
         'height', 'weight', 'chronic_diseases', 'country_of_visa_application',
         'has_driving_license', 'driving_license_category', 'driving_license_expiry', 'driving_license_country',
         'english_level', 'russian_level', 'other_language', 'other_language_level',
-        'children_info'
+        'children_info',
+        'is_qualified'
     ];
 
     protected $appends = ['workAddressCity'];
@@ -54,6 +56,7 @@ class Candidate extends Model
     protected $casts = [
         'date' => 'date:Y-m-d',
         'has_driving_license' => 'boolean',
+        'is_qualified' => 'boolean',
     ];
 
     const TYPE_CANDIDATE = 1;
@@ -88,9 +91,9 @@ class Candidate extends Model
         return $this->belongsTo(Type::class, 'type_id');
     }
 
-    public function contractCandidate()
+    public function contract_type()
     {
-        return $this->belongsTo(ContractCandidate::class, 'contract_candidates_id');
+        return $this->belongsTo(ContractType::class, 'contract_type_id');
     }
 
     public function status()

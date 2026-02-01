@@ -53,6 +53,7 @@ class ArrivalPricingController extends Controller
                 ->where('id', $data['candidateId'])
                 ->value('contractType');
 
+            $agreement_type = null;
             if ($contractTypeCandidate == "ЕРПР 3" || $contractTypeCandidate == "ЕРПР 2" || $contractTypeCandidate == "ЕРПР 1") {
                 $agreement_type = "erpr";
             } else if ($contractTypeCandidate == "9 месеца") {
@@ -61,11 +62,14 @@ class ArrivalPricingController extends Controller
                 $agreement_type = "90days";
             }
 
-            $company_service_contract_id = DB::table('company_service_contracts')
-                ->where('company_id', $invoiceData->company_id)
-                ->where('agreement_type', $agreement_type)
-                ->where('status', 'active')
-                ->value('id') ?? null;
+            $company_service_contract_id = null;
+            if ($agreement_type) {
+                $company_service_contract_id = DB::table('company_service_contracts')
+                    ->where('company_id', $invoiceData->company_id)
+                    ->where('agreement_type', $agreement_type)
+                    ->where('status', 'active')
+                    ->value('id');
+            }
 
             $invoice = Invoice::updateOrCreate(
                 [

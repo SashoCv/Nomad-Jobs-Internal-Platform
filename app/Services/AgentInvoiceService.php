@@ -25,7 +25,7 @@ class AgentInvoiceService
         // Convert date format if needed
         $formattedDate = self::formatDate($statusDate);
 
-        $candidate = Candidate::find($candidateId);
+        $candidate = Candidate::with('activeContract')->find($candidateId);
 
         if (!$candidate || !$candidate->company_id || !$candidate->country_id) {
             return; // Candidate does not have a company or country assigned
@@ -33,6 +33,9 @@ class AgentInvoiceService
 
         $companyId = $candidate->company_id;
         $candidateCountryId = $candidate->country_id;
+
+        // Get candidate's contract type from active contract
+        $candidateContractTypeId = $candidate->activeContract?->contract_type_id;
 
         // Find the agent who added this candidate
         $agentCandidate = AgentCandidate::where('candidate_id', $candidateId)->first();
@@ -54,10 +57,10 @@ class AgentInvoiceService
 
         $agent_service_contract_id = $activeContract->id;
 
-        // Get all pricing for the status (with agentServiceType relationship)
+        // Get all pricing for the status (with agentServiceType and contractTypes relationships)
         $allContractPricing = AgentContractPricing::where('agent_service_contract_id', $agent_service_contract_id)
             ->where('status_id', $statusId)
-            ->with(['status', 'agentServiceType'])
+            ->with(['status', 'agentServiceType', 'contractTypes'])
             ->get();
 
         if ($allContractPricing->isEmpty()) {
@@ -102,8 +105,45 @@ class AgentInvoiceService
             }
         });
 
+        // Filter pricing based on contract type scope
+        // If pricing has NO contract types → applies to ALL contract types
+        // If pricing HAS contract types → only apply if candidate's contract type matches
+        $contractPricing = $contractPricing->filter(function($item) use ($candidateContractTypeId) {
+            // If no contract types defined for this pricing, it applies to all
+            if ($item->contractTypes->isEmpty()) {
+                return true;
+            }
+
+            // If candidate has no contract type, skip pricings that require specific types
+            if (!$candidateContractTypeId) {
+                return false;
+            }
+
+            // Check if candidate's contract type is in the pricing's contract types
+            return $item->contractTypes->contains('id', $candidateContractTypeId);
+        });
+
+        // Filter pricing based on qualification scope
+        // 'all' → applies to all candidates
+        // 'qualified' → only applies to qualified candidates (is_qualified = true)
+        // 'unqualified' → only applies to unqualified candidates (is_qualified = false)
+        $candidateIsQualified = (bool) ($candidate->is_qualified ?? false);
+        $contractPricing = $contractPricing->filter(function($item) use ($candidateIsQualified) {
+            $qualificationScope = $item->qualification_scope ?? 'all';
+
+            switch ($qualificationScope) {
+                case 'qualified':
+                    return $candidateIsQualified === true;
+                case 'unqualified':
+                    return $candidateIsQualified === false;
+                case 'all':
+                default:
+                    return true;
+            }
+        });
+
         if ($contractPricing->isEmpty()) {
-            Log::info("No applicable pricing found for candidate ID: {$candidateId} with country_id: {$candidateCountryId}, company_id: {$companyId} and status_id: {$statusId}");
+            Log::info("No applicable pricing found for candidate ID: {$candidateId} with country_id: {$candidateCountryId}, company_id: {$companyId}, contract_type_id: {$candidateContractTypeId} and status_id: {$statusId}");
             return;
         }
 
