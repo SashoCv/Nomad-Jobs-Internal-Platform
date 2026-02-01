@@ -13,6 +13,7 @@ use App\Models\Status;
 use App\Models\UserOwner;
 use App\Models\Role;
 use App\Models\Permission;
+use App\Models\ContractType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -878,17 +879,10 @@ class SearchController extends Controller
                     $q->where('dossierNumber', '=', $request->dossierNumber);
                 })
                 ->when($request->contractType, function ($q) use ($request) {
-                    $contractType = $request->contractType;
-                    $map = [
-                        'ЕРПР 1' => 'ЕРПР 1',
-                        'ЕРПР 2' => 'ЕРПР 2',
-                        'ЕРПР 3' => 'ЕРПР 3',
-                        '90 дни' => '90 дни',
-                        '9 месеца' => '9 месеца',
-                    ];
-
-                    $contractTypeLatin = $map[$contractType] ?? $contractType;
-                    $q->where('contractType', '=', $contractTypeLatin);
+                    $contractTypeId = ContractType::getIdBySlug($request->contractType);
+                    if ($contractTypeId) {
+                        $q->where('contract_type_id', '=', $contractTypeId);
+                    }
                 })
                 ->when($request->searchAddedBy, function ($q) use ($request) {
                     if ($request->searchAddedBy === 'notDefined') {
