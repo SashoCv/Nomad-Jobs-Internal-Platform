@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasContractType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CompanyJob extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes, HasContractType;
 
     // Status constants
     public const STATUS_PENDING = 'pending';
