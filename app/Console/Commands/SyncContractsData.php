@@ -60,6 +60,7 @@ class SyncContractsData extends Command
 
             if (!$dryRun) {
                 try {
+                    // Note: contract_type mutator automatically sets contract_type_id
                     CandidateContract::create([
                         'candidate_id' => $candidate->id,
                         'contract_period_number' => 1,

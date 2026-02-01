@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasContractType;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 
 class Candidate extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasContractType;
 
     protected $fillable = [
         'status_id', 'type_id', 'company_id', 'position_id', 'user_id', 'case_id', 'agent_id',
@@ -58,6 +59,14 @@ class Candidate extends Model
         'has_driving_license' => 'boolean',
         'is_qualified' => 'boolean',
     ];
+
+    /**
+     * Override: Candidate uses camelCase 'contractType' instead of 'contract_type'.
+     */
+    protected function getContractTypeSlugAttribute(): string
+    {
+        return 'contractType';
+    }
 
     const TYPE_CANDIDATE = 1;
     const TYPE_EMPLOYEE = 2;

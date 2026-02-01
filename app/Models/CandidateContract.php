@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasContractType;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class CandidateContract extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasContractType;
 
     protected $table = 'candidate_contracts';
 

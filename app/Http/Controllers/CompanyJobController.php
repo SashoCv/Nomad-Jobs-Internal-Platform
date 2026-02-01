@@ -257,16 +257,8 @@ class CompanyJobController extends Controller
             }
             $companyJob->number_of_positions = $request->number_of_positions;
             $companyJob->job_description = $request->job_description;
-            // Handle contract type - frontend sends slug (e.g., "erpr1", "90days")
-            if ($request->contract_type) {
-                $contractType = ContractType::where('slug', $request->contract_type)->first();
-                if ($contractType) {
-                    $companyJob->contract_type_id = $contractType->id;
-                    $companyJob->contract_type = $contractType->slug;
-                } else {
-                    $companyJob->contract_type = $request->contract_type;
-                }
-            }
+            // Mutator automatically sets contract_type_id when contract_type is set
+            $companyJob->contract_type = $request->contract_type;
             $companyJob->requirementsForCandidates = $request->requirementsForCandidates;
             $companyJob->salary = $request->salary;
             $companyJob->bonus = $request->bonus;
@@ -601,16 +593,8 @@ class CompanyJobController extends Controller
 
         $companyJob->number_of_positions = $request->number_of_positions;
         $companyJob->job_description = $request->job_description;
-        // Handle contract type - frontend sends slug (e.g., "erpr1", "90days")
-        if ($request->contract_type) {
-            $contractType = ContractType::where('slug', $request->contract_type)->first();
-            if ($contractType) {
-                $companyJob->contract_type_id = $contractType->id;
-                $companyJob->contract_type = $contractType->slug;
-            } else {
-                $companyJob->contract_type = $request->contract_type;
-            }
-        }
+        // Mutator automatically sets contract_type_id when contract_type is set
+        $companyJob->contract_type = $request->contract_type;
         $companyJob->requirementsForCandidates = $request->requirementsForCandidates;
         $companyJob->salary = $request->salary;
         $companyJob->bonus = $request->bonus;

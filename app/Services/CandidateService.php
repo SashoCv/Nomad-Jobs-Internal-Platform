@@ -67,6 +67,7 @@ class CandidateService
             $candidate->save();
 
             // Create first contract record (Source of Truth)
+            // Note: contract_type mutator automatically sets contract_type_id
             $contract = CandidateContract::create([
                 'candidate_id' => $candidate->id,
                 'contract_period_number' => 1,
@@ -263,6 +264,7 @@ class CandidateService
                 $contractPeriodDate = $candidate->calculateContractEndDate($date, $data['contractPeriod']);
             }
 
+            // Note: contract_type mutator automatically sets contract_type_id
             $contract = CandidateContract::create([
                 'candidate_id' => $candidate->id,
                 'contract_period_number' => $newPeriodNumber,
@@ -372,6 +374,7 @@ class CandidateService
             'status_id' => $contract->status_id,
             'type_id' => $contract->type_id,
             'contractType' => $contract->contract_type,
+            'contract_type_id' => $contract->contract_type_id,
             'contractPeriod' => $contract->contract_period,
             'contractPeriodNumber' => $contract->contract_period_number,
             'contractExtensionPeriod' => $contract->contract_extension_period,

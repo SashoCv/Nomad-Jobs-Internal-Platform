@@ -89,6 +89,7 @@ class CompanyJobService
         $companyJob->job_title = $data['job_title'];
         $companyJob->number_of_positions = $data['number_of_positions'];
         $companyJob->job_description = $data['job_description'];
+        // Mutator automatically sets contract_type_id when contract_type is set
         $companyJob->contract_type = !empty($data['contract_type']) ? $data['contract_type'] : null;
         $companyJob->requirementsForCandidates = !empty($data['requirementsForCandidates']) ? $data['requirementsForCandidates'] : null;
         $companyJob->salary = !empty($data['salary']) ? $data['salary'] : null;
