@@ -109,6 +109,7 @@ class InvoiceController extends Controller
 
             $invoice->invoiceStatus = $request->invoiceStatus;
             $invoice->notes = $request->notes;
+            $invoice->invoice_number = $request->invoice_number;
             $invoice->save();
 
             return response()->json(['message' => 'Invoice updated successfully', 'invoice' => $invoice]);

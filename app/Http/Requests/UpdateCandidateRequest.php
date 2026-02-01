@@ -18,7 +18,7 @@ class UpdateCandidateRequest extends FormRequest
     {
         return [
             // File uploads (optional for updates)
-            'personPassport' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
+            'personPassport' => 'nullable|file|max:10240',
             'personPicture' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
 
             // Personal Information
@@ -50,7 +50,7 @@ class UpdateCandidateRequest extends FormRequest
             'workingDays' => 'nullable|integer|min:1|max:7',
             'addressOfWork' => 'required|string|max:500',
             'nameOfFacility' => 'nullable|string|max:255',
-            'user_id' => 'required|integer|exists:users,id',
+            'user_id' => 'nullable|integer|exists:users,id',
 
             // Contract dates
             'startContractDate' => 'nullable|date',
@@ -75,7 +75,7 @@ class UpdateCandidateRequest extends FormRequest
         return [
             // File uploads
             'personPassport.file' => 'Паспортът трябва да бъде валиден файл.',
-            'personPassport.mimes' => 'Паспортът трябва да бъде JPG, PNG или PDF файл.',
+            'personPassport.mimes' => 'Паспортът трябва да бъде JPG, PNG, PDF, DOC или DOCX файл.',
             'personPassport.max' => 'Файлът на паспорта не трябва да надвишава 10MB.',
             'personPicture.file' => 'Снимката трябва да бъде валиден файл.',
             'personPicture.mimes' => 'Снимката трябва да бъде JPG или PNG файл.',

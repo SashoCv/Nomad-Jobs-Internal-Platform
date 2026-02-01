@@ -153,6 +153,7 @@ class AgentCandidateController extends Controller
         $person->other_language = $request->other_language;
         $person->other_language_level = $request->other_language_level;
         $person->children_info = $request->children_info;
+        $person->is_qualified = filter_var($request->is_qualified, FILTER_VALIDATE_BOOLEAN);
 
         $educations = $request->educations ?? [];
         $experiences = $request->experiences ?? [];
@@ -497,7 +498,9 @@ class AgentCandidateController extends Controller
                 'height', 'weight', 'chronic_diseases', 'country_of_visa_application',
                 'has_driving_license', 'driving_license_category', 'driving_license_expiry',
                 'driving_license_country', 'english_level', 'russian_level',
-                'other_language', 'other_language_level', 'children_info'
+                'other_language', 'other_language_level', 'children_info',
+                // Qualification field
+                'is_qualified'
             ];
 
             foreach ($fieldsToUpdate as $field) {
@@ -505,7 +508,7 @@ class AgentCandidateController extends Controller
                     $value = $request->$field;
 
                     // Handle boolean fields - convert string 'true'/'false' to actual boolean
-                    if ($field === 'has_driving_license') {
+                    if ($field === 'has_driving_license' || $field === 'is_qualified') {
                         $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
                     }
 

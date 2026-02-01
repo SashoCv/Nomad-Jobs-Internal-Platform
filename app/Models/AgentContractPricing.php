@@ -22,6 +22,7 @@ class AgentContractPricing extends Model
         'countryScopeIds',
         'companyScopeType',
         'companyScopeIds',
+        'qualification_scope',
     ];
 
     protected $casts = [
@@ -43,5 +44,15 @@ class AgentContractPricing extends Model
     public function status()
     {
         return $this->belongsTo(Status::class);
+    }
+
+    /**
+     * Contract types this pricing applies to
+     * If empty → applies to ALL contract types
+     * If has entries → applies ONLY to those contract types
+     */
+    public function contractTypes()
+    {
+        return $this->belongsToMany(ContractType::class, 'agent_pricing_contract_types', 'pricing_id', 'contract_type_id');
     }
 }

@@ -32,7 +32,8 @@ class Candidate extends Model
         'height', 'weight', 'chronic_diseases', 'country_of_visa_application',
         'has_driving_license', 'driving_license_category', 'driving_license_expiry', 'driving_license_country',
         'english_level', 'russian_level', 'other_language', 'other_language_level',
-        'children_info'
+        'children_info',
+        'is_qualified'
     ];
 
     protected $appends = ['workAddressCity'];
@@ -55,6 +56,7 @@ class Candidate extends Model
     protected $casts = [
         'date' => 'date:Y-m-d',
         'has_driving_license' => 'boolean',
+        'is_qualified' => 'boolean',
     ];
 
     const TYPE_CANDIDATE = 1;

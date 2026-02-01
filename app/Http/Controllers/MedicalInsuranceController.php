@@ -161,8 +161,16 @@ class MedicalInsuranceController extends Controller
                 ->paginate();
 
             $medicalInsurances->getCollection()->transform(function ($insurance) {
-                $insurance->dateFrom = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateFrom)->toISOString();
-                $insurance->dateTo = \Carbon\Carbon::createFromFormat('Y-m-d', $insurance->dateTo)->toISOString();
+                try {
+                    if ($insurance->dateFrom) {
+                        $insurance->dateFrom = \Carbon\Carbon::parse($insurance->dateFrom)->toISOString();
+                    }
+                    if ($insurance->dateTo) {
+                        $insurance->dateTo = \Carbon\Carbon::parse($insurance->dateTo)->toISOString();
+                    }
+                } catch (\Exception $e) {
+                    // Keep original values if parsing fails
+                }
                 return $insurance;
             });
 
@@ -172,12 +180,14 @@ class MedicalInsuranceController extends Controller
                 'data' => $medicalInsurances
             ]);
         } catch (\Exception $e) {
-            Log::error('Medical Insurance fetch failed: ' . $e->getMessage());
+            Log::error('Medical Insurance fetch failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return response()->json([
                 'success' => false,
                 'status' => 500,
-                'message' => 'Medical Insurance fetch failed'
+                'message' => 'Medical Insurance fetch failed: ' . $e->getMessage()
             ]);
         }
     }
