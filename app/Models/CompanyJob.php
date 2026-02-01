@@ -84,7 +84,7 @@ class CompanyJob extends Model
         return $this->belongsTo(Country::class);
     }
 
-    public function contractType()
+    public function contract_type()
     {
         return $this->belongsTo(ContractType::class, 'contract_type_id');
     }

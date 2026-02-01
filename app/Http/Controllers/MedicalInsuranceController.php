@@ -24,7 +24,7 @@ class MedicalInsuranceController extends Controller
             'candidate.position' => function ($query) {
                 $query->select('id', 'jobPosition');
             },
-            'candidate.contractType' => function ($query) {
+            'candidate.contract_type' => function ($query) {
                 $query->select('id', 'name', 'slug');
             }
         ];

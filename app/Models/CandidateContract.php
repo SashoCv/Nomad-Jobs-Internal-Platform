@@ -84,14 +84,9 @@ class CandidateContract extends Model
         return $this->belongsTo(Type::class);
     }
 
-    public function contractType(): BelongsTo
-    {
-        return $this->belongsTo(ContractType::class, 'contract_type_id');
-    }
-
     public function contract_type(): BelongsTo
     {
-        return $this->contractType();
+        return $this->belongsTo(ContractType::class, 'contract_type_id');
     }
 
     public function companyAddress(): BelongsTo
