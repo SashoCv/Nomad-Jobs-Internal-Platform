@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Auth;
 
 class CandidateContractController extends Controller
 {
+    /** Company fields to load with contract relationships. */
+    private const COMPANY_FIELDS = 'id,nameOfCompany,nameOfCompanyLatin,address,email,phoneNumber,EIK,EGN,contactPerson,companyCity,dateBornDirector,industry_id,logoPath,logoName,stampPath,stampName,employedByMonths,description,has_owner,director_idCard,director_date_of_issue_idCard,commissionRate';
+
     public function index(int $candidateId): JsonResponse
     {
         $candidate = Candidate::find($candidateId);
@@ -22,7 +25,7 @@ class CandidateContractController extends Controller
         }
 
         $contracts = CandidateContract::with([
-            'company:id,nameOfCompany,EIK',
+            'company:' . self::COMPANY_FIELDS,
             'position:id,jobPosition,NKDP',
             'status:id,nameOfStatus',
             'type:id,typeOfEmploy',
@@ -42,7 +45,7 @@ class CandidateContractController extends Controller
     {
         $contract = CandidateContract::with([
             'candidate:id,fullName,fullNameCyrillic,passport,personPicturePath',
-            'company:id,nameOfCompany,EIK',
+            'company:' . self::COMPANY_FIELDS,
             'position:id,jobPosition,NKDP',
             'status:id,nameOfStatus',
             'type:id,typeOfEmploy',
@@ -115,8 +118,8 @@ class CandidateContractController extends Controller
         return response()->json([
             'success' => true,
             'data' => $contract->fresh()->load([
-                'company:id,nameOfCompany',
-                'position:id,jobPosition',
+                'company:' . self::COMPANY_FIELDS,
+                'position:id,jobPosition,NKDP',
                 'status:id,nameOfStatus',
                 'contract_type:id,name,slug',
             ]),
@@ -171,7 +174,7 @@ class CandidateContractController extends Controller
 
         $contracts = CandidateContract::with([
             'candidate:id,fullName,fullNameCyrillic,passport,personPicturePath',
-            'company:id,nameOfCompany,EIK',
+            'company:' . self::COMPANY_FIELDS,
             'position:id,jobPosition,NKDP',
             'contract_type:id,name,slug',
         ])
