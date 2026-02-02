@@ -114,7 +114,7 @@ class CandidateService
                     ],
                     [
                         'title' => 'Изтичащ договор',
-                        'date' => $candidate->endContractDate,
+                        'date' => Carbon::parse($candidate->endContractDate)->format('Y-m-d'),
                         'company_id' => $candidate->company_id,
                         'created_by' => Auth::id(),
                     ]
@@ -207,7 +207,7 @@ class CandidateService
                     ],
                     [
                         'title' => 'Изтичащ договор',
-                        'date' => $candidate->endContractDate,
+                        'date' => Carbon::parse($candidate->endContractDate)->format('Y-m-d'),
                         'company_id' => $candidate->company_id,
                     ]
                 );
@@ -313,7 +313,7 @@ class CandidateService
                     ],
                     [
                         'title' => 'Изтичащ договор',
-                        'date' => $data['endContractDate'],
+                        'date' => Carbon::parse($data['endContractDate'])->format('Y-m-d'),
                         'company_id' => $data['company_id'],
                         'created_by' => Auth::id(),
                     ]
