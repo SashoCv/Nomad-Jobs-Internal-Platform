@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class CandidateContractController extends Controller
 {
     /** Company fields to load with contract relationships. */
-    private const COMPANY_FIELDS = 'id,nameOfCompany,nameOfCompanyLatin,address,email,phoneNumber,EIK,EGN,contactPerson,companyCity,dateBornDirector,industry_id,logoPath,logoName,stampPath,stampName,employedByMonths,description,has_owner,director_idCard,director_date_of_issue_idCard,commissionRate';
+    private const COMPANY_FIELDS = 'id,nameOfCompany,nameOfCompanyLatin,address,phoneNumber,EIK,EGN,contactPerson,companyCity,dateBornDirector,industry_id,logoPath,logoName,stampPath,stampName,employedByMonths,description,has_owner,director_idCard,director_date_of_issue_idCard,commissionRate';
 
     public function index(int $candidateId): JsonResponse
     {
