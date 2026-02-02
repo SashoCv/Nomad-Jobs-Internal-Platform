@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\CalendarEvent;
 use App\Models\Candidate;
 use App\Models\Status;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class SyncContractExpiryToCalendar extends Command
@@ -56,7 +57,7 @@ class SyncContractExpiryToCalendar extends Command
                 ],
                 [
                     'title' => 'Изтичащ договор',
-                    'date' => $candidate->endContractDate,
+                    'date' => Carbon::parse($candidate->endContractDate)->format('Y-m-d'),
                     'company_id' => $candidate->company_id,
                 ]
             );
