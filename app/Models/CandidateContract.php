@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class CandidateContract extends Model
 {
@@ -59,6 +60,18 @@ class CandidateContract extends Model
         'is_active' => 'boolean',
         'is_extension' => 'boolean',
     ];
+
+    /**
+     * Salary attribute: accepts European format input (comma as decimal separator).
+     * Accepts: "620,20" or "620.20" → stores as 620.20
+     * Returns: numeric value (frontend handles display formatting)
+     */
+    protected function salary(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => $value !== null ? (float) str_replace(',', '.', (string) $value) : null,
+        );
+    }
 
     public function candidate(): BelongsTo
     {

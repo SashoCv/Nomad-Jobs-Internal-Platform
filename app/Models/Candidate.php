@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Log;
 
 class Candidate extends Model
@@ -59,6 +60,18 @@ class Candidate extends Model
         'has_driving_license' => 'boolean',
         'is_qualified' => 'boolean',
     ];
+
+    /**
+     * Salary attribute: accepts European format input (comma as decimal separator).
+     * Accepts: "620,20" or "620.20" → stores as 620.20
+     * Returns: numeric value (frontend handles display formatting)
+     */
+    protected function salary(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => $value !== null ? (float) str_replace(',', '.', (string) $value) : null,
+        );
+    }
 
     /**
      * Override: Candidate uses camelCase 'contractType' instead of 'contract_type'.
