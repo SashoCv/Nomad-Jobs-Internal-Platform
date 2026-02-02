@@ -522,6 +522,7 @@ class CandidateController extends Controller
                 Log::info('statusHistories', [$statusHistory]);
             }
 
+            $updatedCandidate->load('passportRecord');
             return $this->successResponse(new CandidateResource($updatedCandidate), 'Candidate updated successfully');
         } catch (\Exception $e) {
             Log::error('Error updating candidate: ' . $e->getMessage());
