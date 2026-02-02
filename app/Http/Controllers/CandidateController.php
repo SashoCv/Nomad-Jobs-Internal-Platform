@@ -459,7 +459,7 @@ class CandidateController extends Controller
             return response()->json(['error' => 'Insufficient permissions'], 403);
         }
 
-        $query = Candidate::with(['company', 'companyAddress.city'])->where('id', $id);
+        $query = Candidate::with(['company', 'companyAddress.city', 'passportRecord'])->where('id', $id);
 
         if ($this->isStaff()) {
             $person = $query->first();
