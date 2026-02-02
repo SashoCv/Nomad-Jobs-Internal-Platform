@@ -254,7 +254,7 @@ class FileController extends Controller
                 ->orderBy('id', 'asc')
                 ->get();
 
-            $files = File::with('category')
+            $files = File::with('category.visibleToRoles')
                 ->where('candidate_id', $id)
                 ->get();
         } else {
@@ -268,7 +268,7 @@ class FileController extends Controller
 
             $categoryIds = $categories->pluck('id');
 
-            $files = File::with('category')
+            $files = File::with('category.visibleToRoles')
                 ->where('candidate_id', $id)
                 ->whereIn('category_id', $categoryIds)
                 ->get();
