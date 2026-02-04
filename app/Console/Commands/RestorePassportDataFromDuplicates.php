@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class RestorePassportDataFromDuplicates extends Command
@@ -91,10 +92,13 @@ class RestorePassportDataFromDuplicates extends Command
 
             if (!$masterPassport) {
                 // Master has no passport at all — insert from duplicate
+                $dupFilePath = $newestDupWithPassport->file_path;
+                $dupFileExists = $dupFilePath ? Storage::disk('public')->exists($dupFilePath) : false;
+
                 $this->line("Master #{$masterId} ({$master->fullName}) — NO PASSPORT, copying from Dup #{$newestDupWithPassport->dup_id}");
                 $this->line("  passport_number: {$newestDupWithPassport->passport_number}");
                 $this->line("  expiry_date: {$newestDupWithPassport->expiry_date}");
-                $this->line("  file_path: {$newestDupWithPassport->file_path}");
+                $this->line("  file_path: {$dupFilePath}" . ($dupFilePath ? ($dupFileExists ? ' [EXISTS]' : ' [MISSING]') : ''));
                 $this->line('');
 
                 if (!$dryRun) {
@@ -104,8 +108,8 @@ class RestorePassportDataFromDuplicates extends Command
                         'issue_date' => $newestDupWithPassport->issue_date,
                         'expiry_date' => $newestDupWithPassport->expiry_date,
                         'issued_by' => $newestDupWithPassport->issued_by,
-                        'file_path' => $newestDupWithPassport->file_path,
-                        'file_name' => $newestDupWithPassport->file_name,
+                        'file_path' => $dupFileExists ? $dupFilePath : null,
+                        'file_name' => $dupFileExists ? $newestDupWithPassport->file_name : null,
                         'notes' => $newestDupWithPassport->notes,
                         'created_at' => Carbon::now(),
                         'updated_at' => Carbon::now(),
@@ -122,6 +126,12 @@ class RestorePassportDataFromDuplicates extends Command
             $updateData = [];
             $changedFields = [];
 
+            // Pre-check file existence for file_path fields
+            $dupFilePath = $newestDupWithPassport->file_path ?? null;
+            $masterFilePath = $masterPassport->file_path ?? null;
+            $dupFileExists = $dupFilePath ? Storage::disk('public')->exists($dupFilePath) : false;
+            $masterFileExists = $masterFilePath ? Storage::disk('public')->exists($masterFilePath) : false;
+
             foreach ($this->passportFields as $field) {
                 $dupValue = $newestDupWithPassport->$field ?? null;
                 $masterValue = $masterPassport->$field ?? null;
@@ -130,15 +140,15 @@ class RestorePassportDataFromDuplicates extends Command
                     continue;
                 }
 
-                // File fields: always fill if master is empty, regardless of tier
-                $isFileField = in_array($field, ['file_path', 'file_name']);
+                // For file fields: skip if duplicate file doesn't exist on disk
+                if ($field === 'file_path' && !$dupFileExists) {
+                    continue;
+                }
+                if ($field === 'file_name' && !$dupFileExists) {
+                    continue;
+                }
 
-                if ($isFileField) {
-                    if ($this->isEmptyOrJunk($masterValue)) {
-                        $updateData[$field] = $dupValue;
-                        $changedFields[] = $field;
-                    }
-                } elseif ($isModifiedByUser) {
+                if ($isModifiedByUser) {
                     // Tier 2: only fill NULL/empty fields on master
                     if ($this->isEmptyOrJunk($masterValue)) {
                         $updateData[$field] = $dupValue;
@@ -160,7 +170,12 @@ class RestorePassportDataFromDuplicates extends Command
                 foreach ($changedFields as $field) {
                     $oldVal = $masterPassport->$field ?? '[null]';
                     $newVal = $updateData[$field];
-                    $this->line("  {$field}: {$oldVal} -> {$newVal}");
+                    $fileStatus = '';
+                    if ($field === 'file_path') {
+                        $fileStatus .= $masterFileExists ? ' [old EXISTS]' : ($masterFilePath ? ' [old MISSING]' : '');
+                        $fileStatus .= $dupFileExists ? ' [new EXISTS]' : ' [new MISSING]';
+                    }
+                    $this->line("  {$field}: {$oldVal} -> {$newVal}{$fileStatus}");
                 }
                 $this->line('');
 
