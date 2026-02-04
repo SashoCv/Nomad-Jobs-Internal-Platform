@@ -140,11 +140,31 @@ class RestorePassportDataFromDuplicates extends Command
                     continue;
                 }
 
-                // For file fields: skip if duplicate file doesn't exist on disk
-                if ($field === 'file_path' && !$dupFileExists) {
+                // File fields: skip if dup file doesn't exist on disk
+                if (($field === 'file_path' || $field === 'file_name') && !$dupFileExists) {
                     continue;
                 }
-                if ($field === 'file_name' && !$dupFileExists) {
+
+                // File fields: if master already has a file, only overwrite
+                // when the dup file is genuinely different (not a _passport
+                // artifact from the passport migration 110000).
+                if ($field === 'file_path' || $field === 'file_name') {
+                    if ($this->isEmptyOrJunk($masterValue)) {
+                        // Master has no file — always fill
+                        $updateData[$field] = $dupValue;
+                        $changedFields[] = $field;
+                        continue;
+                    }
+                    if ($isModifiedByUser) {
+                        // Tier 2: don't overwrite existing files
+                        continue;
+                    }
+                    // Tier 1: only overwrite if dup file is NOT a migration artifact
+                    if ($this->isPassportFileArtifact($dupFilePath, $masterFilePath)) {
+                        continue;
+                    }
+                    $updateData[$field] = $dupValue;
+                    $changedFields[] = $field;
                     continue;
                 }
 
@@ -209,6 +229,37 @@ class RestorePassportDataFromDuplicates extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Check if the duplicate's file_path is a migration artifact of the master's.
+     *
+     * The passport migration (110000) copied files from the `files` table to
+     * candidate/{id}/passport/{name}. Filenames often got _passport suffixes
+     * appended (e.g. "scan.jpg" -> "scan.jpg_passport.jpg"). The master got
+     * the clean version; the duplicate got the artifact. Also, legacy paths
+     * like personPassports/hash.jpg are the old storage format — the same
+     * file was already migrated to the master's clean path.
+     */
+    private function isPassportFileArtifact(?string $dupPath, ?string $masterPath): bool
+    {
+        if (!$dupPath) {
+            return false;
+        }
+
+        $dupBasename = basename($dupPath);
+
+        // _passport in filename = artifact from files table migration
+        if (str_contains($dupBasename, '_passport')) {
+            return true;
+        }
+
+        // personPassports/ = legacy storage format, already migrated for master
+        if (str_starts_with($dupPath, 'personPassports/')) {
+            return true;
+        }
+
+        return false;
     }
 
     private function isEmptyOrJunk($value): bool
