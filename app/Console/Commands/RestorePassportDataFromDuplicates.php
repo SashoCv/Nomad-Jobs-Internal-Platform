@@ -25,6 +25,7 @@ class RestorePassportDataFromDuplicates extends Command
 
     private string $migrationStart = '2026-01-28 00:00:00';
     private string $migrationEnd = '2026-02-01 00:00:00';
+    private string $modifiedCutoff = '2026-01-30 00:00:00';
 
     public function handle(): int
     {
@@ -53,6 +54,8 @@ class RestorePassportDataFromDuplicates extends Command
         $this->info("Found {$masters->count()} master profiles with soft-deleted duplicates");
         $this->info('');
 
+        $tier1Count = 0;
+        $tier2Count = 0;
         $updatedCount = 0;
         $filledCount = 0;
         $skippedCount = 0;
@@ -113,7 +116,9 @@ class RestorePassportDataFromDuplicates extends Command
                 continue;
             }
 
-            // Both have passports — only fill NULL/empty fields on master
+            // Both have passports — apply two-tier logic
+            $isModifiedByUser = $masterPassport->updated_at > $this->modifiedCutoff;
+            $tier = $isModifiedByUser ? 2 : 1;
             $updateData = [];
             $changedFields = [];
 
@@ -125,16 +130,25 @@ class RestorePassportDataFromDuplicates extends Command
                     continue;
                 }
 
-                if ($this->isEmptyOrJunk($masterValue)) {
-                    $updateData[$field] = $dupValue;
-                    $changedFields[] = $field;
+                if ($isModifiedByUser) {
+                    // Tier 2: only fill NULL/empty fields on master
+                    if ($this->isEmptyOrJunk($masterValue)) {
+                        $updateData[$field] = $dupValue;
+                        $changedFields[] = $field;
+                    }
+                } else {
+                    // Tier 1: overwrite if values differ
+                    if ($masterValue != $dupValue) {
+                        $updateData[$field] = $dupValue;
+                        $changedFields[] = $field;
+                    }
                 }
             }
 
             if (!empty($updateData)) {
                 $updatedCount++;
 
-                $this->line("Master #{$masterId} ({$master->fullName}) passport fill blanks <- Dup #{$newestDupWithPassport->dup_id}");
+                $this->line("Master #{$masterId} ({$master->fullName}) passport <- Dup #{$newestDupWithPassport->dup_id} [Tier {$tier}]");
                 foreach ($changedFields as $field) {
                     $oldVal = $masterPassport->$field ?? '[null]';
                     $newVal = $updateData[$field];
@@ -151,12 +165,20 @@ class RestorePassportDataFromDuplicates extends Command
             } else {
                 $skippedCount++;
             }
+
+            if ($isModifiedByUser) {
+                $tier2Count++;
+            } else {
+                $tier1Count++;
+            }
         }
 
         $this->info('=== Passport Summary ===');
-        $this->info("New passports created: {$filledCount}");
-        $this->info("Blanks filled:         {$updatedCount}");
-        $this->info("Skipped (no diff):     {$skippedCount}");
+        $this->info("Tier 1 (untouched): {$tier1Count}");
+        $this->info("Tier 2 (modified):  {$tier2Count}");
+        $this->info("New passports:      {$filledCount}");
+        $this->info("Updated:            {$updatedCount}");
+        $this->info("Skipped (no diff):  {$skippedCount}");
 
         if ($dryRun) {
             $this->info('');
