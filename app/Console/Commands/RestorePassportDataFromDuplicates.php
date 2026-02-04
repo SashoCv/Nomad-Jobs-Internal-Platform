@@ -13,13 +13,10 @@ class RestorePassportDataFromDuplicates extends Command
 
     protected $description = 'Restore passport data from soft-deleted duplicates to master profiles after the contracts migration';
 
-    private array $passportFields = [
+    private array $dataFields = [
         'passport_number',
         'expiry_date',
         'issue_date',
-        'issued_by',
-        'file_path',
-        'file_name',
     ];
 
     private array $junkValues = ['.', '-', '--', '[]', '[empty]', '..', '...', 'NULL'];
@@ -120,19 +117,21 @@ class RestorePassportDataFromDuplicates extends Command
                 continue;
             }
 
-            // Both have passports — apply two-tier logic
+            // Both have passports
             $isModifiedByUser = $masterPassport->updated_at > $this->modifiedCutoff;
             $tier = $isModifiedByUser ? 2 : 1;
             $updateData = [];
             $changedFields = [];
 
-            // Pre-check file existence for file_path fields
+            // Pre-check file existence
             $dupFilePath = $newestDupWithPassport->file_path ?? null;
             $masterFilePath = $masterPassport->file_path ?? null;
             $dupFileExists = $dupFilePath ? Storage::disk('public')->exists($dupFilePath) : false;
             $masterFileExists = $masterFilePath ? Storage::disk('public')->exists($masterFilePath) : false;
 
-            foreach ($this->passportFields as $field) {
+            // Step 1: Update data fields (passport_number, expiry_date, issue_date)
+            $dataChanged = false;
+            foreach ($this->dataFields as $field) {
                 $dupValue = $newestDupWithPassport->$field ?? null;
                 $masterValue = $masterPassport->$field ?? null;
 
@@ -140,46 +139,28 @@ class RestorePassportDataFromDuplicates extends Command
                     continue;
                 }
 
-                // File fields: skip if dup file doesn't exist on disk
-                if (($field === 'file_path' || $field === 'file_name') && !$dupFileExists) {
-                    continue;
-                }
-
-                // File fields: if master already has a file, only overwrite
-                // when the dup file is genuinely different (not a _passport
-                // artifact from the passport migration 110000).
-                if ($field === 'file_path' || $field === 'file_name') {
-                    if ($this->isEmptyOrJunk($masterValue)) {
-                        // Master has no file — always fill
-                        $updateData[$field] = $dupValue;
-                        $changedFields[] = $field;
-                        continue;
-                    }
-                    if ($isModifiedByUser) {
-                        // Tier 2: don't overwrite existing files
-                        continue;
-                    }
-                    // Tier 1: only overwrite if dup file is NOT a migration artifact
-                    if ($this->isPassportFileArtifact($dupFilePath, $masterFilePath)) {
-                        continue;
-                    }
+                if ($this->isEmptyOrJunk($masterValue)) {
+                    // Master field is empty — always fill
                     $updateData[$field] = $dupValue;
                     $changedFields[] = $field;
-                    continue;
-                }
-
-                if ($isModifiedByUser) {
-                    // Tier 2: only fill NULL/empty fields on master
-                    if ($this->isEmptyOrJunk($masterValue)) {
-                        $updateData[$field] = $dupValue;
-                        $changedFields[] = $field;
-                    }
-                } else {
+                    $dataChanged = true;
+                } elseif (!$isModifiedByUser && $masterValue != $dupValue) {
                     // Tier 1: overwrite if values differ
-                    if ($masterValue != $dupValue) {
-                        $updateData[$field] = $dupValue;
-                        $changedFields[] = $field;
-                    }
+                    $updateData[$field] = $dupValue;
+                    $changedFields[] = $field;
+                    $dataChanged = true;
+                }
+            }
+
+            // Step 2: Update file only if master has no file, or passport data changed
+            if ($dupFileExists) {
+                $masterHasNoFile = $this->isEmptyOrJunk($masterFilePath);
+
+                if ($masterHasNoFile || $dataChanged) {
+                    $updateData['file_path'] = $dupFilePath;
+                    $updateData['file_name'] = $newestDupWithPassport->file_name;
+                    $changedFields[] = 'file_path';
+                    $changedFields[] = 'file_name';
                 }
             }
 
@@ -229,49 +210,6 @@ class RestorePassportDataFromDuplicates extends Command
         }
 
         return Command::SUCCESS;
-    }
-
-    /**
-     * Check if the duplicate's file_path is a migration artifact of the master's.
-     *
-     * The passport migration (110000) copied files from the `files` table to
-     * candidate/{id}/passport/{name}. Filenames often got _passport suffixes
-     * appended (e.g. "scan.jpg" -> "scan.jpg_passport.jpg"). The master got
-     * the clean version; the duplicate got the artifact. Also, legacy paths
-     * like personPassports/hash.jpg are the old storage format — the same
-     * file was already migrated to the master's clean path.
-     *
-     * Additionally, if both files exist and have the same byte size, they are
-     * the same file copied to different locations during the migration.
-     */
-    private function isPassportFileArtifact(?string $dupPath, ?string $masterPath): bool
-    {
-        if (!$dupPath) {
-            return false;
-        }
-
-        $dupBasename = basename($dupPath);
-
-        // _passport in filename = artifact from files table migration
-        if (str_contains($dupBasename, '_passport')) {
-            return true;
-        }
-
-        // personPassports/ = legacy storage format, already migrated for master
-        if (str_starts_with($dupPath, 'personPassports/')) {
-            return true;
-        }
-
-        // Same file size = same file copied to different paths during migration
-        if ($masterPath && Storage::disk('public')->exists($masterPath) && Storage::disk('public')->exists($dupPath)) {
-            $masterSize = Storage::disk('public')->size($masterPath);
-            $dupSize = Storage::disk('public')->size($dupPath);
-            if ($masterSize === $dupSize) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function isEmptyOrJunk($value): bool
