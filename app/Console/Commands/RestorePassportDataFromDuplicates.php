@@ -240,6 +240,9 @@ class RestorePassportDataFromDuplicates extends Command
      * the clean version; the duplicate got the artifact. Also, legacy paths
      * like personPassports/hash.jpg are the old storage format — the same
      * file was already migrated to the master's clean path.
+     *
+     * Additionally, if both files exist and have the same byte size, they are
+     * the same file copied to different locations during the migration.
      */
     private function isPassportFileArtifact(?string $dupPath, ?string $masterPath): bool
     {
@@ -257,6 +260,15 @@ class RestorePassportDataFromDuplicates extends Command
         // personPassports/ = legacy storage format, already migrated for master
         if (str_starts_with($dupPath, 'personPassports/')) {
             return true;
+        }
+
+        // Same file size = same file copied to different paths during migration
+        if ($masterPath && Storage::disk('public')->exists($masterPath) && Storage::disk('public')->exists($dupPath)) {
+            $masterSize = Storage::disk('public')->size($masterPath);
+            $dupSize = Storage::disk('public')->size($dupPath);
+            if ($masterSize === $dupSize) {
+                return true;
+            }
         }
 
         return false;
