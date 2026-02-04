@@ -152,16 +152,12 @@ class RestorePassportDataFromDuplicates extends Command
                 }
             }
 
-            // Step 2: Update file only if master has no file, or passport data changed
-            if ($dupFileExists) {
-                $masterHasNoFile = $this->isEmptyOrJunk($masterFilePath);
-
-                if ($masterHasNoFile || $dataChanged) {
-                    $updateData['file_path'] = $dupFilePath;
-                    $updateData['file_name'] = $newestDupWithPassport->file_name;
-                    $changedFields[] = 'file_path';
-                    $changedFields[] = 'file_name';
-                }
+            // Step 2: Update file only if master has no file
+            if ($dupFileExists && $this->isEmptyOrJunk($masterFilePath)) {
+                $updateData['file_path'] = $dupFilePath;
+                $updateData['file_name'] = $newestDupWithPassport->file_name;
+                $changedFields[] = 'file_path';
+                $changedFields[] = 'file_name';
             }
 
             if (!empty($updateData)) {
