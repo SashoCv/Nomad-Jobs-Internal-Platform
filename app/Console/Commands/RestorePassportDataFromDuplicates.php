@@ -130,7 +130,15 @@ class RestorePassportDataFromDuplicates extends Command
                     continue;
                 }
 
-                if ($isModifiedByUser) {
+                // File fields: always fill if master is empty, regardless of tier
+                $isFileField = in_array($field, ['file_path', 'file_name']);
+
+                if ($isFileField) {
+                    if ($this->isEmptyOrJunk($masterValue)) {
+                        $updateData[$field] = $dupValue;
+                        $changedFields[] = $field;
+                    }
+                } elseif ($isModifiedByUser) {
                     // Tier 2: only fill NULL/empty fields on master
                     if ($this->isEmptyOrJunk($masterValue)) {
                         $updateData[$field] = $dupValue;
