@@ -66,9 +66,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Set to true to preview changes without committing. Check laravel.log for output.
+        $dryRun = true;
+
         $migrationStart = '2026-01-28 00:00:00';
         $migrationEnd = '2026-02-01 00:00:00';
         $modifiedCutoff = '2026-01-30 00:00:00';
+
+        if ($dryRun) {
+            DB::beginTransaction();
+            Log::info('=== DRY RUN MODE — no changes will be committed ===');
+        }
 
         // Find all master-duplicate pairs
         // For each master, get the newest soft-deleted duplicate
@@ -179,6 +187,11 @@ return new class extends Migration
             'actually_updated' => $updatedCount,
             'skipped_no_changes' => $skippedCount,
         ]);
+
+        if ($dryRun) {
+            DB::rollBack();
+            Log::info('=== DRY RUN complete — all changes rolled back ===');
+        }
     }
 
     /**
