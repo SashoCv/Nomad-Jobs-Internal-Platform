@@ -1,16 +1,18 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
-return new class extends Migration
+class RestorePersonalInfoFromDuplicates extends Command
 {
-    /**
-     * Personal info fields to restore from soft-deleted duplicates.
-     * These are NOT contract-related fields.
-     */
+    protected $signature = 'candidates:restore-personal-info {--dry-run : Show what would be done without making changes}';
+
+    protected $description = 'Restore personal info from soft-deleted duplicates to master profiles after the contracts migration';
+
     private array $personalFields = [
         'fullName',
         'fullNameCyrillic',
@@ -48,30 +50,21 @@ return new class extends Migration
         'country_of_visa_application',
     ];
 
-    /**
-     * Values considered junk — should not overwrite real data.
-     */
     private array $junkValues = ['.', '-', '--', '[]', '[empty]', '..', '...', 'NULL'];
 
-    /**
-     * Run the migrations.
-     *
-     * Restores personal info from soft-deleted duplicates to master profiles.
-     * The original contracts migration (2026_01_28_000003) kept the oldest
-     * profile's personal info, discarding corrections from newer duplicates.
-     *
-     * Two-tier approach:
-     *   Tier 1 (untouched masters): overwrite with duplicate's non-null/non-junk values
-     *   Tier 2 (user-modified masters): only fill NULL/empty fields
-     */
-    public function up(): void
+    public function handle(): int
     {
+        $dryRun = $this->option('dry-run');
+
+        if ($dryRun) {
+            $this->info('DRY RUN MODE — no changes will be made');
+            $this->info('');
+        }
+
         $migrationStart = '2026-01-28 00:00:00';
         $migrationEnd = '2026-02-01 00:00:00';
         $modifiedCutoff = '2026-01-30 00:00:00';
 
-        // Find all master-duplicate pairs
-        // For each master, get the newest soft-deleted duplicate
         $masters = DB::table('candidates AS m')
             ->select('m.id AS master_id')
             ->join('candidates AS d', function ($join) use ($migrationStart, $migrationEnd) {
@@ -87,9 +80,8 @@ return new class extends Migration
             ->groupBy('m.id')
             ->pluck('master_id');
 
-        Log::info('Personal info restore: found master profiles with duplicates', [
-            'total_masters' => $masters->count(),
-        ]);
+        $this->info("Found {$masters->count()} master profiles with soft-deleted duplicates");
+        $this->info('');
 
         $tier1Count = 0;
         $tier2Count = 0;
@@ -102,7 +94,6 @@ return new class extends Migration
                 continue;
             }
 
-            // Find the newest soft-deleted duplicate for this master
             $newestDuplicate = DB::table('candidates')
                 ->where('id', '!=', $masterId)
                 ->whereRaw('LOWER(TRIM(fullName)) = ?', [strtolower(trim($master->fullName))])
@@ -120,6 +111,7 @@ return new class extends Migration
             }
 
             $isModifiedByUser = $master->updated_at > $modifiedCutoff;
+            $tier = $isModifiedByUser ? 2 : 1;
             $updateData = [];
             $changedFields = [];
 
@@ -127,19 +119,16 @@ return new class extends Migration
                 $dupValue = $newestDuplicate->$field ?? null;
                 $masterValue = $master->$field ?? null;
 
-                // Skip if duplicate value is null, empty, or junk
                 if ($this->isEmptyOrJunk($dupValue)) {
                     continue;
                 }
 
                 if ($isModifiedByUser) {
-                    // Tier 2: only fill NULL/empty fields on master
                     if ($this->isEmptyOrJunk($masterValue)) {
                         $updateData[$field] = $dupValue;
                         $changedFields[] = $field;
                     }
                 } else {
-                    // Tier 1: overwrite if values differ
                     if ($masterValue != $dupValue) {
                         $updateData[$field] = $dupValue;
                         $changedFields[] = $field;
@@ -148,20 +137,22 @@ return new class extends Migration
             }
 
             if (!empty($updateData)) {
-                $updateData['updated_at'] = Carbon::now();
-
-                DB::table('candidates')
-                    ->where('id', $masterId)
-                    ->update($updateData);
-
                 $updatedCount++;
 
-                Log::info('Personal info restored', [
-                    'master_id' => $masterId,
-                    'duplicate_id' => $newestDuplicate->id,
-                    'tier' => $isModifiedByUser ? 2 : 1,
-                    'fields_updated' => $changedFields,
-                ]);
+                $this->line("Master #{$masterId} ({$master->fullName}) <- Dup #{$newestDuplicate->id} [Tier {$tier}]");
+                foreach ($changedFields as $field) {
+                    $oldVal = $master->$field ?? '[null]';
+                    $newVal = $updateData[$field];
+                    $this->line("  {$field}: {$oldVal} -> {$newVal}");
+                }
+                $this->line('');
+
+                if (!$dryRun) {
+                    $updateData['updated_at'] = Carbon::now();
+                    DB::table('candidates')
+                        ->where('id', $masterId)
+                        ->update($updateData);
+                }
             } else {
                 $skippedCount++;
             }
@@ -173,18 +164,20 @@ return new class extends Migration
             }
         }
 
-        Log::info('Personal info restore completed', [
-            'tier1_processed' => $tier1Count,
-            'tier2_processed' => $tier2Count,
-            'actually_updated' => $updatedCount,
-            'skipped_no_changes' => $skippedCount,
-        ]);
+        $this->info('=== Summary ===');
+        $this->info("Tier 1 (untouched): {$tier1Count}");
+        $this->info("Tier 2 (modified):  {$tier2Count}");
+        $this->info("Updated:            {$updatedCount}");
+        $this->info("Skipped (no diff):  {$skippedCount}");
 
+        if ($dryRun) {
+            $this->info('');
+            $this->warn('This was a DRY RUN. Run without --dry-run to apply changes.');
+        }
+
+        return Command::SUCCESS;
     }
 
-    /**
-     * Check if a value is null, empty string, or a known junk value.
-     */
     private function isEmptyOrJunk($value): bool
     {
         if ($value === null || $value === '') {
@@ -201,14 +194,4 @@ return new class extends Migration
 
         return false;
     }
-
-    /**
-     * Reverse the migrations.
-     *
-     * This migration is a data fix and cannot be automatically reversed.
-     */
-    public function down(): void
-    {
-        Log::warning('Cannot automatically reverse personal info restore. Use a database backup to revert.');
-    }
-};
+}
