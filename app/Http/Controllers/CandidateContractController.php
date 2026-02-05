@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Candidate;
 use App\Models\CandidateContract;
+use App\Models\Permission;
+use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 
 class CandidateContractController extends Controller
 {
+    use HasRolePermissions;
     /** Company fields to load with contract relationships. */
     private const COMPANY_FIELDS = 'id,nameOfCompany,nameOfCompanyLatin,address,phoneNumber,EIK,EGN,contactPerson,companyCity,dateBornDirector,industry_id,logoPath,logoName,stampPath,stampName,employedByMonths,description,has_owner,director_idCard,director_date_of_issue_idCard,commissionRate';
 
@@ -165,6 +167,47 @@ class CandidateContractController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Contract deleted successfully',
+        ]);
+    }
+
+    public function setActive(int $id): JsonResponse
+    {
+        if (!$this->checkPermission(Permission::CANDIDATES_UPDATE)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Insufficient permissions',
+            ], 403);
+        }
+
+        $contract = CandidateContract::find($id);
+
+        if (! $contract) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Contract not found',
+            ], 404);
+        }
+
+        // Deactivate all other contracts for this candidate
+        CandidateContract::where('candidate_id', $contract->candidate_id)
+            ->where('id', '!=', $id)
+            ->update(['is_active' => false]);
+
+        // Activate this contract
+        $contract->update(['is_active' => true]);
+
+        // Sync to candidate
+        $this->syncContractToCandidate($contract);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contract set as active successfully',
+            'data' => $contract->fresh()->load([
+                'company:' . self::COMPANY_FIELDS,
+                'position:id,jobPosition,NKDP',
+                'status:id,nameOfStatus',
+                'contract_type:id,name,slug',
+            ]),
         ]);
     }
 

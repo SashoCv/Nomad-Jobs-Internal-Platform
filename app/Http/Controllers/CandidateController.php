@@ -281,23 +281,13 @@ class CandidateController extends Controller
         try {
             $data = $request->all();
 
-            // Debug: Log file fields separately
-            Log::info('[DEBUG store] personPassport from input: ' . json_encode($request->input('personPassport')));
-            Log::info('[DEBUG store] hasFile personPassport: ' . ($request->hasFile('personPassport') ? 'true' : 'false'));
-            Log::info('[DEBUG store] personPicture from input: ' . json_encode($request->input('personPicture')));
-            Log::info('[DEBUG store] hasFile personPicture: ' . ($request->hasFile('personPicture') ? 'true' : 'false'));
+        
 
             if ($request->hasFile('personPassport')) {
                 Log::info('[DEBUG store] personPassport file name: ' . $request->file('personPassport')->getClientOriginalName());
             }
 
-            Log::info('Creating candidate with data in STORE', ['data' => $data]);
             $result = $this->candidateService->createCandidate($data);
-
-            Log::info('Candidate created successfully', [
-                'candidate_id' => $result['candidate']->id,
-                'contract_id' => $result['contract']->id,
-            ]);
 
             return response()->json([
                 'success' => true,
