@@ -190,7 +190,7 @@ class MergeCyrillicDuplicates extends Command
                     'cc.start_contract_date',
                     'cc.end_contract_date',
                     'cc.created_at',
-                    'co.companyName AS company_name',
+                    'co.nameOfCompany AS company_name',
                     's.nameOfStatus AS status_name'
                 )
                 ->orderBy('cc.created_at', 'asc')
