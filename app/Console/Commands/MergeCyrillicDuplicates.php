@@ -482,13 +482,17 @@ class MergeCyrillicDuplicates extends Command
      */
     private function normalizeAllPassports(): void
     {
-        $passports = DB::table('candidate_passports')
-            ->whereNotNull('passport_number')
-            ->where('passport_number', '!=', '')
-            ->select('id', 'passport_number')
+        $passports = DB::table('candidate_passports AS cp')
+            ->join('candidates AS c', 'c.id', '=', 'cp.candidate_id')
+            ->whereNotNull('cp.passport_number')
+            ->where('cp.passport_number', '!=', '')
+            ->select('cp.id', 'cp.candidate_id', 'cp.passport_number', 'c.fullName')
             ->get();
 
         $updated = 0;
+        $this->info('');
+        $this->info('=== Passport normalization ===');
+
         foreach ($passports as $row) {
             $normalized = PassportNormalizer::normalize($row->passport_number);
             if ($normalized !== $row->passport_number) {
@@ -496,6 +500,7 @@ class MergeCyrillicDuplicates extends Command
                     ->where('id', $row->id)
                     ->update(['passport_number' => $normalized]);
                 $updated++;
+                $this->line("  Candidate #{$row->candidate_id} ({$row->fullName}): {$row->passport_number} → {$normalized}");
             }
         }
 
