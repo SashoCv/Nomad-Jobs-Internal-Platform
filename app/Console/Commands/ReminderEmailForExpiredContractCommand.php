@@ -46,7 +46,7 @@ class ReminderEmailForExpiredContractCommand extends Command
         Log::info("Found {$count} candidates with expired contracts as of {$oneMonthFromNow}.");
 
         if ($count > 0) {
-            $recipients = array_filter(array_map('trim', explode(',', env('NOMAD_NOTIFICATION_EMAILS', ''))));
+            $recipients = array_filter(array_map('trim', explode(',', config('app.nomad_notification_emails', ''))));
 
             if (empty($recipients)) {
                 Log::warning("No recipients configured in NOMAD_NOTIFICATION_EMAILS. Skipping email.");

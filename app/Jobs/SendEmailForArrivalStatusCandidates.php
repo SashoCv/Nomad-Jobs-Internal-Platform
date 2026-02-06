@@ -3,12 +3,9 @@
 namespace App\Jobs;
 
 use App\Models\Arrival;
-use App\Models\ArrivalCandidate;
 use App\Models\Candidate;
-use App\Models\Company;
 use App\Models\EmailLog;
 use App\Models\Status;
-use App\Models\StatusArrival;
 use App\Services\EmailTrackingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,6 +24,26 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
     protected $statusDate;
     protected $sendEmail;
 
+    private const STATUS_BLADE_MAP = [
+        Status::MIGRATION => 'StatusEmails.status_migration',
+        Status::RECEIVED_PERMISSION => 'StatusEmails.status_received_permission',
+        Status::SENT_DOCUMENTS_FOR_VISA => 'StatusEmails.status_sent_documents_for_visa',
+        Status::SUBMITTED_AT_EMBASSY => 'StatusEmails.status_submitted_at_embassy',
+        Status::RECEIVED_VISA => 'StatusEmails.status_received_visa',
+        Status::ARRIVAL_EXPECTED => 'StatusEmails.status_waiting_to_arrive',
+        Status::ARRIVED => 'StatusEmails.status_arrived',
+        Status::PROCEDURE_FOR_ERPR => 'StatusEmails.status_procedure_for_ERPR',
+        Status::LETTER_FOR_ERPR => 'StatusEmails.status_letter_for_ERPR',
+        Status::PHOTO_FOR_ERPR => 'StatusEmails.status_photo_for_ERPR',
+        Status::TAKING_ERPR => 'StatusEmails.status_taking_ERPR',
+        Status::HIRED => 'StatusEmails.status_hired_for_job',
+        Status::REFUSED_MIGRATION => 'StatusEmails.status_refused_migration',
+        Status::REFUSED_CANDIDATE => 'StatusEmails.status_refused_candidate',
+        Status::REFUSED_EMPLOYER => 'StatusEmails.status_refused_employer',
+        Status::TERMINATED_CONTRACT => 'StatusEmails.status_terminated_contract',
+        Status::FINISHED_CONTRACT => 'StatusEmails.status_finished_contract',
+    ];
+
     public function __construct($statusId, $candidateId, $statusDate, $sendEmail)
     {
         $this->statusId = $statusId;
@@ -38,77 +55,23 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
 
     public function handle(EmailTrackingService $trackingService)
     {
-        // Log to check if the handle method is being executed
-        Log::info("SendEmailForArrivalCandidates Job Started.");
+        $blade = self::STATUS_BLADE_MAP[$this->statusId] ?? null;
 
-        // here i need base on the status to send different mail
-        switch ($this->statusId) {
-            case Status::MIGRATION: // migration
-                $blade = 'StatusEmails.status_migration';
-                break;
-            case Status::RECEIVED_PERMISSION: // Получил разрешение.
-                $blade = 'StatusEmails.status_received_permission';
-                break;
-            case Status::SENT_DOCUMENTS_FOR_VISA: // Изпратени документи за виза
-                $blade = 'StatusEmails.status_sent_documents_for_visa';
-                break;
-            case Status::SUBMITTED_AT_EMBASSY: // Подаден в посолството.
-                $blade = 'StatusEmails.status_submitted_at_embassy';
-                break;
-            case Status::RECEIVED_VISA: // Получил виза.
-                $blade = 'StatusEmails.status_received_visa';
-                break;
-            case Status::ARRIVAL_EXPECTED: // Очаква се.
-                $blade = 'StatusEmails.status_waiting_to_arrive';
-                break;
-            case Status::ARRIVED: // Пристигнал.
-                $blade = 'StatusEmails.status_arrived';
-                break;
-            case Status::PROCEDURE_FOR_ERPR: // Процедура за ЕРПР.
-                $blade = 'StatusEmails.status_procedure_for_ERPR';
-                break;
-            case Status::LETTER_FOR_ERPR: // Писмо за ЕРПР.
-                $blade = 'StatusEmails.status_letter_for_ERPR';
-                break;
-            case Status::PHOTO_FOR_ERPR: // Снимка за ЕРПР.
-                $blade = 'StatusEmails.status_photo_for_ERPR';
-                break;
-            case Status::TAKING_ERPR: // Получаване на ЕРПР.
-                $blade = 'StatusEmails.status_taking_ERPR';
-                break;
-            case Status::HIRED: // Назначен на работа.
-                $blade = 'StatusEmails.status_hired_for_job';
-                break;
-            case Status::REFUSED_MIGRATION: // Отказ от Миграция.
-                $blade = 'StatusEmails.status_refused_migration';
-                break;
-            case Status::REFUSED_CANDIDATE: // Отказ от кандидата.
-                $blade = 'StatusEmails.status_refused_candidate';
-                break;
-            case Status::REFUSED_EMPLOYER: // Отказ от работодателя.
-                $blade = 'StatusEmails.status_refused_employer';
-                break;
-            case Status::TERMINATED_CONTRACT: // Прекратен договор.
-                $blade = 'StatusEmails.status_terminated_contract';
-                break;
-            case Status::FINISHED_CONTRACT: // Приключил договор.
-                $blade = 'StatusEmails.status_finished_contract';
-                break;
-            default:
-                Log::info("No email to send for status ID: " . $this->statusId);
-                return;
-        }
-
-        $candidate = Candidate::find($this->candidateId);
-        $company = $candidate->company;
-
-        if (!$candidate || !$company) {
-            Log::error("Candidate or Company not found for ID: " . $this->candidateId);
+        if (!$blade) {
+            Log::info("No email to send for status ID: {$this->statusId}");
             return;
         }
 
+        $candidate = Candidate::with(['company', 'position'])->find($this->candidateId);
 
-        Log::info('contractType: ' . $candidate->contractType);
+        if (!$candidate || !$candidate->company) {
+            Log::error("Candidate or Company not found for ID: {$this->candidateId}");
+            return;
+        }
+
+        $company = $candidate->company;
+        $arrival = Arrival::where('candidate_id', $this->candidateId)->first();
+
         $data = [
             'candidateName' => $candidate->fullNameCyrillic,
             'candidateEmail' => $candidate->email ?? 'No Email Provided',
@@ -118,144 +81,146 @@ class SendEmailForArrivalStatusCandidates implements ShouldQueue
             'contractType' => $candidate->contractType,
             'statusDate' => $this->statusDate,
             'companyAddress' => $company->address ?? 'No Address Provided',
-            'arrivalDate' => Arrival::where('candidate_id', $this->candidateId)->value('arrival_date') ?? 'No Arrival Date Provided',
-            'arrivalTime' => Arrival::where('candidate_id', $this->candidateId)->value('arrival_time') ?? 'No Arrival Time Provided',
+            'arrivalDate' => $arrival->arrival_date ?? 'No Arrival Date Provided',
+            'arrivalTime' => $arrival->arrival_time ?? 'No Arrival Time Provided',
         ];
 
+        $nomadRecipients = array_filter(array_map('trim', explode(',', config('app.nomad_notification_emails', ''))));
+
+        // 1. Send status email to company recipients (gated by sendEmail flag)
+        if ($this->sendEmail) {
+            $this->sendCompanyEmail($trackingService, $company, $blade, $data);
+        }
+
+        // 2. Send Nomad office emails (always — staff should know about every status change)
+        if (empty($nomadRecipients)) {
+            Log::warning("No NOMAD_NOTIFICATION_EMAILS configured. Skipping Nomad office notification.");
+            return;
+        }
+
+        if ($this->statusId == Status::ARRIVAL_EXPECTED) {
+            $this->sendNomadArrivalEmail($trackingService, $nomadRecipients, $data, $arrival);
+        } else {
+            $this->sendNomadStatusEmail($trackingService, $nomadRecipients, $data);
+        }
+
+        Log::info("Emails processed for candidate: {$data['candidateName']} (status ID: {$this->statusId})");
+    }
+
+    private function sendCompanyEmail(EmailTrackingService $trackingService, $company, string $blade, array $data): void
+    {
+        $recipients = $company->companyEmails()
+            ->where('is_notification_recipient', true)
+            ->pluck('email')
+            ->toArray();
+
+        if (empty($recipients) && !empty($company->default_email)) {
+            $recipients = [$company->default_email];
+        }
+
+        if (empty($recipients)) {
+            Log::info("No recipients found for company ID: {$company->id}");
+            return;
+        }
+
+        $subject = 'Notification for ' . $data['candidateName'];
+
+        $logIds = $trackingService->logMultipleEmails(
+            recipients: $recipients,
+            subject: $subject,
+            emailType: EmailLog::TYPE_STATUS_NOTIFICATION,
+            metadata: [
+                'candidate_id' => $this->candidateId,
+                'candidate_name' => $data['candidateName'],
+                'company_name' => $data['companyName'],
+                'status_id' => $this->statusId,
+            ]
+        );
+
         try {
-            // Get Nomad office recipients from env
-            $nomadRecipients = array_filter(array_map('trim', explode(',', env('NOMAD_NOTIFICATION_EMAILS', ''))));
-
-            $recipients = $company->companyEmails()
-                ->where('is_notification_recipient', true)
-                ->pluck('email')
-                ->toArray();
-
-            // Fallback to default email if no recipients selected
-            if (empty($recipients) && !empty($company->default_email)) {
-                $recipients = [$company->default_email];
-            }
-
-            if (empty($recipients)) {
-                Log::info("No recipients found for company ID: " . $company->id);
-                return;
-            }
-
-            if($this->sendEmail){
-                // Log emails for company recipients
-                $companyLogIds = $trackingService->logMultipleEmails(
-                    recipients: $recipients,
-                    subject: 'Notification for ' . $data['candidateName'],
-                    emailType: EmailLog::TYPE_STATUS_NOTIFICATION,
-                    metadata: [
-                        'candidate_id' => $this->candidateId,
-                        'candidate_name' => $data['candidateName'],
-                        'company_name' => $data['companyName'],
-                        'status_id' => $this->statusId,
-                    ]
-                );
-
-                try {
-                    Mail::send($blade, ['data' => $data], function ($message) use ($data, $recipients) {
-                        $message->to($recipients)
-                            ->subject('Notification for ' . $data['candidateName']);
-                    });
-                    $trackingService->markMultipleSent($companyLogIds);
-                } catch (\Exception $e) {
-                    $trackingService->markMultipleFailed($companyLogIds, $e->getMessage());
-                    throw $e;
-                }
-            }
-
-
-            if($this->statusId == Status::ARRIVAL_EXPECTED && $this->sendEmail){
-                $dataArrival = [
-                    'candidateName' => $data['candidateName'],
-                    'companyName' => $data['companyName'],
-                    'status' => 'Има билет за пристигане',
-                    'arrival_date' => $data['arrivalDate'],
-                    'arrival_time' => $data['arrivalTime'],
-                    'arrival_location' => Arrival::where('candidate_id', $this->candidateId)->value('arrival_location') ?? 'No Location Provided',
-                    'arrival_flight' => Arrival::where('candidate_id', $this->candidateId)->value('arrival_flight') ?? 'No Flight Info Provided',
-                    'where_to_stay' => Arrival::where('candidate_id', $this->candidateId)->value('where_to_stay') ?? 'No Accommodation Info Provided',
-                    'phone_number' => $data['candidatePhone'],
-                ];
-
-                if (!empty($nomadRecipients)) {
-                    // Log emails for Nomad office arrival notification
-                    $arrivalLogIds = $trackingService->logMultipleEmails(
-                        recipients: $nomadRecipients,
-                        subject: 'Notification for Arrival ' . $data['candidateName'],
-                        emailType: EmailLog::TYPE_ARRIVAL_NOTIFICATION,
-                        metadata: [
-                            'candidate_id' => $this->candidateId,
-                            'candidate_name' => $data['candidateName'],
-                            'company_name' => $data['companyName'],
-                        ]
-                    );
-
-                    try {
-                        Mail::send("arrival", ['data' => $dataArrival], function($message) use ($data, $nomadRecipients) {
-                            $message->to($nomadRecipients)
-                                ->subject('Notification for Arrival ' . $data['candidateName']);
-                        });
-                        $trackingService->markMultipleSent($arrivalLogIds);
-                    } catch (\Exception $e) {
-                        $trackingService->markMultipleFailed($arrivalLogIds, $e->getMessage());
-                        throw $e;
-                    }
-                } else {
-                    Log::warning("No NOMAD_NOTIFICATION_EMAILS configured. Skipping arrival notification to Nomad office.");
-                }
-
-            }
-
-            // For all other statuses that are not ARRIVAL_EXPECTED, send email to nomadOffice
-            if($this->statusId != Status::ARRIVAL_EXPECTED) {
-                $statusName = Candidate::with('latestStatusHistory.status')->find($this->candidateId)->latestStatusHistory->status->nameOfStatus ?? 'Unknown Status';
-                $dataForAllStatuses = [
-                    'candidateName' => $data['candidateName'],
-                    'companyName' => $data['companyName'],
-                    'status' => $statusName,
-                    'changedStatusDate' => $this->statusDate,
-                    'phone_number' => $data['candidatePhone'],
-                    'description' => 'Status changed to ' . $statusName . ' on ' . $this->statusDate,
-                ];
-
-                if (!empty($nomadRecipients)) {
-                    // Log emails for Nomad office status notification
-                    $statusLogIds = $trackingService->logMultipleEmails(
-                        recipients: $nomadRecipients,
-                        subject: 'Notification for Arrival ' . $data['candidateName'],
-                        emailType: EmailLog::TYPE_STATUS_NOTIFICATION,
-                        metadata: [
-                            'candidate_id' => $this->candidateId,
-                            'candidate_name' => $data['candidateName'],
-                            'company_name' => $data['companyName'],
-                            'status_name' => $statusName,
-                        ]
-                    );
-
-                    try {
-                        Mail::send("arrivalCandidateWithStatus", ['data' => $dataForAllStatuses], function($message) use ($data, $nomadRecipients) {
-                            $message->to($nomadRecipients)
-                                ->subject('Notification for Arrival ' . $data['candidateName']);
-                        });
-                        $trackingService->markMultipleSent($statusLogIds);
-                    } catch (\Exception $e) {
-                        $trackingService->markMultipleFailed($statusLogIds, $e->getMessage());
-                        throw $e;
-                    }
-                } else {
-                    Log::warning("No NOMAD_NOTIFICATION_EMAILS configured. Skipping status notification to Nomad office.");
-                }
-            }
-
-            // Log success
-            Log::info("Email sent successfully to " . $data['candidateName']);
+            Mail::send($blade, ['data' => $data], function ($message) use ($subject, $recipients) {
+                $message->to($recipients)->subject($subject);
+            });
+            $trackingService->markMultipleSent($logIds);
         } catch (\Exception $e) {
-            Log::info("Failed to send email for candidate ID: " . $this->candidateId);
-            Log::error("Error sending email: " . $e->getMessage());
+            $trackingService->markMultipleFailed($logIds, $e->getMessage());
+            Log::error("Failed to send company email for candidate ID {$this->candidateId}: {$e->getMessage()}");
+        }
+    }
+
+    private function sendNomadArrivalEmail(EmailTrackingService $trackingService, array $nomadRecipients, array $data, ?Arrival $arrival): void
+    {
+        $dataArrival = [
+            'candidateName' => $data['candidateName'],
+            'companyName' => $data['companyName'],
+            'status' => 'Има билет за пристигане',
+            'arrival_date' => $data['arrivalDate'],
+            'arrival_time' => $data['arrivalTime'],
+            'arrival_location' => $arrival->arrival_location ?? 'No Location Provided',
+            'arrival_flight' => $arrival->arrival_flight ?? 'No Flight Info Provided',
+            'where_to_stay' => $arrival->where_to_stay ?? 'No Accommodation Info Provided',
+            'phone_number' => $data['candidatePhone'],
+        ];
+
+        $subject = 'Notification for Arrival ' . $data['candidateName'];
+
+        $logIds = $trackingService->logMultipleEmails(
+            recipients: $nomadRecipients,
+            subject: $subject,
+            emailType: EmailLog::TYPE_ARRIVAL_NOTIFICATION,
+            metadata: [
+                'candidate_id' => $this->candidateId,
+                'candidate_name' => $data['candidateName'],
+                'company_name' => $data['companyName'],
+            ]
+        );
+
+        try {
+            Mail::send('arrival', ['data' => $dataArrival], function ($message) use ($subject, $nomadRecipients) {
+                $message->to($nomadRecipients)->subject($subject);
+            });
+            $trackingService->markMultipleSent($logIds);
+        } catch (\Exception $e) {
+            $trackingService->markMultipleFailed($logIds, $e->getMessage());
+            Log::error("Failed to send Nomad arrival email for candidate ID {$this->candidateId}: {$e->getMessage()}");
+        }
+    }
+
+    private function sendNomadStatusEmail(EmailTrackingService $trackingService, array $nomadRecipients, array $data): void
+    {
+        $statusName = Status::find($this->statusId)->nameOfStatus ?? 'Unknown Status';
+
+        $dataForStatus = [
+            'candidateName' => $data['candidateName'],
+            'companyName' => $data['companyName'],
+            'status' => $statusName,
+            'changedStatusDate' => $this->statusDate,
+            'phone_number' => $data['candidatePhone'],
+            'description' => 'Status changed to ' . $statusName . ' on ' . $this->statusDate,
+        ];
+
+        $subject = 'Status Notification for ' . $data['candidateName'];
+
+        $logIds = $trackingService->logMultipleEmails(
+            recipients: $nomadRecipients,
+            subject: $subject,
+            emailType: EmailLog::TYPE_STATUS_NOTIFICATION,
+            metadata: [
+                'candidate_id' => $this->candidateId,
+                'candidate_name' => $data['candidateName'],
+                'company_name' => $data['companyName'],
+                'status_name' => $statusName,
+            ]
+        );
+
+        try {
+            Mail::send('arrivalCandidateWithStatus', ['data' => $dataForStatus], function ($message) use ($subject, $nomadRecipients) {
+                $message->to($nomadRecipients)->subject($subject);
+            });
+            $trackingService->markMultipleSent($logIds);
+        } catch (\Exception $e) {
+            $trackingService->markMultipleFailed($logIds, $e->getMessage());
+            Log::error("Failed to send Nomad status email for candidate ID {$this->candidateId}: {$e->getMessage()}");
         }
     }
 }

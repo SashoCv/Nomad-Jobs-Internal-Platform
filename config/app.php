@@ -72,6 +72,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Nomad Notification Email Recipients
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated list of email addresses that receive status change
+    | notifications for candidates (Nomad office staff).
+    |
+    */
+
+    'nomad_notification_emails' => env('NOMAD_NOTIFICATION_EMAILS', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
