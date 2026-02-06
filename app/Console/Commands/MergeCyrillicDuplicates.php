@@ -283,10 +283,24 @@ class MergeCyrillicDuplicates extends Command
                 'duplicate_passport' => $duplicate->passport_number,
             ]);
 
-            // 1. Re-assign contracts
-            DB::table('candidate_contracts')
+            // 1. Re-assign contracts — offset period numbers first to avoid unique constraint
+            $maxPeriod = (int) DB::table('candidate_contracts')
+                ->where('candidate_id', $masterId)
+                ->max('contract_period_number') ?? 0;
+
+            $dupContracts = DB::table('candidate_contracts')
                 ->where('candidate_id', $duplicateId)
-                ->update(['candidate_id' => $masterId]);
+                ->orderBy('contract_period_number')
+                ->pluck('id');
+
+            foreach ($dupContracts as $i => $contractId) {
+                DB::table('candidate_contracts')
+                    ->where('id', $contractId)
+                    ->update([
+                        'candidate_id' => $masterId,
+                        'contract_period_number' => $maxPeriod + $i + 1,
+                    ]);
+            }
 
             // 2. Re-link satellite tables
             $this->relinkSatelliteTables($duplicateId, $masterId);
