@@ -775,18 +775,23 @@ class SearchController extends Controller
     {
         $searchEverything = $request->searchEverything;
 
-        $query = Candidate::with([
-            'company',
-            'position',
-            'user',
-            'status',
-            'company.company_addresses',
-            'arrival.files',
-            'activeContract',
-            'latestContract',
-            'contract_type'
-        ])
-            ->whereNotNull('status_id');
+        $query = Candidate::withCount('contracts')
+            ->with([
+                'company',
+                'position',
+                'user',
+                'status',
+                'company.company_addresses',
+                'arrival.files',
+                'activeContract',
+                'latestContract',
+                'contract_type'
+            ])
+            ->where(function ($q) {
+                // Show if has status_id OR has more than 1 contract
+                $q->whereNotNull('status_id')
+                    ->orHas('contracts', '>', 1);
+            });
 
         $user = Auth::user();
 
@@ -846,13 +851,10 @@ class SearchController extends Controller
         }
 
 
-        \DB::enableQueryLog();
-
         if (!$searchEverything) {
             $searchName = $request->searchName;
 
             $query->when($searchName, function ($q) use ($searchName) {
-                \Log::info('searchName: ' , [$searchName]);
                 $q->where(function ($query) use ($searchName) {
                     $query->where('fullName', 'LIKE', '%' . $searchName . '%')
                         ->orWhere('fullNameCyrillic', 'LIKE', '%' . $searchName . '%');
@@ -926,7 +928,6 @@ class SearchController extends Controller
             } else {
                 $result = $query->orderBy('id', 'DESC')->paginate(20);
             }
-            \Log::info('SQL Query:', \DB::getQueryLog());
             $allStatuses = Status::all();
 
             foreach ($result as $candidate) {

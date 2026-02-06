@@ -170,6 +170,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('contracts/{id}', [\App\Http\Controllers\CandidateContractController::class, 'show']);
     Route::put('contracts/{id}', [\App\Http\Controllers\CandidateContractController::class, 'update']);
     Route::delete('contracts/{id}', [\App\Http\Controllers\CandidateContractController::class, 'destroy']);
+    Route::post('contracts/{id}/set-active', [\App\Http\Controllers\CandidateContractController::class, 'setActive']);
     Route::get('contracts-expiring', [\App\Http\Controllers\CandidateContractController::class, 'expiring']);
 
     Route::get('contract-types', [CandidateController::class, 'types']);

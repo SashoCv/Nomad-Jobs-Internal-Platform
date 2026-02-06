@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\PassportNormalizer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -10,16 +11,6 @@ class FindCyrillicLatinDuplicates extends Command
     protected $signature = 'candidates:find-cyrillic-duplicates';
 
     protected $description = 'Find duplicate candidates that were missed due to Cyrillic/Latin character differences in passport numbers';
-
-    // Cyrillic to Latin mapping for characters that look identical
-    private array $cyrillicToLatin = [
-        'А' => 'A', 'В' => 'B', 'С' => 'C', 'Е' => 'E', 'Н' => 'H',
-        'К' => 'K', 'М' => 'M', 'О' => 'O', 'Р' => 'P', 'Т' => 'T',
-        'Х' => 'X', 'У' => 'Y',
-        'а' => 'a', 'в' => 'b', 'с' => 'c', 'е' => 'e', 'н' => 'h',
-        'к' => 'k', 'м' => 'm', 'о' => 'o', 'р' => 'p', 'т' => 't',
-        'х' => 'x', 'у' => 'y',
-    ];
 
     public function handle(): int
     {
@@ -42,7 +33,7 @@ class FindCyrillicLatinDuplicates extends Command
         // Group by normalized passport number
         $groups = [];
         foreach ($candidates as $candidate) {
-            $normalized = $this->normalizePassport($candidate->passport_number);
+            $normalized = PassportNormalizer::normalize($candidate->passport_number);
             $groups[$normalized][] = $candidate;
         }
 
@@ -101,14 +92,4 @@ class FindCyrillicLatinDuplicates extends Command
         return Command::SUCCESS;
     }
 
-    private function normalizePassport(string $passport): string
-    {
-        // Convert Cyrillic look-alikes to Latin
-        $normalized = strtr($passport, $this->cyrillicToLatin);
-
-        // Uppercase and remove spaces
-        $normalized = strtoupper(str_replace(' ', '', $normalized));
-
-        return $normalized;
-    }
 }
