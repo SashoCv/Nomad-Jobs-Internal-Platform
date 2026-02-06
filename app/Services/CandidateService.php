@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\PassportNormalizer;
 use App\Jobs\SendEmailForArrivalStatusCandidates;
 use App\Models\AgentCandidate;
 use App\Models\CalendarEvent;
@@ -332,8 +333,9 @@ class CandidateService
     public function findExistingProfile(array $data): ?Candidate
     {
         if (! empty($data['passport']) && strlen(trim($data['passport'])) > 5) {
-            $existing = Candidate::whereHas('passportRecord', function ($query) use ($data) {
-                $query->where('passport_number', $data['passport']);
+            $normalizedPassport = PassportNormalizer::normalize($data['passport']);
+            $existing = Candidate::whereHas('passportRecord', function ($query) use ($normalizedPassport) {
+                $query->where('passport_number', $normalizedPassport);
             })
                 ->whereNull('deleted_at')
                 ->first();
