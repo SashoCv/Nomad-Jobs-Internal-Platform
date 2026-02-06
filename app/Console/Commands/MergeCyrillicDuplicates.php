@@ -164,9 +164,12 @@ class MergeCyrillicDuplicates extends Command
     {
         $this->line("=== Normalized passport: {$normalized} ===");
 
+        // Collect all contracts across all candidates in the group
+        $allContracts = [];
+
         foreach ($candidates as $c) {
             $isMaster = $c->id === $master->id;
-            $tag = $isMaster ? ' [MASTER]' : ' [DUPLICATE]';
+            $tag = $isMaster ? ' [MASTER]' : ' [DUPLICATE → will merge into #' . $master->id . ']';
             $status = $c->status_name ?? 'N/A';
             $order = $c->status_order ?? 'N/A';
 
@@ -174,6 +177,53 @@ class MergeCyrillicDuplicates extends Command
             $this->line("    Passport: {$c->passport_number}");
             $this->line("    Status:   {$status} (order: {$order})");
             $this->line("    Created:  {$c->created_at}{$tag}");
+
+            // Fetch contracts for this candidate
+            $contracts = DB::table('candidate_contracts AS cc')
+                ->leftJoin('companies AS co', 'co.id', '=', 'cc.company_id')
+                ->leftJoin('statuses AS s', 's.id', '=', 'cc.status_id')
+                ->where('cc.candidate_id', $c->id)
+                ->select(
+                    'cc.id',
+                    'cc.contract_period_number',
+                    'cc.is_active',
+                    'cc.start_contract_date',
+                    'cc.end_contract_date',
+                    'cc.created_at',
+                    'co.companyName AS company_name',
+                    's.nameOfStatus AS status_name'
+                )
+                ->orderBy('cc.created_at', 'asc')
+                ->get();
+
+            if ($contracts->isEmpty()) {
+                $this->line("    Contracts: none");
+            } else {
+                foreach ($contracts as $ct) {
+                    $active = $ct->is_active ? ' [ACTIVE]' : '';
+                    $period = $ct->start_contract_date && $ct->end_contract_date
+                        ? "{$ct->start_contract_date} → {$ct->end_contract_date}"
+                        : 'no dates';
+                    $this->line("    Contract #{$ct->id} (period {$ct->contract_period_number}): {$ct->company_name} | {$ct->status_name} | {$period}{$active}");
+                    $allContracts[] = $ct;
+                }
+            }
+        }
+
+        // Preview merged contract list
+        if (count($candidates) > 1 && ! empty($allContracts)) {
+            usort($allContracts, fn ($a, $b) => $a->created_at <=> $b->created_at);
+
+            $this->line("  -- After merge on master #{$master->id}:");
+            foreach ($allContracts as $i => $ct) {
+                $newPeriod = $i + 1;
+                $isLast = $i === count($allContracts) - 1;
+                $activeTag = $isLast ? ' [ACTIVE]' : '';
+                $period = $ct->start_contract_date && $ct->end_contract_date
+                    ? "{$ct->start_contract_date} → {$ct->end_contract_date}"
+                    : 'no dates';
+                $this->line("     Period {$newPeriod}: Contract #{$ct->id} | {$ct->company_name} | {$ct->status_name} | {$period}{$activeTag}");
+            }
         }
 
         $reason = $this->masterReason($master, $candidates);
