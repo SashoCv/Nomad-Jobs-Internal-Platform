@@ -385,6 +385,7 @@ class MergeCyrillicDuplicates extends Command
 
     /**
      * Renumber contract_period_number sequentially (1, 2, 3...) ordered by created_at.
+     * First offsets all to high numbers to avoid unique constraint collisions.
      */
     private function renumberContracts(int $masterId): void
     {
@@ -393,6 +394,14 @@ class MergeCyrillicDuplicates extends Command
             ->orderBy('created_at', 'asc')
             ->pluck('id');
 
+        // Offset all to high numbers first to clear the unique constraint space
+        foreach ($contracts as $index => $contractId) {
+            DB::table('candidate_contracts')
+                ->where('id', $contractId)
+                ->update(['contract_period_number' => 10000 + $index]);
+        }
+
+        // Now renumber sequentially from 1
         foreach ($contracts as $index => $contractId) {
             DB::table('candidate_contracts')
                 ->where('id', $contractId)
