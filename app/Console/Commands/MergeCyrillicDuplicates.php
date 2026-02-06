@@ -109,7 +109,8 @@ class MergeCyrillicDuplicates extends Command
                 'c.created_at',
                 'cp.passport_number',
                 's.nameOfStatus AS status_name',
-                's.order AS status_order'
+                's.order AS status_order',
+                'sh.created_at AS last_status_date'
             )
             ->orderBy('c.id')
             ->get();
@@ -139,7 +140,8 @@ class MergeCyrillicDuplicates extends Command
     /**
      * Pick the master profile from a group:
      * 1. Highest status order
-     * 2. Newest created_at as tiebreaker
+     * 2. Most recent last status date
+     * 3. Newest created_at as final tiebreaker
      */
     private function pickMaster(array $candidates): object
     {
@@ -149,6 +151,13 @@ class MergeCyrillicDuplicates extends Command
 
             if ($orderA !== $orderB) {
                 return $orderB <=> $orderA; // highest first
+            }
+
+            $statusDateA = $a->last_status_date ?? '1970-01-01';
+            $statusDateB = $b->last_status_date ?? '1970-01-01';
+
+            if ($statusDateA !== $statusDateB) {
+                return $statusDateB <=> $statusDateA; // most recent first
             }
 
             return $b->created_at <=> $a->created_at; // newest first
@@ -175,7 +184,8 @@ class MergeCyrillicDuplicates extends Command
 
             $this->line("  #{$c->id} {$c->fullName} ({$c->birthday})");
             $this->line("    Passport: {$c->passport_number}");
-            $this->line("    Status:   {$status} (order: {$order})");
+            $lastStatusDate = $c->last_status_date ?? 'N/A';
+            $this->line("    Status:   {$status} (order: {$order}) | last status date: {$lastStatusDate}");
             $this->line("    Created:  {$c->created_at}{$tag}");
 
             // Fetch contracts for this candidate
@@ -244,7 +254,16 @@ class MergeCyrillicDuplicates extends Command
             return "highest status order: {$maxOrder}";
         }
 
-        return "status order tied at {$maxOrder}, newest created_at";
+        // Check if last_status_date broke the tie
+        $atMax = array_filter($candidates, fn ($c) => (int) ($c->status_order ?? 0) === $maxOrder);
+        $statusDates = array_map(fn ($c) => $c->last_status_date ?? '1970-01-01', $atMax);
+        $uniqueDates = array_unique($statusDates);
+
+        if (count($uniqueDates) > 1) {
+            return "status order tied at {$maxOrder}, most recent status date: {$master->last_status_date}";
+        }
+
+        return "status order tied at {$maxOrder}, same status date, newest created_at";
     }
 
     /**
