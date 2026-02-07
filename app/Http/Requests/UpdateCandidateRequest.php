@@ -66,6 +66,7 @@ class UpdateCandidateRequest extends FormRequest
             'email' => 'nullable|email|max:255',
             'notes' => 'nullable|string|max:2000',
             'agent_id' => 'nullable|integer|exists:users,id',
+            'candidate_source' => 'nullable|in:agent,direct_employer,assistance_only',
             'case_id' => 'nullable|integer|exists:cases,id',
         ];
     }
