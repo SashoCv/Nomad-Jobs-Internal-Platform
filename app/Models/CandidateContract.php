@@ -43,6 +43,7 @@ class CandidateContract extends Model
         'seasonal',
         'case_id',
         'agent_id',
+        'candidate_source', // agent, direct_employer, assistance_only
         'user_id',
         'added_by',
         'date',

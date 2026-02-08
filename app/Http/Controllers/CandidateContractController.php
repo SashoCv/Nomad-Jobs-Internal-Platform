@@ -106,6 +106,7 @@ class CandidateContractController extends Controller
             'quartal' => 'sometimes|nullable|string',
             'user_id' => 'sometimes|nullable|exists:users,id',
             'agent_id' => 'sometimes|nullable|exists:users,id',
+            'candidate_source' => 'sometimes|nullable|in:agent,direct_employer,assistance_only',
             'case_id' => 'sometimes|nullable|exists:cases,id',
             'company_job_id' => 'sometimes|nullable|integer',
             'is_extension' => 'sometimes|boolean',

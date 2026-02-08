@@ -19,6 +19,7 @@ class Candidate extends Model
 
     protected $fillable = [
         'status_id', 'type_id', 'company_id', 'position_id', 'user_id', 'case_id', 'agent_id',
+        'candidate_source', // agent, direct_employer, assistance_only
         'contract_type_id', // FK to contract_types table
         'gender', 'email', 'nationality', 'date', 'phoneNumber', 'address', 'passport',
         'fullName', 'fullNameCyrillic', 'birthday', 'placeOfBirth', 'country_id', 'area',
