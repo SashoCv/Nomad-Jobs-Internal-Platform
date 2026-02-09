@@ -47,6 +47,8 @@ use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\CandidateVisaController;
 use App\Http\Controllers\CandidatePassportController;
 use App\Http\Controllers\CandidateCvPhotoController;
+use App\Http\Controllers\EducationController;
+use App\Http\Controllers\ExperienceController;
 use App\Http\Controllers\EmailLogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -541,6 +543,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Applicants (Candidates without status)
     Route::get('applicants', [CandidateController::class, 'getApplicants']);
+
+    // Education
+    Route::post('education', [EducationController::class, 'store']);
+    Route::post('education/{id}', [EducationController::class, 'update']);
+    Route::delete('education/{id}', [EducationController::class, 'destroy']);
+
+    // Experience
+    Route::post('experience', [ExperienceController::class, 'store']);
+    Route::post('experience/{id}', [ExperienceController::class, 'update']);
+    Route::delete('experience/{id}', [ExperienceController::class, 'destroy']);
 
     // Email Logs
     Route::get('email-logs', [EmailLogController::class, 'index']);

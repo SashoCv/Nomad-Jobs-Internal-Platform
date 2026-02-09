@@ -259,6 +259,8 @@ class CandidateContractController extends Controller
             'dossierNumber' => $contract->dossier_number,
             'company_adresses_id' => $contract->company_adresses_id,
             'notes' => $contract->notes,
+            'agent_id' => $contract->agent_id,
+            'candidate_source' => $contract->candidate_source,
         ]);
     }
 }
