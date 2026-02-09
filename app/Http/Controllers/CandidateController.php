@@ -676,15 +676,7 @@ class CandidateController extends Controller
             ->first();
 
         if ($agentCandidate) {
-            // Set deleted_by before soft delete
-            $agentCandidate->deleted_by = $userId;
-            $agentCandidate->save();
-            $agentCandidate->delete();
-
-            $candidate->deleted_by = $userId;
-            $candidate->save();
-            $candidate->delete();
-
+            $this->candidateService->deleteCandidate($candidate);
             return $this->successResponse(null, 'Candidate deleted successfully');
         }
 

@@ -377,7 +377,16 @@ class CvDocxGeneratorService
             $category->nameOfCategory = 'files from agent';
             $category->isGenerated = 0;
             $category->save();
-            $category->visibleToRoles()->attach(Role::AGENT);
+            $category->visibleToRoles()->attach([
+                Role::AGENT,
+                Role::GENERAL_MANAGER,
+                Role::MANAGER,
+                Role::OFFICE,
+                Role::HR,
+                Role::OFFICE_MANAGER,
+                Role::RECRUITERS,
+                Role::FINANCE,
+            ]);
         }
 
         return $category;
