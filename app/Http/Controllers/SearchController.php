@@ -781,11 +781,11 @@ class SearchController extends Controller
                 'position',
                 'user',
                 'status',
-                'company.company_addresses',
-                'arrival.files',
+                'arrival',
                 'activeContract',
                 'latestContract',
-                'contract_type'
+                'contract_type',
+                'statusHistories'
             ])
             ->where(function ($q) {
                 // Show if has status_id OR has more than 1 contract
@@ -806,7 +806,7 @@ class SearchController extends Controller
             $searchNationality = $request->searchNationality;
             $searchCreatedAt = $request->searchCreatedAt;
 
-            $candidatesQuery = AgentCandidate::with(['candidate', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
+            $candidatesQuery = AgentCandidate::with(['candidate.agent', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
                 ->where('agent_candidates.user_id', $user->id)
                 ->where('agent_candidates.deleted_at', null)
                 ->whereHas('candidate', function ($query) {
@@ -920,7 +920,7 @@ class SearchController extends Controller
                 $result = $query->orderBy('fullName', 'DESC')->paginate(20);
             } elseif ($request->searchCompany) {
                 $result = $query->orderByDesc(
-                    \App\Models\Statushistory::select('statusDate')
+                    Statushistory::select('statusDate')
                         ->whereColumn('candidate_id', 'candidates.id')
                         ->orderByDesc('statusDate')
                         ->limit(1)
@@ -987,24 +987,10 @@ class SearchController extends Controller
             }
         }
 
-        $candidates = Candidate::all();
-        $currentYear = date('Y');
-
-        $firstQuartal = "1" . "/" . $currentYear;
-
-        foreach ($candidates as $candidate) {
-            if($candidate->quartal){
-                $candidateParts = explode('/', $candidate->quartal);
-                $candidateQuartal = intval($candidateParts[0]); // Extract quartal
-                $candidateYear = intval($candidateParts[1]); // Extract year
-
-                // Check if candidate's year is earlier or if it's the same year but with a smaller quartal
-                if ($candidateYear < $currentYear || ($candidateYear == $currentYear && $candidateQuartal < 1)) {
-                    $firstQuartal = $candidate->quartal;
-                    $currentYear = $candidateYear; // Update current year for future comparisons
-                }
-            }
-        }
+        $firstQuartal = Candidate::whereNotNull('quartal')
+            ->where('quartal', '!=', '')
+            ->orderByRaw("CAST(SUBSTRING_INDEX(quartal, '/', -1) AS UNSIGNED) ASC, CAST(SUBSTRING_INDEX(quartal, '/', 1) AS UNSIGNED) ASC")
+            ->value('quartal') ?? ("1/" . date('Y'));
 
         return response()->json([
             'success' => true,

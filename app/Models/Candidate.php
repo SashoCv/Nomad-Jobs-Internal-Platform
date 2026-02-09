@@ -451,11 +451,18 @@ class Candidate extends Model
             return null;
         }
 
-        $statusHistory = $this->statusHistories()
-            ->where('candidate_id', $this->id)
-            ->where('status_id', $this->status_id)
-            ->orderBy('statusDate', 'desc')
-            ->first();
+        if ($this->relationLoaded('statusHistories')) {
+            $statusHistory = $this->statusHistories
+                ->where('status_id', $this->status_id)
+                ->sortByDesc('statusDate')
+                ->first();
+        } else {
+            $statusHistory = $this->statusHistories()
+                ->where('candidate_id', $this->id)
+                ->where('status_id', $this->status_id)
+                ->orderBy('statusDate', 'desc')
+                ->first();
+        }
 
         return $statusHistory ? $statusHistory->statusDate : null;
     }
