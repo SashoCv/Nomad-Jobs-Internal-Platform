@@ -83,7 +83,14 @@ class ArrivalCandidateController extends Controller
                     ->orderByRaw('arrivals.arrival_date IS NULL')
                     ->orderBy('arrivals.arrival_date', 'desc');
             } else {
-                $query->orderBy('updated_at', 'desc');
+                $query->orderBy(
+                    Statushistory::select('statusDate')
+                        ->whereColumn('candidate_id', 'candidates.id')
+                        ->where('status_id', $statusId ?: DB::raw('candidates.status_id'))
+                        ->orderByDesc('id')
+                        ->limit(1),
+                    'desc'
+                );
             }
 
             // Get paginated results first
