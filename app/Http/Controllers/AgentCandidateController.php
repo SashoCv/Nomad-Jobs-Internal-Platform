@@ -20,6 +20,7 @@ use App\Models\CandidatePassport;
 use App\Models\CandidateContract;
 use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
+use App\Services\CandidateService;
 use App\Services\CvGeneratorService;
 use App\Services\CvDocxGeneratorService;
 use Illuminate\Http\Request;
@@ -32,7 +33,9 @@ use PhpOffice\PhpWord\Shared\ZipArchive;
 class AgentCandidateController extends Controller
 {
     use HasRolePermissions;
+
     public function __construct(
+        protected CandidateService $candidateService
     ) {
     }
 
@@ -269,7 +272,16 @@ class AgentCandidateController extends Controller
             $categoryForFiles->candidate_id = $person->id;
             $categoryForFiles->isGenerated = 0;
             $categoryForFiles->save();
-            $categoryForFiles->visibleToRoles()->attach(Role::AGENT);
+            $categoryForFiles->visibleToRoles()->attach([
+                Role::AGENT,
+                Role::GENERAL_MANAGER,
+                Role::MANAGER,
+                Role::OFFICE,
+                Role::HR,
+                Role::OFFICE_MANAGER,
+                Role::RECRUITERS,
+                Role::FINANCE,
+            ]);
 
             // Generate CV DOCX automatically and save it in "files from agent" category
             try {
@@ -452,13 +464,13 @@ class AgentCandidateController extends Controller
                 return response()->json(['error' => 'Insufficient permissions'], 403);
             }
 
-            $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
-            if ($agentCandidate) {
-                $agentCandidate->delete();
-                return response()->json(['message' => 'Candidate deleted successfully'], 200);
-            } else {
+            $candidate = Candidate::find($id);
+            if (!$candidate) {
                 return response()->json(['message' => 'Candidate not found'], 404);
             }
+
+            $this->candidateService->deleteCandidate($candidate);
+            return response()->json(['message' => 'Candidate deleted successfully'], 200);
         } catch (\Exception $e) {
             return response()->json($e->getMessage(), 500);
         }

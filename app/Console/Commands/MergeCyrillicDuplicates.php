@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Helpers\PassportNormalizer;
+use App\Models\Category;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -334,6 +335,31 @@ class MergeCyrillicDuplicates extends Command
         DB::table('files')
             ->where('candidate_id', $duplicateId)
             ->update(['candidate_id' => $masterId]);
+
+        // Fix category_id for "files from agent" categories after relinking files
+        $masterCategory = Category::where('candidate_id', $masterId)
+            ->where('nameOfCategory', 'files from agent')
+            ->first();
+
+        $duplicateCategory = Category::where('candidate_id', $duplicateId)
+            ->where('nameOfCategory', 'files from agent')
+            ->first();
+
+        if ($duplicateCategory && $masterCategory) {
+            // Move files from duplicate's category to master's category
+            DB::table('files')
+                ->where('candidate_id', $masterId)
+                ->where('category_id', $duplicateCategory->id)
+                ->update(['category_id' => $masterCategory->id]);
+
+            // Delete the orphaned duplicate category
+            $duplicateCategory->visibleToRoles()->detach();
+            $duplicateCategory->delete();
+        } elseif ($duplicateCategory && !$masterCategory) {
+            // Master has no category — reassign duplicate's category to master
+            $duplicateCategory->candidate_id = $masterId;
+            $duplicateCategory->save();
+        }
 
         DB::table('statushistories')
             ->where('candidate_id', $duplicateId)
