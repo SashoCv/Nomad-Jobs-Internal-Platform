@@ -947,7 +947,9 @@ class CandidateController extends Controller
         $query = AgentCandidate::with(['candidate', 'candidate.company','candidate.companyAddress', 'companyJob','user', 'statusForCandidateFromAgent','hrPerson', 'hrAssignment.admin'])
             ->where('status_for_candidate_from_agent_id', 3)
             ->whereNull('agent_candidates.deleted_at')
-            ->whereHas('candidate'); // Само кандидати кои имаат candidate relation
+            ->whereHas('candidate', function ($q) {
+                $q->whereNull('status_id');
+            });
 
         // Ако корисникот е HR, покажувај само кандидати доделени нему
         if ($user->hasRole(Role::HR)) {
