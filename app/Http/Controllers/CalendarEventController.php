@@ -17,7 +17,11 @@ class CalendarEventController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = CalendarEvent::with(['candidate:id,fullName,fullNameCyrillic', 'company:id,nameOfCompany']);
+            $query = CalendarEvent::with(['candidate:id,fullName,fullNameCyrillic', 'company:id,nameOfCompany'])
+                ->where(function ($q) {
+                    $q->whereNull('candidate_id')
+                      ->orWhereHas('candidate');
+                });
 
             // Filter by date range
             if ($request->has('date_from')) {
