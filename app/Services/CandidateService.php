@@ -607,13 +607,14 @@ class CandidateService
         foreach (\App\Enums\DefaultCandidateCategory::cases() as $category) {
             $def = $category->definition();
 
-            Category::create([
+            $cat = Category::create([
                 'candidate_id' => $candidate->id,
                 'nameOfCategory' => $def->name,
                 'description'   => $def->description,
-                'role_id'       => $def->roleId,
                 'isGenerated'   => $def->isGenerated,
             ]);
+
+            $cat->visibleToRoles()->sync([$def->roleId]);
         }
     }
 
