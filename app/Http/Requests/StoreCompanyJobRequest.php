@@ -40,8 +40,8 @@ class StoreCompanyJobRequest extends FormRequest
         return [
             'company_id.required_if' => 'Company is required for this role.',
             'company_id.exists' => 'Selected company does not exist.',
-            'job_title.required' => 'Job title is required.',
-            'job_title.max' => 'Job title cannot exceed 255 characters.',
+            'job_title.required' => 'Изберете длъжност е задължително.',
+            'job_title.max' => 'Длъжността не може да надвишава 255 символа.',
             'number_of_positions.required' => 'Number of positions is required.',
             'number_of_positions.integer' => 'Number of positions must be an integer.',
             'number_of_positions.min' => 'Number of positions must be at least 1.',
