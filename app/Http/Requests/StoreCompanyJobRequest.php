@@ -16,7 +16,8 @@ class StoreCompanyJobRequest extends FormRequest
     {
         return [
             'company_id' => 'required_if:role_id,1,2,5|exists:companies,id',
-            'job_title' => 'required|string|max:255',
+            'job_title' => 'nullable|string|max:255',
+            'position_id' => 'required|integer|exists:positions,id',
             'number_of_positions' => 'required|integer|min:1',
             'job_description' => 'nullable|string',
             'contract_type' => 'nullable|string|max:255',
@@ -40,8 +41,9 @@ class StoreCompanyJobRequest extends FormRequest
         return [
             'company_id.required_if' => 'Company is required for this role.',
             'company_id.exists' => 'Selected company does not exist.',
-            'job_title.required' => 'Job title is required.',
-            'job_title.max' => 'Job title cannot exceed 255 characters.',
+            'position_id.required' => 'Изберете длъжност е задължително.',
+            'position_id.exists' => 'Избраната длъжност не съществува.',
+            'job_title.max' => 'Длъжността не може да надвишава 255 символа.',
             'number_of_positions.required' => 'Number of positions is required.',
             'number_of_positions.integer' => 'Number of positions must be an integer.',
             'number_of_positions.min' => 'Number of positions must be at least 1.',
