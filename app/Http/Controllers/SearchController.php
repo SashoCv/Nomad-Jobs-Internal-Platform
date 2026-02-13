@@ -34,7 +34,7 @@ class SearchController extends Controller
 
             if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->get();
 
                 return response()->json([
                     'success' => true,
@@ -73,7 +73,7 @@ class SearchController extends Controller
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus && $request->searchDate == '') {
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })
                     ->get();
 
                 return response()->json([
@@ -84,7 +84,7 @@ class SearchController extends Controller
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus == '' && $request->searchDate == '') {
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('company_id', '=', $request->searchCompany)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('type_id', '=', 1)
                     ->get();
 
                 return response()->json([
@@ -96,7 +96,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)
                     ->where('status_id', '=', $request->searchStatus)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })
                     ->get();
 
                 return response()->json([
@@ -141,7 +141,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->get();
 
                 return response()->json([
                     'success' => true,
@@ -150,7 +150,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $request->searchCompany)->get();
 
                 return response()->json([
                     'success' => true,
@@ -159,7 +159,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('status_id', '=', $request->searchStatus)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('status_id', '=', $request->searchStatus)->get();
 
                 return response()->json([
                     'success' => true,
@@ -177,7 +177,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->get();
 
                 return response()->json([
                     'success' => true,
@@ -191,7 +191,7 @@ class SearchController extends Controller
 
             if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate == '') {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -231,7 +231,7 @@ class SearchController extends Controller
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus && $request->searchDate == '') {
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })
                     ->where('company_id', '=', $companyId)
                     ->get();
 
@@ -243,7 +243,7 @@ class SearchController extends Controller
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus == '' && $request->searchDate == '') {
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('company_id', '=', $request->searchCompany)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('type_id', '=', 1)
                     ->where('company_id', '=', $companyId)
                     ->get();
 
@@ -256,7 +256,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('company_id', '=', $request->searchCompany)
                     ->where('status_id', '=', $request->searchStatus)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })
                     ->where('company_id', '=', $companyId)
                     ->get();
 
@@ -302,7 +302,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -311,7 +311,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus == '' && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -320,7 +320,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('type_id', '=', 1)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -338,7 +338,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchStatus && $request->searchDate) {
 
-                $result = Candidate::with(['company', 'status', 'position'])->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with(['company', 'status', 'position'])->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('type_id', '=', 1)->where('status_id', '=', $request->searchStatus)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -361,7 +361,7 @@ class SearchController extends Controller
 
             if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
 
-                $result = Candidate::with('company')->where('type_id', '=', 2)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->get();
 
                 return response()->json([
                     'success' => true,
@@ -400,7 +400,7 @@ class SearchController extends Controller
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
 
                 $result = Candidate::with('company')->where('type_id', '=', 2)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })
                     ->get();
 
                 return response()->json([
@@ -411,7 +411,7 @@ class SearchController extends Controller
             } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
 
                 $result = Candidate::with('company')->where('company_id', '=', $request->searchCompany)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('type_id', '=', 2)
                     ->get();
 
                 return response()->json([
@@ -423,7 +423,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)
 
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })
                     ->get();
 
                 return response()->json([
@@ -468,7 +468,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
 
-                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->get();
 
                 return response()->json([
                     'success' => true,
@@ -477,7 +477,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
 
-                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $request->searchCompany)->get();
 
                 return response()->json([
                     'success' => true,
@@ -486,7 +486,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
 
-                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->get();
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->get();
 
                 return response()->json([
                     'success' => true,
@@ -504,7 +504,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
 
-                $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->get();
+                $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->get();
 
                 return response()->json([
                     'success' => true,
@@ -518,7 +518,7 @@ class SearchController extends Controller
 
             if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
 
-                $result = Candidate::with('company')->where('type_id', '=', 2)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -558,7 +558,7 @@ class SearchController extends Controller
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate == '') {
 
                 $result = Candidate::with('company')->where('type_id', '=', 2)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })
                     ->where('company_id', '=', $companyId)
                     ->get();
 
@@ -570,7 +570,7 @@ class SearchController extends Controller
             } else if ($request->searchName && $request->searchCompany && $request->searchDate == '') {
 
                 $result = Candidate::with('company')->where('company_id', '=', $request->searchCompany)
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('type_id', '=', 2)
                     ->where('company_id', '=', $companyId)
                     ->get();
 
@@ -583,7 +583,7 @@ class SearchController extends Controller
 
                 $result = Candidate::with('company')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)
 
-                    ->where('fullName', 'LIKE', '%' . $request->searchName . '%')
+                    ->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })
                     ->where('company_id', '=', $companyId)
                     ->get();
 
@@ -629,7 +629,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
 
-                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -638,7 +638,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
 
-                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -647,7 +647,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany == '' && $request->searchDate) {
 
-                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with('company')->where('type_id', '=', 2)->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -665,7 +665,7 @@ class SearchController extends Controller
                 ]);
             } else if ($request->searchName && $request->searchCompany && $request->searchDate) {
 
-                $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where('fullName', 'LIKE', '%' . $request->searchName . '%')->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
+                $result = Candidate::with('company')->where('date', '=', $request->searchDate)->where(function ($q) use ($request) { $q->where('fullName', 'LIKE', '%' . $request->searchName . '%')->orWhere('fullNameCyrillic', 'LIKE', '%' . $request->searchName . '%'); })->where('type_id', '=', 2)->where('company_id', '=', $request->searchCompany)->where('company_id', '=', $companyId)->get();
 
                 return response()->json([
                     'success' => true,
@@ -815,8 +815,15 @@ class SearchController extends Controller
 
             $candidatesQuery->when($searchName, function ($q) use ($searchName) {
                 $q->whereHas('candidate', function ($subquery) use ($searchName) {
-                    $subquery->where('fullName', 'LIKE', '%' . $searchName . '%')
-                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $searchName . '%');
+                    $searchWords = preg_split('/\s+/', trim($searchName));
+                    foreach ($searchWords as $word) {
+                        $word = mb_strtolower(trim($word));
+                        if ($word === '') continue;
+                        $subquery->where(function ($wq) use ($word) {
+                            $wq->whereRaw('LOWER(fullName) LIKE ?', ['%' . $word . '%'])
+                                ->orWhereRaw('LOWER(fullNameCyrillic) LIKE ?', ['%' . $word . '%']);
+                        });
+                    }
                 });
             });
 
@@ -855,10 +862,15 @@ class SearchController extends Controller
             $searchName = $request->searchName;
 
             $query->when($searchName, function ($q) use ($searchName) {
-                $q->where(function ($query) use ($searchName) {
-                    $query->where('fullName', 'LIKE', '%' . $searchName . '%')
-                        ->orWhere('fullNameCyrillic', 'LIKE', '%' . $searchName . '%');
-                });
+                $searchWords = preg_split('/\s+/', trim($searchName));
+                foreach ($searchWords as $word) {
+                    $word = mb_strtolower(trim($word));
+                    if ($word === '') continue;
+                    $q->where(function ($wq) use ($word) {
+                        $wq->whereRaw('LOWER(fullName) LIKE ?', ['%' . $word . '%'])
+                            ->orWhereRaw('LOWER(fullNameCyrillic) LIKE ?', ['%' . $word . '%']);
+                    });
+                }
             })
                 ->when($request->searchQuartal, function ($q) use ($request) {
                     $q->where('quartal', '=', $request->searchQuartal);
