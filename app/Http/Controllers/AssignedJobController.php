@@ -296,15 +296,20 @@ class AssignedJobController extends Controller
                 CandidateContract::where('id', $oldContractId)->update(['is_active' => false]);
             }
 
+            // Determine next contract_period_number (unique constraint on candidate_id + contract_period_number)
+            $nextPeriodNumber = CandidateContract::withTrashed()
+                ->where('candidate_id', $candidateId)
+                ->max('contract_period_number') + 1;
+
             // Create a new contract based on the new job posting defaults
             $newContract = CandidateContract::create([
                 'candidate_id' => $candidateId,
-                'contract_period_number' => 1,
+                'contract_period_number' => $nextPeriodNumber,
                 'is_active' => true,
                 'company_id' => $newJob->company_id,
                 'position_id' => $newJob->position_id,
                 'type_id' => 3,
-                'contract_type' => $newJob->contract_type,
+                'contract_type' => $newJob->contract_type ?? '',
                 'contract_type_id' => $newJob->contract_type_id,
                 'salary' => $newJob->salary,
                 'working_time' => $newJob->workTime,
