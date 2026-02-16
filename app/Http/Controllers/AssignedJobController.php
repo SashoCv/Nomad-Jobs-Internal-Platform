@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
 use App\Models\AssignedJob;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -266,28 +267,38 @@ class AssignedJobController extends Controller
     {
         try {
             $companyJobId = $request->company_job_id;
-            $candidateId = $request->candidate_id;
-            $statusId = 1;
-            $user_id = Auth::user()->id;
+            $agentCandidateId = $request->agent_candidate_id;
+            $user = Auth::user();
 
-            $agentCandidate = AgentCandidate::where('candidate_id', $candidateId)
-                ->first();
+            $agentCandidate = AgentCandidate::findOrFail($agentCandidateId);
+
+            // Agents can only reassign candidates with status "Отказан" (6) that they own
+            if ($user->hasRole(Role::AGENT)) {
+                if ($agentCandidate->user_id !== $user->id) {
+                    return response()->json(['message' => 'You can only reassign your own candidates'], 403);
+                }
+                if ($agentCandidate->status_for_candidate_from_agent_id !== 6) {
+                    return response()->json(['message' => 'You can only reassign candidates with status Отказан'], 403);
+                }
+            }
+
+            $candidateId = $agentCandidate->candidate_id;
+            $originalAgentId = $agentCandidate->user_id;
 
             $agentCandidate->delete();
 
             $assignedJob = new AgentCandidate();
-            $assignedJob->user_id = $user_id;
+            $assignedJob->user_id = $originalAgentId;
             $assignedJob->company_job_id = $companyJobId;
-            $assignedJob->status_for_candidate_from_agent_id = $statusId;
+            $assignedJob->status_for_candidate_from_agent_id = 1;
             $assignedJob->candidate_id = $candidateId;
-
 
             if ($assignedJob->save()) {
                 return response()->json(['message' => 'Job assigned successfully'], 200);
             }
         } catch (\Exception $e) {
             Log::error($e->getMessage());
-            return response()->json(['message' => 'Job assigned failed'], 500);
+            return response()->json(['message' => 'Job assignment failed'], 500);
         }
     }
 }
