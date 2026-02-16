@@ -13,6 +13,7 @@ use App\Models\AssignedJob;
 use App\Models\ChangeLog;
 use App\Notifications\CompanyJobCreatedNotification;
 use App\Repository\NotificationRepository;
+use App\Http\Requests\StoreCompanyJobRequest;
 use App\Repository\SendEmailRepositoryForCreateCompanyJob;
 use App\Repository\UsersNotificationRepository;
 use App\Traits\HasRolePermissions;
@@ -235,7 +236,7 @@ class CompanyJobController extends Controller
         //
     }
 
-    public function store(Request $request)
+    public function store(StoreCompanyJobRequest $request)
     {
         $user = Auth::user();
 
