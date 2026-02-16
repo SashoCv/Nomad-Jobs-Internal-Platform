@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
 use App\Models\AssignedJob;
+use App\Models\CandidateContract;
+use App\Models\CompanyJob;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -284,6 +286,32 @@ class AssignedJobController extends Controller
 
             $candidateId = $agentCandidate->candidate_id;
             $originalAgentId = $agentCandidate->user_id;
+            $oldContractId = $agentCandidate->contract_id;
+
+            // Get new job posting defaults for the contract
+            $newJob = CompanyJob::findOrFail($companyJobId);
+
+            // Deactivate the old contract
+            if ($oldContractId) {
+                CandidateContract::where('id', $oldContractId)->update(['is_active' => false]);
+            }
+
+            // Create a new contract based on the new job posting defaults
+            $newContract = CandidateContract::create([
+                'candidate_id' => $candidateId,
+                'contract_period_number' => 1,
+                'is_active' => true,
+                'company_id' => $newJob->company_id,
+                'position_id' => $newJob->position_id,
+                'type_id' => 3,
+                'contract_type' => $newJob->contract_type,
+                'contract_type_id' => $newJob->contract_type_id,
+                'salary' => $newJob->salary,
+                'working_time' => $newJob->workTime,
+                'agent_id' => $originalAgentId,
+                'added_by' => $user->id,
+                'date' => now(),
+            ]);
 
             $agentCandidate->delete();
 
@@ -292,6 +320,7 @@ class AssignedJobController extends Controller
             $assignedJob->company_job_id = $companyJobId;
             $assignedJob->status_for_candidate_from_agent_id = 1;
             $assignedJob->candidate_id = $candidateId;
+            $assignedJob->contract_id = $newContract->id;
 
             if ($assignedJob->save()) {
                 return response()->json(['message' => 'Job assigned successfully'], 200);
