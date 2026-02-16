@@ -108,7 +108,8 @@ class CompanyJobController extends Controller
         if ($search = $request->search) {
             $query->where(function ($q) use ($search) {
                 $q->where('company_jobs.job_title', 'like', "%{$search}%")
-                  ->orWhere('company_jobs.real_position', 'like', "%{$search}%");
+                  ->orWhere('company_jobs.real_position', 'like', "%{$search}%")
+                  ->orWhere('company_jobs.id', $search);
             });
         }
 
