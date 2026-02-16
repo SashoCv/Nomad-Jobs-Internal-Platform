@@ -291,10 +291,10 @@ class AssignedJobController extends Controller
             // Get new job posting defaults for the contract
             $newJob = CompanyJob::findOrFail($companyJobId);
 
-            // Deactivate the old contract
-            if ($oldContractId) {
-                CandidateContract::where('id', $oldContractId)->update(['is_active' => false]);
-            }
+            // Deactivate all active contracts for this candidate
+            CandidateContract::where('candidate_id', $candidateId)
+                ->where('is_active', true)
+                ->update(['is_active' => false]);
 
             // Determine next contract_period_number (unique constraint on candidate_id + contract_period_number)
             $nextPeriodNumber = CandidateContract::withTrashed()
