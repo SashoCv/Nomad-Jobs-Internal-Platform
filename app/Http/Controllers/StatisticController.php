@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AgentCandidate;
 use App\Models\AssignedJob;
 use App\Models\Candidate;
+use App\Models\StatusForCandidateFromAgent;
 use Illuminate\Http\Request;
 
 class StatisticController extends Controller
@@ -386,11 +387,9 @@ class StatisticController extends Controller
 
         $totalCandidatesAdded = $agentCandidates->count();
 
-        // Status mapping based on status_for_candidate_from_agent_id
-        // 1: Добавен (pending), 2: За интервю (pending), 3: Одобрен (approved)
-        // 4: Неподходящ (rejected), 5: Резерва (pending), 6: Отказан (rejected)
-        $approvedCandidates = $agentCandidates->whereIn('status_for_candidate_from_agent_id', [3])->count();
-        $pendingApproval = $agentCandidates->whereIn('status_for_candidate_from_agent_id', [1, 2, 5])->count();
+        // Count candidates by status
+        $approvedCandidates = $agentCandidates->whereIn('status_for_candidate_from_agent_id', [StatusForCandidateFromAgent::APPROVED])->count();
+        $pendingApproval = $agentCandidates->whereIn('status_for_candidate_from_agent_id', [StatusForCandidateFromAgent::ADDED, StatusForCandidateFromAgent::FOR_INTERVIEW, StatusForCandidateFromAgent::RESERVE])->count();
 
         // Group by agent candidate status
         $statusCounts = $agentCandidates
@@ -430,7 +429,7 @@ class StatisticController extends Controller
 
         // Get upcoming arrivals - candidates who are approved and have arrival records
         $upcomingArrivals = $agentCandidates
-            ->where('status_for_candidate_from_agent_id', 3) // Approved by Nomad
+            ->where('status_for_candidate_from_agent_id', StatusForCandidateFromAgent::APPROVED)
             ->filter(function ($agentCandidate) {
                 $candidate = $agentCandidate->candidate;
 

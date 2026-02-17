@@ -6,6 +6,7 @@ use App\Models\AgentCandidate;
 use App\Models\AssignedJob;
 use App\Models\CandidateContract;
 use App\Models\CompanyJob;
+use App\Models\StatusForCandidateFromAgent;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -275,7 +276,7 @@ class AssignedJobController extends Controller
             $agentCandidate = AgentCandidate::findOrFail($agentCandidateId);
 
             // Only candidates with status "Резерва" (5) or "Отказан" (6) can be reassigned
-            $reassignableStatuses = [5, 6];
+            $reassignableStatuses = [StatusForCandidateFromAgent::RESERVE, StatusForCandidateFromAgent::REJECTED];
             if (!in_array($agentCandidate->status_for_candidate_from_agent_id, $reassignableStatuses)) {
                 return response()->json(['message' => 'You can only reassign candidates with status Резерва or Отказан'], 403);
             }
@@ -326,7 +327,7 @@ class AssignedJobController extends Controller
             $assignedJob = new AgentCandidate();
             $assignedJob->user_id = $originalAgentId;
             $assignedJob->company_job_id = $companyJobId;
-            $assignedJob->status_for_candidate_from_agent_id = 1;
+            $assignedJob->status_for_candidate_from_agent_id = StatusForCandidateFromAgent::ADDED;
             $assignedJob->candidate_id = $candidateId;
             $assignedJob->contract_id = $newContract->id;
 

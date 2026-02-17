@@ -93,7 +93,7 @@ class StatusForCandidateFromAgentController extends Controller
                     $candidateFromAgent->status_date = $request->status_date;
                 }
 
-                if($request->status_for_candidate_from_agent_id == 3 || $request->status_for_candidate_from_agent_id == 4 || $request->status_for_candidate_from_agent_id == 5) {
+                if(in_array($request->status_for_candidate_from_agent_id, [StatusForCandidateFromAgent::APPROVED, StatusForCandidateFromAgent::UNSUITABLE, StatusForCandidateFromAgent::RESERVE])) {
                     $updateTypeOfCandidate = Candidate::where('id', $id)->first();
                     $updateTypeOfCandidate->type_id = 1;
 
@@ -118,7 +118,7 @@ class StatusForCandidateFromAgentController extends Controller
                 $candidateFromAgent->save();
 
                 // Create status history entry when candidate is approved
-                if ($request->status_for_candidate_from_agent_id == 3) {
+                if ($request->status_for_candidate_from_agent_id == StatusForCandidateFromAgent::APPROVED) {
                     $candidate = Candidate::find($id);
                     if ($candidate) {
                         $candidate->status_id = Status::MIGRATION;
@@ -134,8 +134,8 @@ class StatusForCandidateFromAgentController extends Controller
                     }
                 }
 
-                // Create calendar event for interview (status 2 = "За интервю")
-                if ($request->status_for_candidate_from_agent_id == 2 && $request->has('status_date')) {
+                // Create calendar event for interview
+                if ($request->status_for_candidate_from_agent_id == StatusForCandidateFromAgent::FOR_INTERVIEW && $request->has('status_date')) {
                     $statusDateTime = Carbon::parse($request->status_date);
                     $companyJob = $candidateFromAgent->companyJob;
 
@@ -155,7 +155,7 @@ class StatusForCandidateFromAgentController extends Controller
                 }
 
                 // Check if job posting should be marked as "filled"
-                if ($request->status_for_candidate_from_agent_id == 3 && $candidateFromAgent->company_job_id) {
+                if ($request->status_for_candidate_from_agent_id == StatusForCandidateFromAgent::APPROVED && $candidateFromAgent->company_job_id) {
                     $this->checkAndUpdateJobFilledStatus($candidateFromAgent->company_job_id);
                 }
 
@@ -193,9 +193,9 @@ class StatusForCandidateFromAgentController extends Controller
             return;
         }
 
-        // Count approved candidates (status_for_candidate_from_agent_id = 3)
+        // Count approved candidates
         $approvedCount = AgentCandidate::where('company_job_id', $companyJobId)
-            ->where('status_for_candidate_from_agent_id', 3)
+            ->where('status_for_candidate_from_agent_id', StatusForCandidateFromAgent::APPROVED)
             ->whereNull('deleted_at')
             ->count();
 
