@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
 use App\Models\AssignedJob;
+use App\Models\CandidateContract;
+use App\Models\CompanyJob;
+use App\Models\StatusForCandidateFromAgent;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AssignedJobController extends Controller
@@ -266,36 +270,78 @@ class AssignedJobController extends Controller
     public function assignToAnotherJobPosting(Request $request)
     {
         try {
-            $companyJobId = $request->company_job_id;
-            $agentCandidateId = $request->agent_candidate_id;
+            $request->validate([
+                'company_job_id' => 'required|integer|exists:company_jobs,id',
+                'agent_candidate_id' => 'required|integer|exists:agent_candidates,id',
+            ]);
+
             $user = Auth::user();
+            $agentCandidate = AgentCandidate::findOrFail($request->agent_candidate_id);
 
-            $agentCandidate = AgentCandidate::findOrFail($agentCandidateId);
+            // Only candidates with status "Резерва" (5) or "Отказан" (6) can be reassigned
+            $reassignableStatuses = [StatusForCandidateFromAgent::RESERVE, StatusForCandidateFromAgent::REJECTED];
+            if (!in_array($agentCandidate->status_for_candidate_from_agent_id, $reassignableStatuses)) {
+                return response()->json(['message' => 'You can only reassign candidates with status Резерва or Отказан'], 403);
+            }
 
-            // Agents can only reassign candidates with status "Отказан" (6) that they own
+            // Agents can only reassign their own candidates
             if ($user->hasRole(Role::AGENT)) {
                 if ($agentCandidate->user_id !== $user->id) {
                     return response()->json(['message' => 'You can only reassign your own candidates'], 403);
-                }
-                if ($agentCandidate->status_for_candidate_from_agent_id !== 6) {
-                    return response()->json(['message' => 'You can only reassign candidates with status Отказан'], 403);
                 }
             }
 
             $candidateId = $agentCandidate->candidate_id;
             $originalAgentId = $agentCandidate->user_id;
+            $companyJobId = $request->company_job_id;
 
-            $agentCandidate->delete();
+            $newJob = CompanyJob::findOrFail($companyJobId);
 
-            $assignedJob = new AgentCandidate();
-            $assignedJob->user_id = $originalAgentId;
-            $assignedJob->company_job_id = $companyJobId;
-            $assignedJob->status_for_candidate_from_agent_id = 1;
-            $assignedJob->candidate_id = $candidateId;
+            DB::transaction(function () use ($candidateId, $originalAgentId, $companyJobId, $newJob, $agentCandidate, $user) {
+                // Deactivate all active contracts for this candidate
+                CandidateContract::where('candidate_id', $candidateId)
+                    ->where('is_active', true)
+                    ->update(['is_active' => false]);
 
-            if ($assignedJob->save()) {
-                return response()->json(['message' => 'Job assigned successfully'], 200);
-            }
+                // Determine next contract_period_number (unique constraint on candidate_id + contract_period_number)
+                $nextPeriodNumber = CandidateContract::withTrashed()
+                    ->where('candidate_id', $candidateId)
+                    ->max('contract_period_number') + 1;
+
+                // Create a new contract based on the new job posting defaults
+                $newContract = CandidateContract::create([
+                    'candidate_id' => $candidateId,
+                    'contract_period_number' => $nextPeriodNumber,
+                    'is_active' => true,
+                    'company_id' => $newJob->company_id,
+                    'position_id' => $newJob->position_id,
+                    'type_id' => 3,
+                    'contract_type' => $newJob->contract_type ?? '',
+                    'contract_type_id' => $newJob->contract_type_id,
+                    'salary' => $newJob->salary,
+                    'working_time' => $newJob->workTime,
+                    'agent_id' => $originalAgentId,
+                    'added_by' => $user->id,
+                    'date' => now(),
+                ]);
+
+                $agentCandidate->delete();
+
+                $assignedJob = new AgentCandidate();
+                $assignedJob->user_id = $originalAgentId;
+                $assignedJob->company_job_id = $companyJobId;
+                $assignedJob->status_for_candidate_from_agent_id = StatusForCandidateFromAgent::ADDED;
+                $assignedJob->candidate_id = $candidateId;
+                $assignedJob->contract_id = $newContract->id;
+                $assignedJob->save();
+            });
+
+            return response()->json(['message' => 'Job assigned successfully'], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Job assignment failed'], 500);

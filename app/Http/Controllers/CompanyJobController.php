@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserOwner;
 use App\Models\Role;
 use App\Models\AssignedJob;
+use App\Models\StatusForCandidateFromAgent;
 use App\Models\ChangeLog;
 use App\Notifications\CompanyJobCreatedNotification;
 use App\Repository\NotificationRepository;
@@ -66,7 +67,7 @@ class CompanyJobController extends Controller
                 'company_jobs.updated_at',
                 'company_jobs.deleted_at',
                 DB::raw("COUNT(agent_candidates.id) as candidates_count"),
-                DB::raw("SUM(CASE WHEN agent_candidates.status_for_candidate_from_agent_id = 3 THEN 1 ELSE 0 END) as approved_count")
+                DB::raw("SUM(CASE WHEN agent_candidates.status_for_candidate_from_agent_id = " . StatusForCandidateFromAgent::APPROVED . " THEN 1 ELSE 0 END) as approved_count")
             )
             ->whereNull('company_jobs.deleted_at')
             ->groupBy(
@@ -348,7 +349,7 @@ class CompanyJobController extends Controller
 
             $candidates_count = DB::table('agent_candidates')
                 ->where('company_job_id', $id)
-                ->where('status_for_candidate_from_agent_id', 3)
+                ->where('status_for_candidate_from_agent_id', StatusForCandidateFromAgent::APPROVED)
                 ->count();
 
             $companyJob->candidates_count = $candidates_count;
