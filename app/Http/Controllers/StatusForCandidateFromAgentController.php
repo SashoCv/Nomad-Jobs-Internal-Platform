@@ -13,6 +13,7 @@ use App\Models\Statushistory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StatusForCandidateFromAgentController extends Controller
 {
@@ -84,8 +85,15 @@ class StatusForCandidateFromAgentController extends Controller
     public function update(Request $request, $id)
     {
         try {
-           $candidateFromAgent = AgentCandidate::where('candidate_id', $id)->first();
-              if ($candidateFromAgent) {
+            $candidateFromAgent = AgentCandidate::where('candidate_id', $id)->first();
+
+            if (!$candidateFromAgent) {
+                return response()->json(['message' => 'Candidate not found'], 404);
+            }
+
+            $previousStatusId = $candidateFromAgent->status_for_candidate_from_agent_id;
+
+            DB::transaction(function () use ($request, $id, $candidateFromAgent) {
                 $candidateFromAgent->status_for_candidate_from_agent_id = $request->status_for_candidate_from_agent_id;
 
                 // Save status_date if provided
@@ -93,7 +101,7 @@ class StatusForCandidateFromAgentController extends Controller
                     $candidateFromAgent->status_date = $request->status_date;
                 }
 
-                if(in_array($request->status_for_candidate_from_agent_id, [StatusForCandidateFromAgent::APPROVED, StatusForCandidateFromAgent::UNSUITABLE, StatusForCandidateFromAgent::RESERVE])) {
+                if (in_array($request->status_for_candidate_from_agent_id, [StatusForCandidateFromAgent::APPROVED, StatusForCandidateFromAgent::UNSUITABLE, StatusForCandidateFromAgent::RESERVE])) {
                     $updateTypeOfCandidate = Candidate::where('id', $id)->first();
                     $updateTypeOfCandidate->type_id = 1;
 
@@ -115,6 +123,7 @@ class StatusForCandidateFromAgentController extends Controller
 
                     $updateTypeOfCandidate->save();
                 }
+
                 $candidateFromAgent->save();
 
                 // Create status history entry when candidate is approved
@@ -153,16 +162,14 @@ class StatusForCandidateFromAgentController extends Controller
                         ]
                     );
                 }
+            });
 
-                // Check if job posting should be marked as "filled"
-                if ($request->status_for_candidate_from_agent_id == StatusForCandidateFromAgent::APPROVED && $candidateFromAgent->company_job_id) {
-                    $this->checkAndUpdateJobFilledStatus($candidateFromAgent->company_job_id);
-                }
+            // Update job filled status outside transaction (non-critical)
+            if ($candidateFromAgent->company_job_id) {
+                $this->checkAndUpdateJobFilledStatus($candidateFromAgent->company_job_id);
+            }
 
-                return response()->json(['message' => 'Status updated successfully'], 200);
-              } else {
-                return response()->json(['message' => 'Candidate not found'], 404);
-              }
+            return response()->json(['message' => 'Status updated successfully'], 200);
         } catch (\Exception $e) {
             return response()->json($e->getMessage(), 500);
         }
@@ -189,7 +196,7 @@ class StatusForCandidateFromAgentController extends Controller
     {
         $companyJob = CompanyJob::find($companyJobId);
 
-        if (!$companyJob || !in_array($companyJob->status, ['active', 'inactive'])) {
+        if (!$companyJob) {
             return;
         }
 
@@ -199,9 +206,11 @@ class StatusForCandidateFromAgentController extends Controller
             ->whereNull('deleted_at')
             ->count();
 
-        // If approved candidates reach or exceed the number of positions, mark as filled
-        if ($approvedCount >= $companyJob->number_of_positions) {
+        if ($approvedCount >= $companyJob->number_of_positions && in_array($companyJob->status, ['active', 'inactive'])) {
             $companyJob->status = 'filled';
+            $companyJob->save();
+        } elseif ($approvedCount < $companyJob->number_of_positions && $companyJob->status === 'filled') {
+            $companyJob->status = 'active';
             $companyJob->save();
         }
     }

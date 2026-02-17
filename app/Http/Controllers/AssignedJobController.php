@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AssignedJobController extends Controller
@@ -269,11 +270,13 @@ class AssignedJobController extends Controller
     public function assignToAnotherJobPosting(Request $request)
     {
         try {
-            $companyJobId = $request->company_job_id;
-            $agentCandidateId = $request->agent_candidate_id;
-            $user = Auth::user();
+            $request->validate([
+                'company_job_id' => 'required|integer|exists:company_jobs,id',
+                'agent_candidate_id' => 'required|integer|exists:agent_candidates,id',
+            ]);
 
-            $agentCandidate = AgentCandidate::findOrFail($agentCandidateId);
+            $user = Auth::user();
+            $agentCandidate = AgentCandidate::findOrFail($request->agent_candidate_id);
 
             // Only candidates with status "Резерва" (5) or "Отказан" (6) can be reassigned
             $reassignableStatuses = [StatusForCandidateFromAgent::RESERVE, StatusForCandidateFromAgent::REJECTED];
@@ -290,50 +293,55 @@ class AssignedJobController extends Controller
 
             $candidateId = $agentCandidate->candidate_id;
             $originalAgentId = $agentCandidate->user_id;
-            $oldContractId = $agentCandidate->contract_id;
+            $companyJobId = $request->company_job_id;
 
-            // Get new job posting defaults for the contract
             $newJob = CompanyJob::findOrFail($companyJobId);
 
-            // Deactivate all active contracts for this candidate
-            CandidateContract::where('candidate_id', $candidateId)
-                ->where('is_active', true)
-                ->update(['is_active' => false]);
+            DB::transaction(function () use ($candidateId, $originalAgentId, $companyJobId, $newJob, $agentCandidate, $user) {
+                // Deactivate all active contracts for this candidate
+                CandidateContract::where('candidate_id', $candidateId)
+                    ->where('is_active', true)
+                    ->update(['is_active' => false]);
 
-            // Determine next contract_period_number (unique constraint on candidate_id + contract_period_number)
-            $nextPeriodNumber = CandidateContract::withTrashed()
-                ->where('candidate_id', $candidateId)
-                ->max('contract_period_number') + 1;
+                // Determine next contract_period_number (unique constraint on candidate_id + contract_period_number)
+                $nextPeriodNumber = CandidateContract::withTrashed()
+                    ->where('candidate_id', $candidateId)
+                    ->max('contract_period_number') + 1;
 
-            // Create a new contract based on the new job posting defaults
-            $newContract = CandidateContract::create([
-                'candidate_id' => $candidateId,
-                'contract_period_number' => $nextPeriodNumber,
-                'is_active' => true,
-                'company_id' => $newJob->company_id,
-                'position_id' => $newJob->position_id,
-                'type_id' => 3,
-                'contract_type' => $newJob->contract_type ?? '',
-                'contract_type_id' => $newJob->contract_type_id,
-                'salary' => $newJob->salary,
-                'working_time' => $newJob->workTime,
-                'agent_id' => $originalAgentId,
-                'added_by' => $user->id,
-                'date' => now(),
-            ]);
+                // Create a new contract based on the new job posting defaults
+                $newContract = CandidateContract::create([
+                    'candidate_id' => $candidateId,
+                    'contract_period_number' => $nextPeriodNumber,
+                    'is_active' => true,
+                    'company_id' => $newJob->company_id,
+                    'position_id' => $newJob->position_id,
+                    'type_id' => 3,
+                    'contract_type' => $newJob->contract_type ?? '',
+                    'contract_type_id' => $newJob->contract_type_id,
+                    'salary' => $newJob->salary,
+                    'working_time' => $newJob->workTime,
+                    'agent_id' => $originalAgentId,
+                    'added_by' => $user->id,
+                    'date' => now(),
+                ]);
 
-            $agentCandidate->delete();
+                $agentCandidate->delete();
 
-            $assignedJob = new AgentCandidate();
-            $assignedJob->user_id = $originalAgentId;
-            $assignedJob->company_job_id = $companyJobId;
-            $assignedJob->status_for_candidate_from_agent_id = StatusForCandidateFromAgent::ADDED;
-            $assignedJob->candidate_id = $candidateId;
-            $assignedJob->contract_id = $newContract->id;
+                $assignedJob = new AgentCandidate();
+                $assignedJob->user_id = $originalAgentId;
+                $assignedJob->company_job_id = $companyJobId;
+                $assignedJob->status_for_candidate_from_agent_id = StatusForCandidateFromAgent::ADDED;
+                $assignedJob->candidate_id = $candidateId;
+                $assignedJob->contract_id = $newContract->id;
+                $assignedJob->save();
+            });
 
-            if ($assignedJob->save()) {
-                return response()->json(['message' => 'Job assigned successfully'], 200);
-            }
+            return response()->json(['message' => 'Job assigned successfully'], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['message' => 'Job assignment failed'], 500);
