@@ -26,10 +26,16 @@ class Category extends Model
 
     public function isVisibleToRole(int $roleId): bool
     {
-        if ($this->relationLoaded('visibleToRoles')) {
-            return $this->visibleToRoles->contains('id', $roleId);
+        // COMPANY_OWNER should also match COMPANY_USER visibility
+        $roleIds = [$roleId];
+        if ($roleId === Role::COMPANY_OWNER) {
+            $roleIds[] = Role::COMPANY_USER;
         }
 
-        return $this->visibleToRoles()->where('roles.id', $roleId)->exists();
+        if ($this->relationLoaded('visibleToRoles')) {
+            return $this->visibleToRoles->whereIn('id', $roleIds)->isNotEmpty();
+        }
+
+        return $this->visibleToRoles()->whereIn('roles.id', $roleIds)->exists();
     }
 }

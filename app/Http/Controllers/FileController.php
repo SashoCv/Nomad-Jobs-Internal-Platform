@@ -266,11 +266,15 @@ class FileController extends Controller
                 ->where('candidate_id', $id)
                 ->get();
         } else {
-            $userRoleId = Auth::user()->role_id;
+            // COMPANY_OWNER (5) should also see categories visible to COMPANY_USER (3)
+            $visibilityRoleIds = [Auth::user()->role_id];
+            if (Auth::user()->role_id === Role::COMPANY_OWNER) {
+                $visibilityRoleIds[] = Role::COMPANY_USER;
+            }
 
             $categories = Category::with('visibleToRoles')
                 ->where('candidate_id', $id)
-                ->whereHas('visibleToRoles', fn($q) => $q->where('roles.id', $userRoleId))
+                ->whereHas('visibleToRoles', fn($q) => $q->whereIn('roles.id', $visibilityRoleIds))
                 ->orderBy('id', 'asc')
                 ->get();
 
