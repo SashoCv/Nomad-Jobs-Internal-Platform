@@ -274,13 +274,16 @@ class AssignedJobController extends Controller
 
             $agentCandidate = AgentCandidate::findOrFail($agentCandidateId);
 
-            // Agents can only reassign candidates with status "Отказан" (6) that they own
+            // Only candidates with status "Резерва" (5) or "Отказан" (6) can be reassigned
+            $reassignableStatuses = [5, 6];
+            if (!in_array($agentCandidate->status_for_candidate_from_agent_id, $reassignableStatuses)) {
+                return response()->json(['message' => 'You can only reassign candidates with status Резерва or Отказан'], 403);
+            }
+
+            // Agents can only reassign their own candidates
             if ($user->hasRole(Role::AGENT)) {
                 if ($agentCandidate->user_id !== $user->id) {
                     return response()->json(['message' => 'You can only reassign your own candidates'], 403);
-                }
-                if ($agentCandidate->status_for_candidate_from_agent_id !== 6) {
-                    return response()->json(['message' => 'You can only reassign candidates with status Отказан'], 403);
                 }
             }
 
