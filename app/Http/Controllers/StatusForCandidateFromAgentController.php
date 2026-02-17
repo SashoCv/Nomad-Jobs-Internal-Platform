@@ -7,7 +7,9 @@ use App\Models\CalendarEvent;
 use App\Models\Candidate;
 use App\Models\CompanyJob;
 use App\Models\Education;
+use App\Models\Status;
 use App\Models\StatusForCandidateFromAgent;
+use App\Models\Statushistory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -114,6 +116,23 @@ class StatusForCandidateFromAgentController extends Controller
                     $updateTypeOfCandidate->save();
                 }
                 $candidateFromAgent->save();
+
+                // Create status history entry when candidate is approved
+                if ($request->status_for_candidate_from_agent_id == 3) {
+                    $candidate = Candidate::find($id);
+                    if ($candidate) {
+                        $candidate->status_id = Status::MIGRATION;
+                        $candidate->save();
+
+                        Statushistory::create([
+                            'candidate_id' => $id,
+                            'contract_id' => $candidateFromAgent->contract_id,
+                            'status_id' => Status::MIGRATION,
+                            'statusDate' => $request->status_date ? Carbon::parse($request->status_date)->toDateString() : now()->toDateString(),
+                            'description' => 'Одобрен от агент',
+                        ]);
+                    }
+                }
 
                 // Create calendar event for interview (status 2 = "За интервю")
                 if ($request->status_for_candidate_from_agent_id == 2 && $request->has('status_date')) {
