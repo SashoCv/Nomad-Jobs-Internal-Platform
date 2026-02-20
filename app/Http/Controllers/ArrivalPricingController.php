@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Arrival;
 use App\Models\ArrivalPricing;
+use App\Models\Candidate;
 use App\Models\Invoice;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
@@ -49,17 +50,14 @@ class ArrivalPricingController extends Controller
                 ->where('billed', false)
                 ->update(['billed' => true]);
 
-            $contractTypeCandidate = DB::table('candidates')
-                ->where('id', $data['candidateId'])
-                ->value('contractType');
+            $candidate = Candidate::with('contract_type')->find($data['candidateId']);
+            $slug = $candidate?->contract_type?->slug;
 
             $agreement_type = null;
-            if ($contractTypeCandidate == "ЕРПР 3" || $contractTypeCandidate == "ЕРПР 2" || $contractTypeCandidate == "ЕРПР 1") {
-                $agreement_type = "erpr";
-            } else if ($contractTypeCandidate == "9 месеца") {
-                $agreement_type = "9months";
-            } else if ($contractTypeCandidate == "90 дни") {
-                $agreement_type = "90days";
+            if (in_array($slug, ['erpr1', 'erpr2', 'erpr3'])) {
+                $agreement_type = 'erpr';
+            } elseif (in_array($slug, ['9months', '90days'])) {
+                $agreement_type = $slug;
             }
 
             $company_service_contract_id = null;
