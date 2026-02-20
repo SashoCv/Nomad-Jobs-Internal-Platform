@@ -62,6 +62,19 @@ class Candidate extends Model
         'is_qualified' => 'boolean',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updating(function (Candidate $candidate) {
+            if ($candidate->isDirty('status_id')) {
+                CandidateContract::where('candidate_id', $candidate->id)
+                    ->where('is_active', true)
+                    ->update(['status_id' => $candidate->status_id]);
+            }
+        });
+    }
+
     /**
      * Salary attribute: accepts European format input (comma as decimal separator).
      * Accepts: "620,20" or "620.20" → stores as 620.20
