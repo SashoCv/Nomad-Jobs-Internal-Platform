@@ -10,14 +10,17 @@ class FixContractTypeSlugs extends Command
     protected $signature = 'fix:contract-type-slugs
                             {--dry-run : Show what would be done without making changes}';
 
-    protected $description = 'Convert Cyrillic contract_type values to slugs in company_jobs and candidate_contracts';
+    protected $description = 'Convert Cyrillic contract_type values to slugs and fix contract_type_id in company_jobs and candidate_contracts';
 
+    /**
+     * Cyrillic name → [slug, contract_type_id]
+     */
     private const NAME_TO_SLUG = [
-        '90 дни' => '90days',
-        '9 месеца' => '9months',
-        'ЕРПР 1' => 'erpr1',
-        'ЕРПР 2' => 'erpr2',
-        'ЕРПР 3' => 'erpr3',
+        '90 дни'   => ['slug' => '90days',  'id' => 5],
+        '9 месеца' => ['slug' => '9months', 'id' => 4],
+        'ЕРПР 1'   => ['slug' => 'erpr1',   'id' => 1],
+        'ЕРПР 2'   => ['slug' => 'erpr2',   'id' => 2],
+        'ЕРПР 3'   => ['slug' => 'erpr3',   'id' => 3],
     ];
 
     public function handle(): int
@@ -47,21 +50,24 @@ class FixContractTypeSlugs extends Command
 
     private function fixTable(string $table, string $column, bool $dryRun): int
     {
-        $this->info("--- {$table}.{$column} ---");
+        $this->info("--- {$table} ---");
 
         $tableFixed = 0;
 
-        foreach (self::NAME_TO_SLUG as $name => $slug) {
+        foreach (self::NAME_TO_SLUG as $name => $mapping) {
             $count = DB::table($table)->where($column, $name)->count();
 
             if ($count === 0) {
                 continue;
             }
 
-            $this->line("  '{$name}' → '{$slug}': {$count} records");
+            $this->line("  '{$name}' → '{$mapping['slug']}' (id={$mapping['id']}): {$count} records");
 
             if (!$dryRun) {
-                DB::table($table)->where($column, $name)->update([$column => $slug]);
+                DB::table($table)->where($column, $name)->update([
+                    $column => $mapping['slug'],
+                    'contract_type_id' => $mapping['id'],
+                ]);
             }
 
             $tableFixed += $count;
