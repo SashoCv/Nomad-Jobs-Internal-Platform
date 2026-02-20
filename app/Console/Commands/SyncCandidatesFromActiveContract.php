@@ -21,7 +21,6 @@ class SyncCandidatesFromActiveContract extends Command
     private const SYNC_FIELDS = [
         'company_id' => 'company_id',
         'position_id' => 'position_id',
-        'type_id' => 'type_id',
         'contractType' => 'contract_type',
         'contract_type_id' => 'contract_type_id',
         'contractPeriod' => 'contract_period',

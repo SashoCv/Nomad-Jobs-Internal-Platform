@@ -14,7 +14,12 @@ class SyncStatusToActiveContracts extends Command
                             {--dry-run : Show what would be done without making changes}
                             {--candidate_id= : Sync a specific candidate by ID}';
 
-    protected $description = 'Push candidate status_id into active contracts (candidate is source of truth)';
+    protected $description = 'Push candidate status_id and type_id into active contracts (candidate is source of truth)';
+
+    /**
+     * Fields where the candidate is the source of truth (candidate → contract).
+     */
+    private const CANDIDATE_OWNED_FIELDS = ['status_id', 'type_id'];
 
     public function handle(): int
     {
@@ -26,28 +31,33 @@ class SyncStatusToActiveContracts extends Command
         }
 
         $this->info('');
-        $this->info('=== Sync Candidate status_id → Active Contracts ===');
+        $this->info('=== Sync Candidate → Active Contracts (status_id, type_id) ===');
         $this->info('');
 
-        // Find mismatches: candidate.status_id != activeContract.status_id
         $query = DB::table('candidates')
             ->join('candidate_contracts', function ($join) {
                 $join->on('candidates.id', '=', 'candidate_contracts.candidate_id')
                     ->where('candidate_contracts.is_active', true);
             })
-            ->whereColumn('candidates.status_id', '!=', 'candidate_contracts.status_id')
-            ->orWhere(function ($q) {
-                $q->whereNotNull('candidates.status_id')
-                    ->whereNull('candidate_contracts.status_id')
-                    ->where('candidate_contracts.is_active', true);
+            ->where(function ($q) {
+                foreach (self::CANDIDATE_OWNED_FIELDS as $field) {
+                    $q->orWhere(function ($sub) use ($field) {
+                        $sub->whereColumn("candidates.{$field}", '!=', "candidate_contracts.{$field}");
+                    })->orWhere(function ($sub) use ($field) {
+                        $sub->whereNotNull("candidates.{$field}")
+                            ->whereNull("candidate_contracts.{$field}");
+                    });
+                }
             })
             ->select(
                 'candidates.id',
                 'candidates.fullName',
                 'candidates.fullNameCyrillic',
                 'candidates.status_id as candidate_status_id',
+                'candidates.type_id as candidate_type_id',
                 'candidate_contracts.id as contract_id',
-                'candidate_contracts.status_id as contract_status_id'
+                'candidate_contracts.status_id as contract_status_id',
+                'candidate_contracts.type_id as contract_type_id'
             );
 
         if ($candidateId) {
@@ -70,17 +80,28 @@ class SyncStatusToActiveContracts extends Command
         foreach ($mismatches as $row) {
             $name = $row->fullNameCyrillic ?: $row->fullName;
             $this->line("Candidate #{$row->id} - {$name}");
-            $this->line("  contract.status_id: {$this->fmt($row->contract_status_id)} -> {$this->fmt($row->candidate_status_id)}");
+
+            $updateData = [];
+
+            if ($row->candidate_status_id != $row->contract_status_id) {
+                $this->line("  contract.status_id: {$this->fmt($row->contract_status_id)} -> {$this->fmt($row->candidate_status_id)}");
+                $updateData['status_id'] = $row->candidate_status_id;
+            }
+
+            if ($row->candidate_type_id != $row->contract_type_id) {
+                $this->line("  contract.type_id: {$this->fmt($row->contract_type_id)} -> {$this->fmt($row->candidate_type_id)}");
+                $updateData['type_id'] = $row->candidate_type_id;
+            }
 
             if (!$dryRun) {
                 try {
                     CandidateContract::where('id', $row->contract_id)
-                        ->update(['status_id' => $row->candidate_status_id]);
+                        ->update($updateData);
                     $synced++;
                 } catch (\Exception $e) {
                     $failed++;
                     $this->error("  Failed: {$e->getMessage()}");
-                    Log::error("Failed to sync status for candidate {$row->id}: {$e->getMessage()}");
+                    Log::error("Failed to sync candidate {$row->id}: {$e->getMessage()}");
                 }
             } else {
                 $synced++;
