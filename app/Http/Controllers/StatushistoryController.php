@@ -128,6 +128,7 @@ class StatushistoryController extends Controller
                     ->first();
 
                 if ($nextStatusHistory) {
+                    // Candidate model auto-syncs status_id to active contract
                     $candidate->status_id = $nextStatusHistory->status_id;
                     $candidate->save();
                 }

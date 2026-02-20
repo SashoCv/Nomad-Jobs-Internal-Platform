@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AgentCandidate;
+use App\Models\Candidate;
 use App\Models\AssignedJob;
 use App\Models\CandidateContract;
 use App\Models\CompanyJob;
@@ -323,6 +324,16 @@ class AssignedJobController extends Controller
                     'agent_id' => $originalAgentId,
                     'added_by' => $user->id,
                     'date' => now(),
+                ]);
+
+                // Sync candidate record with the new contract data
+                Candidate::where('id', $candidateId)->update([
+                    'company_id' => $newJob->company_id,
+                    'position_id' => $newJob->position_id,
+                    'salary' => $newJob->salary,
+                    'workingTime' => $newJob->workTime,
+                    'contractType' => $newJob->contract_type ?? '',
+                    'contract_type_id' => $newJob->contract_type_id,
                 ]);
 
                 $agentCandidate->delete();

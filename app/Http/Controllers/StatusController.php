@@ -168,17 +168,11 @@ class StatusController extends Controller
             }
 
             // Update the candidate's current status
+            // (Candidate model auto-syncs status_id to active contract)
             $candidate = Candidate::find($candidate_id);
             if ($candidate) {
                 $candidate->status_id = $status_id;
                 $candidate->save();
-            }
-
-            // Also update the contract's status_id to keep in sync
-            $contract = \App\Models\CandidateContract::find($contract_id);
-            if ($contract) {
-                $contract->status_id = $status_id;
-                $contract->save();
             }
 
             dispatch(new SendEmailForArrivalStatusCandidates($request->status_id, $candidate_id, $request->statusDate, $sendEmail));
