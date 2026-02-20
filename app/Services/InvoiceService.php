@@ -24,17 +24,16 @@ class InvoiceService
         // Convert date format if needed
         $formattedDate = self::formatDate($statusDate);
 
-        $candidate = Candidate::find($candidateId);
+        $candidate = Candidate::with('contract_type')->find($candidateId);
 
-        if (!$candidate || !$candidate->company_id || !$candidate->contractType) {
+        if (!$candidate || !$candidate->company_id || !$candidate->contract_type_id) {
             return; // Candidate does not have a company or contract type assigned
         }
 
         $companyId = $candidate->company_id;
-        $contractTypeCandidate = $candidate->contractType;
         $candidateCountryId = $candidate->country_id;
 
-        $contractType = self::mapContractType($contractTypeCandidate);
+        $contractType = self::mapContractType($candidate->contract_type?->slug);
         // Get the active contract for the company
         $activeContract = CompanyServiceContract::getActiveContract($companyId, $contractType);
         $company_service_contract_id = $activeContract ? $activeContract->id : null;
@@ -97,16 +96,20 @@ class InvoiceService
      * @param string $contractTypeCandidate
      * @return string
      */
-    private static function mapContractType($contractTypeCandidate)
+    private static function mapContractType(?string $slug): ?string
     {
-        if ($contractTypeCandidate == "ЕРПР 3" || $contractTypeCandidate == "ЕРПР 2" || $contractTypeCandidate == "ЕРПР 1") {
-            return "erpr";
-        } else if ($contractTypeCandidate == "9 месеца") {
-            return "9months";
-        } else if ($contractTypeCandidate == "90 дни") {
-            return "90days";
+        if (!$slug) {
+            return null;
         }
-        
+
+        if (in_array($slug, ['erpr1', 'erpr2', 'erpr3'])) {
+            return 'erpr';
+        }
+
+        if (in_array($slug, ['9months', '90days'])) {
+            return $slug;
+        }
+
         return null;
     }
 
