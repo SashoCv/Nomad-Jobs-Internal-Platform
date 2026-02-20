@@ -35,7 +35,6 @@ class SyncCandidatesFromActiveContract extends Command
         'nameOfFacility' => 'name_of_facility',
         'dossierNumber' => 'dossier_number',
         'company_adresses_id' => 'company_adresses_id',
-        'notes' => 'notes',
         'agent_id' => 'agent_id',
         'candidate_source' => 'candidate_source',
     ];
@@ -91,6 +90,9 @@ class SyncCandidatesFromActiveContract extends Command
                     foreach (self::SYNC_FIELDS as $candidateCol => $contractCol) {
                         $updateData[$candidateCol] = $contract->{$contractCol};
                     }
+
+                    // Merge notes instead of overwriting
+                    $updateData['notes'] = $this->mergeNotes($candidate->notes, $contract->notes);
 
                     $candidate->update($updateData);
                     $synced++;
@@ -162,7 +164,43 @@ class SyncCandidatesFromActiveContract extends Command
             }
         }
 
+        // Check notes separately (merged, not overwritten)
+        $candidateNotes = trim($candidate->notes ?? '');
+        $contractNotes = trim($contract->notes ?? '');
+
+        if ($contractNotes !== '' && !str_contains($candidateNotes, $contractNotes)) {
+            $merged = $this->mergeNotes($candidate->notes, $contract->notes);
+            $diffs[] = [
+                'field' => 'notes (merge)',
+                'old' => $this->formatValue($candidate->notes),
+                'new' => $this->formatValue($merged),
+            ];
+        }
+
         return $diffs;
+    }
+
+    /**
+     * Merge candidate and contract notes, avoiding duplicates.
+     */
+    private function mergeNotes(?string $candidateNotes, ?string $contractNotes): ?string
+    {
+        $candidate = trim($candidateNotes ?? '');
+        $contract = trim($contractNotes ?? '');
+
+        if ($candidate === '' && $contract === '') {
+            return null;
+        }
+
+        if ($candidate === '') {
+            return $contract;
+        }
+
+        if ($contract === '' || str_contains($candidate, $contract)) {
+            return $candidate;
+        }
+
+        return $candidate . "\n" . $contract;
     }
 
     private function formatValue($value): string
