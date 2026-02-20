@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidate;
+use App\Models\CandidateContract;
 use App\Models\Statushistory;
 use Illuminate\Http\Request;
 
@@ -130,6 +131,11 @@ class StatushistoryController extends Controller
                 if ($nextStatusHistory) {
                     $candidate->status_id = $nextStatusHistory->status_id;
                     $candidate->save();
+
+                    // Also sync the active contract's status_id
+                    CandidateContract::where('candidate_id', $candidateId)
+                        ->where('is_active', true)
+                        ->update(['status_id' => $nextStatusHistory->status_id]);
                 }
             }
 
