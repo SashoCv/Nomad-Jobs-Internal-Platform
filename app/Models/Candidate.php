@@ -72,6 +72,12 @@ class Candidate extends Model
                     ->where('is_active', true)
                     ->update(['status_id' => $candidate->status_id]);
             }
+
+            if ($candidate->isDirty('type_id')) {
+                CandidateContract::where('candidate_id', $candidate->id)
+                    ->where('is_active', true)
+                    ->update(['type_id' => $candidate->type_id]);
+            }
         });
     }
 

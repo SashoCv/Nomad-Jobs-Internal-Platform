@@ -103,7 +103,7 @@ class StatusForCandidateFromAgentController extends Controller
 
                 if (in_array($request->status_for_candidate_from_agent_id, [StatusForCandidateFromAgent::APPROVED, StatusForCandidateFromAgent::UNSUITABLE, StatusForCandidateFromAgent::RESERVE])) {
                     $updateTypeOfCandidate = Candidate::where('id', $id)->first();
-                    $updateTypeOfCandidate->type_id = 1;
+                    $updateTypeOfCandidate->type_id = Candidate::TYPE_CANDIDATE;
 
                     $education = Education::where('candidate_id', $id)->first();
 
@@ -121,6 +121,7 @@ class StatusForCandidateFromAgentController extends Controller
                         $updateTypeOfCandidate->education = null;
                     }
 
+                    // Candidate model auto-syncs type_id to active contract
                     $updateTypeOfCandidate->save();
                 }
 
