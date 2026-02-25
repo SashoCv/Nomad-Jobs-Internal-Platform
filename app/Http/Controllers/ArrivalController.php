@@ -63,7 +63,9 @@ class ArrivalController extends Controller
      */
     public function store(Request $request, FileOperationService $fileOperationService)
     {
-        if (!$this->isStaff()) {
+        $isAgent = $this->isAgent();
+
+        if (!$this->isStaff() && !$isAgent) {
             return response()->json(['error' => 'You are not authorized to create an arrival'], 403);
         }
 
@@ -72,18 +74,34 @@ class ArrivalController extends Controller
 
             $candidateId = $request->candidate_id;
 
+            // Agents can only create arrivals for their own candidates
+            if ($isAgent) {
+                $isOwnCandidate = \App\Models\AgentCandidate::where('user_id', Auth::id())
+                    ->where('candidate_id', $candidateId)
+                    ->exists();
+                if (!$isOwnCandidate) {
+                    return response()->json(['error' => 'You can only manage arrivals for your own candidates'], 403);
+                }
+            }
+
             $arrival = Arrival::firstOrNew(['candidate_id' => $candidateId]);
             $arrivalDate = $request->arrival_date;
 
-            $arrival->fill([
+            $fillData = [
                 'company_id'       => $request->company_id,
                 'arrival_date'     => $arrivalDate,
                 'arrival_time'     => $request->arrival_time,
-                'arrival_location' => $request->arrival_location,
                 'arrival_flight'   => $request->arrival_flight,
-                'where_to_stay'    => $request->where_to_stay,
                 'phone_number'     => $request->phone_number,
-            ]);
+            ];
+
+            // Agents cannot set where_to_stay and arrival_location
+            if (!$isAgent) {
+                $fillData['arrival_location'] = $request->arrival_location;
+                $fillData['where_to_stay'] = $request->where_to_stay;
+            }
+
+            $arrival->fill($fillData);
 
             // Ensure category exists first to get ID for file
             $category = Category::firstOrCreate(
@@ -211,7 +229,9 @@ class ArrivalController extends Controller
 
     public function update(Request $request, $id, FileOperationService $fileOperationService)
     {
-        if (!$this->isStaff()) {
+        $isAgent = $this->isAgent();
+
+        if (!$this->isStaff() && !$isAgent) {
             return response()->json(['error' => 'You are not authorized to update an arrival'], 403);
         }
 
@@ -220,6 +240,16 @@ class ArrivalController extends Controller
 
             $arrival = Arrival::findOrFail($id);
             $candidateId = $arrival->candidate_id;
+
+            // Agents can only update arrivals for their own candidates
+            if ($isAgent) {
+                $isOwnCandidate = \App\Models\AgentCandidate::where('user_id', Auth::id())
+                    ->where('candidate_id', $candidateId)
+                    ->exists();
+                if (!$isOwnCandidate) {
+                    return response()->json(['error' => 'You can only manage arrivals for your own candidates'], 403);
+                }
+            }
 
             $arrivalDate = $request->arrival_date;
 
@@ -239,7 +269,7 @@ class ArrivalController extends Controller
                 foreach ($request->file('ticket_files') as $file) {
                     $directory = 'candidate/' . $candidateId . '/documents/' . $category->id;
                     $filePath = $fileOperationService->uploadFile($file, $directory);
-                    
+
                     File::create([
                          'candidate_id' => $candidateId,
                          'arrival_id' => $arrival->id,
@@ -252,13 +282,13 @@ class ArrivalController extends Controller
                     ]);
                 }
             }
-            
+
             // Handle deletions
             if ($request->filled('delete_file_ids')) {
                 $filesToDelete = File::whereIn('id', $request->delete_file_ids)
                                      ->where('arrival_id', $arrival->id)
                                      ->get();
-                                     
+
                 foreach ($filesToDelete as $file) {
                     $fileOperationService->deleteFile($file->filePath);
                     $file->delete();
@@ -266,15 +296,21 @@ class ArrivalController extends Controller
             }
 
             // Update Arrival fields
-            $arrival->update([
+            $updateData = [
                 'company_id'       => $request->company_id,
                 'arrival_date'     => $arrivalDate,
                 'arrival_time'     => $request->arrival_time,
-                'arrival_location' => $request->arrival_location,
                 'arrival_flight'   => $request->arrival_flight,
-                'where_to_stay'    => $request->where_to_stay,
                 'phone_number'     => $request->phone_number,
-            ]);
+            ];
+
+            // Agents cannot update where_to_stay and arrival_location
+            if (!$isAgent) {
+                $updateData['arrival_location'] = $request->arrival_location;
+                $updateData['where_to_stay'] = $request->where_to_stay;
+            }
+
+            $arrival->update($updateData);
 
             // Status ID for "Arrival Expected"
             $statusId = Status::ARRIVAL_EXPECTED;

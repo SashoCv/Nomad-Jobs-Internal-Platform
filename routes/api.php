@@ -348,6 +348,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // AGENT INVOICES
     Route::get('agent-invoices', [\App\Http\Controllers\AgentInvoiceController::class, 'index']);
+    Route::get('agent-invoices/export', [\App\Http\Controllers\AgentInvoiceController::class, 'export']);
     Route::put('agent-invoices/{id}', [\App\Http\Controllers\AgentInvoiceController::class, 'update']);
     Route::delete('agent-invoices/{id}', [\App\Http\Controllers\AgentInvoiceController::class, 'destroy']);
 

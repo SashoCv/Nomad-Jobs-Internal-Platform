@@ -136,7 +136,7 @@ class MedicalInsuranceController extends Controller
         }
     }
 
-    public function show()
+    public function show(Request $request)
     {
         try {
             $currentDate = now();
@@ -151,13 +151,40 @@ class MedicalInsuranceController extends Controller
                 Status::REFUSED_BY_MIGRATION_OFFICE,
             ];
 
-            $medicalInsurances = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
+            $query = MedicalInsurance::select('id', 'name', 'description', 'dateFrom', 'dateTo', 'candidate_id')
                 ->with($this->withCandidateRelations())
-                ->whereHas('candidate', function ($query) use ($excludedStatuses) {
-                    $query->whereNotIn('status_id', $excludedStatuses);
+                ->whereHas('candidate', function ($q) use ($excludedStatuses) {
+                    $q->whereNotIn('status_id', $excludedStatuses);
                 })
-                ->where('dateTo', '<=', $thirtyDaysAgo)
-                ->orderBy('dateTo', 'desc')
+                ->where('dateTo', '<=', $thirtyDaysAgo);
+
+            if ($request->filled('candidateName')) {
+                $query->whereHas('candidate', function ($q) use ($request) {
+                    $q->where('fullNameCyrillic', 'LIKE', '%' . $request->candidateName . '%');
+                });
+            }
+
+            if ($request->filled('companyName')) {
+                $query->whereHas('candidate.company', function ($q) use ($request) {
+                    $q->where('nameOfCompany', 'LIKE', '%' . $request->companyName . '%');
+                });
+            }
+
+            if ($request->filled('contractType')) {
+                $query->whereHas('candidate', function ($q) use ($request) {
+                    $q->where('contract_type_id', $request->contractType);
+                });
+            }
+
+            if ($request->filled('dateFrom')) {
+                $query->whereDate('dateTo', '>=', $request->dateFrom);
+            }
+
+            if ($request->filled('dateTo')) {
+                $query->whereDate('dateTo', '<=', $request->input('dateTo'));
+            }
+
+            $medicalInsurances = $query->orderBy('dateTo', 'desc')
                 ->paginate();
 
             $medicalInsurances->getCollection()->transform(function ($insurance) {

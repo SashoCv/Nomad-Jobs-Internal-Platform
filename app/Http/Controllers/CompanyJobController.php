@@ -94,11 +94,17 @@ class CompanyJobController extends Controller
             ->orderBy('company_jobs.created_at', 'desc');
 
         if ($contractType) {
-            // Frontend sends slug (e.g., "erpr1", "90days"), lookup name for filtering
-            $contractTypeName = ContractType::where('slug', $contractType)->value('name');
+            // Frontend may send slug (e.g., "erpr1", "90days") or numeric ID
+            $contractTypeName = is_numeric($contractType)
+                ? ContractType::where('id', $contractType)->value('name')
+                : ContractType::where('slug', $contractType)->value('name');
             if ($contractTypeName) {
                 $query->where('company_jobs.contract_type', $contractTypeName);
             }
+        }
+
+        if ($employmentType = $request->employment_type) {
+            $query->where('company_jobs.employment_type', $employmentType);
         }
 
         if ($statusFilter) {

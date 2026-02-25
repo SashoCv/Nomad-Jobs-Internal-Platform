@@ -831,6 +831,12 @@ class SearchController extends Controller
                 $candidatesQuery->whereRaw("DATE(agent_candidates.created_at) = ?", [$searchCreatedAt]);
             }
 
+            if ($request->searchCompany) {
+                $candidatesQuery->whereHas('companyJob', function ($q) use ($request) {
+                    $q->where('company_id', '=', $request->searchCompany);
+                });
+            }
+
             if($searchCompanyJob){
                 $candidatesQuery->where('agent_candidates.company_job_id', '=', $searchCompanyJob);
             }

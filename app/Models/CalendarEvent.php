@@ -36,6 +36,7 @@ class CalendarEvent extends Model
     const TYPE_ERPR_LETTER = 'erpr_letter';
     const TYPE_ERPR_PHOTO = 'erpr_photo';
     const TYPE_HIRED = 'hired';
+    const TYPE_VISA_APPOINTMENT = 'visa_appointment';
 
     public function candidate()
     {

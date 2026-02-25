@@ -13,6 +13,10 @@ class CandidateObserver
      * Status IDs that should create calendar events
      */
     protected array $trackedStatuses = [
+        Status::VISA_APPOINTMENT => [
+            'type' => CalendarEvent::TYPE_VISA_APPOINTMENT,
+            'title' => 'Насрочено за виза',
+        ],
         Status::RECEIVED_VISA => [
             'type' => CalendarEvent::TYPE_RECEIVED_VISA,
             'title' => 'Получил виза',

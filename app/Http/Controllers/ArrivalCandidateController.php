@@ -17,6 +17,8 @@ use App\Repository\NotificationRepository;
 use App\Repository\UsersNotificationRepository;
 use App\Services\InvoiceService;
 use App\Services\AgentInvoiceService;
+use App\Traits\HasRolePermissions;
+use App\Models\Role;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +28,8 @@ use PhpOffice\PhpWord\Shared\ZipArchive;
 
 class ArrivalCandidateController extends Controller
 {
+    use HasRolePermissions;
+
     // Use Status::ARRIVAL_EXPECTED instead of local constant <!-- id: 18 -->
 
     /**
@@ -44,11 +48,20 @@ class ArrivalCandidateController extends Controller
             $allStatuses = \App\Models\Status::all()->keyBy('id');
             $statusesByOrder = $allStatuses->keyBy('order');
 
+            $isAgent = $this->isAgent();
+
             // Use relationships instead of joins to avoid duplicates
             $query = Candidate::with(['company', 'status'])
                 ->whereHas('status', function ($q) {
                     $q->where('showOnHomePage', 1);
                 });
+
+            // Agents can only see their own candidates
+            if ($isAgent) {
+                $query->whereHas('agentCandidates', function ($q) {
+                    $q->where('user_id', Auth::id());
+                });
+            }
 
             // Simple status filter!
             if ($statusId) {
@@ -75,13 +88,15 @@ class ArrivalCandidateController extends Controller
             // Load arrivals, visa, and status histories relationships for all candidates
             $query->with(['arrival.files', 'currentVisa', 'statusHistories']);
 
-            // Sorting - for arrival expected status, we'll sort using a subquery
+            // Sorting - supports sort_order param (asc/desc, default: desc)
+            $sortOrder = in_array($request->sort_order, ['asc', 'desc']) ? $request->sort_order : 'desc';
+
             if ($statusId == Status::ARRIVAL_EXPECTED) {
                 $query->leftJoin('arrivals', 'candidates.id', '=', 'arrivals.candidate_id')
                     ->select('candidates.*', 'arrivals.arrival_date')
                     ->distinct()
                     ->orderByRaw('arrivals.arrival_date IS NULL')
-                    ->orderBy('arrivals.arrival_date', 'desc');
+                    ->orderBy('arrivals.arrival_date', $sortOrder);
             } else {
                 $query->orderBy(
                     Statushistory::select('statusDate')
@@ -89,7 +104,7 @@ class ArrivalCandidateController extends Controller
                         ->where('status_id', $statusId ?: DB::raw('candidates.status_id'))
                         ->orderByDesc('id')
                         ->limit(1),
-                    'desc'
+                    $sortOrder
                 );
             }
 
@@ -103,7 +118,7 @@ class ArrivalCandidateController extends Controller
                 ->pluck('candidate_id')
                 ->keyBy(function ($id) { return $id; });
 
-            $arrivalCandidates->getCollection()->transform(function ($candidate) use ($allStatuses, $statusesByOrder, $candidatesWithFiles) {
+            $arrivalCandidates->getCollection()->transform(function ($candidate) use ($allStatuses, $statusesByOrder, $candidatesWithFiles, $isAgent) {
                 $currentStatusId = $candidate->status_id;
                 $currentStatus = $candidate->status;
                 $currentStatusOrder = $currentStatus ? $currentStatus->order : null;
@@ -150,8 +165,6 @@ class ArrivalCandidateController extends Controller
                         'arrival_date' => $arrival->arrival_date,
                         'arrival_time' => $arrival->arrival_time,
                         'arrival_flight' => $arrival->arrival_flight,
-                        'arrival_location' => $arrival->arrival_location,
-                        'where_to_stay' => $arrival->where_to_stay,
                         'phone_number' => $arrival->phone_number,
                         'ticket_files' => $arrival->files->map(function ($file) {
                             return [
@@ -161,6 +174,12 @@ class ArrivalCandidateController extends Controller
                             ];
                         })->values(),
                     ];
+
+                    // Agents cannot see where_to_stay and arrival_location
+                    if (!$isAgent) {
+                        $arrivalInfo['arrival_location'] = $arrival->arrival_location;
+                        $arrivalInfo['where_to_stay'] = $arrival->where_to_stay;
+                    }
                 }
 
                 // Get description from the latest status history for current status

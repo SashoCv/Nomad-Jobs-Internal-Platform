@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AgentInvoicesExport;
 use App\Models\AgentInvoice;
 use App\Models\Permission;
 use App\Models\Role;
@@ -9,6 +10,7 @@ use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AgentInvoiceController extends Controller
 {
@@ -143,6 +145,75 @@ class AgentInvoiceController extends Controller
         } catch (\Exception $e) {
             Log::error('Error updating agent invoice: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to update agent invoice', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Export agent invoices to Excel.
+     */
+    public function export(Request $request)
+    {
+        if (!$this->checkPermission(Permission::FINANCE_READ) && !$this->checkPermission(Permission::AGENT_INVOICES_READ)) {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+
+        try {
+            $user = Auth::user();
+            $query = AgentInvoice::with(['candidate', 'company', 'agent', 'agentServiceContract']);
+
+            if ($user->role_id === Role::AGENT) {
+                $query->where('agent_id', $user->id)
+                      ->whereIn('invoiceStatus', [AgentInvoice::INVOICE_STATUS_INVOICED, AgentInvoice::INVOICE_STATUS_PAID]);
+            }
+
+            if ($request->filled('candidateName')) {
+                $query->whereHas('candidate', function ($q) use ($request) {
+                    $q->where(function ($subQuery) use ($request) {
+                        $subQuery->where('fullName', 'like', '%' . $request->candidateName . '%')
+                                 ->orWhere('fullNameCyrillic', 'like', '%' . $request->candidateName . '%');
+                    });
+                });
+            }
+
+            if ($request->filled('companyName')) {
+                $query->whereHas('company', function ($q) use ($request) {
+                    $q->where('nameOfCompany', 'like', '%' . $request->companyName . '%');
+                });
+            }
+
+            if ($request->filled('agentName')) {
+                $query->whereHas('agent', function ($q) use ($request) {
+                    $q->where(function ($subQuery) use ($request) {
+                        $subQuery->where('firstName', 'like', '%' . $request->agentName . '%')
+                                 ->orWhere('lastName', 'like', '%' . $request->agentName . '%');
+                    });
+                });
+            }
+
+            if ($request->filled('invoiceStatus')) {
+                $query->where('invoiceStatus', $request->invoiceStatus);
+            }
+
+            if ($request->filled('dateFrom')) {
+                $query->where('statusDate', '>=', $request->dateFrom);
+            }
+
+            if ($request->filled('dateTo')) {
+                $query->where('statusDate', '<=', $request->dateTo);
+            }
+
+            if ($request->filled('agent_id')) {
+                $query->where('agent_id', $request->agent_id);
+            }
+
+            $invoices = $query->orderBy('statusDate', 'desc')->get();
+
+            $filename = 'agent_invoices_' . date('Y-m-d_H-i') . '.xlsx';
+
+            return Excel::download(new AgentInvoicesExport($invoices), $filename);
+        } catch (\Exception $e) {
+            Log::error('Error exporting agent invoices: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to export agent invoices'], 500);
         }
     }
 
