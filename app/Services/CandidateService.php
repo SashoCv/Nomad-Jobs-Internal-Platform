@@ -139,11 +139,11 @@ class CandidateService
             // Create default category
             $this->createDefaultCategory($candidate);
 
-            // Create agent_candidates record if agent_id and company_job_id are provided
-            if (! empty($data['agent_id']) && ! empty($data['company_job_id'])) {
+            // Create agent_candidates record if agent_id is provided
+            if (! empty($data['agent_id'])) {
                 AgentCandidate::create([
                     'user_id' => $data['agent_id'],
-                    'company_job_id' => $data['company_job_id'],
+                    'company_job_id' => ! empty($data['company_job_id']) ? $data['company_job_id'] : null,
                     'candidate_id' => $candidate->id,
                     'contract_id' => $contract->id,
                     'status_for_candidate_from_agent_id' => 3, // Approved status
@@ -151,7 +151,9 @@ class CandidateService
                 ]);
 
                 // Check if job posting should be marked as "filled"
-                $this->checkAndUpdateJobFilledStatus($data['company_job_id']);
+                if (! empty($data['company_job_id'])) {
+                    $this->checkAndUpdateJobFilledStatus($data['company_job_id']);
+                }
             }
 
             return [
@@ -218,24 +220,31 @@ class CandidateService
 
             $existingAgentCandidate = AgentCandidate::where('candidate_id', $candidate->id)->first();
 
-            if (! empty($data['agent_id']) && ! empty($data['company_job_id'])) {
+            if (! empty($data['agent_id'])) {
+                $companyJobId = ! empty($data['company_job_id']) ? $data['company_job_id'] : null;
+
                 if ($existingAgentCandidate) {
                     $existingAgentCandidate->update([
                         'user_id' => $data['agent_id'],
-                        'company_job_id' => $data['company_job_id'],
+                        'company_job_id' => $companyJobId,
                         'status_for_candidate_from_agent_id' => 3,
                     ]);
                 } else {
                     AgentCandidate::create([
                         'user_id' => $data['agent_id'],
-                        'company_job_id' => $data['company_job_id'],
+                        'company_job_id' => $companyJobId,
                         'candidate_id' => $candidate->id,
                         'status_for_candidate_from_agent_id' => 3,
                         'nomad_office_id' => Auth::user()->id ?? null,
                     ]);
                 }
 
-                $this->checkAndUpdateJobFilledStatus($data['company_job_id']);
+                // Ensure "files from agent" category exists
+                $this->ensureFilesFromAgentCategory($candidate);
+
+                if ($companyJobId) {
+                    $this->checkAndUpdateJobFilledStatus($companyJobId);
+                }
             } elseif ($existingAgentCandidate) {
                 $existingAgentCandidate->delete();
             }
@@ -614,7 +623,27 @@ class CandidateService
                 'isGenerated'   => $def->isGenerated,
             ]);
 
-            $cat->visibleToRoles()->sync([$def->roleId]);
+            $cat->visibleToRoles()->sync($def->roleIds());
+        }
+    }
+
+    protected function ensureFilesFromAgentCategory(Candidate $candidate): void
+    {
+        $exists = Category::where('candidate_id', $candidate->id)
+            ->where('nameOfCategory', 'files from agent')
+            ->exists();
+
+        if (! $exists) {
+            $def = \App\Enums\DefaultCandidateCategory::FILES_FROM_AGENT->definition();
+
+            $cat = Category::create([
+                'candidate_id' => $candidate->id,
+                'nameOfCategory' => $def->name,
+                'description' => $def->description,
+                'isGenerated' => $def->isGenerated,
+            ]);
+
+            $cat->visibleToRoles()->sync($def->roleIds());
         }
     }
 

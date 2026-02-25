@@ -71,29 +71,43 @@ class CandidateController extends Controller
         }
     }
 
-    public function getCandidatesWhoseContractsAreExpiring()
+    public function getCandidatesWhoseContractsAreExpiring(Request $request)
     {
         $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
 
-        // Exclude candidates with terminated/refused statuses
-        $excludedStatuses = [
-            Status::TERMINATED_CONTRACT,
-            Status::REFUSED_MIGRATION,
-            Status::REFUSED_CANDIDATE,
-            Status::REFUSED_EMPLOYER,
-            Status::REFUSED_BY_MIGRATION_OFFICE,
-        ];
-
-        $candidates = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'contractType', 'contract_type_id', 'company_id', 'status_id', 'position_id')
+        $query = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'contractType', 'contract_type_id', 'company_id', 'status_id', 'position_id')
             ->with([
                 'company:id,nameOfCompany,EIK',
-                'latestStatusHistory.status:id,nameOfStatus',
+                'status:id,nameOfStatus',
                 'position:id,jobPosition',
                 'contract_type:id,name,slug'
             ])
-            ->whereNotIn('status_id', $excludedStatuses)
-            ->whereDate('endContractDate', '<=', $fourMonthsBefore)
-            ->orderBy('endContractDate', 'desc')
+            ->where('status_id', Status::HIRED)
+            ->whereDate('endContractDate', '<=', $fourMonthsBefore);
+
+        if ($request->filled('candidateName')) {
+            $query->where('fullNameCyrillic', 'LIKE', '%' . $request->candidateName . '%');
+        }
+
+        if ($request->filled('companyName')) {
+            $query->whereHas('company', function ($q) use ($request) {
+                $q->where('nameOfCompany', 'LIKE', '%' . $request->companyName . '%');
+            });
+        }
+
+        if ($request->filled('contractType')) {
+            $query->where('contract_type_id', $request->contractType);
+        }
+
+        if ($request->filled('dateFrom')) {
+            $query->whereDate('endContractDate', '>=', $request->dateFrom);
+        }
+
+        if ($request->filled('dateTo')) {
+            $query->whereDate('endContractDate', '<=', $request->dateTo);
+        }
+
+        $candidates = $query->orderBy('endContractDate', 'desc')
             ->paginate();
 
         // Трансформирај ги податоците за да го задржиш истиот формат

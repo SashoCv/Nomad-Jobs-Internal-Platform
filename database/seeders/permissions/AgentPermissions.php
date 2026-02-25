@@ -33,7 +33,9 @@ class AgentPermissions
             Permission::VISA_READ,
             Permission::VISA_CREATE,
             Permission::VISA_UPDATE,
-            Permission::VISA_DELETE
+            Permission::VISA_DELETE,
+            Permission::HOME_READ,
+            Permission::HOME_ARRIVALS,
         ];
     }
 }

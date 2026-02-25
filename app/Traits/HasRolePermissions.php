@@ -415,6 +415,15 @@ trait HasRolePermissions
     }
 
     /**
+     * Check if user is an agent
+     */
+    protected function isAgent()
+    {
+        $user = Auth::user();
+        return $user && $user->hasRole(Role::AGENT);
+    }
+
+    /**
      * Check if user is admin/manager (roles 1-2) - for admin-only features
      */
     protected function isAdminOrManager()
