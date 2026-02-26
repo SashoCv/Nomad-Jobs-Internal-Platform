@@ -167,6 +167,10 @@ class FileController extends Controller
             }
         }
 
+        if ($error = $this->validateCategoryOwnership($request->category_id, $request->candidate_id)) {
+            return $error;
+        }
+
         $file->fileName = $request->fileName;
         $file->candidate_id = $request->candidate_id;
         $file->contract_id = $request->contract_id;
@@ -310,7 +314,11 @@ class FileController extends Controller
         $file = File::findOrFail($id);
         $newCategoryId = $request->input('category_id');
         $originalPath = $file->filePath;
-        
+
+        if ($error = $this->validateCategoryOwnership($newCategoryId, $file->candidate_id)) {
+            return $error;
+        }
+
         $newPath = $this->fileService->copyFile($originalPath, 'files');
 
         if ($newPath) {
@@ -328,6 +336,10 @@ class FileController extends Controller
         $file = File::findOrFail($id);
 
         if ($request->has("category_id")) {
+            if ($error = $this->validateCategoryOwnership($request->category_id, $file->candidate_id)) {
+                return $error;
+            }
+
             $file->category_id = $request->category_id;
         }
 
@@ -372,6 +384,26 @@ class FileController extends Controller
         }
 
         return response()->json(['error' => 'Insufficient permissions'], 403);
+    }
+
+    private function validateCategoryOwnership($categoryId, $candidateId)
+    {
+        if (!$categoryId || !$candidateId) {
+            return null;
+        }
+
+        $exists = Category::where('id', $categoryId)
+            ->where('candidate_id', $candidateId)
+            ->exists();
+
+        if (!$exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category does not belong to this candidate',
+            ], 422);
+        }
+
+        return null;
     }
 
     /**
