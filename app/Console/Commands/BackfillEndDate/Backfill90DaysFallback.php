@@ -3,64 +3,75 @@
 namespace App\Console\Commands\BackfillEndDate;
 
 use App\Models\CandidateContract;
-use App\Models\Candidate;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 /**
- * Case 3: 90-day contracts with text/junk contract_period (non-NULL).
- * Values like "90 дни", malformed date ranges, or garbage data.
- * Only processes contracts that HAVE contract_period set — skips new candidates with NULL (no contract yet).
- * Fallback: candidate.date + 90 days (or start_contract_date + 90 if available).
- * ~123 records.
+ * Case 3: 90-day contracts with malformed date ranges in contract_period.
+ * Handles formats missed by command #2: "15.12.2023-14.03.2024", "10.12.2023 09.03.2024", etc.
+ * Only extracts dates from contract_period values that contain actual date ranges.
+ * Skips text labels ("90 дни") and junk values — we can't reliably calculate dates for those.
+ * ~21 records.
  */
 class Backfill90DaysFallback extends Command
 {
     protected $signature = 'backfill:end-date-90days-fallback {--dry-run : Show what would be updated without making changes}';
-    protected $description = 'Backfill end_contract_date for remaining 90-day contracts using candidate date + 90 days';
+    protected $description = 'Backfill start/end dates for 90-day contracts with malformed date ranges in contract_period';
 
     public function handle()
     {
         $dryRun = $this->option('dry-run');
 
-        // Only process contracts that have contract_period set (old data with text/junk values).
-        // Contracts with NULL contract_period are new candidates without a contract yet — leave them alone.
         $contracts = CandidateContract::where('contract_type', '90days')
             ->whereNull('end_contract_date')
             ->whereNotNull('contract_period')
             ->get();
 
-        $this->info(($dryRun ? '[DRY RUN] ' : '') . "Found {$contracts->count()} contracts to update.");
+        $this->info(($dryRun ? '[DRY RUN] ' : '') . "Found {$contracts->count()} contracts to check.");
 
         $updated = 0;
         $skipped = 0;
 
         foreach ($contracts as $contract) {
-            // Priority: start_contract_date > candidate.date
-            $baseDate = null;
+            $period = $contract->contract_period;
 
-            if ($contract->start_contract_date) {
-                $baseDate = Carbon::parse($contract->start_contract_date);
-            } else {
-                $candidate = Candidate::find($contract->candidate_id);
-                if ($candidate && $candidate->date) {
-                    $baseDate = Carbon::parse($candidate->date);
+            // Try to parse malformed date ranges:
+            // "15.12.2023-14.03.2024" (no spaces around dash)
+            // "10.12.2023 09.03.2024" (space separator)
+            // "27,04,204-26,07,2024" (commas instead of dots)
+            $startDate = null;
+            $endDate = null;
+
+            // Normalize commas to dots
+            $normalized = str_replace(',', '.', $period);
+
+            // Match two dates separated by dash or space: dd.mm.yyyy[-/ ]dd.mm.yyyy
+            if (preg_match('/(\d{2}\.\d{2}\.\d{3,4})\s*[-\s]\s*(\d{2}\.\d{2}\.\d{4})/', $normalized, $matches)) {
+                try {
+                    $startDate = Carbon::createFromFormat('d.m.Y', $matches[1]);
+                    $endDate = Carbon::createFromFormat('d.m.Y', $matches[2]);
+                } catch (\Exception $e) {
+                    // Could not parse — skip
                 }
             }
 
-            if (!$baseDate) {
-                $this->warn("  Skipping contract #{$contract->id} (candidate #{$contract->candidate_id}) — no date to calculate from");
+            if (!$endDate) {
+                $this->line("  Skipping contract #{$contract->id} (candidate #{$contract->candidate_id}) — not a date range: \"{$period}\"");
                 $skipped++;
                 continue;
             }
 
-            $endDate = $baseDate->copy()->addDays(90)->format('Y-m-d');
-            $source = $contract->start_contract_date ? 'start_contract_date' : 'candidate.date';
+            $startFormatted = $startDate->format('Y-m-d');
+            $endFormatted = $endDate->format('Y-m-d');
 
             if ($dryRun) {
-                $this->line("  Contract #{$contract->id} (candidate #{$contract->candidate_id}): {$source} ({$baseDate->format('Y-m-d')}) + 90 days = {$endDate} | contract_period: " . ($contract->contract_period ?: 'NULL'));
+                $startStatus = $contract->start_contract_date ? 'already set' : $startFormatted;
+                $this->line("  Contract #{$contract->id} (candidate #{$contract->candidate_id}): start={$startStatus}, end={$endFormatted} | parsed from: \"{$period}\"");
             } else {
-                $contract->end_contract_date = $endDate;
+                if (!$contract->start_contract_date) {
+                    $contract->start_contract_date = $startFormatted;
+                }
+                $contract->end_contract_date = $endFormatted;
                 $contract->save();
             }
 
