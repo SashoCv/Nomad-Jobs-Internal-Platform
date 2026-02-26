@@ -43,10 +43,6 @@ class InvoiceService
             return; // No active contract for the company
         }
 
-        // Define India and Nepal country IDs
-        $indiaNepalCountryIds = [73, 117]; // India=73, Nepal=117
-        $isFromIndiaNepol = in_array($candidateCountryId, $indiaNepalCountryIds);
-
         // Get all pricing for the status
         $allContractPricing = ContractPricing::where('company_service_contract_id', $company_service_contract_id)
             ->where('status_id', $statusId)
@@ -56,17 +52,18 @@ class InvoiceService
             return; // Nema cena za daden status
         }
 
-        // Filter pricing based on country_scope
-        $contractPricing = $allContractPricing->filter(function($item) use ($isFromIndiaNepol) {
-            switch ($item->country_scope) {
-                case 'india_nepal_only':
-                    return $isFromIndiaNepol;
-                case 'except_india_nepal':
-                    return !$isFromIndiaNepol;
-                case 'all_countries':
-                default:
-                    return true;
+        // Filter pricing based on country_scope_type + country_scope_ids
+        $contractPricing = $allContractPricing->filter(function($item) use ($candidateCountryId) {
+            $scopeType = $item->country_scope_type ?? 'all';
+            $scopeIds = $item->country_scope_ids ?? [];
+
+            if ($scopeType === 'all' || empty($scopeIds)) {
+                return true;
             }
+
+            $isInScope = in_array($candidateCountryId, $scopeIds);
+
+            return $scopeType === 'include' ? $isInScope : !$isInScope;
         });
 
         if ($contractPricing->isEmpty()) {
