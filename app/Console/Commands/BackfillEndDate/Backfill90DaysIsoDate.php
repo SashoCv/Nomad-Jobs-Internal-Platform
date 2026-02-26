@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands\BackfillEndDate;
 
-use App\Models\Candidate;
 use App\Models\CandidateContract;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -10,7 +9,7 @@ use Illuminate\Console\Command;
 /**
  * Case 1: 90-day contracts where contract_period is an ISO date (YYYY-MM-DD).
  * contract_period = startContractDate + 90 days, so it IS the end date.
- * Also backfills start_contract_date from candidates.startContractDate or reverse-calculated (end - 90 days).
+ * Also backfills start_contract_date via reverse-calculation (end - 90 days).
  * ~1,635 records.
  */
 class Backfill90DaysIsoDate extends Command
@@ -45,24 +44,13 @@ class Backfill90DaysIsoDate extends Command
                 continue;
             }
 
-            // Backfill start_contract_date if missing
+            // Backfill start_contract_date if missing (always reverse-calculate: end - 90 days)
+            // Note: candidates.startContractDate is unreliable — it reflects the latest contract, not this one
             $startInfo = '';
             if (!$contract->start_contract_date) {
-                $startDate = null;
-                $source = '';
+                $startDate = Carbon::parse($endDate)->subDays(90)->format('Y-m-d');
 
-                // Priority 1: Copy from candidates.startContractDate
-                $candidate = Candidate::find($contract->candidate_id);
-                if ($candidate && $candidate->startContractDate) {
-                    $startDate = Carbon::parse($candidate->startContractDate)->format('Y-m-d');
-                    $source = 'candidates.startContractDate';
-                } else {
-                    // Priority 2: Reverse-calculate end_date - 90 days
-                    $startDate = Carbon::parse($endDate)->subDays(90)->format('Y-m-d');
-                    $source = 'end_date - 90 days';
-                }
-
-                $startInfo = ", start_contract_date = {$startDate} ({$source})";
+                $startInfo = ", start_contract_date = {$startDate} (end_date - 90 days)";
 
                 if (!$dryRun) {
                     $contract->start_contract_date = $startDate;
