@@ -55,15 +55,9 @@ class CandidateService
                 $seasonal = $candidate->calculateSeason($date);
             }
 
-            $contractPeriodDate = null;
-            if (isset($data['contractPeriod'])) {
-                $contractPeriodDate = $candidate->calculateContractEndDate($date, $data['contractPeriod']);
-            }
-
             // Set legacy columns (DUAL WRITE for backward compatibility)
             $candidate->quartal = $quartal;
             $candidate->seasonal = $seasonal;
-            $candidate->contractPeriodDate = $contractPeriodDate;
 
             $candidate->save();
 
@@ -82,7 +76,6 @@ class CandidateService
                 'contract_extension_period' => $data['contractExtensionPeriod'] ?? null,
                 'start_contract_date' => $data['startContractDate'] ?? null,
                 'end_contract_date' => $data['endContractDate'] ?? null,
-                'contract_period_date' => $contractPeriodDate,
                 'salary' => $data['salary'] ?? null,
                 'working_time' => $data['workingTime'] ?? null,
                 'working_days' => $data['workingDays'] ?? null,
@@ -193,13 +186,6 @@ class CandidateService
                 $candidate->seasonal = null;
             }
 
-            if (isset($data['contractPeriod'])) {
-                $candidate->contractPeriodDate = $candidate->calculateContractEndDate(
-                    Carbon::parse($data['date']),
-                    $data['contractPeriod']
-                );
-            }
-
             $candidate->save();
 
             if (! empty($candidate->endContractDate)) {
@@ -269,11 +255,6 @@ class CandidateService
                 $seasonal = $candidate->calculateSeason($date);
             }
 
-            $contractPeriodDate = null;
-            if (isset($data['contractPeriod'])) {
-                $contractPeriodDate = $candidate->calculateContractEndDate($date, $data['contractPeriod']);
-            }
-
             // Note: contract_type mutator automatically sets contract_type_id
             $contract = CandidateContract::create([
                 'candidate_id' => $candidate->id,
@@ -288,7 +269,6 @@ class CandidateService
                 'contract_extension_period' => $data['contractExtensionPeriod'] ?? null,
                 'start_contract_date' => $data['startContractDate'] ?? null,
                 'end_contract_date' => $data['endContractDate'] ?? null,
-                'contract_period_date' => $contractPeriodDate,
                 'salary' => $data['salary'] ?? null,
                 'working_time' => $data['workingTime'] ?? null,
                 'working_days' => $data['workingDays'] ?? null,
@@ -391,7 +371,6 @@ class CandidateService
             'contractExtensionPeriod' => $contract->contract_extension_period,
             'startContractDate' => $contract->start_contract_date,
             'endContractDate' => $contract->end_contract_date,
-            'contractPeriodDate' => $contract->contract_period_date,
             'salary' => $contract->salary,
             'workingTime' => $contract->working_time,
             'workingDays' => $contract->working_days,
