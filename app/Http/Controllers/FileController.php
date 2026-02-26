@@ -393,7 +393,10 @@ class FileController extends Controller
         }
 
         $exists = Category::where('id', $categoryId)
-            ->where('candidate_id', $candidateId)
+            ->where(function ($query) use ($candidateId) {
+                $query->where('candidate_id', $candidateId)
+                      ->orWhereNull('candidate_id');
+            })
             ->exists();
 
         if (!$exists) {
