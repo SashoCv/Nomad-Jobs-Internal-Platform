@@ -8,10 +8,11 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 /**
- * Case 3: 90-day contracts with text/junk/empty contract_period.
- * Values like "90 дни", "0", NULL, or garbage data.
+ * Case 3: 90-day contracts with text/junk contract_period (non-NULL).
+ * Values like "90 дни", malformed date ranges, or garbage data.
+ * Only processes contracts that HAVE contract_period set — skips new candidates with NULL (no contract yet).
  * Fallback: candidate.date + 90 days (or start_contract_date + 90 if available).
- * ~330 records.
+ * ~123 records.
  */
 class Backfill90DaysFallback extends Command
 {
@@ -22,10 +23,11 @@ class Backfill90DaysFallback extends Command
     {
         $dryRun = $this->option('dry-run');
 
-        // Get all 90-day contracts that still don't have end_contract_date
-        // (should be the ones not handled by iso or range commands)
+        // Only process contracts that have contract_period set (old data with text/junk values).
+        // Contracts with NULL contract_period are new candidates without a contract yet — leave them alone.
         $contracts = CandidateContract::where('contract_type', '90days')
             ->whereNull('end_contract_date')
+            ->whereNotNull('contract_period')
             ->get();
 
         $this->info(($dryRun ? '[DRY RUN] ' : '') . "Found {$contracts->count()} contracts to update.");
