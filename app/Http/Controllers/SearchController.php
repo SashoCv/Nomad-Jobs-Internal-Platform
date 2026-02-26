@@ -845,6 +845,12 @@ class SearchController extends Controller
                 $candidatesQuery->where('status_for_candidate_from_agent_id', '=', $searchAgentStatus);
             }
 
+            if ($request->employment_type) {
+                $candidatesQuery->whereHas('companyJob', function ($q) use ($request) {
+                    $q->where('employment_type', $request->employment_type);
+                });
+            }
+
             if($searchNationality){
                 $candidatesQuery->whereHas('candidate', function ($subquery) use ($searchNationality) {
                     $subquery->where('nationality', 'LIKE', '%' . $searchNationality . '%');
