@@ -20,7 +20,12 @@ class ContractPricing extends Model
         'price_bgn',
         'status_id',
         'description',
-        'country_scope',
+        'country_scope_type',
+        'country_scope_ids',
+    ];
+
+    protected $casts = [
+        'country_scope_ids' => 'array',
     ];
 
     public function companyServiceContract(): BelongsTo
@@ -45,23 +50,19 @@ class ContractPricing extends Model
      */
     public function getCountryScopeDisplayAttribute(): string
     {
-        return match($this->country_scope) {
-            'all_countries' => 'За всички държави',
-            'india_nepal_only' => 'Само за Индия и Непал',
-            'except_india_nepal' => 'За всички освен Индия и Непал',
+        $type = $this->country_scope_type ?? 'all';
+        $ids = $this->country_scope_ids ?? [];
+
+        if ($type === 'all' || empty($ids)) {
+            return 'За всички държави';
+        }
+
+        $countryNames = \App\Models\Country::whereIn('id', $ids)->pluck('name')->implode(', ');
+
+        return match($type) {
+            'include' => "Само: {$countryNames}",
+            'exclude' => "Освен: {$countryNames}",
             default => 'За всички държави',
         };
-    }
-
-    /**
-     * Scope a query to only include pricings for specific countries
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param string $scope
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeForCountryScope($query, string $scope)
-    {
-        return $query->where('country_scope', $scope);
     }
 }

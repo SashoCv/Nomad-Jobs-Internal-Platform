@@ -1349,5 +1349,25 @@ class CandidateController extends Controller
         }
     }
 
+    /**
+     * Update document tracking fields for a candidate.
+     */
+    public function updateDocumentTracking(Request $request, $id): JsonResponse
+    {
+        try {
+            $candidate = Candidate::findOrFail($id);
 
+            $candidate->update($request->only([
+                'pcc_received',
+                'diploma_received',
+                'poa_received',
+                'medical_form_received',
+            ]));
+
+            return $this->successResponse($candidate, 'Document tracking updated successfully');
+        } catch (\Exception $e) {
+            Log::error('Error updating document tracking: ' . $e->getMessage());
+            return $this->errorResponse('Failed to update document tracking');
+        }
+    }
 }

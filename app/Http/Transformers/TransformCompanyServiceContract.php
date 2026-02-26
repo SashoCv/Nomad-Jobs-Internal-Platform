@@ -40,7 +40,8 @@ class TransformCompanyServiceContract
                             'nameOfStatus' => $pricing->status ? $pricing->status->nameOfStatus : null,
                         ],
                         'description' => $pricing->description,
-                        'country_scope' => $pricing->country_scope ?? 'all_countries',
+                        'country_scope_type' => $pricing->country_scope_type ?? 'all',
+                        'country_scope_ids' => $pricing->country_scope_ids ?? [],
                     ];
                 })->toArray(),
                 'companyContractFiles' => $contract->company ? $this->checkContractFiles($contract->company->id) : false,
