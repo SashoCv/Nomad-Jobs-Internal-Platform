@@ -61,6 +61,15 @@ class Backfill90DaysFallback extends Command
                 continue;
             }
 
+            // Sanity check — both dates should have a reasonable year
+            $startYear = (int) $startDate->format('Y');
+            $endYear = (int) $endDate->format('Y');
+            if ($startYear < 2020 || $startYear > 2040 || $endYear < 2020 || $endYear > 2040) {
+                $this->warn("  Skipping contract #{$contract->id} (candidate #{$contract->candidate_id}) — suspicious year in parsed dates: \"{$period}\"");
+                $skipped++;
+                continue;
+            }
+
             $startFormatted = $startDate->format('Y-m-d');
             $endFormatted = $endDate->format('Y-m-d');
 
