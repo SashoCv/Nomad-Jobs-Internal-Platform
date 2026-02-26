@@ -36,7 +36,9 @@ class Candidate extends Model
         'has_driving_license', 'driving_license_category', 'driving_license_expiry', 'driving_license_country',
         'english_level', 'russian_level', 'other_language', 'other_language_level',
         'children_info',
-        'is_qualified'
+        'is_qualified',
+        // Document tracking
+        'pcc_received', 'diploma_received', 'poa_received', 'medical_form_received'
     ];
 
     protected $appends = ['workAddressCity'];
@@ -60,6 +62,10 @@ class Candidate extends Model
         'date' => 'date:Y-m-d',
         'has_driving_license' => 'boolean',
         'is_qualified' => 'boolean',
+        'pcc_received' => 'boolean',
+        'diploma_received' => 'boolean',
+        'poa_received' => 'boolean',
+        'medical_form_received' => 'boolean',
     ];
 
     protected static function boot()

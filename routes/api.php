@@ -157,6 +157,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('personSave', [CandidateController::class, 'store']);
     Route::get('person/{id}', [CandidateController::class, 'show']);
     Route::post('personUpdate/{id}', [CandidateController::class, 'update']);
+    Route::put('candidates/{id}/document-tracking', [CandidateController::class, 'updateDocumentTracking']);
     Route::delete('personDelete/{id}', [CandidateController::class, 'destroy']);
     Route::post('favoriteCandidate', [FavoriteController::class, 'store']);
     Route::get('favoriteCandidates/{id}', [FavoriteController::class, 'index']);
