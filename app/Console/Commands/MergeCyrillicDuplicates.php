@@ -485,7 +485,6 @@ class MergeCyrillicDuplicates extends Command
                 'contractExtensionPeriod' => $activeContract->contract_extension_period,
                 'startContractDate' => $activeContract->start_contract_date,
                 'endContractDate' => $activeContract->end_contract_date,
-                'contractPeriodDate' => $activeContract->contract_period_date,
                 'salary' => $activeContract->salary,
                 'workingTime' => $activeContract->working_time,
                 'workingDays' => $activeContract->working_days,

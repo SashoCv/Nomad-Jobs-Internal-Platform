@@ -74,7 +74,6 @@ class SyncContractsData extends Command
                         'contract_extension_period' => $candidate->contractExtensionPeriod,
                         'start_contract_date' => $candidate->startContractDate,
                         'end_contract_date' => $candidate->endContractDate,
-                        'contract_period_date' => $candidate->contractPeriodDate,
                         'salary' => $candidate->salary,
                         'working_time' => $candidate->workingTime,
                         'working_days' => $candidate->workingDays,

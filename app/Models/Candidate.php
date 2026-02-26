@@ -27,7 +27,7 @@ class Candidate extends Model
         'passportIssuedBy', 'passportIssuedOn', 'addressOfWork', 'nameOfFacility',
         'education', 'specialty', 'qualification', 'contractExtensionPeriod', 'salary',
         'workingTime', 'workingDays', 'martialStatus', 'contractPeriod', 'contractType',
-        'dossierNumber', 'notes', 'addedBy', 'quartal', 'seasonal', 'contractPeriodDate',
+        'dossierNumber', 'notes', 'addedBy', 'quartal', 'seasonal',
         'contractPeriodNumber', 'startContractDate', 'endContractDate', 'passportPath',
         'passportName', 'personPicturePath', 'personPictureName', 'company_adresses_id',
         'deleted_by',

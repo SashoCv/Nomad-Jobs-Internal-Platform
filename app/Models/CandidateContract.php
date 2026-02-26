@@ -31,7 +31,6 @@ class CandidateContract extends Model
         'contract_extension_period',
         'start_contract_date',
         'end_contract_date',
-        'contract_period_date',
         'salary',
         'working_time',
         'working_days',
@@ -55,7 +54,6 @@ class CandidateContract extends Model
     protected $casts = [
         'start_contract_date' => 'date',
         'end_contract_date' => 'date',
-        'contract_period_date' => 'date',
         'date' => 'date',
         'salary' => 'decimal:2',
         'is_active' => 'boolean',
