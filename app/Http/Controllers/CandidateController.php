@@ -75,7 +75,7 @@ class CandidateController extends Controller
     {
         $fourMonthsBefore = Carbon::now()->addMonths(4)->toDateString();
 
-        $query = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate as contractPeriodDate', 'contractType', 'contract_type_id', 'company_id', 'status_id', 'position_id')
+        $query = Candidate::select('id', 'fullNameCyrillic as fullName', 'date', 'endContractDate', 'contractType', 'contract_type_id', 'company_id', 'status_id', 'position_id')
             ->with([
                 'company:id,nameOfCompany,EIK',
                 'status:id,nameOfStatus',
@@ -120,7 +120,6 @@ class CandidateController extends Controller
 
             // Format dates as ISO strings for consistent frontend handling
             $candidate->date = $candidate->date ? Carbon::parse($candidate->date)->toISOString() : null;
-            $candidate->contractPeriodDate = $candidate->contractPeriodDate ? Carbon::parse($candidate->contractPeriodDate)->toISOString() : null;
 
             return $candidate;
         });

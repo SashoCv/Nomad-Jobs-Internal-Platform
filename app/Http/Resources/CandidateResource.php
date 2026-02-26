@@ -54,7 +54,6 @@ class CandidateResource extends JsonResource
             'startContractDate' => $this->startContractDate,
             'endContractDate' => $this->endContractDate,
             'contractStatus' => $this->contract_status,
-            'contractPeriodDate' => $this->contractPeriodDate,
             'contractPeriodNumber' => $this->contractPeriodNumber,
             'date' => $this->date,
             'dossierNumber' => $this->dossierNumber,

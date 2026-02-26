@@ -10,11 +10,64 @@ use Illuminate\Http\Request;
 
 class StatisticController extends Controller
 {
+    private function applyCandidateFilters($query, $companyId, $cityId, $agentId, $country, $contractType)
+    {
+        if ($companyId) {
+            $query->where('company_id', $companyId);
+        }
+        if ($cityId) {
+            $query->whereHas('companyAddress', function ($q) use ($cityId) {
+                $q->where('city_id', $cityId);
+            });
+        }
+        if ($agentId) {
+            $query->whereHas('agentCandidates', function ($q) use ($agentId) {
+                $q->where('user_id', $agentId);
+            });
+        }
+        if ($country) {
+            $query->where('country_id', $country);
+        }
+        if ($contractType) {
+            $map = [
+                'ЕРПР 1' => 'ЕРПР 1', 'ЕРПР 2' => 'ЕРПР 2', 'ЕРПР 3' => 'ЕРПР 3',
+                '90 дни' => '90 дни', '9 месеца' => '9 месеца',
+            ];
+            $query->where('contractType', $map[$contractType] ?? $contractType);
+        }
+    }
+
+    private function formatMonthCounts($collection, $groupByCallback, $monthNames, $dateFrom, $dateTo)
+    {
+        // Group the actual data
+        $grouped = $collection->groupBy($groupByCallback)
+            ->map(function ($group) {
+                return $group->count();
+            });
+
+        // Generate all months in the date range so empty months appear as 0
+        $start = \Carbon\Carbon::parse($dateFrom)->startOfMonth();
+        $end = \Carbon\Carbon::parse($dateTo)->endOfMonth();
+        $result = [];
+
+        while ($start->lte($end)) {
+            $key = $start->format('Y-m');
+            $monthName = $monthNames[$start->month] . ' ' . $start->year;
+            $result[] = [
+                'label' => $monthName,
+                'value' => $grouped->get($key, 0),
+            ];
+            $start->addMonth();
+        }
+
+        return $result;
+    }
+
     public function statistics(Request $request)
     {
         // Filters: default to current year if not provided
         $dateFrom = $request->dateFrom ?? now()->startOfYear()->toDateString();
-        $dateTo = $request->dateTo ?? now()->endOfYear()->toDateString();
+        $dateTo = $request->dateTo ?? now()->toDateString();
         $companyId = $request->companyId;
         $agentId = $request->agentId;
         $country = $request->country;
@@ -28,47 +81,20 @@ class StatisticController extends Controller
             ->whereHas('latestStatusHistory.status')
             ->whereBetween('created_at', [$dateFrom, $dateTo]);
 
-        // Also Here i need how many contracts are signed with copmanies (company_service_contracts)    
-
-        // Apply filters
-        if ($companyId) {
-            $query->where('company_id', $companyId);
-        }
-
-        if ($cityId) {
-            $query->whereHas('companyAddress', function ($query) use ($cityId) {
-                    $query->where('city_id', $cityId);
-                });
-        }
-
-        if ($agentId) {
-            $query->whereHas('agentCandidates', function ($q) use ($agentId) {
-                $q->where('user_id', $agentId);
-            });
-        }
-
-        if ($country) {
-            // Use country_id for filtering
-            $query->where('country_id', $country);
-        }
-
-        if ($contractType) {
-            $map = [
-                'ЕРПР 1' => 'ЕРПР 1',
-                'ЕРПР 2' => 'ЕРПР 2',
-                'ЕРПР 3' => 'ЕРПР 3',
-                '90 дни' => '90 дни',
-                '9 месеца' => '9 месеца',
-            ];
-
-            $contractTypeLatin = $map[$contractType] ?? $contractType;
-            $query->where('contractType', $contractTypeLatin);
-        }
+        // Apply candidate-level filters
+        $this->applyCandidateFilters($query, $companyId, $cityId, $agentId, $country, $contractType);
 
         if ($status) {
-            $query->whereHas('latestStatusHistory.status', function ($q) use ($status) {
-                $q->where('nameOfStatus', $status);
-            });
+            $statuses = array_filter(array_map('trim', explode(',', $status)));
+            if (count($statuses) === 1) {
+                $query->whereHas('latestStatusHistory.status', function ($q) use ($statuses) {
+                    $q->where('nameOfStatus', $statuses[0]);
+                });
+            } else {
+                $query->whereHas('latestStatusHistory.status', function ($q) use ($statuses) {
+                    $q->whereIn('nameOfStatus', $statuses);
+                });
+            }
         }
 
         $candidates = $query->get();
@@ -141,24 +167,43 @@ class StatisticController extends Controller
             9 => 'Септември', 10 => 'Октомври', 11 => 'Ноември', 12 => 'Декември'
         ];
 
-        $monthCounts = $candidates->groupBy(function($c) {
-            return $c->created_at->format('Y-m');
-        })
-        ->map(function ($group, $key) use ($monthNames) {
-            $date = \Carbon\Carbon::createFromFormat('Y-m', $key);
-            $monthName = $monthNames[$date->month] . ' ' . $date->year;
-            return [
-                'label' => $monthName,
-                'value' => $group->count(),
-                'sortKey' => $key
-            ];
-        })
-        ->sortBy('sortKey')
-        ->map(function ($item) {
-            return ['label' => $item['label'], 'value' => $item['value']];
-        })
-        ->values()
-        ->toArray();
+        if ($status) {
+            // When status filter is active, group by statusDate from status_histories
+            // This answers: "How many candidates RECEIVED this status in each month?"
+            // Query status_histories independently so date range applies to statusDate, not created_at
+            $statuses = array_filter(array_map('trim', explode(',', $status)));
+
+            $statusHistoryQuery = \App\Models\Statushistory::query()
+                ->whereHas('status', function ($q) use ($statuses) {
+                    $q->whereIn('nameOfStatus', $statuses);
+                })
+                ->whereNotNull('statusDate')
+                ->whereBetween('statusDate', [$dateFrom, $dateTo]);
+
+            // Apply the same candidate-level filters via the candidate relationship
+            $statusHistoryQuery->whereHas('candidate', function ($q) use ($companyId, $cityId, $agentId, $country, $contractType) {
+                $this->applyCandidateFilters($q, $companyId, $cityId, $agentId, $country, $contractType);
+            });
+
+            $statusHistories = $statusHistoryQuery->get();
+
+            $monthCounts = $this->formatMonthCounts(
+                $statusHistories,
+                fn($sh) => \Carbon\Carbon::parse($sh->statusDate)->format('Y-m'),
+                $monthNames,
+                $dateFrom,
+                $dateTo
+            );
+        } else {
+            // No status filter: group by candidate creation date (default behavior)
+            $monthCounts = $this->formatMonthCounts(
+                $candidates,
+                fn($c) => $c->created_at->format('Y-m'),
+                $monthNames,
+                $dateFrom,
+                $dateTo
+            );
+        }
 
         // Return structured data
         return response()->json([

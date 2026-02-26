@@ -27,7 +27,7 @@ class Candidate extends Model
         'passportIssuedBy', 'passportIssuedOn', 'addressOfWork', 'nameOfFacility',
         'education', 'specialty', 'qualification', 'contractExtensionPeriod', 'salary',
         'workingTime', 'workingDays', 'martialStatus', 'contractPeriod', 'contractType',
-        'dossierNumber', 'notes', 'addedBy', 'quartal', 'seasonal', 'contractPeriodDate',
+        'dossierNumber', 'notes', 'addedBy', 'quartal', 'seasonal',
         'contractPeriodNumber', 'startContractDate', 'endContractDate', 'passportPath',
         'passportName', 'personPicturePath', 'personPictureName', 'company_adresses_id',
         'deleted_by',
@@ -358,13 +358,6 @@ class Candidate extends Model
         }
     }
 
-    public function setContractPeriodDateAttribute(): void
-    {
-        if ($this->date && $this->contractPeriod) {
-            $this->attributes['contractPeriodDate'] = $this->calculateContractEndDate($this->date, $this->contractPeriod);
-        }
-    }
-
     // Helper Methods
     public function isCandidate(): bool
     {
@@ -422,15 +415,6 @@ class Candidate extends Model
 
         Log::info('Season: ' . $season . ', Year: ' . $seasonYear);
         return $season . '/' . $seasonYear;
-    }
-
-    public function calculateContractEndDate(Carbon $startDate, string $contractPeriod): ?Carbon
-    {
-        preg_match('/\d+/', $contractPeriod, $matches);
-        $period = isset($matches[0]) ? (int) $matches[0] : null;
-
-        Log::info('Contract period: ' . $contractPeriod . ', Period: ' . $period);
-        return $period ? $startDate->copy()->addYears($period) : null;
     }
 
     // Attribute Accessors

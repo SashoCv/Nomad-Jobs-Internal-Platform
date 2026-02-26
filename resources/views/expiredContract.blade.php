@@ -70,11 +70,11 @@
         </tr>
         </thead>
         <tbody>
-        @foreach($data as $candidate)
+        @foreach($data as $contract)
             <tr>
-                <td>{{ $candidate->fullName }}</td>
-                <td>{{ $candidate->company->nameOfCompany ?? 'N/A' }}</td>
-                <td>{{ \Carbon\Carbon::parse($candidate->contractPeriodDate)->format('d-m-Y') }} </td>
+                <td>{{ $contract->candidate->fullName ?? 'N/A' }}</td>
+                <td>{{ $contract->candidate->company->nameOfCompany ?? 'N/A' }}</td>
+                <td>{{ \Carbon\Carbon::parse($contract->end_contract_date)->format('d-m-Y') }}</td>
             </tr>
         @endforeach
         </tbody>
