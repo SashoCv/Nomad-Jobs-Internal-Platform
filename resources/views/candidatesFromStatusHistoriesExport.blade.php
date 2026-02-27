@@ -50,12 +50,7 @@
             <td>{{ $data->candidate?->id ?? '' }}</td>
             <td>{{ $data->candidate?->nationality ?? '' }}</td>
             <td>{{ $data->candidate?->company?->nameOfCompany ?? 'N/A' }}</td>
-            <td>
-                {{ $data->candidate?->contractType ?? '' }}
-                @if(!empty($data->candidate?->contractPeriod))
-                    / {{ $data->candidate->contractPeriod }}
-                @endif
-            </td>
+            <td>{{ $data->candidate?->contractType ?? '' }}</td>
             <td>{{ $data->status?->nameOfStatus ?? '' }}</td>
             <td>{{ optional($data->statusDate)->format('d.m.Y') ?? '' }}</td>
             <td>
