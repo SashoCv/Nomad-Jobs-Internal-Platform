@@ -240,8 +240,8 @@ class CandidateService
     public function extendCandidateContract(Candidate $candidate, array $data): array
     {
         return DB::transaction(function () use ($candidate, $data) {
-            $lastContract = $candidate->latestContract;
-            $newPeriodNumber = $lastContract ? $lastContract->contract_period_number + 1 : ($candidate->contractPeriodNumber ?? 0) + 1;
+            $maxPeriod = $candidate->contracts()->max('contract_period_number') ?? ($candidate->contractPeriodNumber ?? 0);
+            $newPeriodNumber = $maxPeriod + 1;
 
             $candidate->contracts()->update(['is_active' => false]);
 

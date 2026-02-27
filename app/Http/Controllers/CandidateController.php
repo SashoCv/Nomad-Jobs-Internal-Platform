@@ -557,6 +557,7 @@ class CandidateController extends Controller
                 'company_id' => $request->company_id,
                 'position_id' => $request->position_id,
                 'status_id' => $request->status_id,
+                'is_extension' => filter_var($request->is_extension, FILTER_VALIDATE_BOOLEAN),
                 'type_id' => 1, // Candidate type for new contract
                 'contractType' => $request->contractType,
                 'startContractDate' => $request->startContractDate,
