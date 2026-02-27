@@ -23,7 +23,6 @@ class SyncCandidatesFromActiveContract extends Command
         'position_id' => 'position_id',
         'contractType' => 'contract_type',
         'contract_type_id' => 'contract_type_id',
-        'contractPeriod' => 'contract_period',
         'startContractDate' => 'start_contract_date',
         'endContractDate' => 'end_contract_date',
         'salary' => 'salary',

@@ -55,9 +55,6 @@ class UpdateCandidateRequest extends FormRequest
             // Contract dates
             'startContractDate' => 'nullable|date',
             'endContractDate' => 'nullable|date|after_or_equal:startContractDate',
-            'contractPeriod' => 'nullable|string|max:50',
-            'contractExtensionPeriod' => 'nullable|string|max:50',
-
             // Optional fields
             'education' => 'nullable|string|max:255',
             'specialty' => 'nullable|string|max:255',

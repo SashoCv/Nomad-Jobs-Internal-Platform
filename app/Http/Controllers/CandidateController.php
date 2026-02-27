@@ -559,8 +559,6 @@ class CandidateController extends Controller
                 'status_id' => $request->status_id,
                 'type_id' => 1, // Candidate type for new contract
                 'contractType' => $request->contractType,
-                'contractPeriod' => $request->contractPeriod,
-                'contractExtensionPeriod' => $request->contractExtensionPeriod,
                 'startContractDate' => $request->startContractDate,
                 'endContractDate' => $request->endContractDate,
                 'salary' => $request->salary,

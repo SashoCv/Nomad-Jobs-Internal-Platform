@@ -47,8 +47,6 @@ class StoreAgentCandidateRequest extends FormRequest
 
             // Contract fields
             'contractType' => 'nullable|string|max:50',
-            'contractPeriod' => 'nullable|string|max:50',
-            'contractExtensionPeriod' => 'nullable|string|max:50',
             'salary' => 'nullable|numeric|min:0',
             'workingTime' => 'nullable|integer|min:1|max:24',
             'workingDays' => 'nullable|integer|min:1|max:7',

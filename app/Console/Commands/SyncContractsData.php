@@ -70,8 +70,6 @@ class SyncContractsData extends Command
                         'status_id' => $candidate->status_id,
                         'type_id' => $candidate->type_id,
                         'contract_type' => $candidate->contractType ?? 'erpr1',
-                        'contract_period' => $candidate->contractPeriod,
-                        'contract_extension_period' => $candidate->contractExtensionPeriod,
                         'start_contract_date' => $candidate->startContractDate,
                         'end_contract_date' => $candidate->endContractDate,
                         'salary' => $candidate->salary,

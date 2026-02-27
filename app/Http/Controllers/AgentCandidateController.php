@@ -127,13 +127,11 @@ class AgentCandidateController extends Controller
         $person->education = $request->education;
         $person->specialty = $request->specialty;
         $person->qualification = $request->qualification;
-        $person->contractExtensionPeriod = $request->contractExtensionPeriod;
         // Use job posting defaults for contract fields (agent doesn't provide these)
         $person->salary = $request->salary ?? $jobSalary;
         $person->workingTime = $request->workingTime ?? $jobWorkTime;
         $person->workingDays = $request->workingDays;
         $person->martialStatus = $request->martialStatus;
-        $person->contractPeriod = $request->contractPeriod;
         $person->contractType = $request->contractType ?? $jobContractType;
         $person->contract_type_id = $jobContractTypeId; // FK to contract_types table
         $person->position_id = $request->position_id ?? $jobPositionId;
@@ -201,8 +199,6 @@ class AgentCandidateController extends Controller
                 'type_id' => 3, // Agent candidate type
                 'contract_type' => $request->contractType ?? $jobContractType,
                 'contract_type_id' => $jobContractTypeId, // FK to contract_types table
-                'contract_period' => $request->contractPeriod,
-                'contract_extension_period' => $request->contractExtensionPeriod,
                 'salary' => $request->salary ?? $jobSalary,
                 'working_time' => $request->workingTime ?? $jobWorkTime,
                 'working_days' => $request->workingDays,
@@ -503,8 +499,8 @@ class AgentCandidateController extends Controller
                 'birthday', 'placeOfBirth', 'country_id', 'area', 'areaOfResidence',
                 'addressOfResidence', 'periodOfResidence', 'addressOfWork',
                 'nameOfFacility', 'education', 'specialty', 'qualification',
-                'contractExtensionPeriod', 'salary', 'workingTime', 'workingDays',
-                'martialStatus', 'contractPeriod', 'contractType',
+                'salary', 'workingTime', 'workingDays',
+                'martialStatus', 'contractType',
                 'dossierNumber', 'notes',
                 // CV fields
                 'height', 'weight', 'chronic_diseases', 'country_of_visa_application',
