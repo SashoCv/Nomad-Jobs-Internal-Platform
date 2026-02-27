@@ -934,6 +934,12 @@ class SearchController extends Controller
                     $q->whereHas('companyAddress', function ($query) use ($cityId) {
                         $query->where('city_id', $cityId);
                     });
+                })->when($request->has('searchExtension') && $request->searchExtension !== null && $request->searchExtension !== '', function ($q) use ($request) {
+                    $isExtension = (bool) $request->searchExtension;
+                    $q->whereHas('contracts', function ($query) use ($isExtension) {
+                        $query->where('is_extension', $isExtension)
+                              ->where('is_active', true);
+                    });
                 });
 
 
