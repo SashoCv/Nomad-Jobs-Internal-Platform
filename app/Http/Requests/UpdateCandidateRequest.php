@@ -38,8 +38,8 @@ class UpdateCandidateRequest extends FormRequest
             'passportIssuedBy' => 'nullable|string|max:255',
 
             // Residence Information
-            'addressOfResidence' => 'required|string|max:500',
-            'periodOfResidence' => 'required|string|max:100',
+            'addressOfResidence' => 'nullable|string|max:500',
+            'periodOfResidence' => 'nullable|string|max:100',
 
             // Contract Information
             'company_id' => 'required|integer|exists:companies,id',
@@ -55,9 +55,6 @@ class UpdateCandidateRequest extends FormRequest
             // Contract dates
             'startContractDate' => 'nullable|date',
             'endContractDate' => 'nullable|date|after_or_equal:startContractDate',
-            'contractPeriod' => 'nullable|string|max:50',
-            'contractExtensionPeriod' => 'nullable|string|max:50',
-
             // Optional fields
             'education' => 'nullable|string|max:255',
             'specialty' => 'nullable|string|max:255',
@@ -99,10 +96,6 @@ class UpdateCandidateRequest extends FormRequest
             'passportValidUntil.required' => 'Датата на валидност на паспорта е задължителна.',
             'passportIssuedOn.required' => 'Датата на издаване на паспорта е задължителна.',
             'passportIssuedBy.required' => 'Органът, издал паспорта е задължителен.',
-
-            // Residence Information
-            'addressOfResidence.required' => 'Адресът на пребиваване е задължителен.',
-            'periodOfResidence.required' => 'Периодът на пребиваване е задължителен.',
 
             // Contract Information
             'company_id.required' => 'Компанията е задължителна.',

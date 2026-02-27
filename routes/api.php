@@ -165,6 +165,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('candidateNew/{id}', [CandidateController::class, 'showPersonNew']);
     Route::get('getCandidatesForCompany/{id}', [CandidateController::class, 'getCandidatesForCompany']);
     Route::post('extendContractForCandidate/{id}', [CandidateController::class, 'extendContractForCandidate']);
+    Route::post('candidates/{id}/cleanup-documents', [CandidateController::class, 'cleanupContractDocuments']);
     Route::get('exportCandidates', [CandidateController::class, 'exportCandidates']); // new route for exporting candidates with latest status
     Route::get('exportCandidatesBasedOnStatus', [CandidateController::class, 'exportCandidatesBasedOnStatus']); // new route for exporting candidates based on status
 

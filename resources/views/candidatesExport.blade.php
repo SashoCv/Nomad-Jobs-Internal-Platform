@@ -66,7 +66,7 @@
             <td>{{ $candidate->addressOfResidence }}</td>
             <td>{{ $candidate->addressOfWork }}</td>
             <td>{{ $candidate->position->jobPosition ?? 'N/A' }}</td>
-            <td>{{ $candidate->contractType }} / {{ $candidate->contractPeriod }}</td>
+            <td>{{ $candidate->contractType }}</td>
             <td>{{ $candidate->startContractDate ?? '-' }}</td>
             <td>{{ $candidate->endContractDate ?? '-' }}</td>
             <td>{{ $candidate->salary }}</td>

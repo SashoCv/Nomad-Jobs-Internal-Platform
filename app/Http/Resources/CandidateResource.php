@@ -36,7 +36,6 @@ class CandidateResource extends JsonResource
             'specialty' => $this->specialty,
             'qualification' => $this->qualification,
             'martialStatus' => $this->martialStatus,
-            'contractPeriod' => $this->contractPeriod,
             'contractType' => $this->contractType,
             'contract_type_id' => $this->contract_type_id,
             'contract_type' => $this->whenLoaded('contract_type', function () {
@@ -47,7 +46,6 @@ class CandidateResource extends JsonResource
                     'slug' => $relation->slug,
                 ] : null;
             }),
-            'contractExtensionPeriod' => $this->contractExtensionPeriod,
             'salary' => $this->salary,
             'workingTime' => $this->workingTime,
             'workingDays' => $this->workingDays,
