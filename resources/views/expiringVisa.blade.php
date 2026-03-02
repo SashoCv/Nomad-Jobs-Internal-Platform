@@ -9,7 +9,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f4f4f4;
@@ -46,14 +46,16 @@
             margin: 20px 0;
         }
         th, td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
+            font-size: 13px;
         }
         th {
             background-color: #9333ea;
             color: white;
             font-weight: 600;
+            font-size: 12px;
         }
         tr:hover {
             background-color: #f8f4ff;
@@ -61,6 +63,29 @@
         .expiry-date {
             color: #9333ea;
             font-weight: 600;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-expiring {
+            background: #fef3cd;
+            color: #856404;
+        }
+        .status-expired {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-none {
+            background: #f3f4f6;
+            color: #6b7280;
         }
         .footer {
             margin-top: 30px;
@@ -101,14 +126,39 @@
                 <tr>
                     <th>Кандидат</th>
                     <th>Компания</th>
+                    <th>Обект / Адрес</th>
+                    <th>Позиция</th>
+                    <th>Статус на договор</th>
                     <th>Дата на изтичане</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($data['visas'] as $visa)
+                @php
+                    $contract = $visa->candidate?->activeContract;
+                    $contractStatus = $contract?->contract_status ?? 'Няма договор';
+                    $statusClass = match($contractStatus) {
+                        'Active' => 'status-active',
+                        'Expiring soon' => 'status-expiring',
+                        'Expired' => 'status-expired',
+                        default => 'status-none',
+                    };
+                    $statusLabel = match($contractStatus) {
+                        'Active' => 'Активен',
+                        'Expiring soon' => 'Изтича скоро',
+                        'Expired' => 'Изтекъл',
+                        'No end date' => 'Без крайна дата',
+                        default => 'Няма договор',
+                    };
+                    $facility = $contract?->name_of_facility ?: $contract?->address_of_work ?: $contract?->companyAddress?->address ?: 'N/A';
+                    $position = $contract?->position?->jobPosition ?? 'N/A';
+                @endphp
                 <tr>
-                    <td>{{ $visa->candidate->fullNameCyrillic ?? $visa->candidate->fullName }}</td>
-                    <td>{{ $visa->candidate->company->nameOfCompany ?? 'N/A' }}</td>
+                    <td>{{ $visa->candidate?->fullNameCyrillic ?? $visa->candidate?->fullName ?? 'N/A' }}</td>
+                    <td>{{ $visa->candidate?->company?->nameOfCompany ?? 'N/A' }}</td>
+                    <td>{{ $facility }}</td>
+                    <td>{{ $position }}</td>
+                    <td><span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span></td>
                     <td class="expiry-date">{{ \Carbon\Carbon::parse($visa->end_date)->format('d.m.Y') }}</td>
                 </tr>
                 @endforeach

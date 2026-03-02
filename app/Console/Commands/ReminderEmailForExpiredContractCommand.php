@@ -36,7 +36,8 @@ class ReminderEmailForExpiredContractCommand extends Command
         $oneMonthFromNow = Carbon::now()->addMonth()->format('Y-m-d');
 
         // Query active contracts expiring in exactly one month
-        $expiringContracts = CandidateContract::with(['candidate.company'])
+        $expiringContracts = CandidateContract::with(['candidate.company', 'candidate.status', 'position', 'companyAddress', 'status'])
+            ->whereHas('candidate')
             ->where('is_active', true)
             ->whereDate('end_contract_date', $oneMonthFromNow)
             ->get();

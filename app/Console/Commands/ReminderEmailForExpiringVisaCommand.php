@@ -38,15 +38,17 @@ class ReminderEmailForExpiringVisaCommand extends Command
         $this->trackingService = $trackingService;
         $today = Carbon::now();
 
-        // Get visas expiring in 60 days
+        // Get visas expiring in 60 days (exclude soft-deleted candidates)
         $sixtyDaysFromNow = $today->copy()->addDays(60)->format('Y-m-d');
-        $visasExpiring60Days = CandidateVisa::with(['candidate.company'])
+        $visasExpiring60Days = CandidateVisa::with(['candidate.company', 'candidate.activeContract.status', 'candidate.activeContract.position', 'candidate.activeContract.companyAddress', 'candidate.status'])
+            ->whereHas('candidate')
             ->whereDate('end_date', $sixtyDaysFromNow)
             ->get();
 
-        // Get visas expiring in 30 days
+        // Get visas expiring in 30 days (exclude soft-deleted candidates)
         $thirtyDaysFromNow = $today->copy()->addDays(30)->format('Y-m-d');
-        $visasExpiring30Days = CandidateVisa::with(['candidate.company'])
+        $visasExpiring30Days = CandidateVisa::with(['candidate.company', 'candidate.activeContract.status', 'candidate.activeContract.position', 'candidate.activeContract.companyAddress', 'candidate.status'])
+            ->whereHas('candidate')
             ->whereDate('end_date', $thirtyDaysFromNow)
             ->get();
 
