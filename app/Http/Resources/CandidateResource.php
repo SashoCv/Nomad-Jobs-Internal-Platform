@@ -30,31 +30,33 @@ class CandidateResource extends JsonResource
             'passportValidUntil' => $this->passportRecord?->expiry_date,
             'passportIssuedBy' => $this->passportRecord?->issued_by,
             'passportIssuedOn' => $this->passportRecord?->issue_date,
-            'addressOfWork' => $this->addressOfWork,
-            'nameOfFacility' => $this->nameOfFacility,
+            'addressOfWork' => $this->activeContract?->address_of_work,
+            'nameOfFacility' => $this->activeContract?->name_of_facility,
             'education' => $this->education,
             'specialty' => $this->specialty,
             'qualification' => $this->qualification,
             'martialStatus' => $this->martialStatus,
-            'contractType' => $this->contractType,
-            'contract_type_id' => $this->contract_type_id,
-            'contract_type' => $this->whenLoaded('contract_type', function () {
-                $relation = $this->getRelation('contract_type');
-                return $relation ? [
-                    'id' => $relation->id,
-                    'name' => $relation->name,
-                    'slug' => $relation->slug,
+            'contractType' => $this->activeContract?->contract_type,
+            'contract_type_id' => $this->activeContract?->contract_type_id,
+            'contract_type' => $this->whenLoaded('activeContract', function () {
+                $contractType = $this->activeContract?->getRelation('contract_type');
+                return $contractType ? [
+                    'id' => $contractType->id,
+                    'name' => $contractType->name,
+                    'slug' => $contractType->slug,
                 ] : null;
             }),
-            'salary' => $this->salary,
-            'workingTime' => $this->workingTime,
-            'workingDays' => $this->workingDays,
-            'startContractDate' => $this->startContractDate,
-            'endContractDate' => $this->endContractDate,
+            'salary' => $this->activeContract
+                ? (string) $this->activeContract->getRawOriginal('salary')
+                : null,
+            'workingTime' => $this->activeContract?->working_time,
+            'workingDays' => $this->activeContract?->working_days,
+            'startContractDate' => $this->activeContract?->start_contract_date?->format('Y-m-d'),
+            'endContractDate' => $this->activeContract?->end_contract_date?->format('Y-m-d'),
             'contractStatus' => $this->contract_status,
-            'contractPeriodNumber' => $this->contractPeriodNumber,
+            'contractPeriodNumber' => $this->activeContract?->contract_period_number,
             'date' => $this->date,
-            'dossierNumber' => $this->dossierNumber,
+            'dossierNumber' => $this->activeContract?->dossier_number,
             'notes' => $this->notes,
             'quartal' => $this->quartal,
             'seasonal' => $this->seasonal,

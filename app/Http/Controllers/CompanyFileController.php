@@ -47,6 +47,16 @@ class CompanyFileController extends Controller
                 $companyFile->fileName = $request->file('companyFile')->getClientOriginalName();
             }
         }
+
+        // Prevent saving file records without an actual file
+        if (empty($companyFile->filePath)) {
+            return response()->json([
+                'success' => false,
+                'status' => 422,
+                'message' => 'Не е прикачен файл. Моля, опитайте отново.',
+            ], 422);
+        }
+
         $companyFile->company_category_id = $request->company_category_id;
         $companyFile->company_id = $request->company_id;
 
@@ -190,7 +200,22 @@ class CompanyFileController extends Controller
 
     public function downloadCompanyFile(CompanyFile $file)
     {
+        if (empty($file->filePath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Файлът не е наличен. Липсва физически файл за този запис.',
+            ], 404);
+        }
+
         $pathToFile = public_path('storage/' . $file->filePath);
+
+        if (!file_exists($pathToFile)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Файлът не е намерен на сървъра.',
+            ], 404);
+        }
+
         return response()->download($pathToFile);
     }
 

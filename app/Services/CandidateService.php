@@ -148,7 +148,7 @@ class CandidateService
             }
 
             return [
-                'candidate' => $candidate->fresh()->load('activeContract', 'passportRecord'),
+                'candidate' => $candidate->fresh()->load('activeContract.contract_type', 'passportRecord'),
                 'contract' => $contract,
             ];
         });

@@ -371,7 +371,7 @@ class Candidate extends Model
 
     public function isSeasonalContract(): bool
     {
-        return $this->contractType === self::CONTRACT_TYPE_90_DAYS;
+        return $this->activeContract?->contract_type === self::CONTRACT_TYPE_90_DAYS;
     }
 
     public function promoteToEmployee(): void
@@ -425,19 +425,20 @@ class Candidate extends Model
 
     public function getContractStatusAttribute(): string
     {
-        if (! $this->endContractDate) {
+        $endContractDate = $this->activeContract?->end_contract_date;
+
+        if (! $endContractDate) {
             return 'No end date';
         }
 
         $now = Carbon::now();
         $fourMonthsFromNow = $now->copy()->addMonths(4);
-        $endDate = Carbon::parse($this->endContractDate);
 
-        if ($endDate->lessThan($now)) {
+        if ($endContractDate->lessThan($now)) {
             return 'Expired';
         }
 
-        if ($endDate->lessThan($fourMonthsFromNow)) {
+        if ($endContractDate->lessThan($fourMonthsFromNow)) {
             return 'Expiring soon';
         }
 

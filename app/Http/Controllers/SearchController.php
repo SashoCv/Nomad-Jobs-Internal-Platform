@@ -785,7 +785,8 @@ class SearchController extends Controller
                 'activeContract',
                 'latestContract',
                 'contract_type',
-                'statusHistories'
+                'statusHistories',
+                'passportRecord'
             ])
             ->where(function ($q) {
                 // Show if has status_id OR has more than 1 contract
