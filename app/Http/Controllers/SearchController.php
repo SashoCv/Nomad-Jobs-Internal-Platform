@@ -709,7 +709,10 @@ class SearchController extends Controller
         }
 
         if ($nameOfCompany) {
-            $companiesQuery->where('nameOfCompany', 'LIKE', "%$nameOfCompany%");
+            $companiesQuery->where(function ($query) use ($nameOfCompany) {
+                $query->where('nameOfCompany', 'LIKE', "%$nameOfCompany%")
+                      ->orWhere('nameOfCompanyLatin', 'LIKE', "%$nameOfCompany%");
+            });
         }
 
         if ($status) {
