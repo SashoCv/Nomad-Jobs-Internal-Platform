@@ -16,7 +16,7 @@ class MedicalInsuranceController extends Controller
     {
         return [
             'candidate' => function ($query) {
-                $query->select('id', 'fullNameCyrillic as fullName', 'contractType', 'contract_type_id', 'company_id', 'position_id');
+                $query->select('id', 'fullNameCyrillic as fullName', 'contractType', 'contract_type_id', 'company_id', 'position_id', 'status_id');
             },
             'candidate.company' => function ($query) {
                 $query->select('id', 'nameOfCompany');
@@ -26,6 +26,9 @@ class MedicalInsuranceController extends Controller
             },
             'candidate.contract_type' => function ($query) {
                 $query->select('id', 'name', 'slug');
+            },
+            'candidate.status' => function ($query) {
+                $query->select('id', 'nameOfStatus');
             }
         ];
     }
@@ -173,6 +176,12 @@ class MedicalInsuranceController extends Controller
             if ($request->filled('contractType')) {
                 $query->whereHas('candidate', function ($q) use ($request) {
                     $q->where('contract_type_id', $request->contractType);
+                });
+            }
+
+            if ($request->filled('status')) {
+                $query->whereHas('candidate', function ($q) use ($request) {
+                    $q->where('status_id', $request->status);
                 });
             }
 
