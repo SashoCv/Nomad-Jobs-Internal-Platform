@@ -40,23 +40,11 @@ class StoreAgentCandidateRequest extends FormRequest
             'areaOfResidence' => 'nullable|string|max:255',
             'addressOfResidence' => 'nullable|string|max:500',
             'periodOfResidence' => 'nullable|string|max:100',
-            'education' => 'nullable|string|max:255',
-            'specialty' => 'nullable|string|max:255',
-            'qualification' => 'nullable|string|max:255',
             'martialStatus' => 'nullable|string|max:50',
 
-            // Contract fields
-            'contractType' => 'nullable|string|max:50',
-            'salary' => 'nullable|numeric|min:0',
-            'workingTime' => 'nullable|integer|min:1|max:24',
-            'workingDays' => 'nullable|integer|min:1|max:7',
-            'addressOfWork' => 'nullable|string|max:500',
-            'nameOfFacility' => 'nullable|string|max:255',
-            'dossierNumber' => 'nullable|string|max:100',
+            // Meta
             'notes' => 'nullable|string|max:2000',
             'date' => 'nullable|date',
-            'position_id' => 'nullable|integer|exists:positions,id',
-            'user_id' => 'nullable|integer|exists:users,id',
 
             // CV fields
             'personPicture' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
@@ -73,6 +61,7 @@ class StoreAgentCandidateRequest extends FormRequest
             'other_language' => 'nullable|string|max:100',
             'other_language_level' => 'nullable|string|max:50',
             'children_info' => 'nullable|string|max:500',
+            'is_qualified' => 'nullable|boolean',
 
             // Arrays
             'educations' => 'nullable|array',

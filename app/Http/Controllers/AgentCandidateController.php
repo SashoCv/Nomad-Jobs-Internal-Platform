@@ -104,7 +104,7 @@ class AgentCandidateController extends Controller
 
         $person = new Candidate();
 
-        $person->status_id = $request->status_id;
+        $person->status_id = null;
         $person->type_id = "3";
         $person->company_id = $companyId;
         $person->gender = $request->gender;
@@ -122,23 +122,26 @@ class AgentCandidateController extends Controller
         $person->areaOfResidence = $request->areaOfResidence;
         $person->addressOfResidence = $request->addressOfResidence;
         $person->periodOfResidence = $request->periodOfResidence;
-        $person->addressOfWork = $request->addressOfWork;
-        $person->nameOfFacility = $request->nameOfFacility;
-        $person->education = $request->education;
-        $person->specialty = $request->specialty;
-        $person->qualification = $request->qualification;
-        // Use job posting defaults for contract fields (agent doesn't provide these)
-        $person->salary = $request->salary ?? $jobSalary;
-        $person->workingTime = $request->workingTime ?? $jobWorkTime;
-        $person->workingDays = $request->workingDays;
         $person->martialStatus = $request->martialStatus;
-        $person->contractType = $request->contractType ?? $jobContractType;
-        $person->contract_type_id = $jobContractTypeId; // FK to contract_types table
-        $person->position_id = $request->position_id ?? $jobPositionId;
-        $person->dossierNumber = $request->dossierNumber;
         $person->notes = $request->notes;
-        $person->user_id = $request->user_id;
         $person->addedBy = Auth::user()->id;
+
+        // Business fields — always derived server-side from the job posting
+        $person->salary = $jobSalary;
+        $person->workingTime = $jobWorkTime;
+        $person->workingDays = null;
+        $person->contractType = $jobContractType;
+        $person->contract_type_id = $jobContractTypeId;
+        $person->position_id = $jobPositionId;
+        $person->user_id = null;
+        $person->case_id = null;
+        $person->candidate_source = 'agent';
+        $person->dossierNumber = null;
+        $person->addressOfWork = null;
+        $person->nameOfFacility = null;
+        $person->education = null;
+        $person->specialty = null;
+        $person->qualification = null;
 
         // CV fields
         $person->height = $request->height;
@@ -187,26 +190,25 @@ class AgentCandidateController extends Controller
                 'file_name' => $passportFileName,
             ]);
 
-            // Create contract record (source of truth for contract data)
-            // Use job posting defaults for fields agent doesn't provide
+            // Create contract record — all business fields derived from job posting
             $contract = CandidateContract::create([
                 'candidate_id' => $person->id,
                 'contract_period_number' => 1,
                 'is_active' => true,
                 'company_id' => $companyId,
-                'position_id' => $request->position_id ?? $jobPositionId,
-                'status_id' => $request->status_id,
+                'position_id' => $jobPositionId,
+                'status_id' => null,
                 'type_id' => 3, // Agent candidate type
-                'contract_type' => $request->contractType ?? $jobContractType,
-                'contract_type_id' => $jobContractTypeId, // FK to contract_types table
-                'salary' => $request->salary ?? $jobSalary,
-                'working_time' => $request->workingTime ?? $jobWorkTime,
-                'working_days' => $request->workingDays,
-                'address_of_work' => $request->addressOfWork,
-                'name_of_facility' => $request->nameOfFacility,
-                'dossier_number' => $request->dossierNumber,
+                'contract_type' => $jobContractType,
+                'contract_type_id' => $jobContractTypeId,
+                'salary' => $jobSalary,
+                'working_time' => $jobWorkTime,
+                'working_days' => null,
+                'address_of_work' => null,
+                'name_of_facility' => null,
+                'dossier_number' => null,
                 'agent_id' => Auth::user()->id,
-                'user_id' => $request->user_id,
+                'user_id' => null,
                 'added_by' => Auth::user()->id,
                 'notes' => $request->notes,
                 'date' => $request->date ?? now(),
@@ -297,10 +299,6 @@ class AgentCandidateController extends Controller
             $agentCandidate->status_for_candidate_from_agent_id = $candidateData['status_id'];
 
             $agentCandidate->save();
-
-
-            $notification = NotificationRepository::createNotification($notificationData);
-            UsersNotificationRepository::createNotificationForUsers($notification);
 
             return response()->json(
                 [
@@ -492,22 +490,19 @@ class AgentCandidateController extends Controller
             if ($person->agent_id != Auth::user()->id) {
                 return response()->json(['message' => 'You can only update candidates you added'], 403);
             }
-            // Update basic fields (passport fields removed - stored in candidate_passports only)
+            // Only personal/CV fields — business fields (salary, position, contract, etc.)
+            // are derived from the job posting and cannot be changed by agents
             $fieldsToUpdate = [
                 'gender', 'email', 'nationality', 'date', 'phoneNumber',
                 'address', 'fullName', 'fullNameCyrillic',
                 'birthday', 'placeOfBirth', 'country_id', 'area', 'areaOfResidence',
-                'addressOfResidence', 'periodOfResidence', 'addressOfWork',
-                'nameOfFacility', 'education', 'specialty', 'qualification',
-                'salary', 'workingTime', 'workingDays',
-                'martialStatus', 'contractType',
-                'dossierNumber', 'notes',
+                'addressOfResidence', 'periodOfResidence',
+                'martialStatus', 'notes',
                 // CV fields
                 'height', 'weight', 'chronic_diseases', 'country_of_visa_application',
                 'has_driving_license', 'driving_license_category', 'driving_license_expiry',
                 'driving_license_country', 'english_level', 'russian_level',
                 'other_language', 'other_language_level', 'children_info',
-                // Qualification field
                 'is_qualified'
             ];
 

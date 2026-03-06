@@ -28,6 +28,7 @@ class Status extends Model
     const ARRIVAL_EXPECTED = 18;
     const REFUSED_BY_MIGRATION_OFFICE = 19;
     const VISA_APPOINTMENT = 20;
+    const PREPARED_DOCUMENTS_FOR_MIGRATION = 16;
 
     protected $fillable = [
         'nameOfStatus',
