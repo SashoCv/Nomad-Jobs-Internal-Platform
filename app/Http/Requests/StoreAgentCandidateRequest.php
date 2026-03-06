@@ -12,6 +12,19 @@ class StoreAgentCandidateRequest extends FormRequest
         return Auth::check();
     }
 
+    protected function prepareForValidation(): void
+    {
+        // FormData sends booleans as strings ("true"/"false").
+        // Cast them so Laravel's boolean rule accepts them.
+        foreach (['has_driving_license', 'is_qualified'] as $field) {
+            if ($this->has($field)) {
+                $this->merge([
+                    $field => filter_var($this->input($field), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+                ]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         return [
