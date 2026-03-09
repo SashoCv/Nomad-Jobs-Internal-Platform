@@ -154,6 +154,47 @@ class CandidateService
         });
     }
 
+    /**
+     * Update only personal info fields on a candidate (no contract data).
+     * This avoids validation errors when contract fields are incomplete.
+     */
+    public function updatePersonalInfo(Candidate $candidate, array $data): Candidate
+    {
+        return DB::transaction(function () use ($candidate, $data) {
+            // Convert string 'false'/'true' to boolean for boolean fields
+            if (isset($data['has_driving_license'])) {
+                $data['has_driving_license'] = filter_var($data['has_driving_license'], FILTER_VALIDATE_BOOLEAN);
+            }
+            if (isset($data['is_qualified'])) {
+                $data['is_qualified'] = filter_var($data['is_qualified'], FILTER_VALIDATE_BOOLEAN);
+            }
+
+            // Only allow personal info fields — never touch contract columns
+            $personalFields = [
+                'fullName', 'fullNameCyrillic', 'birthday', 'placeOfBirth',
+                'nationality', 'country_id', 'gender', 'martialStatus',
+                'email', 'phoneNumber', 'address', 'area',
+                'areaOfResidence', 'addressOfResidence', 'periodOfResidence',
+                'education', 'specialty', 'qualification',
+                'english_level', 'russian_level', 'other_language', 'other_language_level',
+                'height', 'weight', 'chronic_diseases',
+                'country_of_visa_application', 'has_driving_license',
+                'driving_license_category', 'driving_license_expiry', 'driving_license_country',
+                'children_info', 'is_qualified',
+            ];
+
+            $personalData = array_intersect_key($data, array_flip($personalFields));
+            $candidate->fill($personalData);
+            $candidate->save();
+
+            // Handle profile picture upload only
+            // Passport data is managed via dedicated /candidate-passports endpoints
+            $this->handleProfilePictureUpload($candidate, $data);
+
+            return $candidate->load('position', 'passportRecord');
+        });
+    }
+
     public function updateCandidate(Candidate $candidate, array $data, bool $skipDocumentRegeneration = false, ?int $contractId = null): Candidate
     {
         return DB::transaction(function () use ($candidate, $data, $skipDocumentRegeneration, $contractId) {
@@ -506,7 +547,11 @@ class CandidateService
     protected function handleFileUploads(Candidate $candidate, array $data): void
     {
         $this->syncPassportData($candidate, $data);
+        $this->handleProfilePictureUpload($candidate, $data);
+    }
 
+    protected function handleProfilePictureUpload(Candidate $candidate, array $data): void
+    {
         if (isset($data['personPicture'])
             && $data['personPicture'] instanceof UploadedFile
             && $data['personPicture']->isValid()
