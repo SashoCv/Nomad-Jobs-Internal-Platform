@@ -518,7 +518,38 @@ class CandidateController extends Controller
     }
 
     /**
+     * Update only personal info fields (no contract data required).
+     */
+    public function updatePersonalInfo(\App\Http\Requests\UpdatePersonalInfoRequest $request, $id): JsonResponse
+    {
+        try {
+            $candidate = Candidate::findOrFail($id);
+            $data = $request->all();
+
+            $updatedCandidate = $this->candidateService->updatePersonalInfo($candidate, $data);
+
+            if ($candidate->status_id == null) {
+                $candidate->status_id = 16;
+                $candidate->save();
+
+                $statusHistory = new Statushistory();
+                $statusHistory->status_id = 16;
+                $statusHistory->candidate_id = $id;
+                $statusHistory->statusDate = Carbon::now();
+                $statusHistory->save();
+            }
+
+            $updatedCandidate->load(['passportRecord', 'activeContract.contract_type']);
+            return $this->successResponse(new CandidateResource($updatedCandidate), 'Personal info updated successfully');
+        } catch (\Exception $e) {
+            Log::error('Error updating personal info: ' . $e->getMessage());
+            return $this->errorResponse('Failed to update personal info');
+        }
+    }
+
+    /**
      * Update the specified resource in storage.
+     * @deprecated Use updatePersonalInfo for personal-info-only updates. This endpoint requires all contract fields.
      */
     public function update(UpdateCandidateRequest $request, $id): JsonResponse
     {
