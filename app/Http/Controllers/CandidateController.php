@@ -550,6 +550,7 @@ class CandidateController extends Controller
     /**
      * Update the specified resource in storage.
      * @deprecated Use updatePersonalInfo for personal-info-only updates. This endpoint requires all contract fields.
+     * TODO: Remove this method and UpdateCandidateRequest once confirmed safe in production.
      */
     public function update(UpdateCandidateRequest $request, $id): JsonResponse
     {

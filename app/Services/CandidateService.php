@@ -187,8 +187,9 @@ class CandidateService
             $candidate->fill($personalData);
             $candidate->save();
 
-            // Handle file uploads (passport + picture)
-            $this->handleFileUploads($candidate, $data);
+            // Handle profile picture upload only
+            // Passport data is managed via dedicated /candidate-passports endpoints
+            $this->handleProfilePictureUpload($candidate, $data);
 
             return $candidate->load('position', 'passportRecord');
         });
@@ -546,7 +547,11 @@ class CandidateService
     protected function handleFileUploads(Candidate $candidate, array $data): void
     {
         $this->syncPassportData($candidate, $data);
+        $this->handleProfilePictureUpload($candidate, $data);
+    }
 
+    protected function handleProfilePictureUpload(Candidate $candidate, array $data): void
+    {
         if (isset($data['personPicture'])
             && $data['personPicture'] instanceof UploadedFile
             && $data['personPicture']->isValid()

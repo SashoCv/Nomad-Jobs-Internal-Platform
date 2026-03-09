@@ -15,8 +15,7 @@ class UpdatePersonalInfoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // File uploads (optional for updates)
-            'personPassport' => 'nullable|file|max:10240',
+            // Profile picture (optional)
             'personPicture' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
 
             // Personal Information
@@ -29,11 +28,7 @@ class UpdatePersonalInfoRequest extends FormRequest
             'gender' => 'required|in:male,female',
             'martialStatus' => 'required|string|max:50',
 
-            // Passport Information
-            'passport' => 'nullable|string|max:50',
-            'passportValidUntil' => 'nullable|date',
-            'passportIssuedOn' => 'nullable|date',
-            'passportIssuedBy' => 'nullable|string|max:255',
+            // Note: Passport data is managed via dedicated /candidate-passports endpoints
 
             // Residence Information
             'addressOfResidence' => 'nullable|string|max:500',
@@ -77,8 +72,6 @@ class UpdatePersonalInfoRequest extends FormRequest
     {
         return [
             // File uploads
-            'personPassport.file' => 'Паспортът трябва да бъде валиден файл.',
-            'personPassport.max' => 'Файлът на паспорта не трябва да надвишава 10MB.',
             'personPicture.file' => 'Снимката трябва да бъде валиден файл.',
             'personPicture.mimes' => 'Снимката трябва да бъде JPG или PNG файл.',
             'personPicture.max' => 'Снимката не трябва да надвишава 5MB.',

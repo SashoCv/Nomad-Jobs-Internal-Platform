@@ -156,7 +156,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('employees', [CandidateController::class, 'employees']);
     Route::post('personSave', [CandidateController::class, 'store']);
     Route::get('person/{id}', [CandidateController::class, 'show']);
-    /** @deprecated Use personUpdatePersonalInfo/{id} instead. No active frontend consumers. */
+    /** @deprecated Use personUpdatePersonalInfo/{id} instead. TODO: Remove this route once confirmed safe in production. */
     Route::post('personUpdate/{id}', [CandidateController::class, 'update']);
     Route::post('personUpdatePersonalInfo/{id}', [CandidateController::class, 'updatePersonalInfo']);
     Route::put('candidates/{id}/document-tracking', [CandidateController::class, 'updateDocumentTracking']);
