@@ -120,6 +120,10 @@ class CompanyJobController extends Controller
             });
         }
 
+        if ($companyId = $request->company_id) {
+            $query->where('companies.id', $companyId);
+        }
+
         switch ($roleId) {
             case Role::GENERAL_MANAGER:
             case Role::MANAGER:
@@ -128,9 +132,7 @@ class CompanyJobController extends Controller
             case Role::OFFICE_MANAGER:
             case Role::RECRUITERS:
             case Role::FINANCE:
-                if ($companyId = $request->company_id) {
-                    $query->where('companies.id', $companyId);
-                }
+                // Staff sees all job postings (filtered by company_id above if provided)
                 break;
 
             case Role::COMPANY_USER:
