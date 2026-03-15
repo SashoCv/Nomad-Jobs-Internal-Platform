@@ -275,20 +275,20 @@ class StatisticController extends Controller
             }
         }
 
-        // Get all candidates for these companies
+        // Get all candidates for these companies (filtered by active contract company)
         $candidates = Candidate::with([
             'status',
             'position:id,jobPosition',
             'companyAddress'
         ])
-            ->whereIn('company_id', $companyIds)
+            ->byActiveContractCompanies($companyIds)
             ->whereNotNull('status_id')
             ->get();
 
         $totalCandidates = $candidates->count();
 
         // Get applicants (candidates without status) with their agent statuses
-        $applicants = Candidate::whereIn('company_id', $companyIds)
+        $applicants = Candidate::byActiveContractCompanies($companyIds)
             ->whereNull('status_id')
             ->whereHas('agentCandidates')
             ->with('agentCandidates.statusForCandidateFromAgent')
