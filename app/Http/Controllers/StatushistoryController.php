@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Candidate;
 use App\Models\Statushistory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StatushistoryController extends Controller
 {
@@ -114,6 +115,9 @@ class StatushistoryController extends Controller
             ->firstOrFail();
         $candidateId = $statusHistory->candidate_id;
         $deletedStatusId = $statusHistory->status_id;
+
+        $statusHistory->deleted_by = Auth::id();
+        $statusHistory->save();
 
         if ($statusHistory->delete()) {
             // Check if the deleted status was the active status

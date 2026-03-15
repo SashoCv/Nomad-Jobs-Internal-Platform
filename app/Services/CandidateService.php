@@ -244,14 +244,17 @@ class CandidateService
             $this->handleFileUploads($candidate, $data);
 
             $existingAgentCandidate = AgentCandidate::where('candidate_id', $candidate->id)->first();
+            $activeContract = $candidate->activeContract;
 
             if (! empty($data['agent_id'])) {
                 $companyJobId = ! empty($data['company_job_id']) ? $data['company_job_id'] : null;
+                $contractId = $activeContract?->id;
 
                 if ($existingAgentCandidate) {
                     $existingAgentCandidate->update([
                         'user_id' => $data['agent_id'],
                         'company_job_id' => $companyJobId,
+                        'contract_id' => $contractId,
                         'status_for_candidate_from_agent_id' => 3,
                     ]);
                 } else {
@@ -259,6 +262,7 @@ class CandidateService
                         'user_id' => $data['agent_id'],
                         'company_job_id' => $companyJobId,
                         'candidate_id' => $candidate->id,
+                        'contract_id' => $contractId,
                         'status_for_candidate_from_agent_id' => 3,
                         'nomad_office_id' => Auth::user()->id ?? null,
                     ]);

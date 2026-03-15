@@ -21,9 +21,11 @@ class StatusForCandidateFromAgent extends Model
         'name',
         'order',
         'show_for_companies',
+        'allow_reassign',
     ];
 
     protected $casts = [
         'show_for_companies' => 'boolean',
+        'allow_reassign' => 'boolean',
     ];
 }

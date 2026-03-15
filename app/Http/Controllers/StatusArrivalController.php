@@ -19,7 +19,12 @@ class StatusArrivalController extends Controller
     public function index()
     {
         try {
-            if($this->isStaff() || $this->isAgent()) {
+            if ($this->isAgent()) {
+                $statusArrivals = Status::select('id', 'nameOfStatus as statusName')
+                    ->where('showForAgent', true)
+                    ->orderBy('order')
+                    ->get();
+            } elseif ($this->isStaff()) {
                 $statusArrivals = Status::select('id', 'nameOfStatus as statusName')->where('showOnHomePage', 1)->orderBy('order')->get();
             } else {
                 return response()->json([

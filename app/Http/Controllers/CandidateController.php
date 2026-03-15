@@ -349,13 +349,13 @@ class CandidateController extends Controller
             $agentCandidate = AgentCandidate::where('candidate_id', $id)->first();
             $person->company_job_id = $agentCandidate ? $agentCandidate->company_job_id : null;
         } elseif ($user->hasRole(Role::COMPANY_USER)) {
-            $person = $query->where('company_id', $user->company_id)->first();
+            $person = $query->byActiveContractCompany($user->company_id)->first();
             $person->phoneNumber = null;
             $agent = AgentCandidate::where('candidate_id', $id)->first();
             $person->company_job_id = $agent ? $agent->company_job_id : null;
         } elseif ($user->hasRole(Role::COMPANY_OWNER)) {
             $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
-            $person = $query->whereIn('company_id', $companyIds)->first();
+            $person = $query->byActiveContractCompanies($companyIds)->first();
             $person->phoneNumber = null;
             $agent = AgentCandidate::where('candidate_id', $id)->first();
             $person->company_job_id = $agent ? $agent->company_job_id : null;
@@ -420,12 +420,12 @@ class CandidateController extends Controller
             // Staff can see any candidate
             $person = $query->first();
         } else if ($user->hasRole(Role::COMPANY_USER)) {
-            // Company users can only see candidates from their company
-            $person = $query->where('company_id', $user->company_id)->first();
+            // Company users can only see candidates whose active contract is in their company
+            $person = $query->byActiveContractCompany($user->company_id)->first();
         } else if ($user->hasRole(Role::COMPANY_OWNER)) {
-            // Company owners can see candidates from companies they own
+            // Company owners can see candidates whose active contract is in companies they own
             $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
-            $person = $query->whereIn('company_id', $companyIds)->first();
+            $person = $query->byActiveContractCompanies($companyIds)->first();
         } else {
             // Default: no access
             $person = null;
@@ -467,10 +467,10 @@ class CandidateController extends Controller
         if ($this->isStaff()) {
             $person = $query->first();
         } else if ($user->hasRole(Role::COMPANY_USER)) {
-            $person = $query->where('company_id', $user->company_id)->first();
+            $person = $query->byActiveContractCompany($user->company_id)->first();
         } else if ($user->hasRole(Role::COMPANY_OWNER)) {
             $companyIds = UserOwner::where('user_id', $user->id)->pluck('company_id');
-            $person = $query->whereIn('company_id', $companyIds)->first();
+            $person = $query->byActiveContractCompanies($companyIds)->first();
         } else {
             $person = null;
         }
@@ -859,7 +859,7 @@ class CandidateController extends Controller
 
             } else if ($user->hasRole(Role::COMPANY_USER)) {
                 $candidates = Candidate::with(['company', 'status', 'position', 'passportRecord', 'activeContract.contract_type'])
-                    ->where('company_id', $user->company_id);
+                    ->byActiveContractCompany($user->company_id);
 
                 if ($filters['status_id']) {
                     $candidates->where('status_id', $filters['status_id']);
@@ -946,7 +946,7 @@ class CandidateController extends Controller
         if ($this->isStaff()) {
             return Candidate::query();
         } elseif ($user->hasRole(Role::COMPANY_USER)) {
-            return Candidate::byCompany($user->company_id);
+            return Candidate::byActiveContractCompany($user->company_id);
         } elseif ($user->hasRole(Role::COMPANY_OWNER)) {
             return $this->buildOwnerQuery($user->id);
         } elseif ($user->hasRole(Role::AGENT)) {
@@ -959,7 +959,7 @@ class CandidateController extends Controller
     protected function buildOwnerQuery(int $userId): \Illuminate\Database\Eloquent\Builder
     {
         $companyIds = UserOwner::where('user_id', $userId)->pluck('company_id');
-        return Candidate::whereIn('company_id', $companyIds);
+        return Candidate::byActiveContractCompanies($companyIds);
     }
 
     protected function buildAgentQuery(int $userId): \Illuminate\Database\Eloquent\Builder
@@ -1330,7 +1330,7 @@ class CandidateController extends Controller
             }
 
             // Get applicants (candidates without status) for these companies
-            $query = Candidate::whereIn('company_id', $companyIds)
+            $query = Candidate::byActiveContractCompanies($companyIds)
                 ->whereHas('agentCandidates') // додадено - проверува дали постои во agent_candidates
                 ->with([
                     'company',

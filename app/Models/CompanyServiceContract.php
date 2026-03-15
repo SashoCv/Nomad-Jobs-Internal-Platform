@@ -51,10 +51,9 @@ class CompanyServiceContract extends Model
      */
     public function setAsActive()
     {
-        // First deactivate other active contracts for this company with the same agreement type
+        // Deactivate other active contracts for this company (one active per company)
         self::where('company_id', $this->company_id)
             ->where('id', '!=', $this->id)
-            ->where('agreement_type', $this->agreement_type)
             ->where('status', self::STATUS_ACTIVE)
             ->update(['status' => self::STATUS_EXPIRED]);
 
@@ -68,13 +67,15 @@ class CompanyServiceContract extends Model
      * @param int $companyId
      * @return CompanyServiceContract|null
      */
-    public static function getActiveContract($companyId, $contractType)
+    public static function getActiveContract($companyId, $contractType = null)
     {
-        return self::where('company_id', $companyId)
-            ->where('agreement_type', $contractType)
-            ->active()
-            ->orderBy('id', 'desc')
-            ->first();
+        $query = self::where('company_id', $companyId)->active();
+
+        if ($contractType) {
+            $query->where('agreement_type', $contractType);
+        }
+
+        return $query->orderBy('id', 'desc')->first();
     }
 
     /**

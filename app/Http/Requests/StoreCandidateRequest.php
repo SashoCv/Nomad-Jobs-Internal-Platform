@@ -23,6 +23,8 @@ class StoreCandidateRequest extends FormRequest
             'passportValidUntil' => 'required|date',
             'passportIssuedOn' => 'required|date',
             'passportIssuedBy' => 'required|string|max:255',
+            'candidate_source' => 'required|in:agent,direct_employer,assistance_only',
+            'agent_id' => 'required_if:candidate_source,agent|nullable|integer|exists:users,id',
         ];
     }
 
@@ -37,6 +39,10 @@ class StoreCandidateRequest extends FormRequest
             'passportValidUntil.required' => 'Passport expiry date is required.',
             'passportIssuedOn.required' => 'Passport issue date is required.',
             'passportIssuedBy.required' => 'Passport issuing authority is required.',
+            'candidate_source.required' => 'Източникът на кандидат е задължителен.',
+            'candidate_source.in' => 'Източникът на кандидат трябва да бъде агент, директен работодател или само съдействие.',
+            'agent_id.required_if' => 'Агентът е задължителен когато източникът е агент.',
+            'agent_id.exists' => 'Избраният агент не съществува.',
         ];
     }
 }

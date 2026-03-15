@@ -33,6 +33,7 @@ class ReferenceDataController extends Controller
                 'name' => 'required|string|max:255',
                 'order' => 'nullable|integer',
                 'show_for_companies' => 'nullable|boolean',
+                'allow_reassign' => 'nullable|boolean',
             ]);
 
             // If order is not provided, automatically set it to the highest order + 1
@@ -70,6 +71,7 @@ class ReferenceDataController extends Controller
                 'name' => 'required|string|max:255',
                 'order' => 'nullable|integer',
                 'show_for_companies' => 'nullable|boolean',
+                'allow_reassign' => 'nullable|boolean',
             ]);
 
             $status->update($validated);
@@ -136,6 +138,7 @@ class ReferenceDataController extends Controller
                 'nameOfStatus' => 'required|string|max:255',
                 'order' => 'nullable|integer',
                 'showOnHomePage' => 'nullable|boolean',
+                'showForAgent' => 'nullable|boolean',
             ]);
 
             $status = Status::create($validated);
@@ -162,6 +165,7 @@ class ReferenceDataController extends Controller
                 'nameOfStatus' => 'required|string|max:255',
                 'order' => 'nullable|integer',
                 'showOnHomePage' => 'nullable|boolean',
+                'showForAgent' => 'nullable|boolean',
             ]);
 
             $status->update($validated);

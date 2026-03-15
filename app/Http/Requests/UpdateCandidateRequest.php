@@ -62,8 +62,8 @@ class UpdateCandidateRequest extends FormRequest
             'phoneNumber' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
             'notes' => 'nullable|string|max:2000',
-            'agent_id' => 'nullable|integer|exists:users,id',
-            'candidate_source' => 'nullable|in:agent,direct_employer,assistance_only',
+            'candidate_source' => 'required|in:agent,direct_employer,assistance_only',
+            'agent_id' => 'required_if:candidate_source,agent|nullable|integer|exists:users,id',
             'case_id' => 'nullable|integer|exists:cases,id',
         ];
     }
@@ -119,6 +119,9 @@ class UpdateCandidateRequest extends FormRequest
 
             // Optional fields
             'email.email' => 'Имейлът трябва да бъде валиден имейл адрес.',
+            'candidate_source.required' => 'Източникът на кандидат е задължителен.',
+            'candidate_source.in' => 'Източникът на кандидат трябва да бъде агент, директен работодател или само съдействие.',
+            'agent_id.required_if' => 'Агентът е задължителен когато източникът е агент.',
             'agent_id.exists' => 'Избраният агент не съществува.',
             'case_id.exists' => 'Избраното дело не съществува.',
         ];

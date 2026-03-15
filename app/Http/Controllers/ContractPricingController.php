@@ -55,6 +55,8 @@ class ContractPricingController extends Controller
                     'country_scope_type' => 'nullable|in:all,include,exclude',
                     'country_scope_ids' => 'nullable|array',
                     'country_scope_ids.*' => 'exists:countries,id',
+                    'contract_type_ids' => 'nullable|array',
+                    'contract_type_ids.*' => 'exists:contract_types,id',
                 ]);
 
                 if ($validator->fails()) {
@@ -65,7 +67,13 @@ class ContractPricingController extends Controller
             // сними ги сите
             $created = [];
             foreach ($data as $item) {
-                $created[] = ContractPricing::create($item);
+                $contractTypeIds = $item['contract_type_ids'] ?? [];
+                unset($item['contract_type_ids']);
+                $pricing = ContractPricing::create($item);
+                if (! empty($contractTypeIds)) {
+                    $pricing->contractTypes()->sync($contractTypeIds);
+                }
+                $created[] = $pricing->load('contractTypes');
             }
 
             return response()->json($created, 201);
@@ -124,17 +132,20 @@ class ContractPricingController extends Controller
                 'country_scope_type' => 'nullable|in:all,include,exclude',
                 'country_scope_ids' => 'nullable|array',
                 'country_scope_ids.*' => 'exists:countries,id',
+                'contract_type_ids' => 'nullable|array',
+                'contract_type_ids.*' => 'exists:contract_types,id',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['error' => 'Validation failed', 'details' => $validator->errors()], 422);
             }
 
-            $contractPricing->update($request->all());
+            $contractPricing->update($request->except('contract_type_ids'));
+            $contractPricing->contractTypes()->sync($request->contract_type_ids ?? []);
 
             return response()->json([
                 'message' => 'Contract pricing updated successfully.',
-                'data' => $contractPricing->fresh(['contractServiceType', 'status'])
+                'data' => $contractPricing->fresh(['contractServiceType', 'status', 'contractTypes'])
             ], 200);
             
         } catch (\Exception $e) {

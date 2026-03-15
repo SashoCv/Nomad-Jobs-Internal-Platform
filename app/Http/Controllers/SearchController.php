@@ -800,7 +800,7 @@ class SearchController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole(Role::COMPANY_USER)) {
-            $query->where('company_id', $user->company_id);
+            $query->byActiveContractCompany($user->company_id);
         }
 
         if ($user->role_id == Role::AGENT) {
@@ -810,7 +810,7 @@ class SearchController extends Controller
             $searchNationality = $request->searchNationality;
             $searchCreatedAt = $request->searchCreatedAt;
 
-            $candidatesQuery = AgentCandidate::with(['candidate.agent', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
+            $candidatesQuery = AgentCandidate::with(['candidate.agent', 'companyJob', 'companyJob.company', 'contract.company', 'contract.position', 'statusForCandidateFromAgent', 'user'])
                 ->where('agent_candidates.user_id', $user->id)
                 ->where('agent_candidates.deleted_at', null)
                 ->whereHas('candidate', function ($query) {
@@ -870,7 +870,7 @@ class SearchController extends Controller
             $companyOwner = UserOwner::where('user_id', $user->id)->get();
             $companyIds = $companyOwner->pluck('company_id');
 
-            $query->whereIn('company_id', $companyIds);
+            $query->byActiveContractCompanies($companyIds);
         }
 
 

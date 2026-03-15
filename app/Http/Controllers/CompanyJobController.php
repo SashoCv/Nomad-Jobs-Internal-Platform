@@ -43,6 +43,7 @@ class CompanyJobController extends Controller
 
         $query = DB::table('company_jobs')
             ->join('companies', 'company_jobs.company_id', '=', 'companies.id')
+            ->leftJoin('countries', 'company_jobs.country_id', '=', 'countries.id')
             ->leftJoin('agent_candidates', function($join) {
                 $join->on('agent_candidates.company_job_id', '=', 'company_jobs.id');
             })
@@ -63,6 +64,8 @@ class CompanyJobController extends Controller
                 'company_jobs.revision_requested_by',
                 'company_jobs.revision_requested_at',
                 'companies.nameOfCompany',
+                'company_jobs.country_id',
+                'countries.name as countryName',
                 'company_jobs.created_at',
                 'company_jobs.updated_at',
                 'company_jobs.deleted_at',
@@ -87,6 +90,8 @@ class CompanyJobController extends Controller
                 'company_jobs.revision_requested_by',
                 'company_jobs.revision_requested_at',
                 'companies.nameOfCompany',
+                'company_jobs.country_id',
+                'countries.name',
                 'company_jobs.created_at',
                 'company_jobs.updated_at',
                 'company_jobs.deleted_at'
@@ -120,6 +125,10 @@ class CompanyJobController extends Controller
             });
         }
 
+        if ($companyId = $request->company_id) {
+            $query->where('companies.id', $companyId);
+        }
+
         switch ($roleId) {
             case Role::GENERAL_MANAGER:
             case Role::MANAGER:
@@ -128,9 +137,7 @@ class CompanyJobController extends Controller
             case Role::OFFICE_MANAGER:
             case Role::RECRUITERS:
             case Role::FINANCE:
-                if ($companyId = $request->company_id) {
-                    $query->where('companies.id', $companyId);
-                }
+                // Staff sees all job postings (filtered by company_id above if provided)
                 break;
 
             case Role::COMPANY_USER:
@@ -370,6 +377,12 @@ class CompanyJobController extends Controller
             $companyJob->companyImage = $company->logoPath;
             $companyJob->companyCity = $company->companyCity;
             $companyJob->companyName = $company->nameOfCompany;
+
+            // Resolve country name from country_id
+            if ($companyJob->country_id) {
+                $country = \App\Models\Country::find($companyJob->country_id);
+                $companyJob->countryOfOrigin = $country?->name ?? $companyJob->countryOfOrigin;
+            }
 
             // Get position NKDP if position_id exists
             if ($companyJob->position_id) {

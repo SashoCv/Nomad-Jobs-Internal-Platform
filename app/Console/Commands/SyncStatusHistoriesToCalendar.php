@@ -48,6 +48,10 @@ class SyncStatusHistoriesToCalendar extends Command
             'type' => CalendarEvent::TYPE_ERPR_PHOTO,
             'title' => 'Снимка за ЕРПР',
         ],
+        Status::TAKING_ERPR => [
+            'type' => CalendarEvent::TYPE_ERPR_TAKING,
+            'title' => 'Получаване на ЕРПР',
+        ],
         Status::HIRED => [
             'type' => CalendarEvent::TYPE_HIRED,
             'title' => 'Назначен на работа',

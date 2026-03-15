@@ -42,6 +42,10 @@ class TransformCompanyServiceContract
                         'description' => $pricing->description,
                         'country_scope_type' => $pricing->country_scope_type ?? 'all',
                         'country_scope_ids' => $pricing->country_scope_ids ?? [],
+                        'contractTypes' => $pricing->contractTypes ? $pricing->contractTypes->map(function ($ct) {
+                            return ['id' => $ct->id, 'name' => $ct->name, 'slug' => $ct->slug];
+                        })->toArray() : [],
+                        'contractTypeIds' => $pricing->contractTypes ? $pricing->contractTypes->pluck('id')->toArray() : [],
                     ];
                 })->toArray(),
                 'companyContractFiles' => $contract->company ? $this->checkContractFiles($contract->company->id) : false,

@@ -76,7 +76,7 @@ class CompanyController extends Controller
      */
     private function getCompaniesForCompanyUser($user)
     {
-        return Company::where('id', $user->company_id)->get(['id', 'nameOfCompany']);
+        return Company::where('id', $user->company_id)->get(['id', 'nameOfCompany', 'nameOfCompanyLatin']);
     }
 
     /**
@@ -99,7 +99,7 @@ class CompanyController extends Controller
             ->pluck('company_jobs.company_id')
             ->unique();
 
-        return Company::whereIn('id', $companyIds)->get(['id', 'nameOfCompany']);
+        return Company::whereIn('id', $companyIds)->get(['id', 'nameOfCompany', 'nameOfCompanyLatin']);
     }
 
     /**

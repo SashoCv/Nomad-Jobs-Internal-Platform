@@ -303,6 +303,25 @@ class Candidate extends Model
         return $query->where('company_id', $companyId);
     }
 
+    /**
+     * Filter candidates by the company of their active contract.
+     * A company user should only see a candidate if the active contract belongs to their company,
+     * regardless of any previous/old contracts.
+     */
+    public function scopeByActiveContractCompany(Builder $query, int $companyId): Builder
+    {
+        return $query->whereHas('activeContract', function (Builder $q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        });
+    }
+
+    public function scopeByActiveContractCompanies(Builder $query, $companyIds): Builder
+    {
+        return $query->whereHas('activeContract', function (Builder $q) use ($companyIds) {
+            $q->whereIn('company_id', $companyIds);
+        });
+    }
+
     public function scopeByStatus(Builder $query, int $statusId): Builder
     {
         return $query->where('status_id', $statusId);

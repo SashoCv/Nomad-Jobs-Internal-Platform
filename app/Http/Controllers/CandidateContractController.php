@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgentCandidate;
 use App\Models\Candidate;
 use App\Models\CandidateContract;
 use App\Models\Permission;
 use App\Traits\HasRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class CandidateContractController extends Controller
 {
@@ -259,5 +261,35 @@ class CandidateContractController extends Controller
             'agent_id' => $contract->agent_id,
             'candidate_source' => $contract->candidate_source,
         ]);
+
+        // Sync agent_candidates record so agent can see this candidate
+        $this->syncAgentCandidate($candidate, $contract);
+    }
+
+    private function syncAgentCandidate(Candidate $candidate, CandidateContract $contract): void
+    {
+        $existingAgentCandidate = AgentCandidate::where('candidate_id', $candidate->id)->first();
+
+        if (! empty($contract->agent_id)) {
+            if ($existingAgentCandidate) {
+                $existingAgentCandidate->update([
+                    'user_id' => $contract->agent_id,
+                    'contract_id' => $contract->id,
+                    'company_job_id' => $contract->company_job_id,
+                    'status_for_candidate_from_agent_id' => $existingAgentCandidate->status_for_candidate_from_agent_id ?? 3,
+                ]);
+            } else {
+                AgentCandidate::create([
+                    'user_id' => $contract->agent_id,
+                    'candidate_id' => $candidate->id,
+                    'contract_id' => $contract->id,
+                    'company_job_id' => $contract->company_job_id,
+                    'status_for_candidate_from_agent_id' => 3,
+                    'nomad_office_id' => Auth::user()->id ?? null,
+                ]);
+            }
+        } elseif ($existingAgentCandidate) {
+            $existingAgentCandidate->delete();
+        }
     }
 }
