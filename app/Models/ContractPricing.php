@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ContractPricing extends Model
@@ -41,6 +42,16 @@ class ContractPricing extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class, 'status_id');
+    }
+
+    /**
+     * Contract types this pricing applies to.
+     * If empty → applies to ALL contract types.
+     * If has entries → applies ONLY to those contract types.
+     */
+    public function contractTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(ContractType::class, 'company_pricing_contract_types', 'pricing_id', 'contract_type_id');
     }
 
     /**

@@ -51,15 +51,19 @@ class ArrivalCandidateController extends Controller
             $isAgent = $this->isAgent();
 
             // Use relationships instead of joins to avoid duplicates
-            $query = Candidate::with(['company', 'status'])
-                ->whereHas('status', function ($q) {
-                    $q->where('showOnHomePage', 1);
-                });
+            $query = Candidate::with(['company', 'status']);
 
-            // Agents can only see their own candidates
+            // Agents can only see their own candidates, with agent-visible statuses
             if ($isAgent) {
                 $query->whereHas('agentCandidates', function ($q) {
                     $q->where('user_id', Auth::id());
+                });
+                $query->whereHas('status', function ($q) {
+                    $q->where('showForAgent', true);
+                });
+            } else {
+                $query->whereHas('status', function ($q) {
+                    $q->where('showOnHomePage', 1);
                 });
             }
 

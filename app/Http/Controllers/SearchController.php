@@ -810,7 +810,7 @@ class SearchController extends Controller
             $searchNationality = $request->searchNationality;
             $searchCreatedAt = $request->searchCreatedAt;
 
-            $candidatesQuery = AgentCandidate::with(['candidate.agent', 'companyJob', 'companyJob.company', 'statusForCandidateFromAgent', 'user'])
+            $candidatesQuery = AgentCandidate::with(['candidate.agent', 'companyJob', 'companyJob.company', 'contract.company', 'contract.position', 'statusForCandidateFromAgent', 'user'])
                 ->where('agent_candidates.user_id', $user->id)
                 ->where('agent_candidates.deleted_at', null)
                 ->whereHas('candidate', function ($query) {

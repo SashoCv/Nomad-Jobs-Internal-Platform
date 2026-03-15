@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Statushistory extends Model
 {
-    use HasFactory;
-
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'candidate_id',
@@ -16,6 +16,7 @@ class Statushistory extends Model
         'status_id',
         'statusDate',
         'description',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -35,5 +36,10 @@ class Statushistory extends Model
     public function status()
     {
         return $this->belongsTo(Status::class, 'status_id');
+    }
+
+    public function deletedByUser()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

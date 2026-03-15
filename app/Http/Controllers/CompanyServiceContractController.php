@@ -34,7 +34,7 @@ class CompanyServiceContractController extends Controller
                 return response()->json(['error' => 'Insufficient permissions'], 403);
             }
 
-            $query = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','contractPricing.contractServiceType','company.companyFiles']);
+            $query = CompanyServiceContract::with(['company','contractPricing','contractPricing.status','contractPricing.contractServiceType','contractPricing.contractTypes','company.companyFiles']);
 
             if ($this->isStaff()) {
                 // Staff can see all contracts
@@ -86,7 +86,7 @@ class CompanyServiceContractController extends Controller
             $request->validate([
                 'company_id' => 'required|exists:companies,id',
                 'contractNumber' => 'required|string|max:255',
-                'agreement_type' => 'required|in:' . implode(',', [
+                'agreement_type' => 'nullable|in:' . implode(',', [
                         CompanyServiceContract::AGREEMENT_TYPE_ERPR,
                         CompanyServiceContract::AGREEMENT_TYPE_90DAYS,
                     ]),
@@ -101,14 +101,13 @@ class CompanyServiceContractController extends Controller
             // If creating an active contract, first check if one already exists
             if ($request->status === CompanyServiceContract::STATUS_ACTIVE) {
                 $existingActiveContract = CompanyServiceContract::where('company_id', $request->company_id)
-                    ->where('agreement_type', $request->agreement_type)
                     ->where('status', CompanyServiceContract::STATUS_ACTIVE)
+                    ->where('id', '!=', 0)
                     ->first();
 
                 if ($existingActiveContract) {
-                    // Return error - don't allow creating new active contract
                     return response()->json([
-                        'error' => 'Тази компания вече има активен договор от този тип (№' . $existingActiveContract->contractNumber . '). Моля, първо деактивирайте съществуващия договор.'
+                        'error' => 'Тази компания вече има активен договор (№' . $existingActiveContract->contractNumber . '). Моля, първо деактивирайте съществуващия договор.'
                     ], 422);
                 }
             }
@@ -244,7 +243,7 @@ class CompanyServiceContractController extends Controller
             $request->validate([
                 'company_id' => 'required|exists:companies,id',
                 'contractNumber' => 'required|string|max:255',
-                'agreement_type' => 'required|in:' . implode(',', [
+                'agreement_type' => 'nullable|in:' . implode(',', [
                         CompanyServiceContract::AGREEMENT_TYPE_ERPR,
                         CompanyServiceContract::AGREEMENT_TYPE_90DAYS,
                     ]),

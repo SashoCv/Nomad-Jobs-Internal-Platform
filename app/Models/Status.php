@@ -34,9 +34,11 @@ class Status extends Model
         'nameOfStatus',
         'order',
         'showOnHomePage',
+        'showForAgent',
     ];
 
     protected $casts = [
         'showOnHomePage' => 'boolean',
+        'showForAgent' => 'boolean',
     ];
 }
