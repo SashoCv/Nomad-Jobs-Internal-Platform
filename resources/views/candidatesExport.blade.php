@@ -75,7 +75,7 @@
                     ? \Carbon\Carbon::parse($candidate->latestStatusHistory->statusDate)->format('d-m-Y')
                     : '-' }}
             </td>
-            <td>{{ $candidate->latestStatusHistory->status->nameOfStatus ?? 'N/A' }}</td>
+            <td>{{ $candidate->status->nameOfStatus ?? 'N/A' }}</td>
             <td>{{ $candidate->company->nameOfCompany ?? 'N/A' }}</td>
         </tr>
     @endforeach
