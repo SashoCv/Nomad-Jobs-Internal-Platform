@@ -59,3 +59,13 @@ The system has two distinct permission categories for handling candidates submit
 **Admins receive**:
 - `CANDIDATES_FROM_AGENT_*` - Full oversight of agent submissions
 - Plus all other administrative permissions
+## Deployment
+
+- **Backend (API)**: Laravel on Hostinger — pull manually via SSH after pushing
+- **Frontend (Web)**: Next.js on Vercel — auto-deploys on push to branch
+
+## Knowledge Base
+
+For detailed documentation on specific systems, see `.claude/knowledge/`:
+
+- **[Category Visibility System](.claude/knowledge/category-visibility-system.md)** — How document category visibility works via the `category_role` pivot table, the `isStaff()` bypass, agent vs staff visibility, and the Feb 2026 bug fix for orphaned categories.

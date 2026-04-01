@@ -152,8 +152,8 @@ class AgentCandidateController extends Controller
         $person->driving_license_category = $request->driving_license_category;
         $person->driving_license_expiry = $request->driving_license_expiry;
         $person->driving_license_country = $request->driving_license_country;
-        $person->english_level = $request->english_level;
-        $person->russian_level = $request->russian_level;
+        $person->english_level = $request->english_level ?? 'none';
+        $person->russian_level = $request->russian_level ?? 'none';
         $person->other_language = $request->other_language;
         $person->other_language_level = $request->other_language_level;
         $person->children_info = $request->children_info;
