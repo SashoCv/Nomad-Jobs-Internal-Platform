@@ -378,10 +378,16 @@ class CompanyJobController extends Controller
             $companyJob->companyCity = $company->companyCity;
             $companyJob->companyName = $company->nameOfCompany;
 
-            // Resolve country name from country_id
+            // Resolve country name from country_id, or from legacy countryOfOrigin
+            // when it holds a numeric ID (older rows saved only the legacy column).
             if ($companyJob->country_id) {
                 $country = \App\Models\Country::find($companyJob->country_id);
                 $companyJob->countryOfOrigin = $country?->name ?? $companyJob->countryOfOrigin;
+            } elseif (is_numeric($companyJob->countryOfOrigin)) {
+                $country = \App\Models\Country::find($companyJob->countryOfOrigin);
+                if ($country) {
+                    $companyJob->countryOfOrigin = $country->name;
+                }
             }
 
             // Get position NKDP if position_id exists
