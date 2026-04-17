@@ -178,127 +178,150 @@ class AgentCandidateController extends Controller
             $person->personPictureName = $request->file('personPicture')->getClientOriginalName();
         }
 
-        if($person->save()){
-            // Store passport data in candidate_passports table (required for new candidates)
-            CandidatePassport::create([
-                'candidate_id' => $person->id,
-                'passport_number' => $request->passport,
-                'issue_date' => $request->passportIssuedOn,
-                'expiry_date' => $request->passportValidUntil,
-                'issued_by' => $request->passportIssuedBy,
-                'file_path' => $passportPath,
-                'file_name' => $passportFileName,
-            ]);
+        // All database writes for creating a candidate must be atomic.
+        // Without this, a failure partway through (e.g. contract insert rejects
+        // due to data-length mismatch) leaves an orphaned `candidates` row
+        // with no contract, which used to cause agents to retry and mint more
+        // orphans. Everything below runs inside a single transaction.
+        try {
+            $agentCandidate = DB::transaction(function () use (
+                $request,
+                $person,
+                $passportPath,
+                $passportFileName,
+                $companyId,
+                $jobPositionId,
+                $jobContractTypeId,
+                $jobContractType,
+                $jobSalary,
+                $jobWorkTime,
+                $educations,
+                $experiences,
+                $getCompanyJob
+            ) {
+                $person->save();
 
-            // Create contract record — all business fields derived from job posting
-            $contract = CandidateContract::create([
-                'candidate_id' => $person->id,
-                'contract_period_number' => 1,
-                'is_active' => true,
-                'company_id' => $companyId,
-                'position_id' => $jobPositionId,
-                'status_id' => null,
-                'type_id' => 3, // Agent candidate type
-                'contract_type' => $jobContractType,
-                'contract_type_id' => $jobContractTypeId,
-                'salary' => $jobSalary,
-                'working_time' => $jobWorkTime,
-                'working_days' => null,
-                'address_of_work' => null,
-                'name_of_facility' => null,
-                'dossier_number' => null,
-                'agent_id' => Auth::user()->id,
-                'user_id' => null,
-                'added_by' => Auth::user()->id,
-                'notes' => $request->notes,
-                'date' => $request->date ?? now(),
-            ]);
+                // Store passport data in candidate_passports table (required for new candidates)
+                CandidatePassport::create([
+                    'candidate_id' => $person->id,
+                    'passport_number' => $request->passport,
+                    'issue_date' => $request->passportIssuedOn,
+                    'expiry_date' => $request->passportValidUntil,
+                    'issued_by' => $request->passportIssuedBy,
+                    'file_path' => $passportPath,
+                    'file_name' => $passportFileName,
+                ]);
 
-            if(count($educations) > 0){
-                foreach ($educations as $education) {
-                    $newEducation = new Education();
-                    $newEducation->candidate_id = $person->id;
-                    $newEducation->school_name = $education['school_name'] ?? null;
-                    $newEducation->degree = $education['degree'] ?? null;
-                    $newEducation->field_of_study = $education['field_of_study'] ?? null;
-                    $newEducation->start_date = $education['start_date'] ?? null;
-                    $newEducation->end_date = $education['end_date'] ?? null;
-                    $newEducation->save();
+                // Create contract record — all business fields derived from job posting
+                $contract = CandidateContract::create([
+                    'candidate_id' => $person->id,
+                    'contract_period_number' => 1,
+                    'is_active' => true,
+                    'company_id' => $companyId,
+                    'position_id' => $jobPositionId,
+                    'status_id' => null,
+                    'type_id' => 3, // Agent candidate type
+                    'contract_type' => $jobContractType,
+                    'contract_type_id' => $jobContractTypeId,
+                    'salary' => $jobSalary,
+                    'working_time' => $jobWorkTime,
+                    'working_days' => null,
+                    'address_of_work' => null,
+                    'name_of_facility' => null,
+                    'dossier_number' => null,
+                    'agent_id' => Auth::user()->id,
+                    'user_id' => null,
+                    'added_by' => Auth::user()->id,
+                    'notes' => $request->notes,
+                    'date' => $request->date ?? now(),
+                ]);
+
+                if (count($educations) > 0) {
+                    foreach ($educations as $education) {
+                        $newEducation = new Education();
+                        $newEducation->candidate_id = $person->id;
+                        $newEducation->school_name = $education['school_name'] ?? null;
+                        $newEducation->degree = $education['degree'] ?? null;
+                        $newEducation->field_of_study = $education['field_of_study'] ?? null;
+                        $newEducation->start_date = $education['start_date'] ?? null;
+                        $newEducation->end_date = $education['end_date'] ?? null;
+                        $newEducation->save();
+                    }
                 }
-            }
 
-
-            if(count($experiences) > 0){
-                foreach ($experiences as $experience) {
-                    $newExperience = new Experience();
-                    $newExperience->candidate_id = $person->id;
-                    $newExperience->company_name = $experience['company_name'] ?? null;
-                    $newExperience->position = $experience['position'] ?? null;
-                    $newExperience->responsibilities = $experience['responsibilities'] ?? null;
-                    $newExperience->start_date = $experience['start_date'] ?? null;
-                    $newExperience->end_date = $experience['end_date'] ?? null;
-                    $newExperience->save();
+                if (count($experiences) > 0) {
+                    foreach ($experiences as $experience) {
+                        $newExperience = new Experience();
+                        $newExperience->candidate_id = $person->id;
+                        $newExperience->company_name = $experience['company_name'] ?? null;
+                        $newExperience->position = $experience['position'] ?? null;
+                        $newExperience->responsibilities = $experience['responsibilities'] ?? null;
+                        $newExperience->start_date = $experience['start_date'] ?? null;
+                        $newExperience->end_date = $experience['end_date'] ?? null;
+                        $newExperience->save();
+                    }
                 }
-            }
 
-            // Handle CV Photos
-            $this->handleCvPhotoUploads($request, $person);
+                // Handle CV Photos
+                $this->handleCvPhotoUploads($request, $person);
 
-            $message = sprintf(
-                'Агент %s добави кандидат за позиция "%s"',
-                Auth::user()->firstName,
-                $getCompanyJob->job_title
-            );
-            
-            $notificationData = [
-                'message' => $message,
-                'type' => $message,
-            ];
+                $message = sprintf(
+                    'Агент %s добави кандидат за позиция "%s"',
+                    Auth::user()->firstName,
+                    $getCompanyJob->job_title
+                );
 
-            $notification = NotificationRepository::createNotification($notificationData);
-            UsersNotificationRepository::createNotificationForUsers($notification);
+                $notificationData = [
+                    'message' => $message,
+                    'type' => $message,
+                ];
 
-            $candidateData = [
-                'user_id' => Auth::user()->id,
-                'company_job_id' => (int) $request->company_job_id,
-                'candidate_id' => $person->id,
-                'status_id' => 1,
-            ];
+                $notification = NotificationRepository::createNotification($notificationData);
+                UsersNotificationRepository::createNotificationForUsers($notification);
 
-            $categoryForFiles = new Category();
-            $categoryForFiles->nameOfCategory = 'files from agent';
-            $categoryForFiles->candidate_id = $person->id;
-            $categoryForFiles->isGenerated = 0;
-            $categoryForFiles->save();
-            $categoryForFiles->visibleToRoles()->attach([
-                Role::AGENT,
-                Role::GENERAL_MANAGER,
-                Role::MANAGER,
-                Role::OFFICE,
-                Role::HR,
-                Role::OFFICE_MANAGER,
-                Role::RECRUITERS,
-                Role::FINANCE,
-            ]);
+                $candidateData = [
+                    'user_id' => Auth::user()->id,
+                    'company_job_id' => (int) $request->company_job_id,
+                    'candidate_id' => $person->id,
+                    'status_id' => 1,
+                ];
 
-            // Generate CV DOCX automatically and save it in "files from agent" category
-            try {
-                $cvService = new CvDocxGeneratorService();
-                $cvService->generateAndSaveCv($person, $contract->id);
-            } catch (\Exception $e) {
-                Log::warning('CV generation failed for candidate ' . $person->id . ': ' . $e->getMessage());
-                // Don't fail the whole request if CV generation fails
-            }
+                $categoryForFiles = new Category();
+                $categoryForFiles->nameOfCategory = 'files from agent';
+                $categoryForFiles->candidate_id = $person->id;
+                $categoryForFiles->isGenerated = 0;
+                $categoryForFiles->save();
+                $categoryForFiles->visibleToRoles()->attach([
+                    Role::AGENT,
+                    Role::GENERAL_MANAGER,
+                    Role::MANAGER,
+                    Role::OFFICE,
+                    Role::HR,
+                    Role::OFFICE_MANAGER,
+                    Role::RECRUITERS,
+                    Role::FINANCE,
+                ]);
 
-            $agentCandidate = new AgentCandidate();
+                // Generate CV DOCX automatically and save it in "files from agent" category.
+                // Kept inside the transaction but with its own try/catch: CV generation
+                // failures should not roll back the candidate record.
+                try {
+                    $cvService = new CvDocxGeneratorService();
+                    $cvService->generateAndSaveCv($person, $contract->id);
+                } catch (\Exception $e) {
+                    Log::warning('CV generation failed for candidate ' . $person->id . ': ' . $e->getMessage());
+                }
 
-            $agentCandidate->user_id = $candidateData['user_id'];
-            $agentCandidate->company_job_id = $candidateData['company_job_id'];
-            $agentCandidate->candidate_id = $candidateData['candidate_id'];
-            $agentCandidate->contract_id = $contract->id;
-            $agentCandidate->status_for_candidate_from_agent_id = $candidateData['status_id'];
+                $agentCandidate = new AgentCandidate();
+                $agentCandidate->user_id = $candidateData['user_id'];
+                $agentCandidate->company_job_id = $candidateData['company_job_id'];
+                $agentCandidate->candidate_id = $candidateData['candidate_id'];
+                $agentCandidate->contract_id = $contract->id;
+                $agentCandidate->status_for_candidate_from_agent_id = $candidateData['status_id'];
+                $agentCandidate->save();
 
-            $agentCandidate->save();
+                return $agentCandidate;
+            });
 
             return response()->json(
                 [
@@ -307,8 +330,18 @@ class AgentCandidateController extends Controller
                 ],
                 200
             );
-        } else {
-            return response()->json(['message' => 'Failed to add candidate'], 500);
+        } catch (\Throwable $e) {
+            // Transaction already rolled back — no orphan candidate will exist.
+            Log::error('agentAddCandidateForAssignedJob failed', [
+                'user_id' => Auth::id(),
+                'company_job_id' => $request->company_job_id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to add candidate',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
